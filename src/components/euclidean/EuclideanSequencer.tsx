@@ -653,6 +653,12 @@ export const EuclideanSequencer = () => {
         delaySend: config.delaySend,
         reverbSend: config.reverbSend,
         ratchet: config.ratchet ?? 0,
+        ...(t.isTonal ? {
+          rootNote: config.rootNote ?? t.rootNote,
+          scaleId: config.scaleId ?? t.scaleId,
+          octaveRange: config.octaveRange ?? t.octaveRange,
+          noteIndices: config.noteIndices ? [...config.noteIndices] : t.noteIndices,
+        } : {}),
         hits: 0,
         misses: 0,
       });
