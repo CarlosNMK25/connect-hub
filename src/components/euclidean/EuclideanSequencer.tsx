@@ -2136,7 +2136,6 @@ export const EuclideanSequencer = () => {
               </div>
             </div>
           </div>
-          </div>
 
           <div className="md:col-span-3 bg-white border border-black/5 rounded-2xl p-8 flex flex-col justify-center relative overflow-hidden shadow-sm">
             {hoveredPreset ? (
