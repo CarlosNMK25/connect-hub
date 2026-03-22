@@ -209,7 +209,7 @@ export const EuclideanSequencer = () => {
     const updateState = () => setAudioContextState(Tone.getContext().state);
     Tone.getContext().on('statechange', updateState);
     updateState();
-    return () => Tone.getContext().off('statechange', updateState);
+    return () => { Tone.getContext().off('statechange', updateState); };
   }, []);
 
   const handleStartAudio = async () => {
