@@ -76,23 +76,57 @@ interface EuclideanTrackProps {
   studyVoice?: PedagogyVoice;
 }
 
-const StudyTooltip = ({ content, visible }: { content: string; visible: boolean }) => (
-  <AnimatePresence>
-    {visible && (
-      <motion.div
-        initial={{ opacity: 0, y: 5, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 5, scale: 0.95 }}
-        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-[100] w-64 p-3 bg-white border border-system-accent/40 rounded-xl shadow-2xl pointer-events-none"
-      >
-        <div className="text-[10px] font-mono leading-relaxed text-idm-ink uppercase">
-          {content}
-        </div>
-        <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-white border-r border-b border-system-accent/40 rotate-45 -mt-1" />
-      </motion.div>
-    )}
-  </AnimatePresence>
-);
+const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl: HTMLElement | null }) => {
+  const [pos, setPos] = useState({ top: 0, left: 0, flip: false });
+
+  useEffect(() => {
+    if (visible && anchorEl) {
+      const rect = anchorEl.getBoundingClientRect();
+      const spaceAbove = rect.top;
+      const flip = spaceAbove < 120;
+      setPos({
+        top: flip ? rect.bottom + 8 : rect.top - 8,
+        left: Math.min(Math.max(rect.left + rect.width / 2, 144), window.innerWidth - 144),
+        flip
+      });
+    }
+  }, [visible, anchorEl]);
+
+  if (!visible || !anchorEl) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ opacity: 0, y: pos.flip ? -5 : 5, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: pos.flip ? -5 : 5, scale: 0.95 }}
+          transition={{ duration: 0.15 }}
+          style={{
+            position: 'fixed',
+            top: pos.top,
+            left: pos.left,
+            transform: pos.flip ? 'translateX(-50%)' : 'translate(-50%, -100%)',
+            zIndex: 99999
+          }}
+          className="w-72 p-3 bg-white border border-system-accent/40 rounded-xl shadow-2xl pointer-events-none"
+        >
+          <div className="text-[10px] font-mono leading-relaxed text-idm-ink uppercase">
+            {content}
+          </div>
+          <div
+            className="absolute left-1/2 -translate-x-1/2 w-2 h-2 bg-white border-system-accent/40 rotate-45"
+            style={pos.flip
+              ? { top: '-4px', borderTop: '1px solid', borderLeft: '1px solid' }
+              : { bottom: '-4px', borderRight: '1px solid', borderBottom: '1px solid' }
+            }
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+};
 
 export const EuclideanTrack = React.memo(({
   id,
