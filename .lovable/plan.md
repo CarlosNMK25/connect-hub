@@ -1,43 +1,44 @@
 
 
-## Plan: Add Study Mode tooltips to global controls and visual monitors
+## Plan: Add Eclipse Countdown and Hit Rate indicators to Sync panel
 
-### What changes
+### Summary
+Add two new metric cells to the existing Sync panel grid, expanding it from 2 columns to a responsive 4-column layout. Pure UI work — no audio engine changes.
 
-**1. Add missing pedagogy entries** (`src/constants/pedagogy.ts`)
+### Changes (single file: `EuclideanSequencer.tsx`)
 
-Add new keys to both `micro` and `microLiterary` for global FX parameters that don't have entries yet:
-- `reverbMix` — Global reverb wet/dry mix
-- `delayMix` — Global delay wet/dry mix  
-- `delayFeedback` — Delay feedback amount
-- `fxHighPass` — FX chain high-pass filter
-- `fxLowPass` — FX chain low-pass filter
-- `monitorTemporal` — Jitter distribution visualization
-- `monitorDistribution` — Energy distribution histogram
-- `monitorRange` — Velocity range meter
-- `monitorScatter` — Hit scatter plot
+**1. Derived calculations before the return**
 
-**2. Add tooltip system to EuclideanSequencer** (`src/components/euclidean/EuclideanSequencer.tsx`)
+- **Eclipse countdown**: `stepsRestantes = mcm - (globalStep % mcm)`. Format seconds as `Xm Ys` or `Xs`. If not playing, show total cycle time. If > 10min, show `~Xm`.
+- **Eclipse detection**: Use a `useRef` + `useEffect` to latch the eclipse state. When `stepsRestantes <= 1`, set `eclipseFlash = true` and start a 1.2s `setTimeout` to clear it. The ref prevents re-triggering during the same eclipse window. This way the "NOW ✦" label persists for a full animation cycle regardless of how many frames `globalStep % mcm` stays at 0.
+- **Hit Rate**: Aggregate `uiStats[trackId].hits` and `.misses` for non-cloud tracks. `hitRate = total > 0 ? Math.round(hits/total*100) : null`. Show "—" when null.
 
-- Import `getMicroText` and `createPortal` from existing dependencies
-- Add `hoveredParam` and `hoveredParamEl` state variables (same pattern as EuclideanTrack)
-- Create `handleParamEnter` / `handleParamLeave` handlers gated by `isStudyMode`
-- Reuse the same `StudyTooltip` component (copy from EuclideanTrack or extract to shared file). Since the component is small (~50 lines), duplicating it keeps changes minimal.
-- Wrap each global control label (`div` containing Tempo, Jitter, Swing, etc.) with `onMouseEnter` / `onMouseLeave` calling the handlers with the pedagogy key
-- Wrap each monitor section header (Temporal, Distribution, Range, Scatter) similarly
-- Render `<StudyTooltip>` at the end of the control panel
+**2. Expand the grid** (lines ~1690-1705)
 
-**3. Files touched**
-- `src/constants/pedagogy.ts` — Add ~10 new pedagogy entries (both voices)
-- `src/components/euclidean/EuclideanSequencer.tsx` — Add tooltip state, handlers, StudyTooltip component, and `onMouseEnter`/`onMouseLeave` on 13 elements
+Change `grid-cols-2` → `grid-cols-2 lg:grid-cols-4` and add two new cells after Impacto:
 
-### Technical detail
+- **Eclipse cell**: Label "ECLIPSE", value in `font-mono text-system-accent`. When `eclipseFlash` is true, show "NOW ✦" with `animate-pulse` (CSS, ~1.2s). Otherwise show the countdown.
+- **Hit Rate cell**: Label "HIT RATE", value `XX%` in `font-mono`. Color: `text-idm-ink` (≥80%), `text-system-accent` (50-79%), `text-red-500` (<50%).
 
-The tooltip uses `ReactDOM.createPortal` to render to `document.body` with `z-index: 99999`, preventing clipping by `overflow-hidden` parents. Position is calculated from the anchor element's `getBoundingClientRect()` with a flip mechanism when space above is < 120px.
+**3. Study Mode tooltips** on both new labels (same pattern as existing MCM/Impacto).
 
-Param key mapping for global controls:
-- Tempo → `bpm`, Jitter → `jitter`, Swing → `swing`, Dynamics → `dynamics`
-- Space (Reverb) → `reverbMix`, Echo (Delay) → `delayMix`, Feedback → `delayFeedback`
-- FX Low-Cut → `fxHighPass`, FX High-Cut → `fxLowPass`
-- Monitor headers → `monitorTemporal`, `monitorDistribution`, `monitorRange`, `monitorScatter`
+### Eclipse latch detail
+
+```text
+useEffect:
+  if stepsRestantes <= 1 AND !eclipseRef.current:
+    eclipseRef.current = true
+    setEclipseFlash(true)
+    setTimeout(() => {
+      setEclipseFlash(false)
+      eclipseRef.current = false
+    }, 1200)
+
+deps: [stepsRestantes]
+```
+
+One `useRef` (boolean flag) + one `useState` (for render). The ref gates re-entry so even if `stepsRestantes` bounces between 0 and 1 across multiple 100ms ticks, the flash fires exactly once per eclipse and stays visible for 1.2 seconds.
+
+### Files touched
+- `src/components/euclidean/EuclideanSequencer.tsx` only
 
