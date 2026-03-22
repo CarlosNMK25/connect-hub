@@ -2034,6 +2034,16 @@ export const EuclideanSequencer = () => {
         </div>
       )}
 
+      {/* Engine Room Panel */}
+      {showEngine && (
+        <EngineRoom
+          tracks={tracks}
+          uiStats={uiStats}
+          log={engineLog}
+          onClearLog={() => { engineLogRef.current = []; setEngineLog([]); }}
+        />
+      )}
+
       {/* Tracks Container with z-index to ensure interactivity */}
       <div className="space-y-6 relative z-10">
         <MesoInsightMonitor tracks={tracks} isStudyMode={isStudyMode} />
@@ -2051,16 +2061,39 @@ export const EuclideanSequencer = () => {
               lastHit={lastHit?.color === track.color ? lastHit : null}
               isDjMode={isDjMode}
               previewPattern={previewPatterns?.[track.id]}
-              onStepsChange={(val) => setTracks(prev => prev.map(t => {
-                if (t.id === track.id) {
-                  const newSteps = val;
-                  const newPulses = Math.min(t.pulses, val);
-                  return updateTrackPattern({ ...t, steps: newSteps, pulses: newPulses });
-                }
-                return t;
-              }))}
-              onPulsesChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? updateTrackPattern({ ...t, pulses: val }) : t))}
-              onOffsetChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? updateTrackPattern({ ...t, offset: val }) : t))}
+              onStepsChange={(val) => {
+                const oldSteps = track.steps;
+                const oldDensity = Math.round((track.pulses / oldSteps) * 100);
+                const newPulses = Math.min(track.pulses, val);
+                const newDensity = Math.round((newPulses / val) * 100);
+                // Compute MCM delta
+                const rhythmicSteps = tracks.filter(t => t.id !== 'cloud').map(t => t.id === track.id ? val : t.steps);
+                const newMcm = lcmArray(rhythmicSteps);
+                const deltas: string[] = [];
+                if (newMcm !== mcm) deltas.push(`MCM ${mcm} → ${newMcm}`);
+                deltas.push(`Dens ${oldDensity}% → ${newDensity}%`);
+                const oldEclipseSec = mcm * 60 / bpm / 4;
+                const newEclipseSec = newMcm * 60 / bpm / 4;
+                if (newMcm !== mcm) deltas.push(`Eclipse ${formatEclipseTime(oldEclipseSec, false)} → ${formatEclipseTime(newEclipseSec, false)}`);
+                logChange(`${track.name} steps ${oldSteps} → ${val}`, deltas);
+                setTracks(prev => prev.map(t => {
+                  if (t.id === track.id) {
+                    return updateTrackPattern({ ...t, steps: val, pulses: Math.min(t.pulses, val) });
+                  }
+                  return t;
+                }));
+              }}
+              onPulsesChange={(val) => {
+                const oldPulses = track.pulses;
+                const oldDensity = Math.round((oldPulses / track.steps) * 100);
+                const newDensity = Math.round((val / track.steps) * 100);
+                logChange(`${track.name} pulses ${oldPulses} → ${val}`, [`Dens ${oldDensity}% → ${newDensity}%`]);
+                setTracks(prev => prev.map(t => t.id === track.id ? updateTrackPattern({ ...t, pulses: val }) : t));
+              }}
+              onOffsetChange={(val) => {
+                logChange(`${track.name} offset ${track.offset} → ${val}`);
+                setTracks(prev => prev.map(t => t.id === track.id ? updateTrackPattern({ ...t, offset: val }) : t));
+              }}
               onProbabilityChange={(idx, val) => setTracks(prev => prev.map(t => {
                 if (t.id === track.id) {
                   const newProbs = [...t.probabilities];
@@ -2069,10 +2102,24 @@ export const EuclideanSequencer = () => {
                 }
                 return t;
               }))}
-              onChaosToggle={() => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, chaosEnabled: !t.chaosEnabled } : t))}
-              onEntropyChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, entropy: val } : t))}
-              onEvolveToggle={() => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, evolveEnabled: !t.evolveEnabled } : t))}
-              onMutationRateChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, mutationRate: val } : t))}
+              onChaosToggle={() => {
+                const newState = !track.chaosEnabled;
+                logChange(`Chaos ${newState ? 'ON' : 'OFF'} (${track.name})`, newState ? [`HitRate ~${hitRateData.rate ?? 100}% → estimado menor`] : []);
+                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, chaosEnabled: newState } : t));
+              }}
+              onEntropyChange={(val) => {
+                logChange(`${track.name} entropy ${track.entropy} → ${val}×`);
+                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, entropy: val } : t));
+              }}
+              onEvolveToggle={() => {
+                const newState = !track.evolveEnabled;
+                logChange(`Evolve ${newState ? 'ON' : 'OFF'} (${track.name})`);
+                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, evolveEnabled: newState } : t));
+              }}
+              onMutationRateChange={(val) => {
+                logChange(`${track.name} mutation ${Math.round(track.mutationRate * 100)}% → ${Math.round(val * 100)}%`);
+                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, mutationRate: val } : t));
+              }}
               onMutationSpeedChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, mutationSpeed: val } : t))}
               onFileUpload={(file) => handleFileUpload(track.id, file)}
               onSamplerParamChange={(param, val) => handleSamplerParamChange(track.id, param, val)}
