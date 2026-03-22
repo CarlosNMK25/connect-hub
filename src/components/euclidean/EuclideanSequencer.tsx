@@ -1641,7 +1641,9 @@ export const EuclideanSequencer = () => {
                     <EnergyMonitor lastHit={lastHit} mode="range" />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <span className="text-[9px] font-mono uppercase text-system-accent tracking-widest text-center">Scatter</span>
+                    <span className={`text-[9px] font-mono uppercase text-system-accent tracking-widest text-center ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('monitorScatter'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>Scatter</span>
                     <EnergyMonitor lastHit={lastHit} mode="scatter" />
                   </div>
                 </div>
