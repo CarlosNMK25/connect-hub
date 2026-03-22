@@ -11,6 +11,7 @@ interface EuclideanStepProps {
   baseProbability: number;
   effectiveProbability: number;
   previewActive?: boolean;
+  temporalOffset?: number;
   onProbabilityChange: (val: number) => void;
   onToggle: () => void;
 }
@@ -25,6 +26,7 @@ export const EuclideanStep: React.FC<EuclideanStepProps> = ({
   baseProbability,
   effectiveProbability,
   previewActive,
+  temporalOffset = 0,
   onProbabilityChange,
   onToggle
 }) => {
@@ -199,6 +201,23 @@ export const EuclideanStep: React.FC<EuclideanStepProps> = ({
                   className={`absolute inset-0 border-2 rounded-sm pointer-events-none ${mutationPulse === 'up' ? 'border-white' : 'border-orange-500'}`}
                 />
               )}
+
+              {/* Temporal Offset Indicator Bar */}
+              {active && temporalOffset !== 0 && (() => {
+                const maxOffset = 0.06;
+                const normalizedOffset = Math.max(-1, Math.min(1, temporalOffset / maxOffset));
+                const position = 50 + (normalizedOffset * 40);
+                return (
+                  <div
+                    className="absolute top-1 bottom-1 w-[2px] rounded-full pointer-events-none transition-all duration-200"
+                    style={{
+                      left: `${position}%`,
+                      backgroundColor: temporalOffset > 0 ? `${color}80` : `${color}60`,
+                      opacity: Math.abs(normalizedOffset) * 0.8 + 0.2,
+                    }}
+                  />
+                );
+              })()}
 
               {/* Probability Percentage Label */}
               {active && (

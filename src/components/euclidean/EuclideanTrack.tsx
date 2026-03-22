@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Disc, Upload, Trash2, Volume2, Power, Settin
 import { WaveformDisplay } from './WaveformDisplay';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
+import { calculateTemporalOffset, type TemporalityMode } from '../../utils/temporality';
 
 interface EuclideanTrackProps {
   id: string;
@@ -74,6 +75,9 @@ interface EuclideanTrackProps {
   onReverbSendChange: (val: number) => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
+  temporalityMode: TemporalityMode;
+  bpm: number;
+  swing: number;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
@@ -191,9 +195,29 @@ export const EuclideanTrack = React.memo(({
   onDelaySendChange,
   onReverbSendChange,
   isStudyMode,
-  studyVoice = 'technical'
+  studyVoice = 'technical',
+  temporalityMode,
+  bpm,
+  swing
 }: EuclideanTrackProps) => {
   const voice = studyVoice;
+
+  const temporalOffsets = React.useMemo(() => {
+    if (temporalityMode === 'grid') return null;
+    const sixteenthDuration = 60 / bpm / 4;
+    return pattern.map((_, i) =>
+      calculateTemporalOffset(temporalityMode, {
+        trackId: id,
+        stepIndex: i,
+        steps,
+        globalStep: i,
+        swing,
+        jitter,
+        sixteenthDuration,
+        pattern,
+      })
+    );
+  }, [temporalityMode, id, steps, swing, jitter, bpm, pattern]);
 
   const [hoveredParam, setHoveredParam] = useState<string | null>(null);
   const [hoveredParamEl, setHoveredParamEl] = useState<HTMLElement | null>(null);
@@ -832,6 +856,7 @@ export const EuclideanTrack = React.memo(({
               baseProbability={probabilities[i] || 1}
               effectiveProbability={chaosEnabled ? (probabilities[i] || 1) * entropy : (probabilities[i] || 1)}
               previewActive={previewPattern ? previewPattern[i] === 1 : false}
+              temporalOffset={temporalOffsets?.[i] ?? 0}
               onProbabilityChange={(val) => onProbabilityChange(i, val)}
               onToggle={() => onToggleStep(i)}
             />
@@ -975,6 +1000,9 @@ export const EuclideanTrack = React.memo(({
     prevProps.overlap === nextProps.overlap &&
     prevProps.spray === nextProps.spray &&
     prevProps.bitCrush === nextProps.bitCrush &&
-    prevProps.studyVoice === nextProps.studyVoice
+    prevProps.studyVoice === nextProps.studyVoice &&
+    prevProps.temporalityMode === nextProps.temporalityMode &&
+    prevProps.bpm === nextProps.bpm &&
+    prevProps.swing === nextProps.swing
   );
 });
