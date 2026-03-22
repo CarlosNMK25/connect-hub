@@ -603,6 +603,7 @@ export const EuclideanSequencer = () => {
     setJitter(up.jitter);
     setSwing(up.swing);
     setDynamics(up.dynamics);
+    if (up.temporalityMode) setTemporalityMode(up.temporalityMode as TemporalityMode);
     logChange(`User Preset: ${up.name}`, [`BPM:${up.bpm}`]);
 
     setTracks(prev => prev.map(t => {
