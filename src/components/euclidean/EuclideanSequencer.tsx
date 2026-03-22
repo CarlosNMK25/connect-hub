@@ -54,6 +54,13 @@ interface TrackState {
   delaySend: number;
   reverbSend: number;
   ratchet: number;
+  // Tonal Engine
+  isTonal: boolean;
+  rootNote: number;
+  scaleId: string;
+  octaveRange: number;
+  noteIndices: number[];
+  synthType: string;
   hits: number;
   misses: number;
 }

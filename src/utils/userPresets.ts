@@ -12,6 +12,10 @@ export interface UserPresetTrack {
   delaySend: number;
   reverbSend: number;
   ratchet?: number;
+  rootNote?: number;
+  scaleId?: string;
+  octaveRange?: number;
+  noteIndices?: number[];
 }
 
 export interface UserPreset {
