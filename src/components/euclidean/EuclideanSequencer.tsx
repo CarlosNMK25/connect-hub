@@ -234,6 +234,8 @@ export const EuclideanSequencer = () => {
   const [isStudyMode, setIsStudyMode] = useState(false);
   const [studyVoice, setStudyVoice] = useState<PedagogyVoice>('technical');
   const [isThesisOpen, setIsThesisOpen] = useState(false);
+  const [hoveredGlobalParam, setHoveredGlobalParam] = useState<string | null>(null);
+  const [hoveredGlobalEl, setHoveredGlobalEl] = useState<HTMLElement | null>(null);
   const [globalStep, setGlobalStep] = useState(0);
   const [lastHit, setLastHit] = useState<{ offset: number; color: string; velocity: number; id?: number } | null>(null);
   const [hoveredPreset, setHoveredPreset] = useState<ScenePreset | null>(null);
