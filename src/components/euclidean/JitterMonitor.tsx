@@ -35,7 +35,7 @@ export const JitterMonitor: React.FC<JitterMonitorProps> = ({ jitter, lastHit })
   const curvePoints = useMemo(() => {
     const points = [];
     const width = 120;
-    const height = 30;
+    const height = 40;
     
     for (let x = -3; x <= 3; x += 0.1) {
       const y = Math.exp(-0.5 * Math.pow(x, 2)); 
@@ -54,18 +54,18 @@ export const JitterMonitor: React.FC<JitterMonitorProps> = ({ jitter, lastHit })
   }, [curvePoints]);
 
   return (
-    <div className="flex flex-col items-center gap-1 bg-idm-bg p-2 rounded border border-idm-ink/10 min-w-[140px] shadow-sm">
+    <div className="flex flex-col items-center gap-1 bg-idm-bg p-2 rounded border border-idm-ink/10 flex-1 shadow-sm">
       <div className="flex justify-between w-full text-[8px] font-mono uppercase text-system-accent tracking-tighter">
         <span>Deviación</span>
         <span>Gaussiana</span>
       </div>
       
-      <div className="relative w-[120px] h-[30px] mt-1">
+      <div className="relative w-[120px] h-[40px] mt-1">
         {/* The Bell Curve */}
-        <svg width="120" height="30" className="overflow-visible">
+        <svg width="120" height="40" className="overflow-visible">
           {/* Grid lines */}
-          <line x1="60" y1="0" x2="60" y2="30" stroke="rgba(255,255,255,0.05)" strokeDasharray="2 2" />
-          <line x1="0" y1="28" x2="120" y2="28" stroke="rgba(255,255,255,0.1)" />
+          <line x1="60" y1="0" x2="60" y2="40" stroke="rgba(255,255,255,0.05)" strokeDasharray="2 2" />
+          <line x1="0" y1="38" x2="120" y2="38" stroke="rgba(255,255,255,0.1)" />
           
           {/* The Curve */}
           <motion.path
@@ -91,7 +91,7 @@ export const JitterMonitor: React.FC<JitterMonitorProps> = ({ jitter, lastHit })
               
               // Calculate Y on the curve for the point to "land" on it
               const curveY = Math.exp(-0.5 * Math.pow(curveX, 2));
-              const y = 30 - (curveY * 30 * 0.8);
+              const y = 40 - (curveY * 40 * 0.8);
               
               return (
                 <motion.circle
