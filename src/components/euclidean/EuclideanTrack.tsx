@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Disc, Upload, Trash2, Volume2, Power, Settin
 import { WaveformDisplay } from './WaveformDisplay';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
+import { calculateTemporalOffset, type TemporalityMode } from '../../utils/temporality';
 
 interface EuclideanTrackProps {
   id: string;
