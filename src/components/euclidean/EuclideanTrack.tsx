@@ -76,7 +76,7 @@ interface EuclideanTrackProps {
   studyVoice?: PedagogyVoice;
 }
 
-const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl: HTMLElement | null }) => {
+const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
   const [pos, setPos] = useState({ top: 0, left: 0, flip: false });
 
   useEffect(() => {
@@ -293,7 +293,7 @@ export const EuclideanTrack = React.memo(({
           <div 
             ref={volumeBarRef}
             onMouseDown={handleVolumeMouseDown}
-            onMouseEnter={(e) => handleParamEnter(\'volume\', e)}
+            onMouseEnter={(e) => handleParamEnter('volume', e)}
             onMouseLeave={handleParamLeave}
             className="w-2.5 h-14 rounded-full bg-idm-bg border border-black/5 shadow-inner transition-all duration-300 relative overflow-hidden cursor-ns-resize group"
             title={`Volume: ${Math.round(volume * 100)}%`}
@@ -327,7 +327,7 @@ export const EuclideanTrack = React.memo(({
           <div className="flex flex-col gap-2 ml-1">
             <div 
               className="flex flex-col gap-1 relative"
-              onMouseEnter={(e) => handleParamEnter(\'delaySend\', e)}
+              onMouseEnter={(e) => handleParamEnter('delaySend', e)}
               onMouseLeave={handleParamLeave}
             >
               <div className="flex justify-between items-center w-16">
@@ -350,7 +350,7 @@ export const EuclideanTrack = React.memo(({
             </div>
             <div 
               className="flex flex-col gap-1 relative"
-              onMouseEnter={(e) => handleParamEnter(\'reverbSend\', e)}
+              onMouseEnter={(e) => handleParamEnter('reverbSend', e)}
               onMouseLeave={handleParamLeave}
             >
               <div className="flex justify-between items-center w-16">
@@ -500,7 +500,7 @@ export const EuclideanTrack = React.memo(({
           <div className="grid grid-cols-3 gap-6 flex-1 w-full transition-all duration-500 relative z-20 opacity-100 scale-100">
             <div 
               className="space-y-2 relative"
-              onMouseEnter={(e) => handleParamEnter(\'pulses\', e)}
+              onMouseEnter={(e) => handleParamEnter('pulses', e)}
               onMouseLeave={handleParamLeave}
             >
               <div className="flex justify-between text-[9px] font-mono font-bold uppercase text-idm-muted">
@@ -516,7 +516,7 @@ export const EuclideanTrack = React.memo(({
             </div>
             <div 
               className="space-y-2 relative"
-              onMouseEnter={(e) => handleParamEnter(\'steps\', e)}
+              onMouseEnter={(e) => handleParamEnter('steps', e)}
               onMouseLeave={handleParamLeave}
             >
               <div className="flex justify-between text-[9px] font-mono font-bold uppercase text-idm-muted">
@@ -532,7 +532,7 @@ export const EuclideanTrack = React.memo(({
             </div>
             <div 
               className="space-y-2 relative"
-              onMouseEnter={(e) => handleParamEnter(\'offset\', e)}
+              onMouseEnter={(e) => handleParamEnter('offset', e)}
               onMouseLeave={handleParamLeave}
             >
               <div className="flex justify-between text-[9px] font-mono font-bold uppercase text-idm-muted">
@@ -631,7 +631,7 @@ export const EuclideanTrack = React.memo(({
             <div className="space-y-4">
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={(e) => handleParamEnter(\'sampleRoi\', e)}
+                onMouseEnter={(e) => handleParamEnter('sampleRoi', e)}
                 onMouseLeave={handleParamLeave}
               >
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
@@ -646,7 +646,7 @@ export const EuclideanTrack = React.memo(({
               </div>
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={(e) => handleParamEnter(\'sampleRoi\', e)}
+                onMouseEnter={(e) => handleParamEnter('sampleRoi', e)}
                 onMouseLeave={handleParamLeave}
               >
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
@@ -671,7 +671,7 @@ export const EuclideanTrack = React.memo(({
             <div className="grid grid-cols-2 gap-x-6 gap-y-4">
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={(e) => handleParamEnter(\'grainSize\', e)}
+                onMouseEnter={(e) => handleParamEnter('grainSize', e)}
                 onMouseLeave={handleParamLeave}
               >
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
@@ -686,7 +686,7 @@ export const EuclideanTrack = React.memo(({
               </div>
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={(e) => handleParamEnter(\'overlap\', e)}
+                onMouseEnter={(e) => handleParamEnter('overlap', e)}
                 onMouseLeave={handleParamLeave}
               >
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
@@ -701,7 +701,7 @@ export const EuclideanTrack = React.memo(({
               </div>
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={(e) => handleParamEnter(\'spray\', e)}
+                onMouseEnter={(e) => handleParamEnter('spray', e)}
                 onMouseLeave={handleParamLeave}
               >
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
@@ -716,7 +716,7 @@ export const EuclideanTrack = React.memo(({
               </div>
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={(e) => handleParamEnter(\'bitCrush\', e)}
+                onMouseEnter={(e) => handleParamEnter('bitCrush', e)}
                 onMouseLeave={handleParamLeave}
               >
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
@@ -765,7 +765,7 @@ export const EuclideanTrack = React.memo(({
               </div>
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={(e) => handleParamEnter(\'pitch\', e)}
+                onMouseEnter={(e) => handleParamEnter('pitch', e)}
                 onMouseLeave={handleParamLeave}
               >
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
@@ -845,7 +845,7 @@ export const EuclideanTrack = React.memo(({
           {/* Chaos Section */}
           <div 
             className="flex items-center gap-4 relative"
-            onMouseEnter={(e) => handleParamEnter(\'chaos\', e)}
+            onMouseEnter={(e) => handleParamEnter('chaos', e)}
             onMouseLeave={handleParamLeave}
           >
             <button 
@@ -871,7 +871,7 @@ export const EuclideanTrack = React.memo(({
           {/* Evolve Section */}
           <div 
             className="flex items-center gap-4 relative"
-            onMouseEnter={(e) => handleParamEnter(\'evolve\', e)}
+            onMouseEnter={(e) => handleParamEnter('evolve', e)}
             onMouseLeave={handleParamLeave}
           >
             <button 
