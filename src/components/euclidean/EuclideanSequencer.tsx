@@ -1442,6 +1442,15 @@ export const EuclideanSequencer = () => {
               <HelpCircle size={12} />
               <span className="hidden sm:inline">{isStudyMode ? 'Study ON' : 'Study Mode'}</span>
             </button>
+            {isStudyMode && (
+              <button
+                onClick={() => setStudyVoice(v => v === 'technical' ? 'literary' : 'technical')}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[8px] font-mono uppercase tracking-wider transition-all duration-300 border bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10"
+                title="Alternar entre tooltips técnicos y literarios"
+              >
+                {studyVoice === 'technical' ? '∑ Técnico' : '✦ Literario'}
+              </button>
+            )}
             <button 
               onClick={() => setIsThesisOpen(true)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-300 border bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10`}
