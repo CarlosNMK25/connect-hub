@@ -8,6 +8,8 @@ export interface PedagogyMicro {
   [key: string]: string;
 }
 
+export type PedagogyVoice = 'technical' | 'literary';
+
 export interface PedagogyMeso {
   title: string;
   condition: string;
