@@ -1659,7 +1659,9 @@ export const EuclideanSequencer = () => {
           <div className="flex-1 space-y-4 w-full">
             <div className="flex justify-between items-end">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-idm-muted">
+                <div className={`flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('patternSync'); setHoveredGlobalEl(e.currentTarget); } }}
+                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
                   <Zap size={12} className={mcm > 1000 ? "text-red-500 animate-pulse" : "text-system-accent"} />
                   Sincronía del Patrón
                 </div>
@@ -1668,7 +1670,9 @@ export const EuclideanSequencer = () => {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[9px] font-mono uppercase text-idm-ink/40 mb-1">Entropía Rítmica</div>
+                <div className={`text-[9px] font-mono uppercase text-idm-ink/40 mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
+                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('rhythmicEntropy'); setHoveredGlobalEl(e.currentTarget); } }}
+                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>Entropía Rítmica</div>
                 <div className={`text-[10px] font-mono font-bold tracking-tighter ${entropy.color}`}>
                   {entropy.label}
                 </div>
@@ -1685,11 +1689,15 @@ export const EuclideanSequencer = () => {
 
             <div className="grid grid-cols-2 gap-4 pt-2">
               <div className="bg-black/5 p-3 rounded-lg border border-black/5">
-                <div className="text-[8px] uppercase tracking-tighter text-idm-muted mb-1">MCM</div>
+                <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
+                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('mcmValue'); setHoveredGlobalEl(e.currentTarget); } }}
+                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>MCM</div>
                 <div className="text-xl font-mono text-system-accent tracking-tighter">{mcm}</div>
               </div>
               <div className="bg-black/5 p-3 rounded-lg border border-black/5">
-                <div className="text-[8px] uppercase tracking-tighter text-idm-muted mb-1">Impacto</div>
+                <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
+                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('syncImpact'); setHoveredGlobalEl(e.currentTarget); } }}
+                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>Impacto</div>
                 <div className="text-xl font-mono text-system-accent tracking-tighter">
                   {Math.round(syncImpacts.reduce((a, b) => a + b, 0) / Math.max(1, tracks.filter(t => t.id !== 'cloud').length))}%
                 </div>
@@ -1697,13 +1705,17 @@ export const EuclideanSequencer = () => {
             </div>
           </div>
 
-          <PhaseRadar 
-            tracks={tracks.map(t => ({ id: t.id, steps: t.steps, color: t.color, offset: t.offset }))}
-            globalStep={globalStep}
-            onSync={handlePhaseSync}
-            isDjMode={isDjMode}
-            onDjModeToggle={() => setIsDjMode(!isDjMode)}
-          />
+          <div className={isStudyMode ? 'cursor-help' : ''}
+            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('phaseRadar'); setHoveredGlobalEl(e.currentTarget); } }}
+            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+            <PhaseRadar 
+              tracks={tracks.map(t => ({ id: t.id, steps: t.steps, color: t.color, offset: t.offset }))}
+              globalStep={globalStep}
+              onSync={handlePhaseSync}
+              isDjMode={isDjMode}
+              onDjModeToggle={() => setIsDjMode(!isDjMode)}
+            />
+          </div>
 
           {/* Subtle background glow when cycle resets */}
           {isPlaying && (globalStep % mcm === 0) && (
