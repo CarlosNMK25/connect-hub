@@ -1606,7 +1606,7 @@ export const EuclideanSequencer = () => {
                     <JitterMonitor jitter={jitter} lastHit={lastHit} />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <span className="text-[9px] font-mono uppercase text-idm-ink/30 tracking-widest text-center">Distribution</span>
+                    <span className="text-[9px] font-mono uppercase text-system-accent tracking-widest text-center">Distribution</span>
                     <EnergyMonitor lastHit={lastHit} mode="distribution" />
                   </div>
                   <div className="flex flex-col gap-2">
