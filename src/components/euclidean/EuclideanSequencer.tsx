@@ -1607,6 +1607,44 @@ export const EuclideanSequencer = () => {
           hatReverbSend.dispose();
         }
       };
+    } else if (trackId === 'tone') {
+      const toneDelaySend = new Tone.Gain(0.15).connect(master.delayBus);
+      const toneReverbSend = new Tone.Gain(0.2).connect(master.reverbBus);
+      const toneFilter = new Tone.Filter(2000, "lowpass").connect(master.compressor);
+      toneFilter.connect(toneDelaySend);
+      toneFilter.connect(toneReverbSend);
+
+      const toneMonoSynth = new Tone.MonoSynth({
+        oscillator: { type: 'sawtooth' },
+        filter: { Q: 6, type: 'lowpass', rolloff: -24 },
+        envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 },
+        filterEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8, baseFrequency: 200, octaves: 4 },
+        volume: -6
+      }).connect(toneFilter);
+
+      synthsRef.current.tone = {
+        triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
+          toneMonoSynth.triggerAttackRelease(note, duration, time, velocity);
+          const baseCutoff = 600;
+          const dynamicCutoff = baseCutoff + (velocity * 4000);
+          if (isFinite(dynamicCutoff)) {
+            toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+          }
+        },
+        setVolume: (vol: number) => {
+          toneMonoSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
+        },
+        setSends: (delayVal: number, reverbVal: number) => {
+          toneDelaySend.gain.rampTo(delayVal, 0.05);
+          toneReverbSend.gain.rampTo(reverbVal, 0.05);
+        },
+        dispose: () => {
+          toneMonoSynth.dispose();
+          toneFilter.dispose();
+          toneDelaySend.dispose();
+          toneReverbSend.dispose();
+        }
+      };
     }
     
     // Apply current volume and sends
