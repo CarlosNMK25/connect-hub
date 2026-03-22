@@ -236,9 +236,9 @@ export const EuclideanTrack = React.memo(({
       </div>
 
       <div className={`transition-all duration-500 ${isTrackDimmed ? 'grayscale-[0.8]' : ''}`}>
-        <div className="flex flex-col xl:flex-row xl:items-center gap-6">
+        <div className="flex flex-col 2xl:flex-row 2xl:items-center gap-6 xl:flex-wrap overflow-hidden">
         {/* Track Info */}
-        <div className="flex items-center gap-4 min-w-[180px]">
+        <div className="flex items-center gap-4 min-w-[140px]">
           {/* Accent Bar (Interactive Volume Fader) */}
           <div 
             ref={volumeBarRef}
@@ -372,7 +372,7 @@ export const EuclideanTrack = React.memo(({
         </div>
 
         {/* Waveform Display */}
-        <div className="flex-[1.5] min-w-[400px] h-24 relative group bg-idm-bg rounded-xl border border-black/5 overflow-hidden">
+        <div className="flex-1 min-w-[250px] h-24 relative group bg-idm-bg rounded-xl border border-black/5 overflow-hidden">
           <WaveformDisplay 
             buffer={samplerBuffer}
             color={color}
@@ -417,7 +417,7 @@ export const EuclideanTrack = React.memo(({
         </div>
 
         {/* Bjorklund Stats & Sliders */}
-        <div className="flex-1 flex flex-col lg:flex-row gap-6 items-center min-w-[450px]">
+        <div className="flex-1 flex flex-col xl:flex-row gap-6 items-center">
           {/* Stats */}
           <div className="flex items-center gap-6 px-5 py-3 bg-idm-bg rounded-xl border border-black/5 transition-all duration-500 flex-none opacity-100 scale-100 shadow-sm">
             <div className="flex flex-col">
@@ -450,7 +450,7 @@ export const EuclideanTrack = React.memo(({
           </div>
 
           {/* Sliders with z-index to ensure interactivity */}
-          <div className="grid grid-cols-3 gap-6 flex-1 min-w-[300px] transition-all duration-500 relative z-20 opacity-100 scale-100">
+          <div className="grid grid-cols-3 gap-6 flex-1 w-full transition-all duration-500 relative z-20 opacity-100 scale-100">
             <div 
               className="space-y-2 relative"
               onMouseEnter={() => isStudyMode && setHoveredParam('pulses')}
