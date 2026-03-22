@@ -1060,6 +1060,35 @@ export const EuclideanSequencer = () => {
               synth.grainPlayer.start(scheduledTime, finalOffset, duration);
             }
 
+            // Ratchet: schedule additional retrigggers within the sixteenth
+            const ratchetCount = track.ratchet || 0;
+            if (ratchetCount > 0) {
+              const subdivDuration = sixteenthDuration / (ratchetCount + 1);
+              for (let r = 1; r <= ratchetCount; r++) {
+                const ratchetTime = scheduledTime + subdivDuration * r;
+                const ratchetVelocity = velocity * Math.pow(0.65, r);
+                try {
+                  if (synth.triggerAttackRelease) {
+                    const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
+                    if (track.id === 'kick' && !synth.grainPlayer) {
+                      synth.triggerAttackRelease("C1", dur, ratchetTime, ratchetVelocity);
+                    } else {
+                      synth.triggerAttackRelease(dur, ratchetTime, ratchetVelocity);
+                    }
+                  } else if (synth.grainPlayer && track.samplerStatus === 'READY') {
+                    const sprayAmount = (track.spray / 1000) * (track.chaosEnabled ? track.entropy : 1);
+                    const startOffset = track.sampleStart * (track.samplerBuffer?.duration || 0);
+                    const randomOffset = (Math.random() - 0.5) * sprayAmount;
+                    const finalOffset = Math.max(0, Math.min(track.samplerBuffer?.duration || 0, startOffset + randomOffset));
+                    const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
+                    synth.grainPlayer.start(ratchetTime, finalOffset, dur);
+                  }
+                } catch (e) { /* silent */ }
+              }
+              // Collision guard: update last scheduled time to the final ratchet
+              lastScheduledTimesRef.current[track.id] = scheduledTime + subdivDuration * ratchetCount;
+            }
+
             Tone.Draw.schedule(() => {
               setLastHit({ offset, color: track.color, velocity, id: Math.random() });
             }, scheduledTime);
