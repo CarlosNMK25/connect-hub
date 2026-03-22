@@ -14,6 +14,12 @@ interface EuclideanStepProps {
   temporalOffset?: number;
   onProbabilityChange: (val: number) => void;
   onToggle: () => void;
+  // Tonal props
+  isTonal?: boolean;
+  noteName?: string;
+  noteIndex?: number;
+  maxNoteIndex?: number;
+  onNoteIndexChange?: (val: number) => void;
 }
 
 export const EuclideanStep: React.FC<EuclideanStepProps> = ({ 
