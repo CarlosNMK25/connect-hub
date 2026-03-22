@@ -101,5 +101,44 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
   }
+}
+
+/* Euclidean IDM Machine custom styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(26, 26, 26, 0.1);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(26, 26, 26, 0.2);
+}
+
+.step-container.is-current-step .step-box {
+  transform: scale(1.15);
+  background-color: rgba(0, 0, 0, 0.03) !important;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+  border-color: #f97316 !important;
+  border-width: 2px;
+}
+
+.step-container.is-current-step[data-active="true"] .step-box {
+  filter: brightness(0.9);
+  box-shadow: 0 0 20px currentColor;
+  border-color: white !important;
+}
+
+.step-container {
+  transition: transform 0.1s ease-out;
+}
+
+.step-box {
+  transition: transform 0.1s ease-out, background-color 0.1s ease-out, box-shadow 0.1s ease-out, border-color 0.1s ease-out;
 }
