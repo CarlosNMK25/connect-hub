@@ -936,6 +936,7 @@ export const EuclideanTrack = React.memo(({
     prevProps.grainSize === nextProps.grainSize &&
     prevProps.overlap === nextProps.overlap &&
     prevProps.spray === nextProps.spray &&
-    prevProps.bitCrush === nextProps.bitCrush
+    prevProps.bitCrush === nextProps.bitCrush &&
+    prevProps.studyVoice === nextProps.studyVoice
   );
 });
