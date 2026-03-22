@@ -1659,7 +1659,7 @@ export const EuclideanSequencer = () => {
                     </div>
                     <input 
                       type="range" min="0" max="100" value={dynamics} 
-                      onChange={(e) => setDynamics(parseInt(e.target.value))} 
+                      onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('dynamics', 'Dynamics', dynamics, v, '%'); setDynamics(v); }} 
                       className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
                     />
                   </div>
