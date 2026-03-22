@@ -11,6 +11,7 @@ export interface UserPresetTrack {
   volume: number;
   delaySend: number;
   reverbSend: number;
+  ratchet?: number;
 }
 
 export interface UserPreset {

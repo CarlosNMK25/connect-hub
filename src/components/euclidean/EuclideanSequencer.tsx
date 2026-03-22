@@ -52,6 +52,7 @@ interface TrackState {
   volume: number;
   delaySend: number;
   reverbSend: number;
+  ratchet: number;
   hits: number;
   misses: number;
 }
@@ -317,7 +318,7 @@ export const EuclideanSequencer = () => {
       sampleStart: 0, sampleEnd: 1, attack: 0, decay: 200, mode: 'TRIGGER', pitch: 0, normalize: true,
       grainSize: 100, overlap: 0.1, spray: 0, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
-      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, hits: 0, misses: 0
+      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0, hits: 0, misses: 0
     }),
     updateTrackPattern({ 
       id: 'snare', name: 'Snare', color: '#9D174D', pulses: 2, steps: 16, offset: 4, 
@@ -326,7 +327,7 @@ export const EuclideanSequencer = () => {
       sampleStart: 0, sampleEnd: 1, attack: 0, decay: 200, mode: 'TRIGGER', pitch: 0, normalize: true,
       grainSize: 100, overlap: 0.1, spray: 0, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
-      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, hits: 0, misses: 0
+      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0, hits: 0, misses: 0
     }),
     updateTrackPattern({ 
       id: 'hat', name: 'Hi-Hat', color: '#155E75', pulses: 8, steps: 16, offset: 2, 
@@ -335,7 +336,7 @@ export const EuclideanSequencer = () => {
       sampleStart: 0, sampleEnd: 1, attack: 0, decay: 100, mode: 'TRIGGER', pitch: 0, normalize: true,
       grainSize: 50, overlap: 0.2, spray: 0, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
-      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, hits: 0, misses: 0
+      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0, hits: 0, misses: 0
     }),
     updateTrackPattern({ 
       id: 'cloud', name: 'Atmosphere', color: '#5B21B6', pulses: 4, steps: 16, offset: 0, 
@@ -344,7 +345,7 @@ export const EuclideanSequencer = () => {
       sampleStart: 0, sampleEnd: 1, attack: 2000, decay: 5000, mode: 'TRIGGER', pitch: 0, normalize: true,
       grainSize: 500, overlap: 0.5, spray: 200, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
-      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, hits: 0, misses: 0
+      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0, hits: 0, misses: 0
     }),
   ]);
 
@@ -569,7 +570,7 @@ export const EuclideanSequencer = () => {
           probabilities: [...t.probabilities],
           chaosEnabled: t.chaosEnabled, entropy: t.entropy,
           evolveEnabled: t.evolveEnabled, mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed,
-          volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend,
+          volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend, ratchet: t.ratchet,
         }])
       ),
     };
@@ -623,6 +624,7 @@ export const EuclideanSequencer = () => {
         volume: config.volume,
         delaySend: config.delaySend,
         reverbSend: config.reverbSend,
+        ratchet: config.ratchet ?? 0,
         hits: 0,
         misses: 0,
       });
@@ -1056,6 +1058,35 @@ export const EuclideanSequencer = () => {
               const finalOffset = Math.max(0, Math.min(track.samplerBuffer?.duration || 0, startOffset + randomOffset));
               const duration = track.mode === 'GATE' ? "16n" : (track.decay / 1000);
               synth.grainPlayer.start(scheduledTime, finalOffset, duration);
+            }
+
+            // Ratchet: schedule additional retrigggers within the sixteenth
+            const ratchetCount = track.ratchet || 0;
+            if (ratchetCount > 0) {
+              const subdivDuration = sixteenthDuration / (ratchetCount + 1);
+              for (let r = 1; r <= ratchetCount; r++) {
+                const ratchetTime = scheduledTime + subdivDuration * r;
+                const ratchetVelocity = velocity * Math.pow(0.65, r);
+                try {
+                  if (synth.triggerAttackRelease) {
+                    const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
+                    if (track.id === 'kick' && !synth.grainPlayer) {
+                      synth.triggerAttackRelease("C1", dur, ratchetTime, ratchetVelocity);
+                    } else {
+                      synth.triggerAttackRelease(dur, ratchetTime, ratchetVelocity);
+                    }
+                  } else if (synth.grainPlayer && track.samplerStatus === 'READY') {
+                    const sprayAmount = (track.spray / 1000) * (track.chaosEnabled ? track.entropy : 1);
+                    const startOffset = track.sampleStart * (track.samplerBuffer?.duration || 0);
+                    const randomOffset = (Math.random() - 0.5) * sprayAmount;
+                    const finalOffset = Math.max(0, Math.min(track.samplerBuffer?.duration || 0, startOffset + randomOffset));
+                    const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
+                    synth.grainPlayer.start(ratchetTime, finalOffset, dur);
+                  }
+                } catch (e) { /* silent */ }
+              }
+              // Collision guard: update last scheduled time to the final ratchet
+              lastScheduledTimesRef.current[track.id] = scheduledTime + subdivDuration * ratchetCount;
             }
 
             Tone.Draw.schedule(() => {
@@ -2386,6 +2417,8 @@ export const EuclideanSequencer = () => {
               onDelaySendChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, delaySend: val } : t))}
               reverbSend={track.reverbSend}
               onReverbSendChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, reverbSend: val } : t))}
+              ratchet={track.ratchet}
+              onRatchetChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, ratchet: val } : t))}
               isStudyMode={isStudyMode}
               studyVoice={studyVoice}
               anySoloed={tracks.some(t => t.isSoloed)}
