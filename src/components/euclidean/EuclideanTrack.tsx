@@ -1032,6 +1032,7 @@ export const EuclideanTrack = React.memo(({
     prevProps.studyVoice === nextProps.studyVoice &&
     prevProps.temporalityMode === nextProps.temporalityMode &&
     prevProps.bpm === nextProps.bpm &&
-    prevProps.swing === nextProps.swing
+    prevProps.swing === nextProps.swing &&
+    prevProps.ratchet === nextProps.ratchet
   );
 });
