@@ -195,9 +195,29 @@ export const EuclideanTrack = React.memo(({
   onDelaySendChange,
   onReverbSendChange,
   isStudyMode,
-  studyVoice = 'technical'
+  studyVoice = 'technical',
+  temporalityMode,
+  bpm,
+  swing
 }: EuclideanTrackProps) => {
   const voice = studyVoice;
+
+  const temporalOffsets = React.useMemo(() => {
+    if (temporalityMode === 'grid') return null;
+    const sixteenthDuration = 60 / bpm / 4;
+    return pattern.map((_, i) =>
+      calculateTemporalOffset(temporalityMode, {
+        trackId: id,
+        stepIndex: i,
+        steps,
+        globalStep: i,
+        swing,
+        jitter,
+        sixteenthDuration,
+        pattern,
+      })
+    );
+  }, [temporalityMode, id, steps, swing, jitter, bpm, pattern]);
 
   const [hoveredParam, setHoveredParam] = useState<string | null>(null);
   const [hoveredParamEl, setHoveredParamEl] = useState<HTMLElement | null>(null);
