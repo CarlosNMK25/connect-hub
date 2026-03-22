@@ -1705,13 +1705,17 @@ export const EuclideanSequencer = () => {
             </div>
           </div>
 
-          <PhaseRadar 
-            tracks={tracks.map(t => ({ id: t.id, steps: t.steps, color: t.color, offset: t.offset }))}
-            globalStep={globalStep}
-            onSync={handlePhaseSync}
-            isDjMode={isDjMode}
-            onDjModeToggle={() => setIsDjMode(!isDjMode)}
-          />
+          <div className={isStudyMode ? 'cursor-help' : ''}
+            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('phaseRadar'); setHoveredGlobalEl(e.currentTarget); } }}
+            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+            <PhaseRadar 
+              tracks={tracks.map(t => ({ id: t.id, steps: t.steps, color: t.color, offset: t.offset }))}
+              globalStep={globalStep}
+              onSync={handlePhaseSync}
+              isDjMode={isDjMode}
+              onDjModeToggle={() => setIsDjMode(!isDjMode)}
+            />
+          </div>
 
           {/* Subtle background glow when cycle resets */}
           {isPlaying && (globalStep % mcm === 0) && (
