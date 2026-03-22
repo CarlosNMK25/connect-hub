@@ -236,7 +236,7 @@ export const EuclideanTrack = React.memo(({
       </div>
 
       <div className={`transition-all duration-500 ${isTrackDimmed ? 'grayscale-[0.8]' : ''}`}>
-        <div className="flex flex-col xl:flex-row xl:items-center gap-6">
+        <div className="flex flex-col 2xl:flex-row 2xl:items-center gap-6 xl:flex-wrap overflow-hidden">
         {/* Track Info */}
         <div className="flex items-center gap-4 min-w-[180px]">
           {/* Accent Bar (Interactive Volume Fader) */}
