@@ -11,6 +11,7 @@ interface EuclideanStepProps {
   baseProbability: number;
   effectiveProbability: number;
   previewActive?: boolean;
+  temporalOffset?: number;
   onProbabilityChange: (val: number) => void;
   onToggle: () => void;
 }
