@@ -1,71 +1,89 @@
 
 
-## Plan: Reescribir tooltips pedagógicos con rigor técnico-matemático
+## Plan: Hacer tooltips visibles sin recorte
 
-### Alcance
+### Problema
+Los `StudyTooltip` se renderizan con `position: absolute` dentro de contenedores que tienen `overflow-hidden` (línea 243 de `EuclideanTrack.tsx`). Esto corta los tooltips cuando intentan salir del contenedor padre.
 
-Reescribir los 17 textos del objeto `PEDAGOGY.micro` en `src/constants/pedagogy.ts` usando el formato de 4 líneas propuesto:
+### Solución
+Cambiar los tooltips a **React Portal** (`ReactDOM.createPortal`) para renderizarlos en `document.body`, con posición `fixed` calculada dinámicamente respecto al elemento trigger.
 
+### Cambios en `src/components/euclidean/EuclideanTrack.tsx`
+
+1. **Rediseñar `StudyTooltip`**: En lugar de `absolute bottom-full`, usar un portal que:
+   - Reciba una ref del elemento trigger
+   - Calcule posición con `getBoundingClientRect()` del trigger
+   - Se renderice en `document.body` con `position: fixed` y `z-index: 9999`
+   - Posicione el tooltip encima del elemento (o debajo si no cabe arriba)
+
+2. **Adaptar cada uso de `StudyTooltip`**: Cada wrapper `div` con `onMouseEnter`/`onMouseLeave` necesita una ref. Para evitar crear 17+ refs individuales, usar un patrón de ref callback que guarde el elemento hover activo:
+   - Un único `hoveredRef = useRef<HTMLElement | null>(null)` que se asigna en `onMouseEnter`
+   - El tooltip portal lee la posición de `hoveredRef.current`
+
+3. **Quitar `overflow-hidden`** de la línea 243 si es posible (pero el portal lo hace innecesario).
+
+### Implementación del componente StudyTooltip renovado
+
+```typescript
+const StudyTooltip = ({ content, visible, anchorEl }: { 
+  content: string; visible: boolean; anchorEl: HTMLElement | null 
+}) => {
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  
+  useEffect(() => {
+    if (visible && anchorEl) {
+      const rect = anchorEl.getBoundingClientRect();
+      setPos({
+        top: rect.top - 8, // above element
+        left: rect.left + rect.width / 2
+      });
+    }
+  }, [visible, anchorEl]);
+
+  return createPortal(
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          style={{ position: 'fixed', top: pos.top, left: pos.left, transform: 'translate(-50%, -100%)' }}
+          className="z-[9999] w-72 p-3 bg-white border border-system-accent/40 rounded-xl shadow-2xl pointer-events-none"
+          ...
+        >
+          <div className="text-[10px] font-mono leading-relaxed text-idm-ink uppercase">
+            {content}
+          </div>
+          <div className="arrow..." />
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+};
 ```
-L1: Definición técnica (fórmula si aplica)
-L2: Rango y unidades
-L3: Efecto práctico (↑/↓)
-L4: Conexión musical (ejemplo concreto)
+
+### Patrón de uso simplificado
+
+Usar un solo ref + estado para el anchor element:
+
+```typescript
+const [hoveredParamEl, setHoveredParamEl] = useState<HTMLElement | null>(null);
+
+// En cada onMouseEnter:
+onMouseEnter={(e) => { isStudyMode && setHoveredParam('pulses'); setHoveredParamEl(e.currentTarget as HTMLElement); }}
+onMouseLeave={() => { setHoveredParam(null); setHoveredParamEl(null); }}
+
+// Un solo StudyTooltip al final del componente:
+<StudyTooltip 
+  content={hoveredParam ? getMicroText(hoveredParam, voice) : ''} 
+  visible={!!hoveredParam && isStudyMode} 
+  anchorEl={hoveredParamEl} 
+/>
 ```
 
-### Archivo a modificar
+Esto elimina los 17+ `<StudyTooltip>` individuales y los reemplaza por uno solo.
 
-`src/constants/pedagogy.ts` — solo la sección `micro`.
+### Archivo modificado
+- `src/components/euclidean/EuclideanTrack.tsx`
 
-### Los 17 textos propuestos
-
-1. **pulses** — `E(k, n)`: k onsets distribuidos en n pasos por Bjorklund (máxima uniformidad). Densidad ρ = k/n. Rango: [0, n]. ↑k → patrón más saturado; k/n = 1 = four-on-the-floor. E(5,12) ≈ 0.42 → Soleá; E(3,8) = 0.375 → Tresillo cubano.
-
-2. **steps** — Cardinalidad n del anillo cíclico ℤ/nℤ donde se distribuyen los pulsos. Rango: [2, 32]. n par → simetría binaria (4/4, 6/8); n primo → asimetría máxima (7, 11, 13 impiden subdivisiones iguales). n=12 → compás de amalgama 12/8; n=16 → rejilla estándar de caja de ritmos.
-
-3. **offset** — Rotación cíclica σʳ: desplaza el patrón r posiciones sin alterar su estructura interválica. Rango: [0, n-1]. Equivalent a seleccionar un modo del patrón (como modos de una escala). σ² sobre E(5,12) de Soleá → acentuación de Bulería.
-
-4. **probability** — Cada onset sigue una distribución Bernoulli(p). Hits esperados = k·p; varianza = k·p·(1-p). Rango: [0, 1]. p=1 → patrón determinista; p=0.5 → máxima entropía binaria por step. Permite secuenciación generativa donde el silencio es estructural.
-
-5. **chaos** — Factor β que modula p → p' = p^(1/(1+β)), comprimiendo las probabilidades hacia la incertidumbre. Rango: [0, 1]. β=0 → sin efecto; β=1 → p'≈√p, los steps probables pierden certeza. Desintegra patrones rígidos en nubes estocásticas tipo Autechre.
-
-6. **evolve** — Mutación cíclica: cada N ciclos (speed), cada step tiene 50% de ser perturbado por δ ∈ [-rate, +rate], clamp [0,1]. Rate: [1-30%], Speed: [1-8x]. Genera drift paramétrico: el patrón diverge del original como un proceso de Markov sin estado absorbente.
-
-7. **bpm** — Pulso maestro. Período por beat T = 60/BPM (seg); resolución por step = T/n. Rango: [40, 300]. A 120 BPM con n=16, cada step = 31.25ms. BPMs altos comprimen el jitter perceptible; BPMs bajos exponen cada micro-variación.
-
-8. **swing** — Desplazamiento determinista de tiempos pares: t' = t_grid + α·(t_next − t_grid), α ∈ [0, 0.75]. α=0 → rejilla recta; α=0.67 → shuffle ternario (triplet feel). Herencia directa de la MPC-3000 de Roger Linn. α=0.5 → groove estándar boom-bap.
-
-9. **dynamics** — Rango de velocity [v_min, v_max] asignado a cada onset. Rango del slider: [0, 1] como proporción del rango total. Dinámica alta → acentuación orgánica por distribución uniforme en el rango; dinámica baja → velocidad plana (metrónomo). En flamenco, el acento define el palo.
-
-10. **jitter** — Desplazamiento temporal gaussiano 𝒩(0, σ²) aplicado a cada onset en ms. σ proporcional al valor del slider. Rango: [0, ~50ms]. Altera los IOI (Inter-Onset Intervals) simulando imprecisión humana. σ < 10ms → humanización sutil; σ > 30ms → inestabilidad rítmica tipo glitch.
-
-11. **volume** — Ganancia lineal de la pista en el bus de mezcla. Rango: [0, 1] → [-∞, 0] dB. Define la jerarquía rítmica: qué elemento es ancla estructural (kick) y cuál es ornamento (hat). No es solo nivel — es peso perceptual en la polirritmia.
-
-12. **delaySend** — Nivel de envío al bus de delay (feedback loop). Rango: [0, 1]. Genera repeticiones que crean polirritmias fantasma: un onset en step k produce ecos en k+d, k+2d... reforzando o contradiendo la geometría euclidiana original.
-
-13. **reverbSend** — Nivel de envío al bus de reverberación. Rango: [0, 1]. Sitúa el onset en un espacio acústico simulado (RT60). Envíos altos difuminan la precisión temporal del patrón, creando una "niebla" donde el ritmo emerge como textura continua.
-
-14. **sampleRoi** — Región de Interés [start, end] dentro del buffer de audio, en proporción normalizada [0, 1]. Define qué segmento del sample se reproduce. Permite micro-cirugía: extraer solo el transiente de ataque (0-5%) o la cola tonal (80-100%).
-
-15. **pitch** — Transposición en semitonos por resampling. Rango: [-24, +24] st. Altera frecuencia (f' = f · 2^(st/12)) y duración inversamente. Pitch negativo → bombo profundo desde un chasquido; pitch positivo → micro-glitch de alta frecuencia desde un golpe grave.
-
-16. **grainSize** — Ventana temporal de cada grano en síntesis granular, en ms. Rango: [1, 500ms]. >50ms → fragmentos tonales reconocibles; 20-50ms → zona transicional; <20ms → textura de ruido (el grano es más corto que un ciclo de onda audible).
-
-17. **overlap** — Factor de superposición entre granos consecutivos. Rango: [1, 8x]. Overlap alto → densidad de nube sedosa y continua (cloud); overlap bajo → stutter rítmico donde cada grano es un evento discreto. Define la transición de granular percusivo a textural.
-
-18. **spray** — Dispersión aleatoria del puntero de lectura del grano respecto a la posición ROI. Rango: [0, 1] como proporción del buffer. Spray=0 → lectura secuencial fiel; spray=1 → posición totalmente aleatoria. Convierte audio reconocible en atmósfera abstracta.
-
-19. **bitCrush** — Reducción de resolución digital: requantiza la amplitud a 2^b niveles. Rango: [2, 16] bits. 16 bits → CD quality; 8 bits → estética retro/chiptune; 4 bits → distorsión de cuantización agresiva con armónicos no lineales.
-
-### Lo que NO cambia
-
-- Estructura del tipo `PedagogyMicro` (sigue siendo `Record<string, string>`)
-- Capas meso y macro (intactas)
+### No se toca
 - Ningún otro archivo
-
-### Decisiones de diseño
-
-- Formato compacto en un solo string (no HTML multilínea) — compatible con el `StudyTooltip` actual que renderiza texto plano
-- Se usan símbolos Unicode (ℤ, σ, α, β, ρ, 𝒩, ∈, →, ↑) para notación matemática sin dependencias
-- Cada texto ~50-80 palabras: denso pero legible
 
