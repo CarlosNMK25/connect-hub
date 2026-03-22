@@ -10,7 +10,7 @@ import { PhaseRadar } from './PhaseRadar';
 import { bjorklund, rotate } from '../../utils/bjorklund';
 import { lcmArray, calculateLcmImpact } from '../../utils/math';
 import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
-import { PEDAGOGY } from '../../constants/pedagogy';
+import { PEDAGOGY, type PedagogyVoice } from '../../constants/pedagogy';
 
 interface TrackState {
   id: string;
