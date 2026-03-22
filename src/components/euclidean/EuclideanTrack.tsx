@@ -72,6 +72,7 @@ interface EuclideanTrackProps {
   onDelaySendChange: (val: number) => void;
   onReverbSendChange: (val: number) => void;
   isStudyMode: boolean;
+  studyVoice?: PedagogyVoice;
 }
 
 const StudyTooltip = ({ content, visible }: { content: string; visible: boolean }) => (
