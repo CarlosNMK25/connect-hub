@@ -254,6 +254,9 @@ export const EuclideanSequencer = () => {
   const [newPresetName, setNewPresetName] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const [temporalityMode, setTemporalityMode] = useState<TemporalityMode>('grid');
+  const temporalityModeRef = useRef<TemporalityMode>('grid');
+  useEffect(() => { temporalityModeRef.current = temporalityMode; }, [temporalityMode]);
 
   const logChange = useCallback((action: string, deltas: string[] = []) => {
     const now = new Date();
