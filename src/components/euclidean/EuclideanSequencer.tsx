@@ -489,6 +489,7 @@ export const EuclideanSequencer = () => {
   }, [hoveredPreset, tracks]);
 
   const applyPreset = (preset: ScenePreset) => {
+    setActivePresetId(preset.id);
     if (preset.type === 'master' && preset.tracks) {
       // Compute MCM for the new preset
       const newSteps = Object.entries(preset.tracks)
