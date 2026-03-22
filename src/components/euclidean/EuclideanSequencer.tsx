@@ -14,6 +14,7 @@ import { lcmArray, calculateLcmImpact } from '../../utils/math';
 import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
 import { UserPreset, loadUserPresets, saveUserPresets, exportPresetAsJson, importPresetFromFile, userPresetToScenePreset } from '../../utils/userPresets';
+import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../../utils/temporality';
 
 interface TrackState {
   id: string;
@@ -253,6 +254,9 @@ export const EuclideanSequencer = () => {
   const [newPresetName, setNewPresetName] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const [temporalityMode, setTemporalityMode] = useState<TemporalityMode>('grid');
+  const temporalityModeRef = useRef<TemporalityMode>('grid');
+  useEffect(() => { temporalityModeRef.current = temporalityMode; }, [temporalityMode]);
 
   const logChange = useCallback((action: string, deltas: string[] = []) => {
     const now = new Date();
@@ -558,7 +562,7 @@ export const EuclideanSequencer = () => {
       id: crypto.randomUUID(),
       name,
       createdAt: new Date().toISOString(),
-      bpm, jitter, swing, dynamics,
+      bpm, jitter, swing, dynamics, temporalityMode,
       tracks: Object.fromEntries(
         tracks.map(t => [t.id, {
           pulses: t.pulses, steps: t.steps, offset: t.offset,
@@ -569,7 +573,7 @@ export const EuclideanSequencer = () => {
         }])
       ),
     };
-  }, [bpm, jitter, swing, dynamics, tracks]);
+  }, [bpm, jitter, swing, dynamics, temporalityMode, tracks]);
 
   const handleSaveUserPreset = useCallback(() => {
     if (!newPresetName.trim()) return;
@@ -599,6 +603,7 @@ export const EuclideanSequencer = () => {
     setJitter(up.jitter);
     setSwing(up.swing);
     setDynamics(up.dynamics);
+    if (up.temporalityMode) setTemporalityMode(up.temporalityMode as TemporalityMode);
     logChange(`User Preset: ${up.name}`, [`BPM:${up.bpm}`]);
 
     setTracks(prev => prev.map(t => {
@@ -940,21 +945,22 @@ export const EuclideanSequencer = () => {
       const s = swingRef.current;
       const currentGlobalStep = globalStepRef.current;
       const now = Tone.now();
+      const mode = temporalityModeRef.current;
       
       const anySoloed = currentTracks.some(t => t.isSoloed);
       const isOffBeat = currentGlobalStep % 2 === 1;
       const sixteenthDuration = Tone.Time("16n").toSeconds();
-      const swingDelay = isOffBeat ? (s / 100) * (sixteenthDuration * 0.33) : 0;
+
+      // Grid mode: legacy swing applied globally. Other modes: swing handled per-track inside calculateTemporalOffset.
+      const swingDelay = mode === 'grid' ? (isOffBeat ? (s / 100) * (sixteenthDuration * 0.33) : 0) : 0;
       const baseTime = time + swingDelay;
 
       currentTracks.forEach(track => {
         if (track.id === 'cloud') return;
 
         const shouldPlay = anySoloed ? track.isSoloed : !track.isMuted;
-        // The index is now derived directly from the global clock and the track's offset
         const idx = (currentGlobalStep + track.offset) % track.steps;
         
-        // Update current step ref for DOM highlighting
         Tone.Draw.schedule(() => {
           currentStepsRef.current[track.id] = idx;
         }, baseTime);
@@ -975,8 +981,23 @@ export const EuclideanSequencer = () => {
         if (isActive) {
           if (Math.random() < prob) {
             isHit = true;
-            const jitterSeconds = j / 1000;
-            offset = jitterSeconds > 0 ? gaussianRandom(0, jitterSeconds / 3) : 0;
+            if (mode === 'grid') {
+              // Legacy jitter for Grid mode (regression zero)
+              const jitterSeconds = j / 1000;
+              offset = jitterSeconds > 0 ? gaussianRandom(0, jitterSeconds / 3) : 0;
+            } else {
+              // All other modes: offset includes swing + jitter as appropriate
+              offset = calculateTemporalOffset(mode, {
+                trackId: track.id,
+                stepIndex: idx,
+                steps: track.steps,
+                globalStep: currentGlobalStep,
+                swing: s,
+                jitter: j,
+                sixteenthDuration,
+                pattern: track.pattern,
+              });
+            }
             const baseVelocity = (idx === 0) ? 1.0 : 0.85;
             const randomVariation = (Math.random() * 0.2) * (dynamicsRef.current / 100);
             velocity = Math.max(0.1, baseVelocity - randomVariation);
@@ -1703,6 +1724,25 @@ export const EuclideanSequencer = () => {
               {showVisuals && (
                 <div className="mb-2 animate-in fade-in slide-in-from-top-4 duration-700">
                   <SpectrumAnalyzer analyser={globalAnalyser} isPlaying={isPlaying} />
+                </div>
+              )}
+
+              {/* Temporality Mode Selector */}
+              {showControls && (
+                <div className="flex gap-1.5 animate-in fade-in slide-in-from-top-2 duration-500">
+                  {TEMPORALITY_MODES.map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => { setTemporalityMode(m.id); logChange(`Temporalidad → ${m.label}`); }}
+                      className={`px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-200 active:scale-95 ${
+                        temporalityMode === m.id
+                          ? 'bg-system-accent text-white shadow-sm'
+                          : 'bg-black/5 text-idm-muted hover:bg-black/10 hover:text-idm-ink'
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
                 </div>
               )}
 
