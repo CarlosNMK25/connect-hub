@@ -1919,6 +1919,7 @@ export const EuclideanSequencer = () => {
               reverbSend={track.reverbSend}
               onReverbSendChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, reverbSend: val } : t))}
               isStudyMode={isStudyMode}
+              studyVoice={studyVoice}
               anySoloed={tracks.some(t => t.isSoloed)}
             />
           </div>
