@@ -1150,7 +1150,13 @@ export const EuclideanSequencer = () => {
                 try {
                   if (synth.triggerAttackRelease) {
                     const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
-                    if (track.id === 'kick' && !synth.grainPlayer) {
+                    if (track.isTonal) {
+                      const noteIdx = track.noteIndices[idx] ?? 0;
+                      const scaleIntervals = SCALES[track.scaleId] || SCALES.phrygianDominant;
+                      const midi = noteIndexToMidi(track.rootNote, scaleIntervals, noteIdx);
+                      const noteName = midiToNoteName(midi);
+                      synth.triggerAttackRelease(noteName, dur, ratchetTime, ratchetVelocity);
+                    } else if (track.id === 'kick' && !synth.grainPlayer) {
                       synth.triggerAttackRelease("C1", dur, ratchetTime, ratchetVelocity);
                     } else {
                       synth.triggerAttackRelease(dur, ratchetTime, ratchetVelocity);
