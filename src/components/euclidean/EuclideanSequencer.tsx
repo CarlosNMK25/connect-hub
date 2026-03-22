@@ -279,7 +279,7 @@ export const EuclideanSequencer = () => {
     return () => clearInterval(interval);
   }, [showEngine]);
 
-
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const { scrollY } = useScroll();
 
   useMotionValueEvent(scrollY, "change", (latest) => {
