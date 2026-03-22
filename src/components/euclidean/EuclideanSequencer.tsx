@@ -489,6 +489,19 @@ export const EuclideanSequencer = () => {
 
   const applyPreset = (preset: ScenePreset) => {
     if (preset.type === 'master' && preset.tracks) {
+      // Compute MCM for the new preset
+      const newSteps = Object.entries(preset.tracks)
+        .filter(([id]) => id !== 'cloud')
+        .map(([id, config]) => {
+          const tc = config as TrackPreset;
+          const t = tracks.find(tr => tr.id === id);
+          return tc.steps ?? t?.steps ?? 16;
+        });
+      const newMcm = newSteps.length > 0 ? lcmArray(newSteps) : mcm;
+      const deltas = [`MCM:${newMcm}`];
+      if (preset.bpm) deltas.push(`BPM:${preset.bpm}`);
+      logChange(`Preset: ${preset.name}`, deltas);
+
       if (preset.bpm) setBpm(preset.bpm);
       
       // Macro Interpolation (50ms ramp)
