@@ -238,8 +238,15 @@ export const EuclideanStep: React.FC<EuclideanStepProps> = ({
                 );
               })()}
 
-              {/* Probability Percentage Label */}
-              {active && (
+              {/* Note Name or Probability Label */}
+              {active && isTonal && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <span className="text-[7px] font-mono font-bold leading-none" style={{ color: effectiveProbability > 0.5 ? '#000' : color }}>
+                    {noteName || '?'}
+                  </span>
+                </div>
+              )}
+              {active && !isTonal && (
                 <div className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-200 ${isDragging ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                   <span className="text-[8px] font-mono font-bold" style={{ color: effectiveProbability > 0.5 ? '#000' : color }}>
                     {Math.round(effectiveProbability * 100)}%
