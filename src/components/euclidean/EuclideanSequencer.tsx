@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import * as Tone from 'tone';
 import { Play, Square, Sliders, Activity, Zap, Eye, EyeOff, Disc, ChevronLeft, ChevronRight, Info, HelpCircle, X, ChevronDown, ChevronUp, Layers, Target, Atom, Power } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
@@ -10,7 +11,7 @@ import { PhaseRadar } from './PhaseRadar';
 import { bjorklund, rotate } from '../../utils/bjorklund';
 import { lcmArray, calculateLcmImpact } from '../../utils/math';
 import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
-import { PEDAGOGY, type PedagogyVoice } from '../../constants/pedagogy';
+import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
 
 interface TrackState {
   id: string;
@@ -233,6 +234,8 @@ export const EuclideanSequencer = () => {
   const [isStudyMode, setIsStudyMode] = useState(false);
   const [studyVoice, setStudyVoice] = useState<PedagogyVoice>('technical');
   const [isThesisOpen, setIsThesisOpen] = useState(false);
+  const [hoveredGlobalParam, setHoveredGlobalParam] = useState<string | null>(null);
+  const [hoveredGlobalEl, setHoveredGlobalEl] = useState<HTMLElement | null>(null);
   const [globalStep, setGlobalStep] = useState(0);
   const [lastHit, setLastHit] = useState<{ offset: number; color: string; velocity: number; id?: number } | null>(null);
   const [hoveredPreset, setHoveredPreset] = useState<ScenePreset | null>(null);
@@ -1487,7 +1490,9 @@ export const EuclideanSequencer = () => {
               {showControls && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 animate-in fade-in slide-in-from-top-2 duration-500">
                   <div className="flex flex-col gap-2 transition-all duration-500 opacity-100 scale-100">
-                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                    <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('bpm'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
                       <span>Tempo</span>
                       <span className="text-idm-ink">{bpm} BPM</span>
                     </div>
@@ -1499,7 +1504,9 @@ export const EuclideanSequencer = () => {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                    <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('jitter'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
                       <span>Jitter</span>
                       <span className="text-system-accent">{jitter}ms</span>
                     </div>
@@ -1511,7 +1518,9 @@ export const EuclideanSequencer = () => {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                    <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('swing'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
                       <span>Swing</span>
                       <span className="text-system-accent">{swing}%</span>
                     </div>
@@ -1523,7 +1532,9 @@ export const EuclideanSequencer = () => {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                    <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('dynamics'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
                       <span>Dynamics</span>
                       <span className="text-system-accent">{dynamics}%</span>
                     </div>
@@ -1536,7 +1547,9 @@ export const EuclideanSequencer = () => {
 
                   {/* Effects Controls (Always Visible) */}
                   <div className="flex flex-col gap-2">
-                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                    <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverbMix'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
                       <span>Space (Reverb)</span>
                       <span className="text-system-accent">{Math.round(reverbMix * 100)}%</span>
                     </div>
@@ -1548,7 +1561,9 @@ export const EuclideanSequencer = () => {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                    <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayMix'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
                       <span>Echo (Delay)</span>
                       <span className="text-system-accent">{Math.round(delayMix * 100)}%</span>
                     </div>
@@ -1560,7 +1575,9 @@ export const EuclideanSequencer = () => {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                    <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayFeedback'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
                       <span>Feedback</span>
                       <span className="text-system-accent">{Math.round(delayFeedback * 100)}%</span>
                     </div>
@@ -1575,7 +1592,9 @@ export const EuclideanSequencer = () => {
 
                 <div className="mt-6 pt-6 border-t border-idm-muted/10 grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-700">
                   <div className="flex flex-col gap-2">
-                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                    <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxHighPass'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
                       <span>FX Low-Cut (HPF)</span>
                       <span className="text-system-accent">{Math.round(fxHighPass)}Hz</span>
                     </div>
@@ -1587,7 +1606,9 @@ export const EuclideanSequencer = () => {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                    <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxLowPass'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
                       <span>FX High-Cut (LPF)</span>
                       <span className="text-system-accent">{Math.round(fxLowPass)}Hz</span>
                     </div>
@@ -1602,19 +1623,27 @@ export const EuclideanSequencer = () => {
               {showVisuals && (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
                   <div className="flex flex-col gap-2">
-                    <span className="text-[9px] font-mono uppercase text-system-accent tracking-widest text-center">Temporal</span>
+                    <span className={`text-[9px] font-mono uppercase text-system-accent tracking-widest text-center ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('monitorTemporal'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>Temporal</span>
                     <JitterMonitor jitter={jitter} lastHit={lastHit} />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <span className="text-[9px] font-mono uppercase text-system-accent tracking-widest text-center">Distribution</span>
+                    <span className={`text-[9px] font-mono uppercase text-system-accent tracking-widest text-center ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('monitorDistribution'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>Distribution</span>
                     <EnergyMonitor lastHit={lastHit} mode="distribution" />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <span className="text-[9px] font-mono uppercase text-system-accent tracking-widest text-center">Range</span>
+                    <span className={`text-[9px] font-mono uppercase text-system-accent tracking-widest text-center ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('monitorRange'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>Range</span>
                     <EnergyMonitor lastHit={lastHit} mode="range" />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <span className="text-[9px] font-mono uppercase text-system-accent tracking-widest text-center">Scatter</span>
+                    <span className={`text-[9px] font-mono uppercase text-system-accent tracking-widest text-center ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('monitorScatter'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>Scatter</span>
                     <EnergyMonitor lastHit={lastHit} mode="scatter" />
                   </div>
                 </div>
@@ -1935,6 +1964,53 @@ export const EuclideanSequencer = () => {
         <div>{isPlaying ? "Engine: Running" : "Engine: Idle"}</div>
       </div>
       <ThesisDrawer isOpen={isThesisOpen} onClose={() => setIsThesisOpen(false)} />
+      {/* Global StudyTooltip Portal */}
+      {(() => {
+        const pos = (() => {
+          if (!hoveredGlobalParam || !hoveredGlobalEl) return { top: 0, left: 0, flip: false };
+          const rect = hoveredGlobalEl.getBoundingClientRect();
+          const spaceAbove = rect.top;
+          const flip = spaceAbove < 120;
+          return {
+            top: flip ? rect.bottom + 8 : rect.top - 8,
+            left: Math.min(Math.max(rect.left + rect.width / 2, 144), window.innerWidth - 144),
+            flip
+          };
+        })();
+        return createPortal(
+          <AnimatePresence>
+            {isStudyMode && hoveredGlobalParam && hoveredGlobalEl && (
+              <motion.div
+                key={hoveredGlobalParam}
+                initial={{ opacity: 0, y: pos.flip ? -5 : 5, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: pos.flip ? -5 : 5, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                style={{
+                  position: 'fixed',
+                  top: pos.top,
+                  left: pos.left,
+                  transform: pos.flip ? 'translateX(-50%)' : 'translate(-50%, -100%)',
+                  zIndex: 99999
+                }}
+                className="w-72 p-3 bg-white border border-system-accent/40 rounded-xl shadow-2xl pointer-events-none"
+              >
+                <div className="text-[10px] font-mono leading-relaxed text-idm-ink uppercase">
+                  {getMicroText(hoveredGlobalParam, studyVoice)}
+                </div>
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 w-2 h-2 bg-white border-system-accent/40 rotate-45"
+                  style={pos.flip
+                    ? { top: '-4px', borderTop: '1px solid', borderLeft: '1px solid' }
+                    : { bottom: '-4px', borderRight: '1px solid', borderBottom: '1px solid' }
+                  }
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        );
+      })()}
     </div>
   );
 };
