@@ -417,7 +417,7 @@ export const EuclideanTrack = React.memo(({
         </div>
 
         {/* Bjorklund Stats & Sliders */}
-        <div className="flex-1 flex flex-col lg:flex-row gap-6 items-center min-w-[450px]">
+        <div className="flex-1 flex flex-col xl:flex-row gap-6 items-center">
           {/* Stats */}
           <div className="flex items-center gap-6 px-5 py-3 bg-idm-bg rounded-xl border border-black/5 transition-all duration-500 flex-none opacity-100 scale-100 shadow-sm">
             <div className="flex flex-col">
