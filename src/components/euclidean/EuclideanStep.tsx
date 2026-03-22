@@ -71,14 +71,22 @@ export const EuclideanStep: React.FC<EuclideanStepProps> = ({
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const deltaY = dragStartY.current - moveEvent.clientY;
-      const sensitivity = 150; 
-      const newProb = Math.max(0, Math.min(1, dragStartProb.current + (deltaY / sensitivity)));
       
       if (Math.abs(deltaY) > 5) {
         hasMoved.current = true;
       }
       
-      onProbabilityChange(newProb);
+      if (isTonal && onNoteIndexChange) {
+        // Tonal: vertical drag changes note index
+        const sensitivity = 20; // pixels per note step
+        const noteSteps = Math.round(deltaY / sensitivity);
+        const newIndex = Math.max(0, Math.min(maxNoteIndex - 1, Math.round(dragStartProb.current) + noteSteps));
+        onNoteIndexChange(newIndex);
+      } else {
+        const sensitivity = 150; 
+        const newProb = Math.max(0, Math.min(1, dragStartProb.current + (deltaY / sensitivity)));
+        onProbabilityChange(newProb);
+      }
     };
 
     const handleMouseUp = () => {
