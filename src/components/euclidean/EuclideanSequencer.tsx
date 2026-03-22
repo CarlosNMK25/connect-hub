@@ -1,0 +1,1899 @@
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import * as Tone from 'tone';
+import { Play, Square, Sliders, Activity, Zap, Eye, EyeOff, Disc, ChevronLeft, ChevronRight, Info, HelpCircle, X, ChevronDown, ChevronUp, Layers, Target, Atom, Power } from 'lucide-react';
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
+import { EuclideanTrack } from './EuclideanTrack';
+import { SpectrumAnalyzer } from './SpectrumAnalyzer';
+import { JitterMonitor } from './JitterMonitor';
+import { EnergyMonitor } from './EnergyMonitor';
+import { PhaseRadar } from './PhaseRadar';
+import { bjorklund, rotate } from '../utils/bjorklund';
+import { lcmArray, calculateLcmImpact } from '../utils/math';
+import { PRESETS, ScenePreset, TrackPreset } from '../constants/presets';
+import { PEDAGOGY } from '../constants/pedagogy';
+
+interface TrackState {
+  id: string;
+  name: string;
+  color: string;
+  pulses: number;
+  steps: number;
+  offset: number;
+  probabilities: number[];
+  pattern: number[];
+  // Sampler Engine (Level 2)
+  samplerBuffer: AudioBuffer | null;
+  samplerStatus: 'IDLE' | 'DECODING' | 'READY';
+  samplerFilename: string | null;
+  sampleStart: number; // 0-1
+  sampleEnd: number; // 0-1
+  attack: number; // ms
+  decay: number; // ms
+  mode: 'GATE' | 'TRIGGER';
+  pitch: number; // semitones
+  normalize: boolean;
+  // Granular Engine (Level 2)
+  grainSize: number; // ms
+  overlap: number; // 0-1
+  spray: number; // ms
+  bitCrush: number; // bits (1-16)
+  // Stochastic Engine
+  chaosEnabled: boolean;
+  entropy: number;
+  evolveEnabled: boolean;
+  mutationRate: number;
+  mutationSpeed: number; // Every N cycles
+  isMuted: boolean;
+  isSoloed: boolean;
+  volume: number;
+  delaySend: number;
+  reverbSend: number;
+}
+
+const getMesoInsight = (tracks: TrackState[]) => {
+  // Prime Aesthetics check
+  const isPrime = (n: number) => {
+    if (n <= 1) return false;
+    for (let i = 2; i <= Math.sqrt(n); i++) if (n % i === 0) return false;
+    return true;
+  };
+
+  const primeTrack = tracks.find(t => isPrime(t.pulses) || isPrime(t.steps));
+  if (primeTrack) {
+    return PEDAGOGY.meso.primeAesthetics.template
+      .replace('{p}', primeTrack.pulses.toString())
+      .replace('{s}', primeTrack.steps.toString());
+  }
+
+  // MCM Eclipse check
+  const steps = tracks.map(t => t.steps);
+  const uniqueSteps = [...new Set(steps)];
+  if (uniqueSteps.length > 1) {
+    const gcd = (a: number, b: number): number => (!b ? a : gcd(b, a % b));
+    const lcm = (a: number, b: number): number => (a * b) / gcd(a, b);
+    const totalLcm = uniqueSteps.reduce((acc, curr) => lcm(acc, curr));
+    return PEDAGOGY.meso.mcmEclipse.template.replace('{lcm}', totalLcm.toString());
+  }
+
+  // Polyrhythm check
+  if (tracks.length >= 2) {
+    return PEDAGOGY.meso.polyrhythm.template
+      .replace('{p1}', tracks[0].pulses.toString())
+      .replace('{s1}', tracks[0].steps.toString())
+      .replace('{p2}', tracks[1].pulses.toString())
+      .replace('{s2}', tracks[1].steps.toString());
+  }
+
+  return null;
+};
+
+const MesoInsightMonitor = ({ tracks, isStudyMode }: { tracks: TrackState[], isStudyMode: boolean }) => {
+  const [insight, setInsight] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isStudyMode) {
+      setInsight(null);
+      return;
+    }
+
+    const newInsight = getMesoInsight(tracks);
+    setInsight(newInsight);
+  }, [tracks, isStudyMode]);
+
+  return (
+    <AnimatePresence>
+      {isStudyMode && insight && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="mb-8 p-6 bg-system-accent/5 border border-system-accent/20 rounded-2xl relative overflow-hidden group"
+        >
+          <div className="absolute top-0 left-0 w-1 h-full bg-system-accent" />
+          <div className="flex items-start gap-4">
+            <div className="p-2 bg-system-accent/10 rounded-lg">
+              <Zap size={18} className="text-system-accent animate-pulse" />
+            </div>
+            <div className="flex-1">
+              <h4 className="text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-system-accent mb-2">Monitor de Insights Meso</h4>
+              <p className="text-xs font-mono text-idm-ink/80 leading-relaxed uppercase">
+                {insight}
+              </p>
+            </div>
+          </div>
+          {/* Decorative elements */}
+          <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
+            <Atom size={120} />
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+const ThesisDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]"
+          />
+          {/* Drawer */}
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-[101] overflow-y-auto"
+          >
+            <div className="p-12">
+              <div className="flex justify-between items-center mb-12">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-system-accent/10 rounded-xl">
+                    <HelpCircle size={24} className="text-system-accent" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-mono font-bold uppercase tracking-tighter text-idm-ink">Arquitecturas de la Temporalidad</h2>
+                    <p className="text-[10px] font-mono text-idm-muted uppercase tracking-widest">Tesis Doctoral / Guía de Estudio</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={onClose}
+                  className="p-2 hover:bg-black/5 rounded-full transition-colors"
+                >
+                  <X size={24} className="text-idm-ink" />
+                </button>
+              </div>
+
+              <div className="space-y-12">
+                {Object.entries(PEDAGOGY.macro).map(([key, section]) => (
+                  <section key={key} className="space-y-4">
+                    <h3 className="text-xs font-mono font-bold uppercase tracking-[0.4em] text-system-accent border-b border-system-accent/20 pb-2">
+                      {section.title.toUpperCase()}
+                    </h3>
+                    <div className="text-sm font-mono text-idm-ink/70 leading-relaxed uppercase space-y-4">
+                      {section.content.split('\n\n').map((para, i) => (
+                        <p key={i}>{para}</p>
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+
+              <div className="mt-24 pt-12 border-t border-black/5 text-center">
+                <Atom size={48} className="mx-auto text-idm-ink/10 mb-4" />
+                <p className="text-[9px] font-mono text-idm-muted uppercase tracking-[0.5em]">
+                  Euclidean IDM Machine v1.0 / 2026
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+export const EuclideanSequencer = () => {
+  const [audioContextState, setAudioContextState] = useState<string>('suspended');
+
+  useEffect(() => {
+    const updateState = () => setAudioContextState(Tone.getContext().state);
+    Tone.getContext().on('statechange', updateState);
+    updateState();
+    return () => Tone.getContext().off('statechange', updateState);
+  }, []);
+
+  const handleStartAudio = async () => {
+    await Tone.start();
+    await Tone.getContext().resume();
+    setAudioContextState(Tone.getContext().state);
+  };
+  const [bpm, setBpm] = useState(120);
+  const [jitter, setJitter] = useState(0);
+  const [swing, setSwing] = useState(0);
+  const [dynamics, setDynamics] = useState(50);
+  const [delayMix, setDelayMix] = useState(0.2);
+  const [delayFeedback, setDelayFeedback] = useState(0.3);
+  const [reverbMix, setReverbMix] = useState(0.15);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showVisuals, setShowVisuals] = useState(true);
+  const [showControls, setShowControls] = useState(true);
+  const [showSync, setShowSync] = useState(true);
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [isDjMode, setIsDjMode] = useState(false);
+  const [isStudyMode, setIsStudyMode] = useState(false);
+  const [isThesisOpen, setIsThesisOpen] = useState(false);
+  const [globalStep, setGlobalStep] = useState(0);
+  const [lastHit, setLastHit] = useState<{ offset: number; color: string; velocity: number; id?: number } | null>(null);
+  const [hoveredPreset, setHoveredPreset] = useState<ScenePreset | null>(null);
+  
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    if (latest > 150) {
+      setIsHeaderVisible(false);
+    } else if (latest < 10) {
+      setIsHeaderVisible(true);
+    }
+  });
+  
+  // Update Patterns (Atomic inside handlers now)
+  const updateTrackPattern = (t: TrackState) => {
+    const p = bjorklund(t.pulses, t.steps);
+    // No longer rotating the pattern physically. 
+    // The offset will be handled by the playhead (globalStep + offset).
+    return { ...t, pattern: p };
+  };
+
+  const [tracks, setTracks] = useState<TrackState[]>(() => [
+    updateTrackPattern({ 
+      id: 'kick', name: 'Kick', color: '#166534', pulses: 4, steps: 16, offset: 0, 
+      probabilities: new Array(64).fill(1), pattern: [],
+      samplerBuffer: null, samplerStatus: 'IDLE', samplerFilename: null,
+      sampleStart: 0, sampleEnd: 1, attack: 0, decay: 200, mode: 'TRIGGER', pitch: 0, normalize: true,
+      grainSize: 100, overlap: 0.1, spray: 0, bitCrush: 16,
+      chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
+      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0
+    }),
+    updateTrackPattern({ 
+      id: 'snare', name: 'Snare', color: '#9D174D', pulses: 2, steps: 16, offset: 4, 
+      probabilities: new Array(64).fill(1), pattern: [],
+      samplerBuffer: null, samplerStatus: 'IDLE', samplerFilename: null,
+      sampleStart: 0, sampleEnd: 1, attack: 0, decay: 200, mode: 'TRIGGER', pitch: 0, normalize: true,
+      grainSize: 100, overlap: 0.1, spray: 0, bitCrush: 16,
+      chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
+      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0
+    }),
+    updateTrackPattern({ 
+      id: 'hat', name: 'Hi-Hat', color: '#155E75', pulses: 8, steps: 16, offset: 2, 
+      probabilities: new Array(64).fill(1), pattern: [],
+      samplerBuffer: null, samplerStatus: 'IDLE', samplerFilename: null,
+      sampleStart: 0, sampleEnd: 1, attack: 0, decay: 100, mode: 'TRIGGER', pitch: 0, normalize: true,
+      grainSize: 50, overlap: 0.2, spray: 0, bitCrush: 16,
+      chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
+      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0
+    }),
+    updateTrackPattern({ 
+      id: 'cloud', name: 'Atmosphere', color: '#5B21B6', pulses: 4, steps: 16, offset: 0, 
+      probabilities: new Array(64).fill(1), pattern: [],
+      samplerBuffer: null, samplerStatus: 'IDLE', samplerFilename: null,
+      sampleStart: 0, sampleEnd: 1, attack: 2000, decay: 5000, mode: 'TRIGGER', pitch: 0, normalize: true,
+      grainSize: 500, overlap: 0.5, spray: 200, bitCrush: 16,
+      chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
+      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0
+    }),
+  ]);
+
+  const synthsRef = useRef<{ [key: string]: any }>({});
+  const loopRef = useRef<Tone.Loop | null>(null);
+  const tracksRef = useRef(tracks);
+  const jitterRef = useRef(jitter);
+  const swingRef = useRef(swing);
+  const dynamicsRef = useRef(dynamics);
+  const globalStepRef = useRef(0);
+  const currentStepsRef = useRef<{ [key: string]: number }>({});
+  const statsRef = useRef<{ [key: string]: { hits: number, misses: number, cycleCount: number, lastGhostStep: number | null } }>({});
+  const [uiStats, setUiStats] = useState<{ [key: string]: { hits: number, misses: number, cycleCount: number } }>({});
+  const lastScheduledTimesRef = useRef<{ [key: string]: number }>({});
+  const stepIndicesRef = useRef<{ [key: string]: number }>({});
+  const masterBusRef = useRef<{ 
+    compressor: Tone.Compressor; 
+    limiter: Tone.Limiter; 
+    analyser: Tone.Analyser;
+    delay: Tone.FeedbackDelay;
+    reverb: Tone.Reverb;
+    delayFilter: Tone.Filter;
+    reverbFilter: Tone.Filter;
+    delayBus: Tone.Gain;
+    reverbBus: Tone.Gain;
+  } | null>(null);
+
+  const [globalAnalyser, setGlobalAnalyser] = useState<Tone.Analyser | null>(null);
+  const [fxHighPass, setFxHighPass] = useState(20); // Low-cut
+  const [fxLowPass, setFxLowPass] = useState(20000); // High-cut
+  
+  useEffect(() => { 
+    tracksRef.current = tracks;
+    // Initialize refs if they are empty
+    tracks.forEach(t => {
+      if (!(t.id in lastScheduledTimesRef.current)) {
+        lastScheduledTimesRef.current[t.id] = 0;
+      }
+      if (!(t.id in stepIndicesRef.current)) {
+        stepIndicesRef.current[t.id] = 0;
+      }
+      if (!(t.id in currentStepsRef.current)) {
+        currentStepsRef.current[t.id] = -1;
+      }
+      if (!(t.id in statsRef.current)) {
+        statsRef.current[t.id] = { hits: 0, misses: 0, cycleCount: 0, lastGhostStep: null };
+      }
+    });
+  }, [tracks]);
+  useEffect(() => { jitterRef.current = jitter; }, [jitter]);
+  useEffect(() => { swingRef.current = swing; }, [swing]);
+  useEffect(() => { dynamicsRef.current = dynamics; }, [dynamics]);
+
+  // High-performance DOM highlighting and stats update
+  useEffect(() => {
+    let rafId: number;
+    const updateDOM = () => {
+      if (isPlaying) {
+        Object.entries(currentStepsRef.current).forEach(([trackId, stepIdx]) => {
+          const steps = document.querySelectorAll(`.step-container[data-track-id="${trackId}"]`);
+          steps.forEach((step, i) => {
+            if (i === stepIdx) step.classList.add('is-current-step');
+            else step.classList.remove('is-current-step');
+          });
+        });
+      } else {
+        document.querySelectorAll('.is-current-step').forEach(el => el.classList.remove('is-current-step'));
+      }
+      rafId = requestAnimationFrame(updateDOM);
+    };
+    rafId = requestAnimationFrame(updateDOM);
+
+    const statsInterval = setInterval(() => {
+      const newStats: { [key: string]: { hits: number, misses: number, cycleCount: number } } = {};
+      Object.entries(statsRef.current).forEach(([id, s]) => {
+        const stats = s as { hits: number, misses: number, cycleCount: number };
+        newStats[id] = { hits: stats.hits, misses: stats.misses, cycleCount: stats.cycleCount };
+      });
+      setUiStats(newStats);
+    }, 100);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearInterval(statsInterval);
+    };
+  }, [isPlaying]);
+
+  useEffect(() => {
+    tracks.forEach(t => {
+      const synth = synthsRef.current[t.id];
+      if (synth && synth.setVolume) {
+        synth.setVolume(t.volume);
+      }
+    });
+  }, [tracks.map(t => `${t.id}:${t.volume}`).join('|')]);
+
+  useEffect(() => {
+    tracks.forEach(t => {
+      const synth = synthsRef.current[t.id];
+      if (synth && synth.setSends) {
+        synth.setSends(t.delaySend, t.reverbSend);
+      }
+    });
+  }, [tracks.map(t => `${t.id}:${t.delaySend}:${t.reverbSend}`).join('|')]);
+
+  useEffect(() => {
+    if (masterBusRef.current) {
+      masterBusRef.current.reverbFilter.frequency.rampTo(fxHighPass, 0.05);
+      masterBusRef.current.delayFilter.frequency.rampTo(fxLowPass, 0.05);
+    }
+  }, [fxHighPass, fxLowPass]);
+
+  const previewPatterns = useMemo(() => {
+    if (!hoveredPreset) return null;
+    const previews: Record<string, number[]> = {};
+    
+    if (hoveredPreset.type === 'master' && hoveredPreset.tracks) {
+      Object.entries(hoveredPreset.tracks).forEach(([id, config]) => {
+        const track = tracks.find(t => t.id === id);
+        if (track) {
+          const trackConfig = config as TrackPreset;
+          const steps = trackConfig.steps ?? track.steps;
+          const pulses = trackConfig.pulses ?? track.pulses;
+          const offset = trackConfig.offset ?? track.offset;
+          previews[id] = rotate(bjorklund(pulses, steps), offset);
+        }
+      });
+    } else if (hoveredPreset.type === 'atomic' && hoveredPreset.config) {
+      // For atomic presets, show the preview on all tracks to visualize geometry
+      const { pulses, steps, offset } = hoveredPreset.config;
+      const pattern = rotate(bjorklund(pulses || 0, steps || 16), offset || 0);
+      tracks.forEach(track => {
+        previews[track.id] = pattern;
+      });
+    }
+    
+    return previews;
+  }, [hoveredPreset, tracks]);
+
+  const applyPreset = (preset: ScenePreset) => {
+    if (preset.type === 'master' && preset.tracks) {
+      if (preset.bpm) setBpm(preset.bpm);
+      
+      // Macro Interpolation (50ms ramp)
+      if (preset.jitter !== undefined) setJitter(preset.jitter);
+      if (preset.swing !== undefined) setSwing(preset.swing);
+      if (preset.dynamics !== undefined) setDynamics(preset.dynamics);
+
+      setTracks(prev => prev.map(t => {
+        const config = preset.tracks![t.id];
+        if (!config) return t;
+
+        let newTrack = { ...t };
+        if (config.steps !== undefined) newTrack.steps = config.steps;
+        if (config.pulses !== undefined) newTrack.pulses = config.pulses;
+        if (config.offset !== undefined) newTrack.offset = config.offset;
+        
+        // Reset counters for fresh start
+        newTrack.hits = 0;
+        newTrack.misses = 0;
+
+        return updateTrackPattern(newTrack);
+      }));
+    }
+  };
+
+  const injectPattern = (trackId: string, config: TrackPreset) => {
+    setTracks(prev => prev.map(t => {
+      if (t.id !== trackId) return t;
+      
+      let newTrack = { ...t };
+      if (config.steps !== undefined) newTrack.steps = config.steps;
+      if (config.pulses !== undefined) newTrack.pulses = config.pulses;
+      if (config.offset !== undefined) newTrack.offset = config.offset;
+      
+      // Reset counters for the injected track
+      newTrack.hits = 0;
+      newTrack.misses = 0;
+      
+      return updateTrackPattern(newTrack);
+    }));
+  };
+
+  // Calculate MCM (Least Common Multiple)
+  const stepsKey = tracks.map(t => `${t.id}:${t.steps}`).join('|');
+  const mcm = useMemo(() => {
+    // Exclude cloud track from MCM as it's asynchronous
+    const rhythmicTracks = tracks.filter(t => t.id !== 'cloud');
+    if (rhythmicTracks.length === 0) return 1;
+    return lcmArray(rhythmicTracks.map(t => t.steps));
+  }, [stepsKey]);
+
+  // Entropy Label
+  const getEntropyLabel = (val: number) => {
+    if (val <= 16) return { label: "SYNCHRONIZED / MINIMAL", color: "text-orange-500" };
+    if (val <= 64) return { label: "PERIODIC / STRUCTURED", color: "text-idm-ink/80" };
+    if (val <= 256) return { label: "EVOLVING / COMPLEX", color: "text-orange-500/80" };
+    return { label: "GENERATIVE / CHAOTIC", color: "text-orange-500" };
+  };
+
+  const entropy = getEntropyLabel(mcm);
+
+  // Calculate Sync Impact for each track
+  const syncImpacts = useMemo(() => {
+    const steps = tracks.map(t => t.steps);
+    return tracks.map((_, i) => {
+      const impact = calculateLcmImpact(steps, i);
+      // Normalize impact to a 0-100 scale for UI
+      // If impact is 1 (no change), it's 0% contribution to the "extra" complexity.
+      // If impact is > 1, it's contributing.
+      return Math.min(100, (impact - 1) * 20); // Scale factor for visualization
+    });
+  }, [stepsKey]);
+
+  // Initialize Audio
+  useEffect(() => {
+    // Master Bus Setup
+    const compressor = new Tone.Compressor({
+      threshold: -12,
+      ratio: 2,
+      attack: 0.003,
+      release: 0.25
+    });
+    const limiter = new Tone.Limiter(-0.3);
+    const analyser = new Tone.Analyser("fft", 1024);
+
+    // Global FX Buses
+    const delayBus = new Tone.Gain(1);
+    const reverbBus = new Tone.Gain(1);
+
+    // Global FX Filters
+    const delayFilter = new Tone.Filter(20000, "lowpass");
+    const reverbFilter = new Tone.Filter(20, "highpass");
+
+    const delay = new Tone.FeedbackDelay("8n", 0.3);
+    delay.wet.value = 1;
+    const reverb = new Tone.Reverb(2.5);
+    reverb.wet.value = 1;
+    reverb.generate();
+
+    // Routing
+    delayBus.chain(delay, delayFilter, compressor);
+    reverbBus.chain(reverb, reverbFilter, compressor);
+
+    compressor.chain(limiter, analyser, Tone.getDestination());
+    masterBusRef.current = { compressor, limiter, analyser, delay, reverb, delayFilter, reverbFilter, delayBus, reverbBus };
+    setGlobalAnalyser(analyser);
+
+    // Sidechain Setup (Kick -> Cloud)
+    const kickFollower = new Tone.Follower(0.1);
+    const sidechainInverter = new Tone.Gain(-0.8); // Pump amount
+    const sidechainBias = new Tone.Signal(1);
+    
+    // Filters for dynamic timbre
+    const kickDelaySend = new Tone.Gain(0).connect(delayBus);
+    const kickReverbSend = new Tone.Gain(0).connect(reverbBus);
+    const kickFilter = new Tone.Filter(2000, "lowpass").connect(compressor);
+    kickFilter.connect(kickDelaySend);
+    kickFilter.connect(kickReverbSend);
+
+    kickFilter.connect(kickFollower); // Send kick to follower
+    kickFollower.connect(sidechainInverter);
+
+    const snareDelaySend = new Tone.Gain(0).connect(delayBus);
+    const snareReverbSend = new Tone.Gain(0).connect(reverbBus);
+    const snareFilter = new Tone.Filter(5000, "lowpass").connect(compressor);
+    snareFilter.connect(snareDelaySend);
+    snareFilter.connect(snareReverbSend);
+
+    const hatDelaySend = new Tone.Gain(0).connect(delayBus);
+    const hatReverbSend = new Tone.Gain(0).connect(reverbBus);
+    const hatFilter = new Tone.Filter(5000, "highpass").connect(compressor);
+    hatFilter.connect(hatDelaySend);
+    hatFilter.connect(hatReverbSend);
+
+    // Layered Kick
+    const kickBody = new Tone.MembraneSynth({
+      pitchDecay: 0.05, octaves: 10, oscillator: { type: 'sine' },
+      envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 },
+      volume: -2
+    }).connect(kickFilter);
+
+    const kickClick = new Tone.NoiseSynth({
+      noise: { type: 'pink' },
+      envelope: { attack: 0.001, decay: 0.01, sustain: 0 },
+      volume: -10
+    }).connect(kickFilter);
+
+    synthsRef.current.kick = {
+      triggerAttackRelease: (note: string, duration: string, time: number, velocity: number) => {
+        kickBody.triggerAttackRelease("C1", duration, time, velocity);
+        kickClick.triggerAttackRelease(duration, time, velocity * 0.5);
+        const baseCutoff = 800;
+        const dynamicCutoff = baseCutoff + (velocity * 3000);
+        if (isFinite(dynamicCutoff)) {
+          kickFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+        }
+      },
+      setVolume: (vol: number) => {
+        const db = Tone.gainToDb(vol);
+        kickBody.volume.rampTo(db - 2, 0.05);
+        kickClick.volume.rampTo(db - 10, 0.05);
+      },
+      setSends: (delayVal: number, reverbVal: number) => {
+        kickDelaySend.gain.rampTo(delayVal, 0.05);
+        kickReverbSend.gain.rampTo(reverbVal, 0.05);
+      },
+      dispose: () => {
+        kickBody.dispose();
+        kickClick.dispose();
+        kickFilter.dispose();
+        kickDelaySend.dispose();
+        kickReverbSend.dispose();
+      }
+    };
+
+    const snareSynth = new Tone.NoiseSynth({
+      noise: { type: 'white' },
+      envelope: { attack: 0.001, decay: 0.2, sustain: 0 },
+      volume: -4
+    }).connect(snareFilter);
+
+    synthsRef.current.snare = {
+      triggerAttackRelease: (duration: string, time: number, velocity: number) => {
+        snareSynth.triggerAttackRelease(duration, time, velocity);
+        const baseCutoff = 1500;
+        const dynamicCutoff = baseCutoff + (velocity * 5000);
+        if (isFinite(dynamicCutoff)) {
+          snareFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+        }
+      },
+      setVolume: (vol: number) => {
+        snareSynth.volume.rampTo(Tone.gainToDb(vol) - 4, 0.05);
+      },
+      setSends: (delayVal: number, reverbVal: number) => {
+        snareDelaySend.gain.rampTo(delayVal, 0.05);
+        snareReverbSend.gain.rampTo(reverbVal, 0.05);
+      },
+      dispose: () => {
+        snareSynth.dispose();
+        snareFilter.dispose();
+        snareDelaySend.dispose();
+        snareReverbSend.dispose();
+      }
+    };
+
+    const hatSynth = new Tone.NoiseSynth({
+      noise: { type: 'white' },
+      envelope: { attack: 0.001, decay: 0.05, sustain: 0 },
+      volume: -2
+    }).connect(hatFilter);
+
+    synthsRef.current.hat = {
+      triggerAttackRelease: (duration: string, time: number, velocity: number) => {
+        hatSynth.triggerAttackRelease(duration, time, velocity);
+        // Dynamic Timbre: Brighter = Higher Highpass Cutoff
+        const baseCutoff = 2000;
+        const dynamicCutoff = baseCutoff + (velocity * 8000);
+        if (isFinite(dynamicCutoff)) {
+          hatFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+        }
+      },
+      setVolume: (vol: number) => {
+        hatSynth.volume.rampTo(Tone.gainToDb(vol) - 2, 0.05);
+      },
+      setSends: (delayVal: number, reverbVal: number) => {
+        hatDelaySend.gain.rampTo(delayVal, 0.05);
+        hatReverbSend.gain.rampTo(reverbVal, 0.05);
+      },
+      dispose: () => {
+        hatSynth.dispose();
+        hatFilter.dispose();
+        hatDelaySend.dispose();
+        hatReverbSend.dispose();
+      }
+    };
+
+    // Cloud Engine Setup
+    const cloudDelaySend = new Tone.Gain(0).connect(delayBus);
+    const cloudReverbSend = new Tone.Gain(0).connect(reverbBus);
+    const cloudFilter = new Tone.Filter(1000, "lowpass").connect(compressor);
+    cloudFilter.connect(cloudDelaySend);
+    cloudFilter.connect(cloudReverbSend);
+
+    const cloudDucker = new Tone.Gain(1).connect(cloudFilter);
+    const cloudLFO = new Tone.LFO({
+      frequency: 0.13,
+      min: 200,
+      max: 2000
+    }).connect(cloudFilter.frequency).start();
+
+    synthsRef.current.cloud = {
+      filter: cloudFilter,
+      ducker: cloudDucker,
+      lfo: cloudLFO,
+      sidechainInverter,
+      sidechainBias,
+      setVolume: (vol: number) => {
+        if (synthsRef.current.cloud.grainPlayer) {
+          synthsRef.current.cloud.grainPlayer.volume.rampTo(Tone.gainToDb(vol), 0.05);
+        }
+      },
+      setSends: (delayVal: number, reverbVal: number) => {
+        cloudDelaySend.gain.rampTo(delayVal, 0.05);
+        cloudReverbSend.gain.rampTo(reverbVal, 0.05);
+      },
+      dispose: () => {
+        if (synthsRef.current.cloud.grainPlayer) synthsRef.current.cloud.grainPlayer.dispose();
+        if (synthsRef.current.cloud.bitCrusher) synthsRef.current.cloud.bitCrusher.dispose();
+        cloudDelaySend.dispose();
+        cloudReverbSend.dispose();
+      }
+    };
+
+    // Connect sidechain math to ducker gain
+    sidechainInverter.connect(cloudDucker.gain);
+    sidechainBias.connect(cloudDucker.gain);
+
+    synthsRef.current.kickFollower = kickFollower;
+
+    return () => {
+      Object.values(synthsRef.current).forEach((s: any) => s.dispose());
+      loopRef.current?.dispose();
+      if (masterBusRef.current) {
+        masterBusRef.current.compressor.dispose();
+        masterBusRef.current.limiter.dispose();
+        masterBusRef.current.analyser.dispose();
+        masterBusRef.current.delay.dispose();
+        masterBusRef.current.reverb.dispose();
+      }
+      if (synthsRef.current.kickFollower) synthsRef.current.kickFollower.dispose();
+    };
+  }, []);
+
+    useEffect(() => {
+      if (masterBusRef.current) {
+        masterBusRef.current.delay.feedback.value = delayFeedback;
+        masterBusRef.current.delayBus.gain.rampTo(delayMix, 0.05);
+      }
+    }, [delayMix, delayFeedback]);
+
+    useEffect(() => {
+      if (masterBusRef.current) {
+        masterBusRef.current.reverbBus.gain.rampTo(reverbMix, 0.05);
+      }
+    }, [reverbMix]);
+
+    useEffect(() => {
+      if (masterBusRef.current) {
+        masterBusRef.current.delayFilter.frequency.rampTo(fxLowPass, 0.05);
+        masterBusRef.current.reverbFilter.frequency.rampTo(fxHighPass, 0.05);
+      }
+    }, [fxLowPass, fxHighPass]);
+
+  const gaussianRandom = (mean: number, stdDev: number) => {
+    const u1 = Math.random();
+    const u2 = Math.random();
+    const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+    return z0 * stdDev + mean;
+  };
+
+  useEffect(() => {
+    if (loopRef.current) loopRef.current.dispose();
+    
+    // Initialize indices for all tracks
+    const initialIndices: { [key: string]: number } = {};
+    tracksRef.current.forEach(t => {
+      initialIndices[t.id] = 0;
+    });
+    stepIndicesRef.current = initialIndices;
+    globalStepRef.current = 0;
+
+    loopRef.current = new Tone.Loop((time) => {
+      const currentTracks = tracksRef.current;
+      const j = jitterRef.current;
+      const s = swingRef.current;
+      const currentGlobalStep = globalStepRef.current;
+      const now = Tone.now();
+      
+      const anySoloed = currentTracks.some(t => t.isSoloed);
+      const isOffBeat = currentGlobalStep % 2 === 1;
+      const sixteenthDuration = Tone.Time("16n").toSeconds();
+      const swingDelay = isOffBeat ? (s / 100) * (sixteenthDuration * 0.33) : 0;
+      const baseTime = time + swingDelay;
+
+      currentTracks.forEach(track => {
+        if (track.id === 'cloud') return;
+
+        const shouldPlay = anySoloed ? track.isSoloed : !track.isMuted;
+        // The index is now derived directly from the global clock and the track's offset
+        const idx = (currentGlobalStep + track.offset) % track.steps;
+        
+        // Update current step ref for DOM highlighting
+        Tone.Draw.schedule(() => {
+          currentStepsRef.current[track.id] = idx;
+        }, baseTime);
+
+        if (!shouldPlay) {
+          return;
+        }
+
+        const isActive = track.pattern[idx] === 1;
+        const baseProb = track.probabilities[idx];
+        const prob = track.chaosEnabled ? baseProb * track.entropy : baseProb;
+        
+        let isHit = false;
+        let isMiss = false;
+        let velocity = 0.85;
+        let offset = 0;
+
+        if (isActive) {
+          if (Math.random() < prob) {
+            isHit = true;
+            const jitterSeconds = j / 1000;
+            offset = jitterSeconds > 0 ? gaussianRandom(0, jitterSeconds / 3) : 0;
+            const baseVelocity = (idx === 0) ? 1.0 : 0.85;
+            const randomVariation = (Math.random() * 0.2) * (dynamicsRef.current / 100);
+            velocity = Math.max(0.1, baseVelocity - randomVariation);
+          } else {
+            isMiss = true;
+          }
+        }
+
+        // Update stats in ref
+        const stats = statsRef.current[track.id];
+        if (isHit) stats.hits++;
+        if (isMiss) {
+          stats.misses++;
+          stats.lastGhostStep = idx;
+        }
+        if (idx === 0) stats.cycleCount++;
+
+        if (isHit) {
+          try {
+            const synth = synthsRef.current[track.id];
+            if (!synth) return;
+
+            let scheduledTime = Math.max(baseTime + offset, now + 0.02);
+            const lastTime = lastScheduledTimesRef.current[track.id] || 0;
+            if (scheduledTime <= lastTime) scheduledTime = lastTime + 0.005;
+            lastScheduledTimesRef.current[track.id] = scheduledTime;
+
+            // Unified trigger logic: use triggerAttackRelease if available
+            if (synth.triggerAttackRelease) {
+              const duration = track.mode === 'GATE' ? "16n" : (track.decay / 1000);
+              
+              if (track.id === 'kick' && !synth.grainPlayer) {
+                synth.triggerAttackRelease("C1", duration, scheduledTime, velocity);
+              } else {
+                synth.triggerAttackRelease(duration, scheduledTime, velocity);
+              }
+            } else if (synth.grainPlayer && track.samplerStatus === 'READY') {
+              // Fallback for cloud or if triggerAttackRelease is missing
+              const sprayAmount = (track.spray / 1000) * (track.chaosEnabled ? track.entropy : 1);
+              const startOffset = track.sampleStart * (track.samplerBuffer?.duration || 0);
+              const randomOffset = (Math.random() - 0.5) * sprayAmount;
+              const finalOffset = Math.max(0, Math.min(track.samplerBuffer?.duration || 0, startOffset + randomOffset));
+              const duration = track.mode === 'GATE' ? "16n" : (track.decay / 1000);
+              synth.grainPlayer.start(scheduledTime, finalOffset, duration);
+            }
+
+            Tone.Draw.schedule(() => {
+              setLastHit({ offset, color: track.color, velocity, id: Math.random() });
+            }, scheduledTime);
+          } catch (e) {
+            console.warn(`Trigger failed for ${track.id}:`, e);
+          }
+        }
+      });
+
+      Tone.Draw.schedule(() => {
+        setGlobalStep(currentGlobalStep);
+      }, baseTime);
+
+      globalStepRef.current = (currentGlobalStep + 1);
+    }, "16n").start(0);
+
+    return () => loopRef.current?.dispose();
+  }, []);
+
+  const togglePlay = async () => {
+    if (Tone.getContext().state !== 'running') await Tone.start();
+    if (isPlaying) {
+      Tone.getTransport().stop();
+      // Stop cloud grain player if it exists
+      if (synthsRef.current.cloud?.grainPlayer) {
+        synthsRef.current.cloud.grainPlayer.stop();
+      }
+      // Reset current steps ref
+      Object.keys(currentStepsRef.current).forEach(id => currentStepsRef.current[id] = -1);
+      
+      const resetIndices: { [key: string]: number } = {};
+      const resetTimes: { [key: string]: number } = {};
+      tracksRef.current.forEach(t => {
+        resetIndices[t.id] = 0;
+        resetTimes[t.id] = 0;
+      });
+      stepIndicesRef.current = resetIndices;
+      lastScheduledTimesRef.current = resetTimes;
+      
+      globalStepRef.current = 0;
+      setGlobalStep(0);
+    } else {
+      Tone.getTransport().bpm.value = bpm;
+      Tone.getTransport().start();
+      // Start cloud grain player if it exists
+      if (synthsRef.current.cloud?.grainPlayer) {
+        synthsRef.current.cloud.grainPlayer.start();
+      }
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const handlePhaseSync = () => {
+    setGlobalStep(0);
+    globalStepRef.current = 0;
+    
+    const resetIndices: { [key: string]: number } = {};
+    const resetTimes: { [key: string]: number } = {};
+    tracksRef.current.forEach(t => {
+      resetIndices[t.id] = 0;
+      resetTimes[t.id] = 0;
+    });
+    stepIndicesRef.current = resetIndices;
+    lastScheduledTimesRef.current = resetTimes;
+    
+    if (isPlaying) {
+      Tone.getTransport().stop();
+      if (synthsRef.current.cloud?.grainPlayer) {
+        synthsRef.current.cloud.grainPlayer.stop();
+      }
+      Tone.getTransport().start();
+      if (synthsRef.current.cloud?.grainPlayer) {
+        synthsRef.current.cloud.grainPlayer.start();
+      }
+    }
+  };
+
+  useEffect(() => {
+    tracks.forEach(track => {
+      const synth = synthsRef.current[track.id];
+      if (synth) {
+        try {
+          synth.setVolume(track.volume);
+          synth.setSends(track.delaySend, track.reverbSend);
+          if (synth.bitCrusher) {
+            synth.bitCrusher.bits.value = track.bitCrush;
+          }
+          if (synth.grainPlayer) {
+            synth.grainPlayer.grainSize = track.grainSize / 1000;
+            synth.grainPlayer.overlap = track.overlap;
+            synth.grainPlayer.detune = track.pitch * 100;
+          }
+        } catch (e) {
+          console.warn(`Failed to sync params for track ${track.id}:`, e);
+        }
+      }
+    });
+  }, [tracks]);
+
+  const handleFileUpload = async (trackId: string, file: File) => {
+    if (file.size > 10 * 1024 * 1024) {
+      alert("El archivo excede el límite de seguridad (10MB).");
+      return;
+    }
+
+    if (!masterBusRef.current) {
+      alert("El motor de audio no está listo. Por favor, espera un momento.");
+      return;
+    }
+
+    // Ensure Tone is started on user gesture
+    await Tone.start();
+    if (Tone.getContext().state !== 'running') {
+      await Tone.getContext().resume();
+    }
+
+    setTracks(prev => prev.map(t => t.id === trackId ? { ...t, samplerStatus: 'DECODING', samplerFilename: file.name } : t));
+
+    try {
+      console.log(`[Sampler] Loading file: ${file.name} for track: ${trackId}`);
+      
+      const arrayBuffer = await file.arrayBuffer();
+      const audioBuffer = await Tone.getContext().decodeAudioData(arrayBuffer);
+      
+      if (!audioBuffer || audioBuffer.length === 0) throw new Error("Failed to decode audio buffer or buffer is empty");
+      
+      console.log(`[Sampler] Decoded successfully. Duration: ${audioBuffer.duration.toFixed(2)}s`);
+
+      if (audioBuffer.duration > 10.1) {
+        alert("El audio excede los 10 segundos permitidos.");
+        setTracks(prev => prev.map(t => t.id === trackId ? { ...t, samplerStatus: 'IDLE', samplerFilename: null } : t));
+        return;
+      }
+
+      // Cleanup previous engine parts
+      if (synthsRef.current[trackId]?.dispose) {
+        synthsRef.current[trackId].dispose();
+      }
+
+      const master = masterBusRef.current;
+      const delaySend = new Tone.Gain(0).connect(master.delayBus);
+      const reverbSend = new Tone.Gain(0).connect(master.reverbBus);
+
+      // Create BitCrusher for this track
+      const bitCrusher = new Tone.BitCrusher(16).connect(
+        trackId === 'cloud' ? synthsRef.current.cloud.ducker : master.compressor
+      );
+      bitCrusher.connect(delaySend);
+      bitCrusher.connect(reverbSend);
+
+      // Create GrainPlayer
+      const grainPlayer = new Tone.GrainPlayer(audioBuffer).connect(bitCrusher);
+      grainPlayer.loop = trackId === 'cloud';
+      
+      console.log(`[Sampler] GrainPlayer created for ${trackId}. Buffer duration: ${grainPlayer.buffer.duration}`);
+
+      // Update state to READY
+      setTracks(prev => prev.map(t => {
+        if (t.id !== trackId) return t;
+        return { 
+          ...t, 
+          samplerStatus: 'READY', 
+          samplerBuffer: audioBuffer,
+          sampleStart: 0,
+          sampleEnd: 1,
+          attack: trackId === 'cloud' ? 2000 : 0,
+          decay: trackId === 'cloud' ? 5000 : Math.min(2000, Math.round(audioBuffer.duration * 1000)),
+          grainSize: trackId === 'cloud' ? 500 : 100,
+          overlap: 0.5,
+          spray: trackId === 'cloud' ? 200 : 0,
+          bitCrush: 16,
+          pitch: 0
+        };
+      }));
+
+      if (trackId === 'cloud' && isPlaying) {
+        grainPlayer.start();
+      }
+
+      // Ensure the synth object exists and is clean
+      if (!synthsRef.current[trackId]) {
+        synthsRef.current[trackId] = {};
+      }
+      
+      const synthObj = synthsRef.current[trackId];
+      synthObj.grainPlayer = grainPlayer;
+      synthObj.bitCrusher = bitCrusher;
+      synthObj.delaySend = delaySend;
+      synthObj.reverbSend = reverbSend;
+      
+      synthObj.dispose = () => {
+        grainPlayer.dispose();
+        bitCrusher.dispose();
+        delaySend.dispose();
+        reverbSend.dispose();
+      };
+
+      synthObj.triggerAttackRelease = (duration: any, time: number, velocity: number) => {
+        const currentTrack = tracksRef.current.find(t => t.id === trackId);
+        if (!currentTrack || !grainPlayer.buffer) return;
+        
+        // If it's a Tone.Buffer, check if it's loaded. If it's a raw AudioBuffer, it's always "loaded"
+        if (grainPlayer.buffer instanceof Tone.ToneAudioBuffer && !grainPlayer.buffer.loaded) {
+          console.warn(`[Sampler] Buffer for ${trackId} not yet loaded`);
+          return;
+        }
+
+        // Apply sampler params
+        grainPlayer.grainSize = currentTrack.grainSize / 1000;
+        grainPlayer.overlap = currentTrack.overlap;
+        grainPlayer.detune = currentTrack.pitch * 100 + (velocity - 0.8) * 100;
+        
+        const sprayAmount = (currentTrack.spray / 1000) * (currentTrack.chaosEnabled ? currentTrack.entropy : 1);
+        const startOffset = currentTrack.sampleStart * audioBuffer.duration;
+        const randomOffset = (Math.random() - 0.5) * sprayAmount;
+        const finalOffset = Math.max(0, Math.min(audioBuffer.duration, startOffset + randomOffset));
+        
+        const durSeconds = typeof duration === 'string' ? Tone.Time(duration).toSeconds() : duration;
+
+        if (trackId !== 'cloud') {
+          try {
+            const startOffsetSec = Math.max(0, Math.min(audioBuffer.duration - 0.01, finalOffset));
+            // If duration is too short, use a minimum or just play until end
+            const durationSec = Math.max(0.1, durSeconds);
+            
+            console.log(`[Sampler] Triggering ${trackId} | time: ${time.toFixed(3)} | offset: ${startOffsetSec.toFixed(3)} | dur: ${durationSec.toFixed(3)} | vol: ${grainPlayer.volume.value.toFixed(1)}dB | state: ${Tone.getContext().state}`);
+            
+            // Ensure volume is not muted
+            if (grainPlayer.mute) grainPlayer.mute = false;
+            
+            grainPlayer.start(time, startOffsetSec, durationSec);
+          } catch (err) {
+            console.warn("GrainPlayer start failed:", err);
+          }
+        }
+      };
+
+      synthObj.setVolume = (vol: number) => {
+        grainPlayer.volume.rampTo(Tone.gainToDb(vol), 0.05);
+      };
+      
+      synthObj.setSends = (delayVal: number, reverbVal: number) => {
+        delaySend.gain.rampTo(delayVal, 0.05);
+        reverbSend.gain.rampTo(reverbVal, 0.05);
+      };
+      
+      // Update initial sends and volume
+      const track = tracksRef.current.find(t => t.id === trackId);
+      if (track) {
+        synthObj.setVolume(track.volume);
+        synthObj.setSends(track.delaySend, track.reverbSend);
+      }
+
+    } catch (e) {
+      console.error("Error decodificando audio:", e);
+      setTracks(prev => prev.map(t => t.id === trackId ? { ...t, samplerStatus: 'IDLE', samplerFilename: null } : t));
+      alert("Error al cargar el archivo de audio. Asegúrate de que sea un formato compatible.");
+    }
+  };
+
+  const handleSamplerParamChange = useCallback((trackId: string, param: string, val: any) => {
+    setTracks(prev => prev.map(t => {
+      if (t.id !== trackId) return t;
+      return { ...t, [param]: val };
+    }));
+
+    // Sync with Tone.js nodes in real-time
+    const synthObj = synthsRef.current[trackId];
+    if (synthObj) {
+      if (synthObj.grainPlayer) {
+        switch (param) {
+          case 'grainSize': synthObj.grainPlayer.grainSize = val / 1000; break;
+          case 'overlap': synthObj.grainPlayer.overlap = val; break;
+          case 'spray': 
+            // Simulate spray by slightly randomizing playbackRate or detune if needed
+            // but for now we'll use it to set the internal grain randomization if possible
+            // Tone.GrainPlayer doesn't have a direct spray, but we can use detune randomization
+            break;
+          case 'pitch': synthObj.grainPlayer.detune = val * 100; break;
+          case 'sampleStart': synthObj.grainPlayer.loopStart = val * synthObj.grainPlayer.buffer.duration; break;
+          case 'sampleEnd': synthObj.grainPlayer.loopEnd = val * synthObj.grainPlayer.buffer.duration; break;
+          case 'attack': synthObj.grainPlayer.fadeIn = val / 1000; break;
+          case 'decay': synthObj.grainPlayer.fadeOut = val / 1000; break;
+        }
+      }
+      if (synthObj.bitCrusher && param === 'bitCrush') {
+        synthObj.bitCrusher.bits.value = val;
+      }
+    }
+  }, []);
+
+  const handleClearSampler = (trackId: string) => {
+    if (synthsRef.current[trackId]?.dispose) {
+      synthsRef.current[trackId].dispose();
+    }
+    
+    // Re-initialize original synth
+    if (trackId === 'kick' || trackId === 'snare' || trackId === 'hat') {
+      initializeOriginalSynth(trackId);
+    }
+
+    setTracks(prev => prev.map(t => t.id === trackId ? { 
+      ...t, 
+      samplerStatus: 'IDLE', 
+      samplerBuffer: null, 
+      samplerFilename: null 
+    } : t));
+  };
+
+  const initializeOriginalSynth = (trackId: string) => {
+    const master = masterBusRef.current!;
+    if (trackId === 'kick') {
+      const kickDelaySend = new Tone.Gain(0).connect(master.delayBus);
+      const kickReverbSend = new Tone.Gain(0).connect(master.reverbBus);
+      const kickFilter = new Tone.Filter(2000, "lowpass").connect(master.compressor);
+      kickFilter.connect(kickDelaySend);
+      kickFilter.connect(kickReverbSend);
+      if (synthsRef.current.kickFollower) kickFilter.connect(synthsRef.current.kickFollower);
+
+      const kickBody = new Tone.MembraneSynth({
+        pitchDecay: 0.05, octaves: 10, oscillator: { type: 'sine' },
+        envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 },
+        volume: -2
+      }).connect(kickFilter);
+
+      const kickClick = new Tone.NoiseSynth({
+        noise: { type: 'pink' },
+        envelope: { attack: 0.001, decay: 0.01, sustain: 0 },
+        volume: -10
+      }).connect(kickFilter);
+
+      synthsRef.current.kick = {
+        triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
+          kickBody.triggerAttackRelease("C1", duration, time, velocity);
+          kickClick.triggerAttackRelease(duration, time, velocity * 0.5);
+          const baseCutoff = 800;
+          const dynamicCutoff = baseCutoff + (velocity * 3000);
+          if (isFinite(dynamicCutoff)) {
+            kickFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+          }
+        },
+        setVolume: (vol: number) => {
+          const db = Tone.gainToDb(vol);
+          kickBody.volume.rampTo(db - 2, 0.05);
+          kickClick.volume.rampTo(db - 10, 0.05);
+        },
+        setSends: (delayVal: number, reverbVal: number) => {
+          kickDelaySend.gain.rampTo(delayVal, 0.05);
+          kickReverbSend.gain.rampTo(reverbVal, 0.05);
+        },
+        dispose: () => {
+          kickBody.dispose();
+          kickClick.dispose();
+          kickFilter.dispose();
+          kickDelaySend.dispose();
+          kickReverbSend.dispose();
+        }
+      };
+    } else if (trackId === 'snare') {
+      const snareDelaySend = new Tone.Gain(0).connect(master.delayBus);
+      const snareReverbSend = new Tone.Gain(0).connect(master.reverbBus);
+      const snareFilter = new Tone.Filter(5000, "lowpass").connect(master.compressor);
+      snareFilter.connect(snareDelaySend);
+      snareFilter.connect(snareReverbSend);
+
+      const snareSynth = new Tone.NoiseSynth({
+        noise: { type: 'white' },
+        envelope: { attack: 0.001, decay: 0.2, sustain: 0 },
+        volume: -4
+      }).connect(snareFilter);
+
+      synthsRef.current.snare = {
+        triggerAttackRelease: (duration: any, time: number, velocity: number) => {
+          snareSynth.triggerAttackRelease(duration, time, velocity);
+          const baseCutoff = 1500;
+          const dynamicCutoff = baseCutoff + (velocity * 5000);
+          if (isFinite(dynamicCutoff)) {
+            snareFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+          }
+        },
+        setVolume: (vol: number) => {
+          snareSynth.volume.rampTo(Tone.gainToDb(vol) - 4, 0.05);
+        },
+        setSends: (delayVal: number, reverbVal: number) => {
+          snareDelaySend.gain.rampTo(delayVal, 0.05);
+          snareReverbSend.gain.rampTo(reverbVal, 0.05);
+        },
+        dispose: () => {
+          snareSynth.dispose();
+          snareFilter.dispose();
+          snareDelaySend.dispose();
+          snareReverbSend.dispose();
+        }
+      };
+    } else if (trackId === 'hat') {
+      const hatDelaySend = new Tone.Gain(0).connect(master.delayBus);
+      const hatReverbSend = new Tone.Gain(0).connect(master.reverbBus);
+      const hatFilter = new Tone.Filter(5000, "highpass").connect(master.compressor);
+      hatFilter.connect(hatDelaySend);
+      hatFilter.connect(hatReverbSend);
+
+      const hatSynth = new Tone.NoiseSynth({
+        noise: { type: 'white' },
+        envelope: { attack: 0.001, decay: 0.05, sustain: 0 },
+        volume: -2
+      }).connect(hatFilter);
+
+      synthsRef.current.hat = {
+        triggerAttackRelease: (duration: any, time: number, velocity: number) => {
+          hatSynth.triggerAttackRelease(duration, time, velocity);
+          const baseCutoff = 2000;
+          const dynamicCutoff = baseCutoff + (velocity * 8000);
+          if (isFinite(dynamicCutoff)) {
+            hatFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+          }
+        },
+        setVolume: (vol: number) => {
+          hatSynth.volume.rampTo(Tone.gainToDb(vol) - 2, 0.05);
+        },
+        setSends: (delayVal: number, reverbVal: number) => {
+          hatDelaySend.gain.rampTo(delayVal, 0.05);
+          hatReverbSend.gain.rampTo(reverbVal, 0.05);
+        },
+        dispose: () => {
+          hatSynth.dispose();
+          hatFilter.dispose();
+          hatDelaySend.dispose();
+          hatReverbSend.dispose();
+        }
+      };
+    }
+    
+    // Apply current volume and sends
+    const track = tracksRef.current.find(t => t.id === trackId);
+    if (track && synthsRef.current[trackId]) {
+      synthsRef.current[trackId].setVolume(track.volume);
+      synthsRef.current[trackId].setSends(track.delaySend, track.reverbSend);
+    }
+  };
+
+  useEffect(() => { Tone.getTransport().bpm.value = bpm; }, [bpm]);
+  
+  // Sync Sampler/GrainPlayer parameters with audio nodes
+  useEffect(() => {
+    tracks.forEach(track => {
+      const synth = synthsRef.current[track.id];
+      if (!synth) return;
+
+      if (synth.grainPlayer) {
+        synth.grainPlayer.grainSize = track.grainSize / 1000;
+        synth.grainPlayer.overlap = track.overlap;
+        synth.grainPlayer.detune = track.pitch * 100;
+        // Spray is handled in the trigger logic for rhythmic tracks, 
+        // but for cloud we can apply it to the loop if needed.
+        // Actually Tone.GrainPlayer doesn't have a direct 'spray' property that works like we want in loop mode easily without manual offset jumps.
+      }
+
+      if (synth.bitCrusher) {
+        synth.bitCrusher.bits.value = track.bitCrush;
+      }
+    });
+  }, [tracks]);
+
+  const progress = (globalStep % mcm) / mcm;
+
+  // Perspective logic simplified (always standard)
+
+  return (
+    <div className="p-6 w-full max-w-[1800px] mx-auto bg-idm-bg border border-black/5 rounded-xl relative">
+      {/* Perspective Selector Removed */}
+
+      {/* Sticky Header Bar */}
+      <div className="sticky top-0 z-50 -mx-6 px-6 py-4 bg-white border-b border-black/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-all duration-500 opacity-100 pointer-events-auto">
+        <div>
+          <h1 className="text-2xl font-mono font-bold tracking-tighter uppercase mb-0.5 flex items-center gap-2">
+            <Activity className="text-system-accent" size={20} />
+            Polyrhythmic <span className="text-system-accent">IDM</span> Engine
+          </h1>
+          <p className="text-idm-ink/40 font-mono text-[9px] uppercase tracking-[0.3em]">
+            4-Track Generative Environment // Multi-Cycle Sync
+          </p>
+          <div className="mt-2 flex items-center gap-3">
+            {audioContextState !== 'running' ? (
+              <button 
+                onClick={handleStartAudio}
+                className="flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/30 rounded-full hover:bg-red-500/20 transition-all group"
+              >
+                <Power size={10} className="text-red-500 group-hover:scale-110 transition-transform" />
+                <span className="text-[8px] font-mono font-bold text-red-500 uppercase tracking-widest">Audio Engine Suspended - Click to Start</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-2 px-3 py-1 bg-green-500/5 border border-green-500/20 rounded-full">
+                <Activity size={10} className="text-green-500" />
+                <span className="text-[8px] font-mono font-bold text-green-500 uppercase tracking-widest">Engine Online</span>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="flex gap-2 mr-2">
+            <button 
+              onClick={() => setShowControls(!showControls)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-300 border ${
+                showControls 
+                  ? 'bg-system-accent/10 text-system-accent border-system-accent/30' 
+                  : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'
+              }`}
+              title="Toggle Global Controls"
+            >
+              <Sliders size={12} />
+              <span className="hidden sm:inline">{showControls ? 'Controls' : 'Controls'}</span>
+            </button>
+            <button 
+              onClick={() => setShowVisuals(!showVisuals)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-300 border ${
+                showVisuals 
+                  ? 'bg-system-accent/10 text-system-accent border-system-accent/30' 
+                  : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'
+              }`}
+              title="Toggle Visual Monitors"
+            >
+              {showVisuals ? <Eye size={12} /> : <EyeOff size={12} />}
+              <span className="hidden sm:inline">{showVisuals ? 'Visuals' : 'Visuals'}</span>
+            </button>
+            <button 
+              onClick={() => setShowSync(!showSync)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-300 border ${
+                showSync 
+                  ? 'bg-system-accent/10 text-system-accent border-system-accent/30' 
+                  : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'
+              }`}
+              title="Toggle Pattern Sync"
+            >
+              <Zap size={12} />
+              <span className="hidden sm:inline">{showSync ? 'Sync' : 'Sync'}</span>
+            </button>
+            <button 
+              onClick={() => setShowLibrary(!showLibrary)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-300 border ${
+                showLibrary 
+                  ? 'bg-system-accent/10 text-system-accent border-system-accent/30' 
+                  : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'
+              }`}
+              title="Toggle EPL Library"
+            >
+              <Disc size={12} />
+              <span className="hidden sm:inline">{showLibrary ? 'Library' : 'Library'}</span>
+            </button>
+            <button 
+              onClick={() => setIsStudyMode(!isStudyMode)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-300 border ${
+                isStudyMode 
+                  ? 'bg-system-accent text-white border-system-accent shadow-sm' 
+                  : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'
+              }`}
+              title="Toggle Study Mode (Capa Pedagógica)"
+            >
+              <HelpCircle size={12} />
+              <span className="hidden sm:inline">{isStudyMode ? 'Study ON' : 'Study Mode'}</span>
+            </button>
+            <button 
+              onClick={() => setIsThesisOpen(true)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-300 border bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10`}
+              title="Ver Tesis Doctoral (Macro)"
+            >
+              <Info size={12} />
+              <span className="hidden sm:inline">Info</span>
+            </button>
+          </div>
+
+          <button 
+            onClick={togglePlay} 
+            className={`w-14 h-14 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${isPlaying ? "bg-system-accent text-white border-system-accent shadow-md" : "bg-white text-system-accent border-system-accent hover:bg-system-accent/5"}`}
+          >
+            {isPlaying ? <Square size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-col mb-8 gap-6 mt-6">
+
+        {/* Main Control Panel */}
+        {(showControls || showVisuals) && (
+          <div className="bg-white border border-black/5 rounded-2xl p-6 relative z-20 shadow-sm">
+            <div className="flex flex-col gap-6">
+              {/* Spectrum Analyzer Integration */}
+              {showVisuals && (
+                <div className="mb-2 animate-in fade-in slide-in-from-top-4 duration-700">
+                  <SpectrumAnalyzer analyser={globalAnalyser} isPlaying={isPlaying} />
+                </div>
+              )}
+
+              {/* Top Row: Core Parameters */}
+              {showControls && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 animate-in fade-in slide-in-from-top-2 duration-500">
+                  <div className="flex flex-col gap-2 transition-all duration-500 opacity-100 scale-100">
+                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                      <span>Tempo</span>
+                      <span className="text-idm-ink">{bpm} BPM</span>
+                    </div>
+                    <input 
+                      type="range" min="40" max="240" value={bpm} 
+                      onChange={(e) => setBpm(parseInt(e.target.value))} 
+                      className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                      <span>Jitter</span>
+                      <span className="text-system-accent">{jitter}ms</span>
+                    </div>
+                    <input 
+                      type="range" min="0" max="20" value={jitter} 
+                      onChange={(e) => setJitter(parseInt(e.target.value))} 
+                      className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                      <span>Swing</span>
+                      <span className="text-system-accent">{swing}%</span>
+                    </div>
+                    <input 
+                      type="range" min="0" max="100" value={swing} 
+                      onChange={(e) => setSwing(parseInt(e.target.value))} 
+                      className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                      <span>Dynamics</span>
+                      <span className="text-system-accent">{dynamics}%</span>
+                    </div>
+                    <input 
+                      type="range" min="0" max="100" value={dynamics} 
+                      onChange={(e) => setDynamics(parseInt(e.target.value))} 
+                      className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
+                    />
+                  </div>
+
+                  {/* Effects Controls (Always Visible) */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                      <span>Space (Reverb)</span>
+                      <span className="text-system-accent">{Math.round(reverbMix * 100)}%</span>
+                    </div>
+                    <input 
+                      type="range" min="0" max="100" value={reverbMix * 100} 
+                      onChange={(e) => setReverbMix(parseInt(e.target.value) / 100)} 
+                      className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                      <span>Echo (Delay)</span>
+                      <span className="text-system-accent">{Math.round(delayMix * 100)}%</span>
+                    </div>
+                    <input 
+                      type="range" min="0" max="100" value={delayMix * 100} 
+                      onChange={(e) => setDelayMix(parseInt(e.target.value) / 100)} 
+                      className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                      <span>Feedback</span>
+                      <span className="text-system-accent">{Math.round(delayFeedback * 100)}%</span>
+                    </div>
+                    <input 
+                      type="range" min="0" max="100" value={delayFeedback * 100} 
+                      onChange={(e) => setDelayFeedback(parseInt(e.target.value) / 100)} 
+                      className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
+                    />
+                  </div>
+                </div>
+              )}
+
+                <div className="mt-6 pt-6 border-t border-idm-muted/10 grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-700">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                      <span>FX Low-Cut (HPF)</span>
+                      <span className="text-system-accent">{Math.round(fxHighPass)}Hz</span>
+                    </div>
+                    <input 
+                      type="range" min="20" max="2000" value={fxHighPass} 
+                      onChange={(e) => setFxHighPass(parseInt(e.target.value))} 
+                      className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                      <span>FX High-Cut (LPF)</span>
+                      <span className="text-system-accent">{Math.round(fxLowPass)}Hz</span>
+                    </div>
+                    <input 
+                      type="range" min="500" max="20000" value={fxLowPass} 
+                      onChange={(e) => setFxLowPass(parseInt(e.target.value))} 
+                      className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
+                    />
+                  </div>
+                </div>
+
+              {showVisuals && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[9px] font-mono uppercase text-idm-ink/30 tracking-widest text-center">Temporal</span>
+                    <JitterMonitor jitter={jitter} lastHit={lastHit} />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[9px] font-mono uppercase text-idm-ink/30 tracking-widest text-center">Distribution</span>
+                    <EnergyMonitor lastHit={lastHit} mode="distribution" />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[9px] font-mono uppercase text-idm-ink/30 tracking-widest text-center">Range</span>
+                    <EnergyMonitor lastHit={lastHit} mode="range" />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[9px] font-mono uppercase text-idm-ink/30 tracking-widest text-center">Scatter</span>
+                    <EnergyMonitor lastHit={lastHit} mode="scatter" />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Pattern Synchrony & Phase Radar */}
+      {showSync && (
+        <div className="mb-8 bg-white p-6 rounded-2xl border border-black/5 flex flex-col lg:flex-row items-center gap-8 relative overflow-hidden transition-all duration-500 animate-in fade-in slide-in-from-top-2 duration-500 opacity-100 shadow-sm">
+          <div className="flex-1 space-y-4 w-full">
+            <div className="flex justify-between items-end">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-idm-muted">
+                  <Zap size={12} className={mcm > 1000 ? "text-red-500 animate-pulse" : "text-system-accent"} />
+                  Sincronía del Patrón
+                </div>
+                <div className={`text-xs font-mono font-bold ${mcm > 1000 ? "text-red-500" : ""}`}>
+                  {mcm > 1000 ? "ZONA DE EVOLUCIÓN INFINITA" : `REINICIO CADA ${mcm} PASOS`}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-[9px] font-mono uppercase text-idm-ink/40 mb-1">Entropía Rítmica</div>
+                <div className={`text-[10px] font-mono font-bold tracking-tighter ${entropy.color}`}>
+                  {entropy.label}
+                </div>
+              </div>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="h-1 w-full bg-black/5 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-system-accent transition-all duration-100 ease-linear"
+                style={{ width: `${progress * 100}%` }}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 pt-2">
+              <div className="bg-black/5 p-3 rounded-lg border border-black/5">
+                <div className="text-[8px] uppercase tracking-tighter text-idm-muted mb-1">MCM</div>
+                <div className="text-xl font-mono text-system-accent tracking-tighter">{mcm}</div>
+              </div>
+              <div className="bg-black/5 p-3 rounded-lg border border-black/5">
+                <div className="text-[8px] uppercase tracking-tighter text-idm-muted mb-1">Impacto</div>
+                <div className="text-xl font-mono text-system-accent tracking-tighter">
+                  {Math.round(syncImpacts.reduce((a, b) => a + b, 0) / Math.max(1, tracks.filter(t => t.id !== 'cloud').length))}%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <PhaseRadar 
+            tracks={tracks.map(t => ({ id: t.id, steps: t.steps, color: t.color, offset: t.offset }))}
+            globalStep={globalStep}
+            onSync={handlePhaseSync}
+            isDjMode={isDjMode}
+            onDjModeToggle={() => setIsDjMode(!isDjMode)}
+          />
+
+          {/* Subtle background glow when cycle resets */}
+          {isPlaying && (globalStep % mcm === 0) && (
+            <div className="absolute inset-0 bg-system-accent/5 animate-pulse pointer-events-none" />
+          )}
+        </div>
+      )}
+
+      {/* Library Panel */}
+      {showLibrary && (
+        <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
+          <div className="md:col-span-1 bg-white border border-black/5 rounded-2xl p-4 shadow-sm max-h-[450px] overflow-y-auto custom-scrollbar">
+            <h2 className="text-[10px] font-mono uppercase tracking-[0.3em] text-system-accent mb-4 flex items-center gap-2 sticky top-0 bg-white/90 py-2 z-10">
+              <Disc size={12} />
+              Librería EPL
+            </h2>
+            
+            <div className="space-y-6">
+              {/* Master Scenes Section */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-px flex-1 bg-system-accent/10"></div>
+                  <span className="text-[8px] font-mono text-system-accent/60 uppercase tracking-widest">Escenas Maestras</span>
+                  <div className="h-px flex-1 bg-system-accent/10"></div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  {PRESETS.filter(p => p.type === 'master').map(preset => (
+                    <button
+                      key={preset.id}
+                      onClick={() => applyPreset(preset)}
+                      onMouseEnter={() => setHoveredPreset(preset)}
+                      onMouseLeave={() => setHoveredPreset(null)}
+                      className="text-left px-3 py-2 rounded-lg text-[10px] font-mono border border-transparent hover:border-system-accent/20 hover:bg-system-accent/5 transition-all group flex justify-between items-center"
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-idm-ink group-hover:text-system-accent font-bold">{preset.name}</span>
+                        <span className="text-[8px] text-idm-muted">{preset.bpm} BPM</span>
+                      </div>
+                      <Zap size={10} className="opacity-0 group-hover:opacity-100 text-system-accent transition-opacity" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Atomic Patterns Section */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-px flex-1 bg-black/5"></div>
+                  <span className="text-[8px] font-mono text-idm-muted uppercase tracking-widest">Patrones Atómicos</span>
+                  <div className="h-px flex-1 bg-black/5"></div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {PRESETS.filter(p => p.type === 'atomic').map(preset => (
+                    <div 
+                      key={preset.id}
+                      onMouseEnter={() => setHoveredPreset(preset)}
+                      onMouseLeave={() => setHoveredPreset(null)}
+                      className="flex flex-col gap-2 p-2 rounded-xl border border-transparent hover:border-black/5 hover:bg-black/5 transition-all"
+                    >
+                      <div className="flex justify-between items-center px-1">
+                        <span className="text-[10px] font-mono text-idm-ink font-bold">{preset.name}</span>
+                        <span className="text-[8px] font-mono text-system-accent/50">E({preset.config?.pulses}, {preset.config?.steps})</span>
+                      </div>
+                      <div className="flex gap-1">
+                        {[
+                          { id: 'kick', label: 'K' },
+                          { id: 'snare', label: 'S' },
+                          { id: 'hat', label: 'H' }
+                        ].map(track => (
+                          <button
+                            key={track.id}
+                            onClick={() => injectPattern(track.id, preset.config!)}
+                            className="flex-1 py-1 rounded-md bg-black/5 hover:bg-system-accent hover:text-white text-[9px] font-mono font-bold text-idm-muted border border-black/5 transition-all uppercase"
+                            title={`Inyectar en ${track.id}`}
+                          >
+                            {track.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="md:col-span-3 bg-white border border-black/5 rounded-2xl p-8 flex flex-col justify-center relative overflow-hidden shadow-sm">
+            {hoveredPreset ? (
+              <div className="animate-in fade-in slide-in-from-left-4 duration-500">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className={`w-2 h-2 rounded-full ${hoveredPreset.type === 'master' ? 'bg-system-accent shadow-[0_0_10px_rgba(249,115,22,0.3)]' : 'bg-idm-muted'}`}></div>
+                  <h3 className="text-system-accent font-mono font-bold text-2xl uppercase tracking-tighter">{hoveredPreset.name}</h3>
+                  <span className={`px-3 py-1 rounded-full text-[9px] font-mono uppercase tracking-widest border ${hoveredPreset.type === 'master' ? 'bg-system-accent/5 border-system-accent/20 text-system-accent' : 'bg-idm-bg border-black/5 text-idm-muted'}`}>
+                    {hoveredPreset.type === 'master' ? 'Escena Maestra' : 'Patrón Atómico'}
+                  </span>
+                </div>
+                
+                <div className="max-w-xl">
+                  <p className="text-idm-ink/70 font-mono text-xs uppercase leading-relaxed mb-8 border-l-2 border-system-accent/30 pl-4">
+                    {hoveredPreset.description}
+                  </p>
+                  
+                  <div className="grid grid-cols-3 gap-8">
+                    {hoveredPreset.type === 'master' ? (
+                      <>
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-2">Configuración Global</span>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[10px] font-mono">
+                              <span className="text-idm-muted">TEMPO</span>
+                              <span className="text-system-accent">{hoveredPreset.bpm} BPM</span>
+                            </div>
+                            <div className="flex justify-between text-[10px] font-mono">
+                              <span className="text-idm-muted">JITTER</span>
+                              <span className="text-system-accent">{hoveredPreset.jitter}ms</span>
+                            </div>
+                            <div className="flex justify-between text-[10px] font-mono">
+                              <span className="text-idm-muted">SWING</span>
+                              <span className="text-system-accent">{hoveredPreset.swing}%</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="col-span-2 flex flex-col">
+                          <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-2">Geometría de Pistas</span>
+                          <div className="grid grid-cols-3 gap-4">
+                            {Object.entries(hoveredPreset.tracks || {}).map(([id, config]) => {
+                              const trackConfig = config as TrackPreset;
+                              return (
+                                <div key={id} className="bg-black/5 p-2 rounded border border-black/5">
+                                  <div className="text-[8px] text-idm-muted uppercase mb-1">{id}</div>
+                                  <div className="text-xs font-mono text-system-accent">E({trackConfig.pulses}, {trackConfig.steps})</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-2">Fórmula Bjorklund</span>
+                          <div className="text-2xl font-mono text-system-accent tracking-tighter">
+                            E({hoveredPreset.config?.pulses}, {hoveredPreset.config?.steps})
+                          </div>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-2">Densidad</span>
+                          <div className="text-2xl font-mono text-system-accent tracking-tighter">
+                            {Math.round((hoveredPreset.config?.pulses! / hoveredPreset.config?.steps!) * 100)}%
+                          </div>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-2">Offset</span>
+                          <div className="text-2xl font-mono text-system-accent tracking-tighter">
+                            {hoveredPreset.config?.offset}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-center opacity-10">
+                <Atom size={48} className="mb-4 text-system-accent animate-spin-slow" />
+                <p className="text-xs font-mono uppercase tracking-[0.4em] leading-loose">
+                  Surgical Read-Only Mode<br/>
+                  <span className="text-[10px] opacity-60">Selecciona un preset para previsualizar su topografía</span>
+                </p>
+              </div>
+            )}
+            
+            {/* Ghost Preview Active Indicator */}
+            {hoveredPreset && (
+              <div className="absolute top-6 right-6 flex items-center gap-2 text-[9px] font-mono text-system-accent/80 animate-pulse">
+                <Zap size={12} />
+                GHOST PREVIEW ACTIVE
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tracks Container with z-index to ensure interactivity */}
+      <div className="space-y-6 relative z-10">
+        <MesoInsightMonitor tracks={tracks} isStudyMode={isStudyMode} />
+        {tracks.map((track, i) => (
+          <div key={track.id} className="transition-all duration-500 opacity-100">
+            <EuclideanTrack
+              {...track}
+              trackId={track.id}
+              stats={uiStats[track.id] || { hits: 0, misses: 0, cycleCount: 0 }}
+              synth={synthsRef.current[track.id]}
+              jitter={jitter}
+              globalStep={globalStep}
+              mcm={mcm}
+              syncImpact={syncImpacts[i]}
+              lastHit={lastHit?.color === track.color ? lastHit : null}
+              isDjMode={isDjMode}
+              previewPattern={previewPatterns?.[track.id]}
+              onStepsChange={(val) => setTracks(prev => prev.map(t => {
+                if (t.id === track.id) {
+                  const newSteps = val;
+                  const newPulses = Math.min(t.pulses, val);
+                  return updateTrackPattern({ ...t, steps: newSteps, pulses: newPulses });
+                }
+                return t;
+              }))}
+              onPulsesChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? updateTrackPattern({ ...t, pulses: val }) : t))}
+              onOffsetChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? updateTrackPattern({ ...t, offset: val }) : t))}
+              onProbabilityChange={(idx, val) => setTracks(prev => prev.map(t => {
+                if (t.id === track.id) {
+                  const newProbs = [...t.probabilities];
+                  newProbs[idx] = val;
+                  return { ...t, probabilities: newProbs };
+                }
+                return t;
+              }))}
+              onChaosToggle={() => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, chaosEnabled: !t.chaosEnabled } : t))}
+              onEntropyChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, entropy: val } : t))}
+              onEvolveToggle={() => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, evolveEnabled: !t.evolveEnabled } : t))}
+              onMutationRateChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, mutationRate: val } : t))}
+              onMutationSpeedChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, mutationSpeed: val } : t))}
+              onFileUpload={(file) => handleFileUpload(track.id, file)}
+              onSamplerParamChange={(param, val) => handleSamplerParamChange(track.id, param, val)}
+              onClearSampler={() => handleClearSampler(track.id)}
+              onToggleStep={(idx) => setTracks(prev => prev.map(t => {
+                if (t.id === track.id) {
+                  const newPattern = [...t.pattern];
+                  newPattern[idx] = newPattern[idx] === 1 ? 0 : 1;
+                  const newPulses = newPattern.filter(p => p === 1).length;
+                  return { ...t, pattern: newPattern, pulses: newPulses };
+                }
+                return t;
+              }))}
+              onMuteToggle={() => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, isMuted: !t.isMuted } : t))}
+              onSoloToggle={() => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, isSoloed: !t.isSoloed } : t))}
+              volume={track.volume}
+              onVolumeChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, volume: val } : t))}
+              delaySend={track.delaySend}
+              onDelaySendChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, delaySend: val } : t))}
+              reverbSend={track.reverbSend}
+              onReverbSendChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, reverbSend: val } : t))}
+              isStudyMode={isStudyMode}
+              anySoloed={tracks.some(t => t.isSoloed)}
+            />
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-8 pt-4 border-t border-idm-muted/30 flex justify-between items-center text-[10px] font-mono text-idm-ink/40 uppercase tracking-widest">
+        <div className="flex gap-4">
+          <span>KICK: Membrane</span>
+          <span>SNARE: Noise</span>
+          <span>HAT: Metal</span>
+        </div>
+        <div>{isPlaying ? "Engine: Running" : "Engine: Idle"}</div>
+      </div>
+      <ThesisDrawer isOpen={isThesisOpen} onClose={() => setIsThesisOpen(false)} />
+    </div>
+  );
+};
