@@ -856,6 +856,7 @@ export const EuclideanTrack = React.memo(({
               baseProbability={probabilities[i] || 1}
               effectiveProbability={chaosEnabled ? (probabilities[i] || 1) * entropy : (probabilities[i] || 1)}
               previewActive={previewPattern ? previewPattern[i] === 1 : false}
+              temporalOffset={temporalOffsets?.[i] ?? 0}
               onProbabilityChange={(val) => onProbabilityChange(i, val)}
               onToggle={() => onToggleStep(i)}
             />
