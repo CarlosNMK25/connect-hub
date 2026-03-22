@@ -65,7 +65,7 @@ export const EuclideanStep: React.FC<EuclideanStepProps> = ({
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isEditing) return;
     dragStartY.current = e.clientY;
-    dragStartProb.current = baseProbability;
+    dragStartProb.current = isTonal ? noteIndex : baseProbability;
     hasMoved.current = false;
     setIsDragging(true);
 
