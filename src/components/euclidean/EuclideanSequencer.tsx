@@ -174,7 +174,7 @@ const ThesisDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
               </div>
 
               <div className="space-y-12">
-                {Object.entries(PEDAGOGY.macro).map(([key, section]) => (
+                {Object.entries(PEDAGOGY.macro).map(([key, section]: [string, any]) => (
                   <section key={key} className="space-y-4">
                     <h3 className="text-xs font-mono font-bold uppercase tracking-[0.4em] text-system-accent border-b border-system-accent/20 pb-2">
                       {section.title.toUpperCase()}
