@@ -52,6 +52,7 @@ interface TrackState {
   volume: number;
   delaySend: number;
   reverbSend: number;
+  ratchet: number;
   hits: number;
   misses: number;
 }
