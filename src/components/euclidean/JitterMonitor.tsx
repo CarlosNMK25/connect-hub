@@ -54,7 +54,7 @@ export const JitterMonitor: React.FC<JitterMonitorProps> = ({ jitter, lastHit })
   }, [curvePoints]);
 
   return (
-    <div className="flex flex-col items-center gap-1 bg-black/20 p-2 rounded border border-idm-muted/10 min-w-[140px]">
+    <div className="flex flex-col items-center gap-1 bg-white p-2 rounded border border-black/5 min-w-[140px] shadow-sm">
       <div className="flex justify-between w-full text-[8px] font-mono uppercase text-system-accent tracking-tighter">
         <span>Deviación</span>
         <span>Gaussiana</span>
