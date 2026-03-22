@@ -1629,7 +1629,9 @@ export const EuclideanSequencer = () => {
                     <JitterMonitor jitter={jitter} lastHit={lastHit} />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <span className="text-[9px] font-mono uppercase text-system-accent tracking-widest text-center">Distribution</span>
+                    <span className={`text-[9px] font-mono uppercase text-system-accent tracking-widest text-center ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('monitorDistribution'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>Distribution</span>
                     <EnergyMonitor lastHit={lastHit} mode="distribution" />
                   </div>
                   <div className="flex flex-col gap-2">
