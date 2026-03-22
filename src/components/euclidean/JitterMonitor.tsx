@@ -35,7 +35,7 @@ export const JitterMonitor: React.FC<JitterMonitorProps> = ({ jitter, lastHit })
   const curvePoints = useMemo(() => {
     const points = [];
     const width = 120;
-    const height = 30;
+    const height = 40;
     
     for (let x = -3; x <= 3; x += 0.1) {
       const y = Math.exp(-0.5 * Math.pow(x, 2)); 
