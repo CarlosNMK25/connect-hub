@@ -371,6 +371,19 @@ export const EuclideanSequencer = () => {
         newStats[id] = { hits: stats.hits, misses: stats.misses, cycleCount: stats.cycleCount };
       });
       setUiStats(newStats);
+
+      // Flush pending evolve mutations to React state (max 1 setTracks per 100ms)
+      const mutations = pendingMutationsRef.current;
+      const mutationKeys = Object.keys(mutations);
+      if (mutationKeys.length > 0) {
+        pendingMutationsRef.current = {};
+        setTracks(prev => prev.map(t => {
+          if (mutations[t.id]) {
+            return { ...t, probabilities: mutations[t.id] };
+          }
+          return t;
+        }));
+      }
     }, 100);
 
     return () => {
