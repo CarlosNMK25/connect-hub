@@ -66,6 +66,7 @@ export const PEDAGOGY = {
     bitCrush: "Reduce la resolución digital del sonido, introduciendo ruido de cuantización y armónicos agresivos. Evoca la estética de los samplers de 8 bits y la degradación industrial del lo-fi experimental.",
   } as PedagogyMicro,
 
+  meso: {
     polyrhythm: {
       title: "Poliritmia Emergente",
       condition: "Steps de 2+ pistas son diferentes",
