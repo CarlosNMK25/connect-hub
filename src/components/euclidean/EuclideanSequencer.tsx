@@ -573,7 +573,7 @@ export const EuclideanSequencer = () => {
         }])
       ),
     };
-  }, [bpm, jitter, swing, dynamics, tracks]);
+  }, [bpm, jitter, swing, dynamics, temporalityMode, tracks]);
 
   const handleSaveUserPreset = useCallback(() => {
     if (!newPresetName.trim()) return;

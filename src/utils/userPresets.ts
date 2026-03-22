@@ -21,6 +21,7 @@ export interface UserPreset {
   jitter: number;
   swing: number;
   dynamics: number;
+  temporalityMode?: string;
   tracks: Record<string, UserPresetTrack>;
 }
 
