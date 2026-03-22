@@ -60,7 +60,7 @@ export const JitterMonitor: React.FC<JitterMonitorProps> = ({ jitter, lastHit })
         <span>Gaussiana</span>
       </div>
       
-      <div className="relative w-[120px] h-[30px] mt-1">
+      <div className="relative w-[120px] h-[40px] mt-1">
         {/* The Bell Curve */}
         <svg width="120" height="30" className="overflow-visible">
           {/* Grid lines */}
