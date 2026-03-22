@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import * as Tone from 'tone';
-import { Play, Square, Sliders, Activity, Zap, Eye, EyeOff, Disc, ChevronLeft, ChevronRight, Info, HelpCircle, X, ChevronDown, ChevronUp, Layers, Target, Atom, Power } from 'lucide-react';
+import { Play, Square, Sliders, Activity, Zap, Eye, EyeOff, Disc, ChevronLeft, ChevronRight, Info, HelpCircle, X, ChevronDown, ChevronUp, Layers, Target, Atom, Power, Settings } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import { EuclideanTrack } from './EuclideanTrack';
 import { SpectrumAnalyzer } from './SpectrumAnalyzer';
 import { JitterMonitor } from './JitterMonitor';
 import { EnergyMonitor } from './EnergyMonitor';
 import { PhaseRadar } from './PhaseRadar';
+import { EngineRoom, type LogEntry } from './EngineRoom';
 import { bjorklund, rotate } from '../../utils/bjorklund';
 import { lcmArray, calculateLcmImpact } from '../../utils/math';
 import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
@@ -241,7 +242,43 @@ export const EuclideanSequencer = () => {
   const [hoveredPreset, setHoveredPreset] = useState<ScenePreset | null>(null);
   const [eclipseFlash, setEclipseFlash] = useState(false);
   const eclipseRef = useRef(false);
-  
+  const [showEngine, setShowEngine] = useState(false);
+  const engineLogRef = useRef<LogEntry[]>([]);
+  const [engineLog, setEngineLog] = useState<LogEntry[]>([]);
+  const sliderDragRef = useRef<{ [key: string]: { value: number; timer: ReturnType<typeof setTimeout> | null } }>({});
+
+  const logChange = useCallback((action: string, deltas: string[] = []) => {
+    const now = new Date();
+    const timestamp = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    const entry: LogEntry = { timestamp, action, deltas };
+    engineLogRef.current = [entry, ...engineLogRef.current].slice(0, 50);
+  }, []);
+
+  const logSliderChange = useCallback((key: string, label: string, currentVal: number, newVal: number, unit: string, computeDeltas?: (oldVal: number, newVal: number) => string[]) => {
+    const drag = sliderDragRef.current[key];
+    if (!drag) {
+      sliderDragRef.current[key] = { value: currentVal, timer: null };
+    }
+    const startVal = sliderDragRef.current[key].value;
+    if (sliderDragRef.current[key].timer) clearTimeout(sliderDragRef.current[key].timer!);
+    sliderDragRef.current[key].timer = setTimeout(() => {
+      if (startVal !== newVal) {
+        const deltas = computeDeltas ? computeDeltas(startVal, newVal) : [];
+        logChange(`${label} ${startVal}${unit} → ${newVal}${unit}`, deltas);
+      }
+      sliderDragRef.current[key] = { value: newVal, timer: null };
+    }, 500);
+  }, [logChange]);
+
+  // Sync engine log to state when panel is open
+  useEffect(() => {
+    if (!showEngine) return;
+    const interval = setInterval(() => {
+      setEngineLog([...engineLogRef.current]);
+    }, 500);
+    return () => clearInterval(interval);
+  }, [showEngine]);
+
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const { scrollY } = useScroll();
 
@@ -452,6 +489,19 @@ export const EuclideanSequencer = () => {
 
   const applyPreset = (preset: ScenePreset) => {
     if (preset.type === 'master' && preset.tracks) {
+      // Compute MCM for the new preset
+      const newSteps = Object.entries(preset.tracks)
+        .filter(([id]) => id !== 'cloud')
+        .map(([id, config]) => {
+          const tc = config as TrackPreset;
+          const t = tracks.find(tr => tr.id === id);
+          return tc.steps ?? t?.steps ?? 16;
+        });
+      const newMcm = newSteps.length > 0 ? lcmArray(newSteps) : mcm;
+      const deltas = [`MCM:${newMcm}`];
+      if (preset.bpm) deltas.push(`BPM:${preset.bpm}`);
+      logChange(`Preset: ${preset.name}`, deltas);
+
       if (preset.bpm) setBpm(preset.bpm);
       
       // Macro Interpolation (50ms ramp)
@@ -908,6 +958,7 @@ export const EuclideanSequencer = () => {
   const togglePlay = async () => {
     if (Tone.getContext().state !== 'running') await Tone.start();
     if (isPlaying) {
+      logChange('■ Stop');
       Tone.getTransport().stop();
       // Stop cloud grain player if it exists
       if (synthsRef.current.cloud?.grainPlayer) {
@@ -928,6 +979,8 @@ export const EuclideanSequencer = () => {
       globalStepRef.current = 0;
       setGlobalStep(0);
     } else {
+      const activeTracks = tracks.filter(t => !t.isMuted).length;
+      logChange('▶ Play', [`BPM ${bpm}`, `${activeTracks} activos`]);
       Tone.getTransport().bpm.value = bpm;
       Tone.getTransport().start();
       // Start cloud grain player if it exists
@@ -1516,6 +1569,18 @@ export const EuclideanSequencer = () => {
               <Disc size={12} />
               <span className="hidden sm:inline">{showLibrary ? 'Library' : 'Library'}</span>
             </button>
+            <button 
+              onClick={() => setShowEngine(!showEngine)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-300 border ${
+                showEngine 
+                  ? 'bg-idm-ink/10 text-idm-ink border-idm-ink/30' 
+                  : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'
+              }`}
+              title="Toggle Engine Room"
+            >
+              <Settings size={12} />
+              <span className="hidden sm:inline">Engine</span>
+            </button>
           </div>
 
           <button 
@@ -1552,7 +1617,7 @@ export const EuclideanSequencer = () => {
                     </div>
                     <input 
                       type="range" min="40" max="240" value={bpm} 
-                      onChange={(e) => setBpm(parseInt(e.target.value))} 
+                      onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('bpm', 'BPM', bpm, v, '', (o, n) => { const oldEclipse = mcm * 60 / o / 4; const newEclipse = mcm * 60 / n / 4; return [`Eclipse ${formatEclipseTime(oldEclipse, false)} → ${formatEclipseTime(newEclipse, false)}`]; }); setBpm(v); }} 
                       className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
                     />
                   </div>
@@ -1566,7 +1631,7 @@ export const EuclideanSequencer = () => {
                     </div>
                     <input 
                       type="range" min="0" max="20" value={jitter} 
-                      onChange={(e) => setJitter(parseInt(e.target.value))} 
+                      onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('jitter', 'Jitter', jitter, v, 'ms'); setJitter(v); }} 
                       className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
                     />
                   </div>
@@ -1580,7 +1645,7 @@ export const EuclideanSequencer = () => {
                     </div>
                     <input 
                       type="range" min="0" max="100" value={swing} 
-                      onChange={(e) => setSwing(parseInt(e.target.value))} 
+                      onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('swing', 'Swing', swing, v, '%'); setSwing(v); }} 
                       className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
                     />
                   </div>
@@ -1594,7 +1659,7 @@ export const EuclideanSequencer = () => {
                     </div>
                     <input 
                       type="range" min="0" max="100" value={dynamics} 
-                      onChange={(e) => setDynamics(parseInt(e.target.value))} 
+                      onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('dynamics', 'Dynamics', dynamics, v, '%'); setDynamics(v); }} 
                       className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
                     />
                   </div>
@@ -1969,6 +2034,16 @@ export const EuclideanSequencer = () => {
         </div>
       )}
 
+      {/* Engine Room Panel */}
+      {showEngine && (
+        <EngineRoom
+          tracks={tracks}
+          uiStats={uiStats}
+          log={engineLog}
+          onClearLog={() => { engineLogRef.current = []; setEngineLog([]); }}
+        />
+      )}
+
       {/* Tracks Container with z-index to ensure interactivity */}
       <div className="space-y-6 relative z-10">
         <MesoInsightMonitor tracks={tracks} isStudyMode={isStudyMode} />
@@ -1986,16 +2061,39 @@ export const EuclideanSequencer = () => {
               lastHit={lastHit?.color === track.color ? lastHit : null}
               isDjMode={isDjMode}
               previewPattern={previewPatterns?.[track.id]}
-              onStepsChange={(val) => setTracks(prev => prev.map(t => {
-                if (t.id === track.id) {
-                  const newSteps = val;
-                  const newPulses = Math.min(t.pulses, val);
-                  return updateTrackPattern({ ...t, steps: newSteps, pulses: newPulses });
-                }
-                return t;
-              }))}
-              onPulsesChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? updateTrackPattern({ ...t, pulses: val }) : t))}
-              onOffsetChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? updateTrackPattern({ ...t, offset: val }) : t))}
+              onStepsChange={(val) => {
+                const oldSteps = track.steps;
+                const oldDensity = Math.round((track.pulses / oldSteps) * 100);
+                const newPulses = Math.min(track.pulses, val);
+                const newDensity = Math.round((newPulses / val) * 100);
+                // Compute MCM delta
+                const rhythmicSteps = tracks.filter(t => t.id !== 'cloud').map(t => t.id === track.id ? val : t.steps);
+                const newMcm = lcmArray(rhythmicSteps);
+                const deltas: string[] = [];
+                if (newMcm !== mcm) deltas.push(`MCM ${mcm} → ${newMcm}`);
+                deltas.push(`Dens ${oldDensity}% → ${newDensity}%`);
+                const oldEclipseSec = mcm * 60 / bpm / 4;
+                const newEclipseSec = newMcm * 60 / bpm / 4;
+                if (newMcm !== mcm) deltas.push(`Eclipse ${formatEclipseTime(oldEclipseSec, false)} → ${formatEclipseTime(newEclipseSec, false)}`);
+                logChange(`${track.name} steps ${oldSteps} → ${val}`, deltas);
+                setTracks(prev => prev.map(t => {
+                  if (t.id === track.id) {
+                    return updateTrackPattern({ ...t, steps: val, pulses: Math.min(t.pulses, val) });
+                  }
+                  return t;
+                }));
+              }}
+              onPulsesChange={(val) => {
+                const oldPulses = track.pulses;
+                const oldDensity = Math.round((oldPulses / track.steps) * 100);
+                const newDensity = Math.round((val / track.steps) * 100);
+                logChange(`${track.name} pulses ${oldPulses} → ${val}`, [`Dens ${oldDensity}% → ${newDensity}%`]);
+                setTracks(prev => prev.map(t => t.id === track.id ? updateTrackPattern({ ...t, pulses: val }) : t));
+              }}
+              onOffsetChange={(val) => {
+                logChange(`${track.name} offset ${track.offset} → ${val}`);
+                setTracks(prev => prev.map(t => t.id === track.id ? updateTrackPattern({ ...t, offset: val }) : t));
+              }}
               onProbabilityChange={(idx, val) => setTracks(prev => prev.map(t => {
                 if (t.id === track.id) {
                   const newProbs = [...t.probabilities];
@@ -2004,10 +2102,24 @@ export const EuclideanSequencer = () => {
                 }
                 return t;
               }))}
-              onChaosToggle={() => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, chaosEnabled: !t.chaosEnabled } : t))}
-              onEntropyChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, entropy: val } : t))}
-              onEvolveToggle={() => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, evolveEnabled: !t.evolveEnabled } : t))}
-              onMutationRateChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, mutationRate: val } : t))}
+              onChaosToggle={() => {
+                const newState = !track.chaosEnabled;
+                logChange(`Chaos ${newState ? 'ON' : 'OFF'} (${track.name})`, newState ? [`HitRate ~${hitRateData.rate ?? 100}% → estimado menor`] : []);
+                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, chaosEnabled: newState } : t));
+              }}
+              onEntropyChange={(val) => {
+                logChange(`${track.name} entropy ${track.entropy} → ${val}×`);
+                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, entropy: val } : t));
+              }}
+              onEvolveToggle={() => {
+                const newState = !track.evolveEnabled;
+                logChange(`Evolve ${newState ? 'ON' : 'OFF'} (${track.name})`);
+                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, evolveEnabled: newState } : t));
+              }}
+              onMutationRateChange={(val) => {
+                logChange(`${track.name} mutation ${Math.round(track.mutationRate * 100)}% → ${Math.round(val * 100)}%`);
+                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, mutationRate: val } : t));
+              }}
               onMutationSpeedChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, mutationSpeed: val } : t))}
               onFileUpload={(file) => handleFileUpload(track.id, file)}
               onSamplerParamChange={(param, val) => handleSamplerParamChange(track.id, param, val)}
