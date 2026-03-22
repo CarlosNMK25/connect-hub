@@ -248,6 +248,11 @@ export const EuclideanSequencer = () => {
   const engineLogRef = useRef<LogEntry[]>([]);
   const [engineLog, setEngineLog] = useState<LogEntry[]>([]);
   const sliderDragRef = useRef<{ [key: string]: { value: number; timer: ReturnType<typeof setTimeout> | null } }>({});
+  const [userPresets, setUserPresets] = useState<UserPreset[]>(() => loadUserPresets());
+  const [isSavingPreset, setIsSavingPreset] = useState(false);
+  const [newPresetName, setNewPresetName] = useState('');
+  const [importError, setImportError] = useState<string | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const logChange = useCallback((action: string, deltas: string[] = []) => {
     const now = new Date();
