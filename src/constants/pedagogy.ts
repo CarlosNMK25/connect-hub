@@ -129,3 +129,9 @@ export const PEDAGOGY = {
     }
   } as Record<string, PedagogyMacro>
 };
+
+export function getMicroText(key: string, voice: PedagogyVoice): string {
+  return voice === 'literary'
+    ? (PEDAGOGY.microLiterary[key] ?? PEDAGOGY.micro[key] ?? '')
+    : (PEDAGOGY.micro[key] ?? '');
+}
