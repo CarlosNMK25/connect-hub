@@ -91,7 +91,7 @@ export const JitterMonitor: React.FC<JitterMonitorProps> = ({ jitter, lastHit })
               
               // Calculate Y on the curve for the point to "land" on it
               const curveY = Math.exp(-0.5 * Math.pow(curveX, 2));
-              const y = 30 - (curveY * 30 * 0.8);
+              const y = 40 - (curveY * 40 * 0.8);
               
               return (
                 <motion.circle
