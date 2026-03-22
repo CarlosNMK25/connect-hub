@@ -1362,7 +1362,7 @@ export const EuclideanSequencer = () => {
           <p className="text-idm-ink/40 font-mono text-[9px] uppercase tracking-[0.3em]">
             4-Track Generative Environment // Multi-Cycle Sync
           </p>
-          <div className="mt-2 flex items-center gap-3">
+          <div className="mt-2 flex items-center gap-2 flex-wrap">
             {audioContextState !== 'running' ? (
               <button 
                 onClick={handleStartAudio}
@@ -1377,6 +1377,35 @@ export const EuclideanSequencer = () => {
                 <span className="text-[8px] font-mono font-bold text-green-500 uppercase tracking-widest">Engine Online</span>
               </div>
             )}
+            <button 
+              onClick={() => setIsStudyMode(!isStudyMode)}
+              className={`flex items-center gap-2 px-3 py-1 rounded-full text-[8px] font-mono font-bold uppercase tracking-widest transition-all duration-300 border ${
+                isStudyMode 
+                  ? 'bg-system-accent/10 border-system-accent/30 text-system-accent' 
+                  : 'bg-black/[0.02] text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'
+              }`}
+              title="Toggle Study Mode (Capa Pedagógica)"
+            >
+              <HelpCircle size={10} />
+              <span>{isStudyMode ? 'Study ON' : 'Study Mode'}</span>
+            </button>
+            {isStudyMode && (
+              <button
+                onClick={() => setStudyVoice(v => v === 'technical' ? 'literary' : 'technical')}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[8px] font-mono font-bold uppercase tracking-widest transition-all duration-300 border bg-black/[0.02] text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10"
+                title="Alternar entre tooltips técnicos y literarios"
+              >
+                {studyVoice === 'technical' ? '∑ Técnico' : '✦ Literario'}
+              </button>
+            )}
+            <button 
+              onClick={() => setIsThesisOpen(true)}
+              className="flex items-center gap-2 px-3 py-1 rounded-full text-[8px] font-mono font-bold uppercase tracking-widest transition-all duration-300 border bg-black/[0.02] text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10"
+              title="Ver Tesis Doctoral (Macro)"
+            >
+              <Info size={10} />
+              <span>Info</span>
+            </button>
           </div>
         </div>
         
