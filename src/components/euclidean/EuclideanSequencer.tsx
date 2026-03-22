@@ -1659,7 +1659,9 @@ export const EuclideanSequencer = () => {
           <div className="flex-1 space-y-4 w-full">
             <div className="flex justify-between items-end">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-idm-muted">
+                <div className={`flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('patternSync'); setHoveredGlobalEl(e.currentTarget); } }}
+                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
                   <Zap size={12} className={mcm > 1000 ? "text-red-500 animate-pulse" : "text-system-accent"} />
                   Sincronía del Patrón
                 </div>
