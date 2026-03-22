@@ -202,6 +202,23 @@ export const EuclideanStep: React.FC<EuclideanStepProps> = ({
                 />
               )}
 
+              {/* Temporal Offset Indicator Bar */}
+              {active && temporalOffset !== 0 && (() => {
+                const maxOffset = 0.06;
+                const normalizedOffset = Math.max(-1, Math.min(1, temporalOffset / maxOffset));
+                const position = 50 + (normalizedOffset * 40);
+                return (
+                  <div
+                    className="absolute top-1 bottom-1 w-[2px] rounded-full pointer-events-none transition-all duration-200"
+                    style={{
+                      left: `${position}%`,
+                      backgroundColor: temporalOffset > 0 ? `${color}80` : `${color}60`,
+                      opacity: Math.abs(normalizedOffset) * 0.8 + 0.2,
+                    }}
+                  />
+                );
+              })()}
+
               {/* Probability Percentage Label */}
               {active && (
                 <div className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-200 ${isDragging ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>

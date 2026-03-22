@@ -1000,6 +1000,9 @@ export const EuclideanTrack = React.memo(({
     prevProps.overlap === nextProps.overlap &&
     prevProps.spray === nextProps.spray &&
     prevProps.bitCrush === nextProps.bitCrush &&
-    prevProps.studyVoice === nextProps.studyVoice
+    prevProps.studyVoice === nextProps.studyVoice &&
+    prevProps.temporalityMode === nextProps.temporalityMode &&
+    prevProps.bpm === nextProps.bpm &&
+    prevProps.swing === nextProps.swing
   );
 });

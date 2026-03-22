@@ -2389,6 +2389,9 @@ export const EuclideanSequencer = () => {
               isStudyMode={isStudyMode}
               studyVoice={studyVoice}
               anySoloed={tracks.some(t => t.isSoloed)}
+              temporalityMode={temporalityMode}
+              bpm={bpm}
+              swing={swing}
             />
           </div>
         ))}
