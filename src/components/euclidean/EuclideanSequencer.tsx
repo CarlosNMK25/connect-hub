@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import * as Tone from 'tone';
 import { Play, Square, Sliders, Activity, Zap, Eye, EyeOff, Disc, ChevronLeft, ChevronRight, Info, HelpCircle, X, ChevronDown, ChevronUp, Layers, Target, Atom, Power } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
@@ -10,7 +11,7 @@ import { PhaseRadar } from './PhaseRadar';
 import { bjorklund, rotate } from '../../utils/bjorklund';
 import { lcmArray, calculateLcmImpact } from '../../utils/math';
 import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
-import { PEDAGOGY, type PedagogyVoice } from '../../constants/pedagogy';
+import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
 
 interface TrackState {
   id: string;
