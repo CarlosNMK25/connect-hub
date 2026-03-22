@@ -55,7 +55,7 @@ export const JitterMonitor: React.FC<JitterMonitorProps> = ({ jitter, lastHit })
 
   return (
     <div className="flex flex-col items-center gap-1 bg-black/20 p-2 rounded border border-idm-muted/10 min-w-[140px]">
-      <div className="flex justify-between w-full text-[8px] font-mono uppercase text-idm-ink/40 tracking-tighter">
+      <div className="flex justify-between w-full text-[8px] font-mono uppercase text-system-accent tracking-tighter">
         <span>Deviación</span>
         <span>Gaussiana</span>
       </div>
@@ -114,7 +114,7 @@ export const JitterMonitor: React.FC<JitterMonitorProps> = ({ jitter, lastHit })
         <div className="absolute top-0 left-1/2 -translate-x-1/2 h-full w-[1px] bg-orange-500/10 pointer-events-none" />
       </div>
 
-      <div className="flex justify-between w-full text-[7px] font-mono text-idm-ink/30 uppercase mt-1">
+      <div className="flex justify-between w-full text-[7px] font-mono text-system-accent uppercase mt-1">
         <span>-Early</span>
         <span>Late+</span>
       </div>

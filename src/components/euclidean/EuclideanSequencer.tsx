@@ -1602,19 +1602,19 @@ export const EuclideanSequencer = () => {
               {showVisuals && (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
                   <div className="flex flex-col gap-2">
-                    <span className="text-[9px] font-mono uppercase text-idm-ink/30 tracking-widest text-center">Temporal</span>
+                    <span className="text-[9px] font-mono uppercase text-system-accent tracking-widest text-center">Temporal</span>
                     <JitterMonitor jitter={jitter} lastHit={lastHit} />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <span className="text-[9px] font-mono uppercase text-idm-ink/30 tracking-widest text-center">Distribution</span>
+                    <span className="text-[9px] font-mono uppercase text-system-accent tracking-widest text-center">Distribution</span>
                     <EnergyMonitor lastHit={lastHit} mode="distribution" />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <span className="text-[9px] font-mono uppercase text-idm-ink/30 tracking-widest text-center">Range</span>
+                    <span className="text-[9px] font-mono uppercase text-system-accent tracking-widest text-center">Range</span>
                     <EnergyMonitor lastHit={lastHit} mode="range" />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <span className="text-[9px] font-mono uppercase text-idm-ink/30 tracking-widest text-center">Scatter</span>
+                    <span className="text-[9px] font-mono uppercase text-system-accent tracking-widest text-center">Scatter</span>
                     <EnergyMonitor lastHit={lastHit} mode="scatter" />
                   </div>
                 </div>

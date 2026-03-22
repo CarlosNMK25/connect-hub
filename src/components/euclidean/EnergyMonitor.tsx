@@ -58,7 +58,7 @@ export const EnergyMonitor: React.FC<EnergyMonitorProps> = ({ lastHit, mode }) =
 
   return (
     <div className="flex flex-col items-center gap-1 bg-black/20 p-2 rounded border border-idm-muted/10 flex-1 relative">
-      <div className="flex justify-between w-full text-[7px] font-mono uppercase text-idm-ink/40 tracking-tighter">
+      <div className="flex justify-between w-full text-[7px] font-mono uppercase text-system-accent tracking-tighter">
         <span>Monitor</span>
         <span>{mode}</span>
       </div>
@@ -124,7 +124,7 @@ export const EnergyMonitor: React.FC<EnergyMonitorProps> = ({ lastHit, mode }) =
         )}
       </div>
 
-      <div className="flex justify-between w-full text-[6px] font-mono text-idm-ink/30 uppercase mt-1">
+      <div className="flex justify-between w-full text-[6px] font-mono text-system-accent uppercase mt-1">
         <span>{mode === 'scatter' ? 'Rec' : 'Soft'}</span>
         <span>{mode === 'scatter' ? 'Old' : 'Hard'}</span>
       </div>
