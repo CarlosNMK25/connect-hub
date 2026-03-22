@@ -941,21 +941,22 @@ export const EuclideanSequencer = () => {
       const s = swingRef.current;
       const currentGlobalStep = globalStepRef.current;
       const now = Tone.now();
+      const mode = temporalityModeRef.current;
       
       const anySoloed = currentTracks.some(t => t.isSoloed);
       const isOffBeat = currentGlobalStep % 2 === 1;
       const sixteenthDuration = Tone.Time("16n").toSeconds();
-      const swingDelay = isOffBeat ? (s / 100) * (sixteenthDuration * 0.33) : 0;
+
+      // Grid mode: legacy swing applied globally. Other modes: swing handled per-track inside calculateTemporalOffset.
+      const swingDelay = mode === 'grid' ? (isOffBeat ? (s / 100) * (sixteenthDuration * 0.33) : 0) : 0;
       const baseTime = time + swingDelay;
 
       currentTracks.forEach(track => {
         if (track.id === 'cloud') return;
 
         const shouldPlay = anySoloed ? track.isSoloed : !track.isMuted;
-        // The index is now derived directly from the global clock and the track's offset
         const idx = (currentGlobalStep + track.offset) % track.steps;
         
-        // Update current step ref for DOM highlighting
         Tone.Draw.schedule(() => {
           currentStepsRef.current[track.id] = idx;
         }, baseTime);
@@ -976,8 +977,23 @@ export const EuclideanSequencer = () => {
         if (isActive) {
           if (Math.random() < prob) {
             isHit = true;
-            const jitterSeconds = j / 1000;
-            offset = jitterSeconds > 0 ? gaussianRandom(0, jitterSeconds / 3) : 0;
+            if (mode === 'grid') {
+              // Legacy jitter for Grid mode (regression zero)
+              const jitterSeconds = j / 1000;
+              offset = jitterSeconds > 0 ? gaussianRandom(0, jitterSeconds / 3) : 0;
+            } else {
+              // All other modes: offset includes swing + jitter as appropriate
+              offset = calculateTemporalOffset(mode, {
+                trackId: track.id,
+                stepIndex: idx,
+                steps: track.steps,
+                globalStep: currentGlobalStep,
+                swing: s,
+                jitter: j,
+                sixteenthDuration,
+                pattern: track.pattern,
+              });
+            }
             const baseVelocity = (idx === 0) ? 1.0 : 0.85;
             const randomVariation = (Math.random() * 0.2) * (dynamicsRef.current / 100);
             velocity = Math.max(0.1, baseVelocity - randomVariation);
