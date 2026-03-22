@@ -1670,7 +1670,9 @@ export const EuclideanSequencer = () => {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[9px] font-mono uppercase text-idm-ink/40 mb-1">Entropía Rítmica</div>
+                <div className={`text-[9px] font-mono uppercase text-idm-ink/40 mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
+                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('rhythmicEntropy'); setHoveredGlobalEl(e.currentTarget); } }}
+                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>Entropía Rítmica</div>
                 <div className={`text-[10px] font-mono font-bold tracking-tighter ${entropy.color}`}>
                   {entropy.label}
                 </div>
