@@ -1351,6 +1351,58 @@ export const EuclideanSequencer = () => {
 
   const progress = (globalStep % mcm) / mcm;
 
+  // Eclipse countdown
+  const stepsRestantes = mcm - (globalStep % mcm);
+  const sixteenthDuration = 60 / bpm / 4;
+  const segundosRestantes = stepsRestantes * sixteenthDuration;
+  const totalCycleSeconds = mcm * sixteenthDuration;
+
+  const formatEclipseTime = (secs: number, isEstimate: boolean) => {
+    if (secs >= 60) {
+      const m = Math.floor(secs / 60);
+      const s = Math.round(secs % 60);
+      return `${isEstimate ? '~' : ''}${m}m ${s}s`;
+    }
+    return `${Math.round(secs)}s`;
+  };
+
+  const eclipseDisplay = (() => {
+    if (eclipseFlash) return 'NOW ✦';
+    const secs = isPlaying ? segundosRestantes : totalCycleSeconds;
+    const isLong = secs > 600;
+    return formatEclipseTime(secs, isLong);
+  })();
+
+  // Eclipse latch
+  useEffect(() => {
+    if (isPlaying && stepsRestantes <= 1 && !eclipseRef.current) {
+      eclipseRef.current = true;
+      setEclipseFlash(true);
+      const timer = setTimeout(() => {
+        setEclipseFlash(false);
+        eclipseRef.current = false;
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [stepsRestantes, isPlaying]);
+
+  // Hit Rate
+  const hitRateData = useMemo(() => {
+    const rhythmicStats = tracks
+      .filter(t => t.id !== 'cloud')
+      .map(t => uiStats[t.id] || { hits: 0, misses: 0 });
+    const totalHits = rhythmicStats.reduce((sum, s) => sum + s.hits, 0);
+    const totalMisses = rhythmicStats.reduce((sum, s) => sum + s.misses, 0);
+    const total = totalHits + totalMisses;
+    const rate = total > 0 ? Math.round((totalHits / total) * 100) : null;
+    return { rate, total };
+  }, [tracks, uiStats]);
+
+  const hitRateColor = hitRateData.rate === null ? 'text-idm-muted'
+    : hitRateData.rate >= 80 ? 'text-idm-ink'
+    : hitRateData.rate >= 50 ? 'text-system-accent'
+    : 'text-red-500';
+
   // Perspective logic simplified (always standard)
 
   return (
