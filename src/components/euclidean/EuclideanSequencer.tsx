@@ -13,6 +13,7 @@ import { bjorklund, rotate } from '../../utils/bjorklund';
 import { lcmArray, calculateLcmImpact } from '../../utils/math';
 import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
+import { UserPreset, loadUserPresets, saveUserPresets, exportPresetAsJson, importPresetFromFile, userPresetToScenePreset } from '../../utils/userPresets';
 
 interface TrackState {
   id: string;
