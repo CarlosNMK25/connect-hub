@@ -2063,8 +2063,8 @@ export const EuclideanSequencer = () => {
                   <input
                     ref={importInputRef}
                     type="file"
-                    accept=".json"
-                    className="hidden"
+                    accept=".json,application/json"
+                    style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', opacity: 0 }}
                     onChange={handleImportPreset}
                   />
                 </div>
