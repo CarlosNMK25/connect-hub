@@ -48,6 +48,8 @@ interface TrackState {
   volume: number;
   delaySend: number;
   reverbSend: number;
+  hits: number;
+  misses: number;
 }
 
 const getMesoInsight = (tracks: TrackState[]) => {
