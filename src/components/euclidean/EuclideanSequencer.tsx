@@ -242,6 +242,10 @@ export const EuclideanSequencer = () => {
   const [hoveredPreset, setHoveredPreset] = useState<ScenePreset | null>(null);
   const [eclipseFlash, setEclipseFlash] = useState(false);
   const eclipseRef = useRef(false);
+  const [showEngine, setShowEngine] = useState(false);
+  const engineLogRef = useRef<LogEntry[]>([]);
+  const [engineLog, setEngineLog] = useState<LogEntry[]>([]);
+  const sliderDragRef = useRef<{ [key: string]: { value: number; timer: ReturnType<typeof setTimeout> | null } }>({});
   
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const { scrollY } = useScroll();
