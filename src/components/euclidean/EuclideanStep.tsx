@@ -26,6 +26,7 @@ export const EuclideanStep: React.FC<EuclideanStepProps> = ({
   baseProbability,
   effectiveProbability,
   previewActive,
+  temporalOffset = 0,
   onProbabilityChange,
   onToggle
 }) => {
