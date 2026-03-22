@@ -1592,7 +1592,9 @@ export const EuclideanSequencer = () => {
 
                 <div className="mt-6 pt-6 border-t border-idm-muted/10 grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-700">
                   <div className="flex flex-col gap-2">
-                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                    <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxHighPass'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
                       <span>FX Low-Cut (HPF)</span>
                       <span className="text-system-accent">{Math.round(fxHighPass)}Hz</span>
                     </div>
