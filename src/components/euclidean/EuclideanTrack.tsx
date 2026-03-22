@@ -293,12 +293,11 @@ export const EuclideanTrack = React.memo(({
           <div 
             ref={volumeBarRef}
             onMouseDown={handleVolumeMouseDown}
-            onMouseEnter={() => isStudyMode && setHoveredParam('volume')}
-            onMouseLeave={() => setHoveredParam(null)}
+            onMouseEnter={(e) => handleParamEnter(\'volume\', e)}
+            onMouseLeave={handleParamLeave}
             className="w-2.5 h-14 rounded-full bg-idm-bg border border-black/5 shadow-inner transition-all duration-300 relative overflow-hidden cursor-ns-resize group"
             title={`Volume: ${Math.round(volume * 100)}%`}
           >
-            <StudyTooltip content={getMicroText('volume', voice)} visible={hoveredParam === 'volume'} />
             {/* Fill Level */}
             <div 
               className="absolute bottom-0 left-0 w-full transition-all duration-100 ease-out"
@@ -328,10 +327,9 @@ export const EuclideanTrack = React.memo(({
           <div className="flex flex-col gap-2 ml-1">
             <div 
               className="flex flex-col gap-1 relative"
-              onMouseEnter={() => isStudyMode && setHoveredParam('delaySend')}
-              onMouseLeave={() => setHoveredParam(null)}
+              onMouseEnter={(e) => handleParamEnter(\'delaySend\', e)}
+              onMouseLeave={handleParamLeave}
             >
-              <StudyTooltip content={getMicroText('delaySend', voice)} visible={hoveredParam === 'delaySend'} />
               <div className="flex justify-between items-center w-16">
                 <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Dly</span>
                 <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round(delaySend * 100)}%</span>
@@ -352,10 +350,9 @@ export const EuclideanTrack = React.memo(({
             </div>
             <div 
               className="flex flex-col gap-1 relative"
-              onMouseEnter={() => isStudyMode && setHoveredParam('reverbSend')}
-              onMouseLeave={() => setHoveredParam(null)}
+              onMouseEnter={(e) => handleParamEnter(\'reverbSend\', e)}
+              onMouseLeave={handleParamLeave}
             >
-              <StudyTooltip content={getMicroText('reverbSend', voice)} visible={hoveredParam === 'reverbSend'} />
               <div className="flex justify-between items-center w-16">
                 <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rvb</span>
                 <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round(reverbSend * 100)}%</span>
@@ -503,10 +500,9 @@ export const EuclideanTrack = React.memo(({
           <div className="grid grid-cols-3 gap-6 flex-1 w-full transition-all duration-500 relative z-20 opacity-100 scale-100">
             <div 
               className="space-y-2 relative"
-              onMouseEnter={() => isStudyMode && setHoveredParam('pulses')}
-              onMouseLeave={() => setHoveredParam(null)}
+              onMouseEnter={(e) => handleParamEnter(\'pulses\', e)}
+              onMouseLeave={handleParamLeave}
             >
-              <StudyTooltip content={getMicroText('pulses', voice)} visible={hoveredParam === 'pulses'} />
               <div className="flex justify-between text-[9px] font-mono font-bold uppercase text-idm-muted">
                 <span>Pulses</span>
                 <span style={{ color }}>{pulses}</span>
@@ -520,10 +516,9 @@ export const EuclideanTrack = React.memo(({
             </div>
             <div 
               className="space-y-2 relative"
-              onMouseEnter={() => isStudyMode && setHoveredParam('steps')}
-              onMouseLeave={() => setHoveredParam(null)}
+              onMouseEnter={(e) => handleParamEnter(\'steps\', e)}
+              onMouseLeave={handleParamLeave}
             >
-              <StudyTooltip content={getMicroText('steps', voice)} visible={hoveredParam === 'steps'} />
               <div className="flex justify-between text-[9px] font-mono font-bold uppercase text-idm-muted">
                 <span>Steps</span>
                 <span style={{ color }}>{steps}</span>
@@ -537,10 +532,9 @@ export const EuclideanTrack = React.memo(({
             </div>
             <div 
               className="space-y-2 relative"
-              onMouseEnter={() => isStudyMode && setHoveredParam('offset')}
-              onMouseLeave={() => setHoveredParam(null)}
+              onMouseEnter={(e) => handleParamEnter(\'offset\', e)}
+              onMouseLeave={handleParamLeave}
             >
-              <StudyTooltip content={getMicroText('offset', voice)} visible={hoveredParam === 'offset'} />
               <div className="flex justify-between text-[9px] font-mono font-bold uppercase text-idm-muted">
                 <span>Offset</span>
                 <span style={{ color }}>{offset}</span>
@@ -637,10 +631,9 @@ export const EuclideanTrack = React.memo(({
             <div className="space-y-4">
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={() => isStudyMode && setHoveredParam('sampleRoi')}
-                onMouseLeave={() => setHoveredParam(null)}
+                onMouseEnter={(e) => handleParamEnter(\'sampleRoi\', e)}
+                onMouseLeave={handleParamLeave}
               >
-                <StudyTooltip content={getMicroText('sampleRoi', voice)} visible={hoveredParam === 'sampleRoi'} />
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
                   <span>Start</span>
                   <span className="text-idm-ink">{Math.round(sampleStart * 100)}%</span>
@@ -653,8 +646,8 @@ export const EuclideanTrack = React.memo(({
               </div>
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={() => isStudyMode && setHoveredParam('sampleRoi')}
-                onMouseLeave={() => setHoveredParam(null)}
+                onMouseEnter={(e) => handleParamEnter(\'sampleRoi\', e)}
+                onMouseLeave={handleParamLeave}
               >
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
                   <span>End</span>
@@ -678,10 +671,9 @@ export const EuclideanTrack = React.memo(({
             <div className="grid grid-cols-2 gap-x-6 gap-y-4">
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={() => isStudyMode && setHoveredParam('grainSize')}
-                onMouseLeave={() => setHoveredParam(null)}
+                onMouseEnter={(e) => handleParamEnter(\'grainSize\', e)}
+                onMouseLeave={handleParamLeave}
               >
-                <StudyTooltip content={getMicroText('grainSize', voice)} visible={hoveredParam === 'grainSize'} />
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
                   <span>Grain</span>
                   <span className="text-idm-ink">{grainSize}ms</span>
@@ -694,10 +686,9 @@ export const EuclideanTrack = React.memo(({
               </div>
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={() => isStudyMode && setHoveredParam('overlap')}
-                onMouseLeave={() => setHoveredParam(null)}
+                onMouseEnter={(e) => handleParamEnter(\'overlap\', e)}
+                onMouseLeave={handleParamLeave}
               >
-                <StudyTooltip content={getMicroText('overlap', voice)} visible={hoveredParam === 'overlap'} />
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
                   <span>Overlap</span>
                   <span className="text-idm-ink">{Math.round(overlap * 100)}%</span>
@@ -710,10 +701,9 @@ export const EuclideanTrack = React.memo(({
               </div>
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={() => isStudyMode && setHoveredParam('spray')}
-                onMouseLeave={() => setHoveredParam(null)}
+                onMouseEnter={(e) => handleParamEnter(\'spray\', e)}
+                onMouseLeave={handleParamLeave}
               >
-                <StudyTooltip content={getMicroText('spray', voice)} visible={hoveredParam === 'spray'} />
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
                   <span>Spray</span>
                   <span className="text-idm-ink">{spray}ms</span>
@@ -726,10 +716,9 @@ export const EuclideanTrack = React.memo(({
               </div>
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={() => isStudyMode && setHoveredParam('bitCrush')}
-                onMouseLeave={() => setHoveredParam(null)}
+                onMouseEnter={(e) => handleParamEnter(\'bitCrush\', e)}
+                onMouseLeave={handleParamLeave}
               >
-                <StudyTooltip content={getMicroText('bitCrush', voice)} visible={hoveredParam === 'bitCrush'} />
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
                   <span>Crush</span>
                   <span className="text-idm-ink">{bitCrush}b</span>
@@ -776,10 +765,9 @@ export const EuclideanTrack = React.memo(({
               </div>
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={() => isStudyMode && setHoveredParam('pitch')}
-                onMouseLeave={() => setHoveredParam(null)}
+                onMouseEnter={(e) => handleParamEnter(\'pitch\', e)}
+                onMouseLeave={handleParamLeave}
               >
-                <StudyTooltip content={getMicroText('pitch', voice)} visible={hoveredParam === 'pitch'} />
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
                   <span>Pitch</span>
                   <span className="text-idm-ink">{pitch > 0 ? `+${pitch}` : pitch} st</span>
@@ -857,10 +845,9 @@ export const EuclideanTrack = React.memo(({
           {/* Chaos Section */}
           <div 
             className="flex items-center gap-4 relative"
-            onMouseEnter={() => isStudyMode && setHoveredParam('chaos')}
-            onMouseLeave={() => setHoveredParam(null)}
+            onMouseEnter={(e) => handleParamEnter(\'chaos\', e)}
+            onMouseLeave={handleParamLeave}
           >
-            <StudyTooltip content={getMicroText('chaos', voice)} visible={hoveredParam === 'chaos'} />
             <button 
               onClick={onChaosToggle}
               className={`px-3 py-1.5 rounded-xl font-mono text-[10px] uppercase tracking-widest transition-all border ${chaosEnabled ? 'bg-system-accent text-white border-system-accent shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
@@ -884,10 +871,9 @@ export const EuclideanTrack = React.memo(({
           {/* Evolve Section */}
           <div 
             className="flex items-center gap-4 relative"
-            onMouseEnter={() => isStudyMode && setHoveredParam('evolve')}
-            onMouseLeave={() => setHoveredParam(null)}
+            onMouseEnter={(e) => handleParamEnter(\'evolve\', e)}
+            onMouseLeave={handleParamLeave}
           >
-            <StudyTooltip content={getMicroText('evolve', voice)} visible={hoveredParam === 'evolve'} />
             <button 
               onClick={onEvolveToggle}
               className={`px-3 py-1.5 rounded-xl font-mono text-[10px] uppercase tracking-widest transition-all border ${evolveEnabled ? 'bg-idm-ink text-white border-idm-ink shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
@@ -938,6 +924,12 @@ export const EuclideanTrack = React.memo(({
           </button>
         </div>
       )}
+
+      <StudyTooltip
+        content={hoveredParam ? getMicroText(hoveredParam, voice) : ''}
+        visible={!!hoveredParam && isStudyMode}
+        anchorEl={hoveredParamEl}
+      />
       </div>
     </div>
   );
