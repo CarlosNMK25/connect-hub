@@ -8,6 +8,7 @@ import { SpectrumAnalyzer } from './SpectrumAnalyzer';
 import { JitterMonitor } from './JitterMonitor';
 import { EnergyMonitor } from './EnergyMonitor';
 import { PhaseRadar } from './PhaseRadar';
+import { EngineRoom, type LogEntry } from './EngineRoom';
 import { bjorklund, rotate } from '../../utils/bjorklund';
 import { lcmArray, calculateLcmImpact } from '../../utils/math';
 import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
