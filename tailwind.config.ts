@@ -63,7 +63,7 @@ export default {
         },
         "idm-bg": "#f5f5f5",
         "idm-ink": "#1a1a1a",
-        "idm-muted": "#d1d1d1",
+        "idm-muted": "#737373",
         "system-accent": "#f97316",
         "track-kick": "#166534",
         "track-snare": "#9D174D",
