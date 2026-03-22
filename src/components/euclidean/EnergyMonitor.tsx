@@ -57,7 +57,7 @@ export const EnergyMonitor: React.FC<EnergyMonitorProps> = ({ lastHit, mode }) =
   }, []);
 
   return (
-    <div className="flex flex-col items-center gap-1 bg-black/20 p-2 rounded border border-idm-muted/10 flex-1 relative">
+    <div className="flex flex-col items-center gap-1 bg-white p-2 rounded border border-black/5 flex-1 relative shadow-sm">
       <div className="flex justify-between w-full text-[7px] font-mono uppercase text-system-accent tracking-tighter">
         <span>Monitor</span>
         <span>{mode}</span>
