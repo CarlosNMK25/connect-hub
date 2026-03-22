@@ -552,7 +552,96 @@ export const EuclideanSequencer = () => {
     }));
   };
 
-  // Calculate MCM (Least Common Multiple)
+  // === User Presets ===
+  const captureCurrentConfig = useCallback((name: string): UserPreset => {
+    return {
+      id: crypto.randomUUID(),
+      name,
+      createdAt: new Date().toISOString(),
+      bpm, jitter, swing, dynamics,
+      tracks: Object.fromEntries(
+        tracks.map(t => [t.id, {
+          pulses: t.pulses, steps: t.steps, offset: t.offset,
+          probabilities: [...t.probabilities],
+          chaosEnabled: t.chaosEnabled, entropy: t.entropy,
+          evolveEnabled: t.evolveEnabled, mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed,
+          volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend,
+        }])
+      ),
+    };
+  }, [bpm, jitter, swing, dynamics, tracks]);
+
+  const handleSaveUserPreset = useCallback(() => {
+    if (!newPresetName.trim()) return;
+    const preset = captureCurrentConfig(newPresetName.trim());
+    const updated = [...userPresets, preset];
+    setUserPresets(updated);
+    saveUserPresets(updated);
+    setNewPresetName('');
+    setIsSavingPreset(false);
+    logChange(`User Preset guardado: ${preset.name}`);
+  }, [newPresetName, captureCurrentConfig, userPresets, logChange]);
+
+  const handleDeleteUserPreset = useCallback((id: string) => {
+    const updated = userPresets.filter(p => p.id !== id);
+    setUserPresets(updated);
+    saveUserPresets(updated);
+  }, [userPresets]);
+
+  const handleExportCurrent = useCallback(() => {
+    const preset = captureCurrentConfig('current-config');
+    exportPresetAsJson(preset);
+  }, [captureCurrentConfig]);
+
+  const handleImportPreset = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImportError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const preset = await importPresetFromFile(file);
+      const updated = [...userPresets, preset];
+      setUserPresets(updated);
+      saveUserPresets(updated);
+      logChange(`User Preset importado: ${preset.name}`);
+    } catch (err: any) {
+      setImportError(err.message || 'Error de importación');
+    }
+    // Reset input so same file can be re-imported
+    if (importInputRef.current) importInputRef.current.value = '';
+  }, [userPresets, logChange]);
+
+  const applyUserPreset = useCallback((up: UserPreset) => {
+    setActivePresetId(up.id);
+    setBpm(up.bpm);
+    setJitter(up.jitter);
+    setSwing(up.swing);
+    setDynamics(up.dynamics);
+    logChange(`User Preset: ${up.name}`, [`BPM:${up.bpm}`]);
+
+    setTracks(prev => prev.map(t => {
+      const config = up.tracks[t.id];
+      if (!config) return t;
+      return updateTrackPattern({
+        ...t,
+        pulses: config.pulses,
+        steps: config.steps,
+        offset: config.offset,
+        probabilities: [...config.probabilities],
+        chaosEnabled: config.chaosEnabled,
+        entropy: config.entropy,
+        evolveEnabled: config.evolveEnabled,
+        mutationRate: config.mutationRate,
+        mutationSpeed: config.mutationSpeed,
+        volume: config.volume,
+        delaySend: config.delaySend,
+        reverbSend: config.reverbSend,
+        hits: 0,
+        misses: 0,
+      });
+    }));
+  }, [logChange, updateTrackPattern]);
+
+
   const stepsKey = tracks.map(t => `${t.id}:${t.steps}`).join('|');
   const mcm = useMemo(() => {
     // Exclude cloud track from MCM as it's asynchronous
