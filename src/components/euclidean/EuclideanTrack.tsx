@@ -1,0 +1,937 @@
+import React, { useState, useEffect, useRef } from 'react';
+import * as Tone from 'tone';
+import { EuclideanStep } from './EuclideanStep';
+import { bjorklund, rotate } from '../../utils/bjorklund';
+import { ChevronLeft, ChevronRight, Disc, Upload, Trash2, Volume2, Power, Settings2, Activity, Zap, Eye, EyeOff, Sliders, Layers, Target, Atom, Info, HelpCircle, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { WaveformDisplay } from './WaveformDisplay';
+import { motion, AnimatePresence } from 'framer-motion';
+import { PEDAGOGY } from '../../constants/pedagogy';
+
+interface EuclideanTrackProps {
+  id: string;
+  name: string;
+  color: string;
+  synth: any;
+  steps: number;
+  pulses: number;
+  offset: number;
+  pattern: number[];
+  jitter: number;
+  globalStep: number;
+  mcm: number;
+  syncImpact: number;
+  lastHit: { offset: number; color: string; velocity: number } | null;
+  trackId: string;
+  stats: { hits: number; misses: number; cycleCount: number };
+  previewPattern?: number[];
+  onStepsChange: (val: number) => void;
+  onPulsesChange: (val: number) => void;
+  onOffsetChange: (val: number) => void;
+  probabilities: number[];
+  onProbabilityChange: (index: number, val: number) => void;
+  onToggleStep: (index: number) => void;
+  isDjMode: boolean;
+  // Stochastic Engine Props
+  chaosEnabled: boolean;
+  entropy: number;
+  onChaosToggle: () => void;
+  onEntropyChange: (val: number) => void;
+  evolveEnabled: boolean;
+  mutationRate: number;
+  mutationSpeed: number;
+  onEvolveToggle: () => void;
+  onMutationRateChange: (val: number) => void;
+  onMutationSpeedChange: (val: number) => void;
+  // Sampler Props
+  samplerBuffer: AudioBuffer | null;
+  samplerStatus: 'IDLE' | 'DECODING' | 'READY';
+  samplerFilename: string | null;
+  sampleStart: number;
+  sampleEnd: number;
+  attack: number;
+  decay: number;
+  mode: 'GATE' | 'TRIGGER';
+  pitch: number;
+  normalize: boolean;
+  grainSize: number;
+  overlap: number;
+  spray: number;
+  bitCrush: number;
+  onFileUpload: (file: File) => void;
+  onSamplerParamChange: (param: string, val: any) => void;
+  onClearSampler: () => void;
+  onMuteToggle: () => void;
+  onSoloToggle: () => void;
+  volume: number;
+  onVolumeChange: (val: number) => void;
+  isMuted: boolean;
+  isSoloed: boolean;
+  anySoloed: boolean;
+  delaySend: number;
+  reverbSend: number;
+  onDelaySendChange: (val: number) => void;
+  onReverbSendChange: (val: number) => void;
+  isStudyMode: boolean;
+}
+
+const StudyTooltip = ({ content, visible }: { content: string; visible: boolean }) => (
+  <AnimatePresence>
+    {visible && (
+      <motion.div
+        initial={{ opacity: 0, y: 5, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 5, scale: 0.95 }}
+        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-[100] w-64 p-3 bg-white border border-system-accent/40 rounded-xl shadow-2xl pointer-events-none"
+      >
+        <div className="text-[10px] font-mono leading-relaxed text-idm-ink uppercase">
+          {content}
+        </div>
+        <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-white border-r border-b border-system-accent/40 rotate-45 -mt-1" />
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
+export const EuclideanTrack = React.memo(({
+  id,
+  name,
+  color,
+  synth,
+  steps,
+  pulses,
+  offset,
+  pattern,
+  jitter,
+  globalStep,
+  mcm,
+  syncImpact,
+  lastHit,
+  trackId,
+  stats,
+  previewPattern,
+  onStepsChange,
+  onPulsesChange,
+  onOffsetChange,
+  probabilities,
+  onProbabilityChange,
+  onToggleStep,
+  isDjMode,
+  chaosEnabled,
+  entropy,
+  onChaosToggle,
+  onEntropyChange,
+  evolveEnabled,
+  mutationRate,
+  mutationSpeed,
+  onEvolveToggle,
+  onMutationRateChange,
+  onMutationSpeedChange,
+  samplerBuffer,
+  samplerStatus,
+  samplerFilename,
+  sampleStart,
+  sampleEnd,
+  attack,
+  decay,
+  mode,
+  pitch,
+  normalize,
+  grainSize,
+  overlap,
+  spray,
+  bitCrush,
+  onFileUpload,
+  onSamplerParamChange,
+  onClearSampler,
+  onMuteToggle,
+  onSoloToggle,
+  volume,
+  onVolumeChange,
+  isMuted,
+  isSoloed,
+  anySoloed,
+  delaySend,
+  reverbSend,
+  onDelaySendChange,
+  onReverbSendChange,
+  isStudyMode
+}: EuclideanTrackProps) => {
+  const [hoveredParam, setHoveredParam] = useState<string | null>(null);
+  const [pendingOffset, setPendingOffset] = useState(offset);
+  const [isEditingNext, setIsEditingNext] = useState(false);
+  const [editNextValue, setEditNextValue] = useState(offset.toString());
+  const [isDraggingVolume, setIsDraggingVolume] = useState(false);
+  const volumeBarRef = useRef<HTMLDivElement>(null);
+
+  const localProgress = ((globalStep + offset) % steps) / steps;
+  const globalProgress = (globalStep % mcm) / mcm;
+
+  useEffect(() => {
+    setPendingOffset(offset);
+    setEditNextValue(offset.toString());
+  }, [offset]);
+
+  const handleNextEditSubmit = () => {
+    let val = parseInt(editNextValue);
+    if (isNaN(val)) val = pendingOffset;
+    val = Math.max(0, Math.min(steps - 1, val));
+    setPendingOffset(val);
+    setEditNextValue(val.toString());
+    setIsEditingNext(false);
+  };
+
+  const handleVolumeMouseDown = (e: React.MouseEvent) => {
+    setIsDraggingVolume(true);
+    handleVolumeMove(e);
+  };
+
+  const handleVolumeMove = (e: React.MouseEvent | MouseEvent) => {
+    if (!volumeBarRef.current) return;
+    const rect = volumeBarRef.current.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const height = rect.height;
+    const val = 1 - Math.max(0, Math.min(1, y / height));
+    onVolumeChange(val);
+  };
+
+  useEffect(() => {
+    if (isDraggingVolume) {
+      const handleMouseMove = (e: MouseEvent) => handleVolumeMove(e);
+      const handleMouseUp = () => setIsDraggingVolume(false);
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDraggingVolume]);
+
+  const isTrackDimmed = isMuted || (anySoloed && !isSoloed);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className={`space-y-4 p-4 bg-white border border-black/5 rounded-2xl relative transition-all duration-500 ${isTrackDimmed ? 'opacity-30' : 'opacity-100 shadow-sm'}`}>
+      {/* Phase Rails: El corazón visual de la polirritmia */}
+      <div className={`absolute top-0 left-0 w-full h-[6px] flex flex-col overflow-hidden bg-idm-bg rounded-t-2xl z-20 transition-opacity duration-500 ${isTrackDimmed ? 'opacity-50' : 'opacity-100'}`}>
+        {/* Capa Superior: Fase Local (Ritmo Propio) */}
+        <div 
+          className="h-[4px] transition-all duration-100 ease-linear"
+          style={{ 
+            width: `${localProgress * 100}%`, 
+            backgroundColor: isMuted ? '#d1d1d1' : color,
+            opacity: isMuted ? 0.2 : 1
+          }}
+        />
+        
+        {/* Capa Inferior: Fase Global (Sincronía del Patrón) */}
+        <div 
+          className="h-[2px] bg-idm-ink/10 transition-all duration-100 ease-linear"
+          style={{ 
+            width: `${globalProgress * 100}%`,
+            opacity: isMuted ? 0.1 : 0.3
+          }}
+        />
+      </div>
+
+      <div className={`transition-all duration-500 ${isTrackDimmed ? 'grayscale-[0.8]' : ''}`}>
+        <div className="flex flex-col xl:flex-row xl:items-center gap-6">
+        {/* Track Info */}
+        <div className="flex items-center gap-4 min-w-[180px]">
+          {/* Accent Bar (Interactive Volume Fader) */}
+          <div 
+            ref={volumeBarRef}
+            onMouseDown={handleVolumeMouseDown}
+            onMouseEnter={() => isStudyMode && setHoveredParam('volume')}
+            onMouseLeave={() => setHoveredParam(null)}
+            className="w-2.5 h-14 rounded-full bg-idm-bg border border-black/5 shadow-inner transition-all duration-300 relative overflow-hidden cursor-ns-resize group"
+            title={`Volume: ${Math.round(volume * 100)}%`}
+          >
+            <StudyTooltip content={PEDAGOGY.micro.volume} visible={hoveredParam === 'volume'} />
+            {/* Fill Level */}
+            <div 
+              className="absolute bottom-0 left-0 w-full transition-all duration-100 ease-out"
+              style={{ 
+                height: `${volume * 100}%`, 
+                backgroundColor: isMuted ? '#d1d1d1' : color,
+                opacity: isMuted ? 0.2 : 0.6
+              }}
+            >
+              {/* Glossy overlay */}
+              <div className="absolute inset-0 bg-white/10 opacity-50" />
+            </div>
+
+            {/* Mute Pattern Overlay */}
+            {isMuted && (
+              <div className="absolute inset-0 opacity-20" style={{ 
+                backgroundImage: 'linear-gradient(45deg, #fff 25%, transparent 25%, transparent 50%, #fff 50%, #fff 75%, transparent 75%, transparent)',
+                backgroundSize: '4px 4px'
+              }} />
+            )}
+            
+            {/* Hover Highlight */}
+            <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors" />
+          </div>
+
+          {/* FX Sends (Mini-Faders) */}
+          <div className="flex flex-col gap-2 ml-1">
+            <div 
+              className="flex flex-col gap-1 relative"
+              onMouseEnter={() => isStudyMode && setHoveredParam('delaySend')}
+              onMouseLeave={() => setHoveredParam(null)}
+            >
+              <StudyTooltip content={PEDAGOGY.micro.delaySend} visible={hoveredParam === 'delaySend'} />
+              <div className="flex justify-between items-center w-16">
+                <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Dly</span>
+                <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round(delaySend * 100)}%</span>
+              </div>
+              <div 
+                className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative group border border-black/5"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = e.clientX - rect.left;
+                  onDelaySendChange(Math.max(0, Math.min(1, x / rect.width)));
+                }}
+              >
+                <div 
+                  className="h-full transition-all duration-100"
+                  style={{ width: `${delaySend * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }}
+                />
+              </div>
+            </div>
+            <div 
+              className="flex flex-col gap-1 relative"
+              onMouseEnter={() => isStudyMode && setHoveredParam('reverbSend')}
+              onMouseLeave={() => setHoveredParam(null)}
+            >
+              <StudyTooltip content={PEDAGOGY.micro.reverbSend} visible={hoveredParam === 'reverbSend'} />
+              <div className="flex justify-between items-center w-16">
+                <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rvb</span>
+                <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round(reverbSend * 100)}%</span>
+              </div>
+              <div 
+                className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative group border border-black/5"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = e.clientX - rect.left;
+                  onReverbSendChange(Math.max(0, Math.min(1, x / rect.width)));
+                }}
+              >
+                <div 
+                  className="h-full transition-all duration-100"
+                  style={{ width: `${reverbSend * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <h3 className="font-mono text-lg font-black uppercase tracking-tighter text-idm-ink leading-none">{name}</h3>
+              
+              {/* Solo/Mute Small Buttons */}
+              <div className="flex gap-1 ml-2">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onSoloToggle(); }}
+                  className={`w-4 h-4 flex items-center justify-center rounded-[2px] text-[8px] font-mono font-bold transition-all border ${
+                    isSoloed 
+                      ? 'bg-system-accent text-white border-system-accent shadow-sm' 
+                      : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'
+                  }`}
+                  title="Solo"
+                >
+                  S
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onMuteToggle(); }}
+                  className={`w-4 h-4 flex items-center justify-center rounded-[2px] text-[8px] font-mono font-bold transition-all border ${
+                    isMuted 
+                      ? 'bg-idm-ink text-white border-idm-ink shadow-sm' 
+                      : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'
+                  }`}
+                  title="Mute"
+                >
+                  M
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 mt-1.5">
+              <div className={`w-2 h-2 rounded-full ${
+                isMuted ? 'bg-idm-muted/30' :
+                samplerStatus === 'IDLE' ? 'bg-idm-muted/20' : 
+                samplerStatus === 'DECODING' ? 'bg-system-accent animate-pulse' : 
+                'bg-green-600 shadow-sm'
+              }`} />
+              <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-idm-muted">
+                {isMuted ? 'MUTED' : samplerStatus}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Waveform Display */}
+        <div className="flex-[1.5] min-w-[400px] h-24 relative group bg-idm-bg rounded-xl border border-black/5 overflow-hidden">
+          <WaveformDisplay 
+            buffer={samplerBuffer}
+            color={color}
+            start={sampleStart}
+            end={sampleEnd}
+            currentStepProgress={0}
+            isPlaying={false}
+            isTriggered={false}
+          />
+          
+          {samplerStatus === 'IDLE' && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px] group-hover:bg-white/80 transition-all">
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-3 px-6 py-3 bg-white border border-black/5 hover:border-system-accent/50 text-idm-ink rounded-lg text-[11px] font-mono uppercase tracking-[0.2em] transition-all shadow-sm active:scale-95"
+              >
+                <Upload size={14} className="text-system-accent" />
+                Load Sample
+              </button>
+            </div>
+          )}
+
+          {samplerStatus === 'READY' && (
+            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button 
+                onClick={onClearSampler}
+                className="p-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-md transition-all border border-red-500/20"
+                title="Clear Sample"
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
+          )}
+
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            accept="audio/*"
+            onChange={(e) => e.target.files?.[0] && onFileUpload(e.target.files[0])}
+          />
+        </div>
+
+        {/* Bjorklund Stats & Sliders */}
+        <div className="flex-1 flex flex-col lg:flex-row gap-6 items-center min-w-[450px]">
+          {/* Stats */}
+          <div className="flex items-center gap-6 px-5 py-3 bg-idm-bg rounded-xl border border-black/5 transition-all duration-500 flex-none opacity-100 scale-100 shadow-sm">
+            <div className="flex flex-col">
+              <span className="text-[8px] font-mono text-idm-muted uppercase tracking-widest mb-1">Formula</span>
+              <span className="text-xs font-mono font-black" style={{ color }}>
+                E({pulses}, {steps})
+              </span>
+            </div>
+
+            <div className="flex flex-col border-l border-black/5 pl-5">
+              <span className="text-[8px] font-mono text-idm-muted uppercase tracking-widest mb-1">Density</span>
+              <span className="text-xs font-mono font-black" style={{ color }}>
+                {Math.round((pulses / steps) * 100)}%
+              </span>
+            </div>
+
+            <div className="hidden 2xl:flex flex-col border-l border-black/5 pl-5 min-w-[90px]">
+              <span className="text-[8px] font-mono text-idm-muted uppercase tracking-widest mb-1">Activity</span>
+              <div className="flex gap-4">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-mono font-black tabular-nums" style={{ color }}>{stats.hits}</span>
+                  <span className="text-[7px] font-mono text-idm-muted uppercase">Hits</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-mono font-black text-idm-muted tabular-nums">{stats.misses}</span>
+                  <span className="text-[7px] font-mono text-idm-muted uppercase">Miss</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sliders with z-index to ensure interactivity */}
+          <div className="grid grid-cols-3 gap-6 flex-1 min-w-[300px] transition-all duration-500 relative z-20 opacity-100 scale-100">
+            <div 
+              className="space-y-2 relative"
+              onMouseEnter={() => isStudyMode && setHoveredParam('pulses')}
+              onMouseLeave={() => setHoveredParam(null)}
+            >
+              <StudyTooltip content={PEDAGOGY.micro.pulses} visible={hoveredParam === 'pulses'} />
+              <div className="flex justify-between text-[9px] font-mono font-bold uppercase text-idm-muted">
+                <span>Pulses</span>
+                <span style={{ color }}>{pulses}</span>
+              </div>
+              <input 
+                type="range" min="0" max={steps} value={pulses} 
+                onChange={(e) => onPulsesChange(parseInt(e.target.value))}
+                className="w-full h-1 bg-idm-bg appearance-none cursor-pointer rounded-full"
+                style={{ accentColor: color }}
+              />
+            </div>
+            <div 
+              className="space-y-2 relative"
+              onMouseEnter={() => isStudyMode && setHoveredParam('steps')}
+              onMouseLeave={() => setHoveredParam(null)}
+            >
+              <StudyTooltip content={PEDAGOGY.micro.steps} visible={hoveredParam === 'steps'} />
+              <div className="flex justify-between text-[9px] font-mono font-bold uppercase text-idm-muted">
+                <span>Steps</span>
+                <span style={{ color }}>{steps}</span>
+              </div>
+              <input 
+                type="range" min="1" max="32" value={steps} 
+                onChange={(e) => onStepsChange(parseInt(e.target.value))}
+                className="w-full h-1 bg-idm-bg appearance-none cursor-pointer rounded-full"
+                style={{ accentColor: color }}
+              />
+            </div>
+            <div 
+              className="space-y-2 relative"
+              onMouseEnter={() => isStudyMode && setHoveredParam('offset')}
+              onMouseLeave={() => setHoveredParam(null)}
+            >
+              <StudyTooltip content={PEDAGOGY.micro.offset} visible={hoveredParam === 'offset'} />
+              <div className="flex justify-between text-[9px] font-mono font-bold uppercase text-idm-muted">
+                <span>Offset</span>
+                <span style={{ color }}>{offset}</span>
+              </div>
+              <input 
+                type="range" min="0" max={steps - 1} value={offset} 
+                onChange={(e) => onOffsetChange(parseInt(e.target.value))}
+                className="w-full h-1 bg-idm-bg appearance-none cursor-pointer rounded-full"
+                style={{ accentColor: color }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* DJ Nudge Controls (Full Width, Below Parameters) */}
+      {isDjMode && (
+        <div className="mt-2 flex items-center justify-between gap-6 bg-idm-bg border border-black/5 rounded-2xl p-3 animate-in slide-in-from-top-2 duration-300 shadow-sm">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => {
+                const newVal = (pendingOffset - 1 + steps) % steps;
+                setPendingOffset(newVal);
+                setEditNextValue(newVal.toString());
+              }}
+              className="w-12 h-12 flex items-center justify-center bg-white hover:bg-system-accent/5 text-system-accent rounded-xl border border-black/5 hover:border-system-accent/20 active:scale-90 transition-all group shadow-sm"
+              title="Prepare Nudge Back"
+            >
+              <ChevronLeft size={24} className="group-hover:-translate-x-0.5 transition-transform" />
+            </button>
+            <div className="flex flex-col items-center px-8 min-w-[90px] border-x border-black/5">
+              <span className="text-[10px] font-mono text-idm-muted uppercase tracking-[0.3em] leading-none mb-1.5">Next</span>
+              {isEditingNext ? (
+                <input
+                  autoFocus
+                  type="text"
+                  value={editNextValue}
+                  onChange={(e) => setEditNextValue(e.target.value)}
+                  onBlur={handleNextEditSubmit}
+                  onKeyDown={(e) => e.key === 'Enter' && handleNextEditSubmit()}
+                  className="w-12 bg-white text-system-accent text-xl font-mono font-bold text-center border-b border-system-accent outline-none"
+                />
+              ) : (
+                <span 
+                  onDoubleClick={() => {
+                    setIsEditingNext(true);
+                    setEditNextValue(pendingOffset.toString());
+                  }}
+                  className="text-2xl font-mono font-bold text-system-accent leading-none tabular-nums cursor-text hover:bg-white px-2 rounded transition-colors"
+                  title="Double-click to edit"
+                >
+                  {pendingOffset}
+                </span>
+              )}
+            </div>
+            <button 
+              onClick={() => {
+                const newVal = (pendingOffset + 1) % steps;
+                setPendingOffset(newVal);
+                setEditNextValue(newVal.toString());
+              }}
+              className="w-12 h-12 flex items-center justify-center bg-white hover:bg-system-accent/5 text-system-accent rounded-xl border border-black/5 hover:border-system-accent/20 active:scale-90 transition-all group shadow-sm"
+              title="Prepare Nudge Forward"
+            >
+              <ChevronRight size={24} className="group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
+
+          {pendingOffset !== offset ? (
+            <button 
+              onClick={() => onOffsetChange(pendingOffset)}
+              className="flex-1 h-12 bg-system-accent text-white font-mono text-[13px] font-black uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all animate-in fade-in zoom-in-95 flex items-center justify-center gap-3"
+            >
+              <Disc size={20} className="animate-spin-slow" />
+              Activate Drop
+            </button>
+          ) : (
+            <div className="flex-1 h-12 flex items-center justify-center border border-dashed border-black/10 rounded-xl bg-white/50">
+              <span className="text-[11px] font-mono text-idm-muted/40 uppercase tracking-[0.4em]">Awaiting Nudge</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Sampler Controls (Level 2) */}
+      {samplerStatus === 'READY' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 p-6 bg-white rounded-xl border border-black/5 animate-in fade-in slide-in-from-top-2 duration-500 shadow-sm">
+          {/* ROI Sliders */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Settings2 size={14} className="text-system-accent" />
+              <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-idm-muted">ROI Markers</span>
+            </div>
+            <div className="space-y-4">
+              <div 
+                className="space-y-2 relative"
+                onMouseEnter={() => isStudyMode && setHoveredParam('sampleRoi')}
+                onMouseLeave={() => setHoveredParam(null)}
+              >
+                <StudyTooltip content={PEDAGOGY.micro.sampleRoi} visible={hoveredParam === 'sampleRoi'} />
+                <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
+                  <span>Start</span>
+                  <span className="text-idm-ink">{Math.round(sampleStart * 100)}%</span>
+                </div>
+                <input 
+                  type="range" min="0" max="0.95" step="0.01" value={sampleStart} 
+                  onChange={(e) => onSamplerParamChange('sampleStart', parseFloat(e.target.value))}
+                  className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
+                />
+              </div>
+              <div 
+                className="space-y-2 relative"
+                onMouseEnter={() => isStudyMode && setHoveredParam('sampleRoi')}
+                onMouseLeave={() => setHoveredParam(null)}
+              >
+                <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
+                  <span>End</span>
+                  <span className="text-idm-ink">{Math.round(sampleEnd * 100)}%</span>
+                </div>
+                <input 
+                  type="range" min={sampleStart + 0.05} max="1" step="0.01" value={sampleEnd} 
+                  onChange={(e) => onSamplerParamChange('sampleEnd', parseFloat(e.target.value))}
+                  className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Granular Engine */}
+          <div className="space-y-4 border-l border-black/5 pl-8">
+            <div className="flex items-center gap-2 mb-2">
+              <Atom size={14} className="text-system-accent" />
+              <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-idm-muted">Granular</span>
+            </div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              <div 
+                className="space-y-2 relative"
+                onMouseEnter={() => isStudyMode && setHoveredParam('grainSize')}
+                onMouseLeave={() => setHoveredParam(null)}
+              >
+                <StudyTooltip content={PEDAGOGY.micro.grainSize} visible={hoveredParam === 'grainSize'} />
+                <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
+                  <span>Grain</span>
+                  <span className="text-idm-ink">{grainSize}ms</span>
+                </div>
+                <input 
+                  type="range" min="10" max="500" step="1" value={grainSize} 
+                  onChange={(e) => onSamplerParamChange('grainSize', parseInt(e.target.value))}
+                  className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
+                />
+              </div>
+              <div 
+                className="space-y-2 relative"
+                onMouseEnter={() => isStudyMode && setHoveredParam('overlap')}
+                onMouseLeave={() => setHoveredParam(null)}
+              >
+                <StudyTooltip content={PEDAGOGY.micro.overlap} visible={hoveredParam === 'overlap'} />
+                <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
+                  <span>Overlap</span>
+                  <span className="text-idm-ink">{Math.round(overlap * 100)}%</span>
+                </div>
+                <input 
+                  type="range" min="0" max="1" step="0.01" value={overlap} 
+                  onChange={(e) => onSamplerParamChange('overlap', parseFloat(e.target.value))}
+                  className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
+                />
+              </div>
+              <div 
+                className="space-y-2 relative"
+                onMouseEnter={() => isStudyMode && setHoveredParam('spray')}
+                onMouseLeave={() => setHoveredParam(null)}
+              >
+                <StudyTooltip content={PEDAGOGY.micro.spray} visible={hoveredParam === 'spray'} />
+                <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
+                  <span>Spray</span>
+                  <span className="text-idm-ink">{spray}ms</span>
+                </div>
+                <input 
+                  type="range" min="0" max="500" step="1" value={spray} 
+                  onChange={(e) => onSamplerParamChange('spray', parseInt(e.target.value))}
+                  className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
+                />
+              </div>
+              <div 
+                className="space-y-2 relative"
+                onMouseEnter={() => isStudyMode && setHoveredParam('bitCrush')}
+                onMouseLeave={() => setHoveredParam(null)}
+              >
+                <StudyTooltip content={PEDAGOGY.micro.bitCrush} visible={hoveredParam === 'bitCrush'} />
+                <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
+                  <span>Crush</span>
+                  <span className="text-idm-ink">{bitCrush}b</span>
+                </div>
+                <input 
+                  type="range" min="2" max="16" step="1" value={bitCrush} 
+                  onChange={(e) => onSamplerParamChange('bitCrush', parseInt(e.target.value))}
+                  className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Envelope & Pitch */}
+          <div className="space-y-4 border-l border-black/5 pl-8">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity size={14} className="text-system-accent" />
+              <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-idm-muted">Dynamics</span>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
+                    <span>Attack</span>
+                    <span className="text-idm-ink">{attack}ms</span>
+                  </div>
+                  <input 
+                    type="range" min="0" max="500" step="1" value={attack} 
+                    onChange={(e) => onSamplerParamChange('attack', parseInt(e.target.value))}
+                    className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
+                    <span>Decay</span>
+                    <span className="text-idm-ink">{decay}ms</span>
+                  </div>
+                  <input 
+                    type="range" min="10" max="2000" step="1" value={decay} 
+                    onChange={(e) => onSamplerParamChange('decay', parseInt(e.target.value))}
+                    className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
+                  />
+                </div>
+              </div>
+              <div 
+                className="space-y-2 relative"
+                onMouseEnter={() => isStudyMode && setHoveredParam('pitch')}
+                onMouseLeave={() => setHoveredParam(null)}
+              >
+                <StudyTooltip content={PEDAGOGY.micro.pitch} visible={hoveredParam === 'pitch'} />
+                <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
+                  <span>Pitch</span>
+                  <span className="text-idm-ink">{pitch > 0 ? `+${pitch}` : pitch} st</span>
+                </div>
+                <input 
+                  type="range" min="-24" max="24" step="1" value={pitch} 
+                  onChange={(e) => onSamplerParamChange('pitch', parseInt(e.target.value))}
+                  className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Metadata & Mode */}
+          <div className="space-y-4 border-l border-black/5 pl-8 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Info size={14} className="text-system-accent" />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-idm-muted">Metadata</span>
+              </div>
+              <div className="space-y-1.5">
+                <div className="text-[9px] font-mono text-idm-muted truncate" title={samplerFilename || ''}>
+                  <span className="text-idm-ink/40">FILE:</span> {samplerFilename?.split('_').pop()}
+                </div>
+                <div className="text-[9px] font-mono text-idm-muted">
+                  <span className="text-idm-ink/40">DUR:</span> {samplerBuffer?.duration.toFixed(2)}s
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => onSamplerParamChange('mode', mode === 'GATE' ? 'TRIGGER' : 'GATE')}
+                  className={`flex-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-widest border transition-all ${mode === 'GATE' ? 'bg-system-accent text-white border-system-accent shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:border-black/10'}`}
+                >
+                  {mode}
+                </button>
+                <button 
+                  onClick={() => onSamplerParamChange('normalize', !normalize)}
+                  className={`flex-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-widest border transition-all ${normalize ? 'bg-green-600/10 text-green-600 border-green-600/20 shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:border-black/10'}`}
+                >
+                  Norm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {id !== 'cloud' && (
+        <div className="flex flex-wrap gap-3 pt-2">
+          {pattern.map((active, i) => (
+            <EuclideanStep 
+              key={i} 
+              active={active === 1} 
+              trackId={trackId}
+              velocity={0.85}
+              isGhost={false}
+              index={i}
+              color={color}
+              baseProbability={probabilities[i] || 1}
+              effectiveProbability={chaosEnabled ? (probabilities[i] || 1) * entropy : (probabilities[i] || 1)}
+              previewActive={previewPattern ? previewPattern[i] === 1 : false}
+              onProbabilityChange={(val) => onProbabilityChange(i, val)}
+              onToggle={() => onToggleStep(i)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Stochastic Engine Panel (Hidden for Cloud Track) */}
+      {id !== 'cloud' && (
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-idm-bg rounded-2xl border border-black/5 relative transition-all duration-500 opacity-100 scale-100 shadow-sm">
+          {/* Chaos Section */}
+          <div 
+            className="flex items-center gap-4 relative"
+            onMouseEnter={() => isStudyMode && setHoveredParam('chaos')}
+            onMouseLeave={() => setHoveredParam(null)}
+          >
+            <StudyTooltip content={PEDAGOGY.micro.chaos} visible={hoveredParam === 'chaos'} />
+            <button 
+              onClick={onChaosToggle}
+              className={`px-3 py-1.5 rounded-xl font-mono text-[10px] uppercase tracking-widest transition-all border ${chaosEnabled ? 'bg-system-accent text-white border-system-accent shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
+            >
+              Chaos
+            </button>
+            <div className="flex-1 space-y-1">
+              <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
+                <span>Entropy</span>
+                <span className={chaosEnabled ? "text-system-accent" : ""}>{Math.round(entropy * 100)}%</span>
+              </div>
+              <input 
+                type="range" min="0" max="1" step="0.01" value={entropy} 
+                onChange={(e) => onEntropyChange(parseFloat(e.target.value))}
+                disabled={!chaosEnabled}
+                className={`w-full h-1 appearance-none cursor-pointer rounded-full ${chaosEnabled ? 'bg-system-accent/20 accent-system-accent' : 'bg-white accent-idm-muted/40 cursor-not-allowed'}`}
+              />
+            </div>
+          </div>
+
+          {/* Evolve Section */}
+          <div 
+            className="flex items-center gap-4 relative"
+            onMouseEnter={() => isStudyMode && setHoveredParam('evolve')}
+            onMouseLeave={() => setHoveredParam(null)}
+          >
+            <StudyTooltip content={PEDAGOGY.micro.evolve} visible={hoveredParam === 'evolve'} />
+            <button 
+              onClick={onEvolveToggle}
+              className={`px-3 py-1.5 rounded-xl font-mono text-[10px] uppercase tracking-widest transition-all border ${evolveEnabled ? 'bg-idm-ink text-white border-idm-ink shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
+            >
+              Evolve
+            </button>
+            <div className="flex-1 grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
+                  <span>Rate</span>
+                  <span className={evolveEnabled ? "text-idm-ink" : ""}>{Math.round(mutationRate * 100)}%</span>
+                </div>
+                <input 
+                  type="range" min="0.01" max="0.3" step="0.01" value={mutationRate} 
+                  onChange={(e) => onMutationRateChange(parseFloat(e.target.value))}
+                  disabled={!evolveEnabled}
+                  className={`w-full h-1 appearance-none cursor-pointer rounded-full ${evolveEnabled ? 'bg-idm-ink/20 accent-idm-ink' : 'bg-white accent-idm-muted/40 cursor-not-allowed'}`}
+                />
+              </div>
+              <div className="space-y-1">
+                <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
+                  <span>Speed</span>
+                  <span className={evolveEnabled ? "text-idm-ink" : ""}>{mutationSpeed}x</span>
+                </div>
+                <input 
+                  type="range" min="1" max="8" step="1" value={mutationSpeed} 
+                  onChange={(e) => onMutationSpeedChange(parseInt(e.target.value))}
+                  disabled={!evolveEnabled}
+                  className={`w-full h-1 appearance-none cursor-pointer rounded-full ${evolveEnabled ? 'bg-idm-ink/20 accent-idm-ink' : 'bg-white accent-idm-muted/40 cursor-not-allowed'}`}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Reset Button (Small icon in corner) */}
+          <button 
+            onClick={() => {
+              onEntropyChange(1);
+              onMutationRateChange(0.05);
+              onMutationSpeedChange(1);
+              // Reset all probabilities to 1
+              for(let i=0; i<64; i++) onProbabilityChange(i, 1);
+            }}
+            className="absolute -top-2 -right-2 w-5 h-5 bg-white hover:bg-system-accent/10 border border-black/5 rounded-full flex items-center justify-center text-[8px] font-mono text-idm-muted hover:text-system-accent transition-all shadow-sm"
+            title="Reset Engine"
+          >
+            ↺
+          </button>
+        </div>
+      )}
+      </div>
+    </div>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison to avoid re-renders on every sequencer tick
+  // Only re-render if critical props change
+  return (
+    prevProps.steps === nextProps.steps &&
+    prevProps.pulses === nextProps.pulses &&
+    prevProps.offset === nextProps.offset &&
+    prevProps.jitter === nextProps.jitter &&
+    prevProps.mcm === nextProps.mcm &&
+    prevProps.isMuted === nextProps.isMuted &&
+    prevProps.isSoloed === nextProps.isSoloed &&
+    prevProps.anySoloed === nextProps.anySoloed &&
+    prevProps.volume === nextProps.volume &&
+    prevProps.samplerStatus === nextProps.samplerStatus &&
+    prevProps.chaosEnabled === nextProps.chaosEnabled &&
+    prevProps.entropy === nextProps.entropy &&
+    prevProps.evolveEnabled === nextProps.evolveEnabled &&
+    prevProps.mutationRate === nextProps.mutationRate &&
+    prevProps.mutationSpeed === nextProps.mutationSpeed &&
+    prevProps.lastHit === nextProps.lastHit &&
+    prevProps.previewPattern === nextProps.previewPattern &&
+    prevProps.isDjMode === nextProps.isDjMode &&
+    prevProps.globalStep === nextProps.globalStep &&
+    prevProps.delaySend === nextProps.delaySend &&
+    prevProps.reverbSend === nextProps.reverbSend &&
+    prevProps.stats.hits === nextProps.stats.hits &&
+    prevProps.stats.misses === nextProps.stats.misses &&
+    prevProps.stats.cycleCount === nextProps.stats.cycleCount &&
+    prevProps.probabilities === nextProps.probabilities &&
+    prevProps.pattern === nextProps.pattern &&
+    // Sampler Params
+    prevProps.sampleStart === nextProps.sampleStart &&
+    prevProps.sampleEnd === nextProps.sampleEnd &&
+    prevProps.attack === nextProps.attack &&
+    prevProps.decay === nextProps.decay &&
+    prevProps.mode === nextProps.mode &&
+    prevProps.pitch === nextProps.pitch &&
+    prevProps.normalize === nextProps.normalize &&
+    prevProps.grainSize === nextProps.grainSize &&
+    prevProps.overlap === nextProps.overlap &&
+    prevProps.spray === nextProps.spray &&
+    prevProps.bitCrush === nextProps.bitCrush
+  );
+});
