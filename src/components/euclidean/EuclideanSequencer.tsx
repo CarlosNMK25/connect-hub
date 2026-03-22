@@ -345,7 +345,7 @@ export const EuclideanSequencer = () => {
       sampleStart: 0, sampleEnd: 1, attack: 2000, decay: 5000, mode: 'TRIGGER', pitch: 0, normalize: true,
       grainSize: 500, overlap: 0.5, spray: 200, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
-      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, hits: 0, misses: 0
+      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0, hits: 0, misses: 0
     }),
   ]);
 
