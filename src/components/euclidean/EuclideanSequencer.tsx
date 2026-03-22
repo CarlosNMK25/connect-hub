@@ -598,6 +598,7 @@ export const EuclideanSequencer = () => {
           chaosEnabled: t.chaosEnabled, entropy: t.entropy,
           evolveEnabled: t.evolveEnabled, mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed,
           volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend, ratchet: t.ratchet,
+          ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices] } : {}),
         }])
       ),
     };
