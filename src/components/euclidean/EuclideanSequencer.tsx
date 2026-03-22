@@ -243,6 +243,7 @@ export const EuclideanSequencer = () => {
   const [eclipseFlash, setEclipseFlash] = useState(false);
   const eclipseRef = useRef(false);
   const [showEngine, setShowEngine] = useState(false);
+  const [activePresetId, setActivePresetId] = useState<string | null>(null);
   const engineLogRef = useRef<LogEntry[]>([]);
   const [engineLog, setEngineLog] = useState<LogEntry[]>([]);
   const sliderDragRef = useRef<{ [key: string]: { value: number; timer: ReturnType<typeof setTimeout> | null } }>({});
@@ -488,6 +489,7 @@ export const EuclideanSequencer = () => {
   }, [hoveredPreset, tracks]);
 
   const applyPreset = (preset: ScenePreset) => {
+    setActivePresetId(preset.id);
     if (preset.type === 'master' && preset.tracks) {
       // Compute MCM for the new preset
       const newSteps = Object.entries(preset.tracks)
@@ -2041,6 +2043,7 @@ export const EuclideanSequencer = () => {
           uiStats={uiStats}
           log={engineLog}
           onClearLog={() => { engineLogRef.current = []; setEngineLog([]); }}
+          activePresetId={activePresetId}
         />
       )}
 

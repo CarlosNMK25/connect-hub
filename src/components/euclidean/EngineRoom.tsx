@@ -1,5 +1,7 @@
-import React, { useMemo } from 'react';
-import { Trash2 } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Trash2, ChevronRight, ChevronDown } from 'lucide-react';
+import { PRESET_PEDAGOGY } from '../../constants/presetPedagogy';
+import { PRESETS } from '../../constants/presets';
 
 export interface LogEntry {
   timestamp: string;
@@ -26,9 +28,118 @@ interface EngineRoomProps {
   uiStats: { [key: string]: { hits: number; misses: number; cycleCount: number } };
   log: LogEntry[];
   onClearLog: () => void;
+  activePresetId: string | null;
 }
 
-export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiStats, log, onClearLog }) => {
+const CATEGORY_COLORS: Record<string, string> = {
+  Flamenco: 'bg-green-900/10 text-green-900',
+  IDM: 'bg-orange-500/10 text-orange-600',
+  Glitch: 'bg-purple-600/10 text-purple-700',
+  Experimental: 'bg-blue-600/10 text-blue-700',
+};
+
+const SECTION_LABELS = [
+  { key: 'listening', label: 'Qué estás escuchando' },
+  { key: 'structure', label: 'La estructura' },
+  { key: 'origin', label: 'Origen' },
+  { key: 'experiments', label: 'Experimenta' },
+  { key: 'connections', label: 'Conexiones' },
+] as const;
+
+const DiagnosticSection: React.FC<{ activePresetId: string | null }> = React.memo(({ activePresetId }) => {
+  const [openSections, setOpenSections] = useState<Set<string>>(new Set(['structure']));
+
+  const preset = activePresetId ? PRESETS.find(p => p.id === activePresetId) : null;
+  const pedagogy = activePresetId ? PRESET_PEDAGOGY[activePresetId] : null;
+
+  const toggle = (key: string) => {
+    setOpenSections(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  if (!preset || !pedagogy) {
+    return (
+      <div>
+        <div className="text-[8px] uppercase tracking-[0.2em] text-idm-muted mb-2">── Diagnóstico ──</div>
+        <div className="text-[9px] text-idm-muted/50 py-3 text-center">
+          Carga un preset de la Library para ver su análisis pedagógico.
+        </div>
+      </div>
+    );
+  }
+
+  const categoryStyle = CATEGORY_COLORS[preset.category] || 'bg-black/5 text-idm-ink';
+
+  return (
+    <div>
+      <div className="text-[8px] uppercase tracking-[0.2em] text-idm-muted mb-3">── Diagnóstico ──</div>
+
+      {/* Preset header */}
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-sm font-mono font-bold uppercase tracking-wider text-idm-ink">
+          {preset.name}
+        </span>
+        <span className={`text-[8px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full ${categoryStyle}`}>
+          {preset.category}
+        </span>
+      </div>
+
+      {/* Sections */}
+      <div className="space-y-0.5">
+        {SECTION_LABELS.map(({ key, label }) => {
+          const isOpen = openSections.has(key);
+          const Icon = isOpen ? ChevronDown : ChevronRight;
+
+          return (
+            <div key={key}>
+              <button
+                onClick={() => toggle(key)}
+                className="flex items-center gap-1.5 w-full text-left py-1.5 text-[9px] font-mono uppercase tracking-widest text-idm-muted cursor-pointer hover:text-idm-ink transition-colors"
+              >
+                <Icon size={10} className="shrink-0" />
+                {label}
+              </button>
+
+              {isOpen && (
+                <div className="pl-4 pb-3 text-[11px] font-mono leading-relaxed text-idm-ink/80">
+                  {key === 'experiments' ? (
+                    <div className="space-y-1.5">
+                      {pedagogy.experiments.map((exp, i) => (
+                        <div key={i} className="flex gap-1.5">
+                          <span className="text-system-accent shrink-0">→</span>
+                          <span>{exp}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : key === 'connections' ? (
+                    <div className="space-y-1.5">
+                      {pedagogy.connections.map((conn, i) => (
+                        <div key={i} className="flex gap-1.5">
+                          <span className="text-idm-muted shrink-0">→</span>
+                          <span>{conn}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>{pedagogy[key as 'listening' | 'structure' | 'origin']}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+});
+
+DiagnosticSection.displayName = 'DiagnosticSection';
+
+export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiStats, log, onClearLog, activePresetId }) => {
   const rows = useMemo(() => tracks.map(t => {
     const density = t.steps > 0 ? Math.round((t.pulses / t.steps) * 100) : 0;
     const activeProbs = t.probabilities.slice(0, t.steps);
@@ -105,7 +216,7 @@ export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiSta
       </div>
 
       {/* Session Log */}
-      <div>
+      <div className="mb-5">
         <div className="text-[8px] uppercase tracking-[0.2em] text-idm-muted mb-2">── Log de Sesión ──</div>
         {log.length === 0 ? (
           <div className="text-[9px] text-idm-muted/50 py-3 text-center">Sin actividad registrada</div>
@@ -125,6 +236,9 @@ export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiSta
           </div>
         )}
       </div>
+
+      {/* Diagnostic Section */}
+      <DiagnosticSection activePresetId={activePresetId} />
     </div>
   );
 });
