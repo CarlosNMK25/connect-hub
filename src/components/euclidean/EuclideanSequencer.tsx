@@ -1617,7 +1617,7 @@ export const EuclideanSequencer = () => {
                     </div>
                     <input 
                       type="range" min="40" max="240" value={bpm} 
-                      onChange={(e) => setBpm(parseInt(e.target.value))} 
+                      onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('bpm', 'BPM', bpm, v, '', (o, n) => { const oldEclipse = mcm * 60 / o / 4; const newEclipse = mcm * 60 / n / 4; return [`Eclipse ${formatEclipseTime(oldEclipse, false)} → ${formatEclipseTime(newEclipse, false)}`]; }); setBpm(v); }} 
                       className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
                     />
                   </div>
