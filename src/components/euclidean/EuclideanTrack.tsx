@@ -196,6 +196,8 @@ export const EuclideanTrack = React.memo(({
   reverbSend,
   onDelaySendChange,
   onReverbSendChange,
+  ratchet,
+  onRatchetChange,
   isStudyMode,
   studyVoice = 'technical',
   temporalityMode,
