@@ -3,11 +3,12 @@ import { createPortal } from 'react-dom';
 import * as Tone from 'tone';
 import { EuclideanStep } from './EuclideanStep';
 import { bjorklund, rotate } from '../../utils/bjorklund';
-import { ChevronLeft, ChevronRight, Disc, Upload, Trash2, Volume2, Power, Settings2, Activity, Zap, Eye, EyeOff, Sliders, Layers, Target, Atom, Info, HelpCircle, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Disc, Upload, Trash2, Volume2, Power, Settings2, Activity, Zap, Eye, EyeOff, Sliders, Layers, Target, Atom, Info, HelpCircle, X, ChevronDown, ChevronUp, Music } from 'lucide-react';
 import { WaveformDisplay } from './WaveformDisplay';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
 import { calculateTemporalOffset, type TemporalityMode } from '../../utils/temporality';
+import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex } from '../../utils/scales';
 
 interface EuclideanTrackProps {
   id: string;
