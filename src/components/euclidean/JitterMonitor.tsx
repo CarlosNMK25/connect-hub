@@ -64,8 +64,8 @@ export const JitterMonitor: React.FC<JitterMonitorProps> = ({ jitter, lastHit })
         {/* The Bell Curve */}
         <svg width="120" height="40" className="overflow-visible">
           {/* Grid lines */}
-          <line x1="60" y1="0" x2="60" y2="30" stroke="rgba(255,255,255,0.05)" strokeDasharray="2 2" />
-          <line x1="0" y1="28" x2="120" y2="28" stroke="rgba(255,255,255,0.1)" />
+          <line x1="60" y1="0" x2="60" y2="40" stroke="rgba(255,255,255,0.05)" strokeDasharray="2 2" />
+          <line x1="0" y1="38" x2="120" y2="38" stroke="rgba(255,255,255,0.1)" />
           
           {/* The Curve */}
           <motion.path
