@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import * as Tone from 'tone';
 import { EuclideanStep } from './EuclideanStep';
 import { bjorklund, rotate } from '../../utils/bjorklund';
