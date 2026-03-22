@@ -76,7 +76,7 @@ interface EuclideanTrackProps {
   studyVoice?: PedagogyVoice;
 }
 
-const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl: HTMLElement | null }) => {
+const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
   const [pos, setPos] = useState({ top: 0, left: 0, flip: false });
 
   useEffect(() => {
