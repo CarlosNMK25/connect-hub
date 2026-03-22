@@ -890,26 +890,85 @@ export const EuclideanTrack = React.memo(({
           </div>
         </div>
       )}
+      {/* Tonal Controls */}
+      {isTonal && (
+        <div className="flex items-center gap-4 p-3 bg-idm-bg rounded-2xl border border-black/5 mt-2">
+          <div className="flex items-center gap-2">
+            <Music size={14} className="text-system-accent" />
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-idm-muted">Tonal</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="space-y-1">
+              <span className="text-[8px] font-mono uppercase text-idm-muted">Root</span>
+              <select
+                value={rootNote}
+                onChange={(e) => onRootNoteChange(parseInt(e.target.value))}
+                className="block w-16 bg-white border border-black/10 rounded-lg text-[10px] font-mono px-1.5 py-1 text-idm-ink focus:outline-none focus:border-system-accent"
+              >
+                {Array.from({ length: 37 }, (_, i) => 36 + i).map(midi => (
+                  <option key={midi} value={midi}>{midiToNoteName(midi)}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[8px] font-mono uppercase text-idm-muted">Scale</span>
+              <select
+                value={scaleId}
+                onChange={(e) => onScaleChange(e.target.value)}
+                className="block w-28 bg-white border border-black/10 rounded-lg text-[10px] font-mono px-1.5 py-1 text-idm-ink focus:outline-none focus:border-system-accent"
+              >
+                {Object.entries(SCALE_NAMES).map(([key, label]) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[8px] font-mono uppercase text-idm-muted">Oct</span>
+              <select
+                value={octaveRange}
+                onChange={(e) => onOctaveRangeChange(parseInt(e.target.value))}
+                className="block w-12 bg-white border border-black/10 rounded-lg text-[10px] font-mono px-1.5 py-1 text-idm-ink focus:outline-none focus:border-system-accent"
+              >
+                {[1, 2, 3].map(v => (
+                  <option key={v} value={v}>{v}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
 
       {id !== 'cloud' && (
         <div className="flex flex-wrap gap-3 pt-2">
-          {pattern.map((active, i) => (
-            <EuclideanStep 
-              key={i} 
-              active={active === 1} 
-              trackId={trackId}
-              velocity={0.85}
-              isGhost={false}
-              index={i}
-              color={color}
-              baseProbability={probabilities[i] || 1}
-              effectiveProbability={chaosEnabled ? (probabilities[i] || 1) * entropy : (probabilities[i] || 1)}
-              previewActive={previewPattern ? previewPattern[i] === 1 : false}
-              temporalOffset={temporalOffsets?.[i] ?? 0}
-              onProbabilityChange={(val) => onProbabilityChange(i, val)}
-              onToggle={() => onToggleStep(i)}
-            />
-          ))}
+          {pattern.map((active, i) => {
+            const scaleIntervals = SCALES[scaleId] || SCALES.phrygianDominant;
+            const noteIdx = noteIndices[i] ?? 0;
+            const midi = noteIndexToMidi(rootNote, scaleIntervals, noteIdx);
+            const noteName = midiToNoteName(midi);
+            const maxIdx = getMaxNoteIndex(scaleIntervals, octaveRange);
+            return (
+              <EuclideanStep 
+                key={i} 
+                active={active === 1} 
+                trackId={trackId}
+                velocity={0.85}
+                isGhost={false}
+                index={i}
+                color={color}
+                baseProbability={probabilities[i] || 1}
+                effectiveProbability={chaosEnabled ? (probabilities[i] || 1) * entropy : (probabilities[i] || 1)}
+                previewActive={previewPattern ? previewPattern[i] === 1 : false}
+                temporalOffset={temporalOffsets?.[i] ?? 0}
+                onProbabilityChange={(val) => onProbabilityChange(i, val)}
+                onToggle={() => onToggleStep(i)}
+                isTonal={isTonal}
+                noteName={noteName}
+                noteIndex={noteIdx}
+                maxNoteIndex={maxIdx}
+                onNoteIndexChange={(val) => onNoteIndexChange(i, val)}
+              />
+            );
+          })}
         </div>
       )}
 
