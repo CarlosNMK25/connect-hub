@@ -246,8 +246,40 @@ export const EuclideanSequencer = () => {
   const engineLogRef = useRef<LogEntry[]>([]);
   const [engineLog, setEngineLog] = useState<LogEntry[]>([]);
   const sliderDragRef = useRef<{ [key: string]: { value: number; timer: ReturnType<typeof setTimeout> | null } }>({});
-  
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+
+  const logChange = useCallback((action: string, deltas: string[] = []) => {
+    const now = new Date();
+    const timestamp = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    const entry: LogEntry = { timestamp, action, deltas };
+    engineLogRef.current = [entry, ...engineLogRef.current].slice(0, 50);
+  }, []);
+
+  const logSliderChange = useCallback((key: string, label: string, currentVal: number, newVal: number, unit: string, computeDeltas?: (oldVal: number, newVal: number) => string[]) => {
+    const drag = sliderDragRef.current[key];
+    if (!drag) {
+      sliderDragRef.current[key] = { value: currentVal, timer: null };
+    }
+    const startVal = sliderDragRef.current[key].value;
+    if (sliderDragRef.current[key].timer) clearTimeout(sliderDragRef.current[key].timer!);
+    sliderDragRef.current[key].timer = setTimeout(() => {
+      if (startVal !== newVal) {
+        const deltas = computeDeltas ? computeDeltas(startVal, newVal) : [];
+        logChange(`${label} ${startVal}${unit} → ${newVal}${unit}`, deltas);
+      }
+      sliderDragRef.current[key] = { value: newVal, timer: null };
+    }, 500);
+  }, [logChange]);
+
+  // Sync engine log to state when panel is open
+  useEffect(() => {
+    if (!showEngine) return;
+    const interval = setInterval(() => {
+      setEngineLog([...engineLogRef.current]);
+    }, 500);
+    return () => clearInterval(interval);
+  }, [showEngine]);
+
+
   const { scrollY } = useScroll();
 
   useMotionValueEvent(scrollY, "change", (latest) => {
