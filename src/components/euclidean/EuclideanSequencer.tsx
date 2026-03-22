@@ -306,6 +306,7 @@ export const EuclideanSequencer = () => {
   const [uiStats, setUiStats] = useState<{ [key: string]: { hits: number, misses: number, cycleCount: number } }>({});
   const lastScheduledTimesRef = useRef<{ [key: string]: number }>({});
   const stepIndicesRef = useRef<{ [key: string]: number }>({});
+  const pendingMutationsRef = useRef<{ [trackId: string]: number[] }>({});
   const masterBusRef = useRef<{ 
     compressor: Tone.Compressor; 
     limiter: Tone.Limiter; 
@@ -370,6 +371,19 @@ export const EuclideanSequencer = () => {
         newStats[id] = { hits: stats.hits, misses: stats.misses, cycleCount: stats.cycleCount };
       });
       setUiStats(newStats);
+
+      // Flush pending evolve mutations to React state (max 1 setTracks per 100ms)
+      const mutations = pendingMutationsRef.current;
+      const mutationKeys = Object.keys(mutations);
+      if (mutationKeys.length > 0) {
+        pendingMutationsRef.current = {};
+        setTracks(prev => prev.map(t => {
+          if (mutations[t.id]) {
+            return { ...t, probabilities: mutations[t.id] };
+          }
+          return t;
+        }));
+      }
     }, 100);
 
     return () => {
@@ -821,7 +835,21 @@ export const EuclideanSequencer = () => {
           stats.misses++;
           stats.lastGhostStep = idx;
         }
-        if (idx === 0) stats.cycleCount++;
+        if (idx === 0) {
+          stats.cycleCount++;
+          // Evolve: mutate probabilities at cycle boundary
+          if (track.evolveEnabled && stats.cycleCount > 0 && stats.cycleCount % track.mutationSpeed === 0) {
+            const probs = [...track.probabilities];
+            const rate = track.mutationRate;
+            for (let si = 0; si < track.steps; si++) {
+              if (Math.random() < 0.5) {
+                const delta = (Math.random() - 0.5) * 2 * rate;
+                probs[si] = Math.max(0, Math.min(1, probs[si] + delta));
+              }
+            }
+            pendingMutationsRef.current[track.id] = probs;
+          }
+        }
 
         if (isHit) {
           try {
