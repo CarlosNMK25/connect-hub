@@ -596,25 +596,23 @@ export const EuclideanSequencer = () => {
   const handleImportPreset = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     setImportError(null);
     const file = e.target.files?.[0];
-    if (!file) {
-      console.warn('[UserPresets] No file selected');
-      return;
-    }
-    console.log('[UserPresets] Importing file:', file.name, file.type, file.size);
+    if (!file) return;
+
     try {
       const preset = await importPresetFromFile(file);
-      console.log('[UserPresets] Parsed preset:', preset.name);
-      const updated = [...userPresets, preset];
+      const updated = [preset, ...userPresets];
       setUserPresets(updated);
       saveUserPresets(updated);
-      logChange(`User Preset importado: ${preset.name}`);
+      setIsSavingPreset(false);
+      applyUserPreset(preset);
+      logChange(`User Preset importado y aplicado: ${preset.name}`);
     } catch (err: any) {
-      console.error('[UserPresets] Import error:', err);
       setImportError(err.message || 'Error de importación');
     }
+
     // Reset input so same file can be re-imported
     if (importInputRef.current) importInputRef.current.value = '';
-  }, [userPresets, logChange]);
+  }, [userPresets, logChange, applyUserPreset]);
 
   const applyUserPreset = useCallback((up: UserPreset) => {
     setActivePresetId(up.id);
