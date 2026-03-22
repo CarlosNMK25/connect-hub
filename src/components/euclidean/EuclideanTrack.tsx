@@ -73,6 +73,8 @@ interface EuclideanTrackProps {
   reverbSend: number;
   onDelaySendChange: (val: number) => void;
   onReverbSendChange: (val: number) => void;
+  ratchet: number;
+  onRatchetChange: (val: number) => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
   temporalityMode: TemporalityMode;
