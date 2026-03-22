@@ -2558,6 +2558,7 @@ export const EuclideanSequencer = () => {
           <span>KICK: Membrane</span>
           <span>SNARE: Noise</span>
           <span>HAT: Metal</span>
+          <span>TONE: Mono</span>
         </div>
         <div>{isPlaying ? "Engine: Running" : "Engine: Idle"}</div>
       </div>
