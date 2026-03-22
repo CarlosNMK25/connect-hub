@@ -868,7 +868,7 @@ export const EuclideanSequencer = () => {
       globalStepRef.current = (currentGlobalStep + 1);
     }, "16n").start(0);
 
-    return () => loopRef.current?.dispose();
+    return () => { loopRef.current?.dispose(); };
   }, []);
 
   const togglePlay = async () => {
