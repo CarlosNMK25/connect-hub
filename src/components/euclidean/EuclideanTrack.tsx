@@ -450,7 +450,7 @@ export const EuclideanTrack = React.memo(({
           </div>
 
           {/* Sliders with z-index to ensure interactivity */}
-          <div className="grid grid-cols-3 gap-6 flex-1 min-w-[300px] transition-all duration-500 relative z-20 opacity-100 scale-100">
+          <div className="grid grid-cols-3 gap-6 flex-1 w-full transition-all duration-500 relative z-20 opacity-100 scale-100">
             <div 
               className="space-y-2 relative"
               onMouseEnter={() => isStudyMode && setHoveredParam('pulses')}
