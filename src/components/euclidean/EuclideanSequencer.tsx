@@ -2542,6 +2542,22 @@ export const EuclideanSequencer = () => {
               onReverbSendChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, reverbSend: val } : t))}
               ratchet={track.ratchet}
               onRatchetChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, ratchet: val } : t))}
+              isTonal={track.isTonal}
+              rootNote={track.rootNote}
+              scaleId={track.scaleId}
+              octaveRange={track.octaveRange}
+              noteIndices={track.noteIndices}
+              onRootNoteChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, rootNote: val } : t))}
+              onScaleChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, scaleId: val } : t))}
+              onOctaveRangeChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, octaveRange: val } : t))}
+              onNoteIndexChange={(stepIdx, val) => setTracks(prev => prev.map(t => {
+                if (t.id === track.id) {
+                  const newIndices = [...t.noteIndices];
+                  newIndices[stepIdx] = val;
+                  return { ...t, noteIndices: newIndices };
+                }
+                return t;
+              }))}
               isStudyMode={isStudyMode}
               studyVoice={studyVoice}
               anySoloed={tracks.some(t => t.isSoloed)}
