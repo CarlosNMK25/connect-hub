@@ -8,6 +8,8 @@ export interface PedagogyMicro {
   [key: string]: string;
 }
 
+export type PedagogyVoice = 'technical' | 'literary';
+
 export interface PedagogyMeso {
   title: string;
   condition: string;
@@ -40,6 +42,28 @@ export const PEDAGOGY = {
     overlap: "Factor de superposición entre granos consecutivos. Rango: [1, 8x]. Overlap alto → densidad de nube sedosa y continua (cloud); overlap bajo → stutter rítmico donde cada grano es un evento discreto. Define la transición de granular percusivo a textural.",
     spray: "Dispersión aleatoria del puntero de lectura del grano respecto a la posición ROI. Rango: [0, 1] como proporción del buffer. Spray=0 → lectura secuencial fiel; spray=1 → posición totalmente aleatoria. Convierte audio reconocible en atmósfera abstracta.",
     bitCrush: "Reducción de resolución digital: requantiza la amplitud a 2^b niveles. Rango: [2, 16] bits. 16 bits → CD quality; 8 bits → estética retro/chiptune; 4 bits → distorsión de cuantización agresiva con armónicos no lineales.",
+  } as PedagogyMicro,
+
+  microLiterary: {
+    pulses: "Cuántos golpes reparte el algoritmo de Euclides en el ciclo. E(5,12) genera el patrón de la Soleá flamenca; E(5,11) es territorio Autechre. Un solo pulso de diferencia separa siglos de tradición de la vanguardia algorítmica.",
+    steps: "La longitud total del ciclo rítmico o \"anillo\". Define el espacio temporal donde los pulsos buscarán su equilibrio máximo. En el flamenco, el 12 es la cifra sagrada; en el IDM, los números impares rompen la tiranía del compás de 4/4.",
+    offset: "Rota el patrón respecto al primer tiempo del compás. Es el \"nudge\" que desplaza el acento, permitiendo que una estructura estable se convierta en un síncope agresivo. Cambiar el offset es como desplazar el \"uno\" en una jam de hip-hop experimental.",
+    probability: "La probabilidad de que un pulso programado llegue a sonar. Introduce el concepto de \"silencio activo\": el patrón existe en potencia, pero solo se manifiesta parcialmente. Es la base de la secuenciación generativa que evita la fatiga auditiva.",
+    chaos: "Multiplica la incertidumbre de las probabilidades individuales. A niveles bajos, introduce dudas sutiles; a niveles altos, desintegra el patrón en una nube estocástica. Es el control del \"error controlado\" característico del glitch-hop.",
+    evolve: "Permite que el patrón aprenda y cambie con cada ciclo. La mutación constante asegura que el ritmo nunca sea una foto fija, sino un organismo vivo que evoluciona. Es la encarnación del \"eterno retorno\" donde nada se repite exactamente igual.",
+    bpm: "La velocidad del pulso maestro. Define la densidad de eventos por segundo y altera nuestra percepción del jitter: a BPMs altos, el caos se percibe como textura; a BPMs bajos, como duda humana.",
+    swing: "El retraso determinista de los tiempos débiles, herencia directa de las MPC de Roger Linn. Crea ese \"empuje\" característico del boom-bap clásico. Es una rejilla rígida pero desplazada que invita al movimiento.",
+    dynamics: "Controla el rango de intensidad (velocity) de los golpes. Una dinámica alta permite que el algoritmo \"acentúe\" de forma natural, emulando la intención de un percusionista. En el flamenco, el acento es la brújula que define el palo.",
+    jitter: "Micro-timing gaussiano que desplaza los golpes milisegundos antes o después de su tiempo teórico. Rompe la perfección robótica del ordenador para entrar en el \"duende\" del error humano. Es la diferencia entre un metrónomo y un corazón.",
+    volume: "El peso específico de cada pista en el espacio sonoro. Más que un control de nivel, es una herramienta de jerarquía rítmica. Define qué elemento es el ancla y cuál es el adorno.",
+    delaySend: "Envía el sonido a un bucle de repeticiones que genera polirritmias fantasmales. El delay transforma un pulso seco en una cascada de ecos que refuerzan la geometría del patrón original.",
+    reverbSend: "Sitúa el ritmo en un espacio físico o imaginario. En el IDM, la reverb se usa a menudo para \"emborronar\" la precisión matemática, creando atmósferas donde el ritmo parece emerger de una niebla industrial.",
+    sampleRoi: "Define la \"Región de Interés\" dentro del archivo de audio sagrado. Permite realizar una micro-cirugía sonora, extrayendo solo el ataque de un cante o la cola de un glitch. Es el bisturí digital en acción.",
+    pitch: "Transpone la frecuencia del sample, alterando su timbre y duración. Un pitch bajo puede convertir un chasquido en un bombo profundo; un pitch alto transforma un quejío en un micro-glitch de alta frecuencia.",
+    grainSize: "El tamaño de las partículas en la síntesis granular. Granos pequeños crean texturas metálicas y nubes de polvo sonoro; granos grandes permiten reconocer fragmentos del audio original. Es la atomización del tiempo.",
+    overlap: "Cuántos granos se superponen entre sí. Define la densidad de la \"nube\" sonora. Un overlap alto crea texturas sedosas y continuas; un overlap bajo genera un tartamudeo rítmico (stutter) puramente IDM.",
+    spray: "La dispersión aleatoria del punto de lectura de los granos. Introduce un caos espacial y temporal que desdibuja el origen del sonido. Es la técnica definitiva para convertir una voz flamenca en una atmósfera abstracta.",
+    bitCrush: "Reduce la resolución digital del sonido, introduciendo ruido de cuantización y armónicos agresivos. Evoca la estética de los samplers de 8 bits y la degradación industrial del lo-fi experimental.",
   } as PedagogyMicro,
 
   meso: {
@@ -105,3 +129,9 @@ export const PEDAGOGY = {
     }
   } as Record<string, PedagogyMacro>
 };
+
+export function getMicroText(key: string, voice: PedagogyVoice): string {
+  return voice === 'literary'
+    ? (PEDAGOGY.microLiterary[key] ?? PEDAGOGY.micro[key] ?? '')
+    : (PEDAGOGY.micro[key] ?? '');
+}
