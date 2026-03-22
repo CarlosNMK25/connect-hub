@@ -155,8 +155,11 @@ export const EuclideanTrack = React.memo(({
   reverbSend,
   onDelaySendChange,
   onReverbSendChange,
-  isStudyMode
+  isStudyMode,
+  studyVoice = 'technical'
 }: EuclideanTrackProps) => {
+  const voice = studyVoice;
+
   const [hoveredParam, setHoveredParam] = useState<string | null>(null);
   const [pendingOffset, setPendingOffset] = useState(offset);
   const [isEditingNext, setIsEditingNext] = useState(false);
