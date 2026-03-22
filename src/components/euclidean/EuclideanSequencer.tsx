@@ -624,6 +624,7 @@ export const EuclideanSequencer = () => {
         volume: config.volume,
         delaySend: config.delaySend,
         reverbSend: config.reverbSend,
+        ratchet: config.ratchet ?? 0,
         hits: 0,
         misses: 0,
       });
