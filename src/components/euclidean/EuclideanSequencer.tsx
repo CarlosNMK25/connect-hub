@@ -231,6 +231,7 @@ export const EuclideanSequencer = () => {
   const [showLibrary, setShowLibrary] = useState(false);
   const [isDjMode, setIsDjMode] = useState(false);
   const [isStudyMode, setIsStudyMode] = useState(false);
+  const [studyVoice, setStudyVoice] = useState<PedagogyVoice>('technical');
   const [isThesisOpen, setIsThesisOpen] = useState(false);
   const [globalStep, setGlobalStep] = useState(0);
   const [lastHit, setLastHit] = useState<{ offset: number; color: string; velocity: number; id?: number } | null>(null);
