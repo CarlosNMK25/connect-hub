@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import * as Tone from 'tone';
-import { Play, Square, Sliders, Activity, Zap, Eye, EyeOff, Disc, ChevronLeft, ChevronRight, Info, HelpCircle, X, ChevronDown, ChevronUp, Layers, Target, Atom, Power, Settings } from 'lucide-react';
+import { Play, Square, Sliders, Activity, Zap, Eye, EyeOff, Disc, ChevronLeft, ChevronRight, Info, HelpCircle, X, ChevronDown, ChevronUp, Layers, Target, Atom, Power, Settings, Save, Upload, Download, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import { EuclideanTrack } from './EuclideanTrack';
 import { SpectrumAnalyzer } from './SpectrumAnalyzer';
@@ -13,6 +13,7 @@ import { bjorklund, rotate } from '../../utils/bjorklund';
 import { lcmArray, calculateLcmImpact } from '../../utils/math';
 import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
+import { UserPreset, loadUserPresets, saveUserPresets, exportPresetAsJson, importPresetFromFile, userPresetToScenePreset } from '../../utils/userPresets';
 
 interface TrackState {
   id: string;
@@ -247,6 +248,11 @@ export const EuclideanSequencer = () => {
   const engineLogRef = useRef<LogEntry[]>([]);
   const [engineLog, setEngineLog] = useState<LogEntry[]>([]);
   const sliderDragRef = useRef<{ [key: string]: { value: number; timer: ReturnType<typeof setTimeout> | null } }>({});
+  const [userPresets, setUserPresets] = useState<UserPreset[]>(() => loadUserPresets());
+  const [isSavingPreset, setIsSavingPreset] = useState(false);
+  const [newPresetName, setNewPresetName] = useState('');
+  const [importError, setImportError] = useState<string | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const logChange = useCallback((action: string, deltas: string[] = []) => {
     const now = new Date();
@@ -546,7 +552,96 @@ export const EuclideanSequencer = () => {
     }));
   };
 
-  // Calculate MCM (Least Common Multiple)
+  // === User Presets ===
+  const captureCurrentConfig = useCallback((name: string): UserPreset => {
+    return {
+      id: crypto.randomUUID(),
+      name,
+      createdAt: new Date().toISOString(),
+      bpm, jitter, swing, dynamics,
+      tracks: Object.fromEntries(
+        tracks.map(t => [t.id, {
+          pulses: t.pulses, steps: t.steps, offset: t.offset,
+          probabilities: [...t.probabilities],
+          chaosEnabled: t.chaosEnabled, entropy: t.entropy,
+          evolveEnabled: t.evolveEnabled, mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed,
+          volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend,
+        }])
+      ),
+    };
+  }, [bpm, jitter, swing, dynamics, tracks]);
+
+  const handleSaveUserPreset = useCallback(() => {
+    if (!newPresetName.trim()) return;
+    const preset = captureCurrentConfig(newPresetName.trim());
+    const updated = [...userPresets, preset];
+    setUserPresets(updated);
+    saveUserPresets(updated);
+    setNewPresetName('');
+    setIsSavingPreset(false);
+    logChange(`User Preset guardado: ${preset.name}`);
+  }, [newPresetName, captureCurrentConfig, userPresets, logChange]);
+
+  const handleDeleteUserPreset = useCallback((id: string) => {
+    const updated = userPresets.filter(p => p.id !== id);
+    setUserPresets(updated);
+    saveUserPresets(updated);
+  }, [userPresets]);
+
+  const handleExportCurrent = useCallback(() => {
+    const preset = captureCurrentConfig('current-config');
+    exportPresetAsJson(preset);
+  }, [captureCurrentConfig]);
+
+  const handleImportPreset = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImportError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const preset = await importPresetFromFile(file);
+      const updated = [...userPresets, preset];
+      setUserPresets(updated);
+      saveUserPresets(updated);
+      logChange(`User Preset importado: ${preset.name}`);
+    } catch (err: any) {
+      setImportError(err.message || 'Error de importación');
+    }
+    // Reset input so same file can be re-imported
+    if (importInputRef.current) importInputRef.current.value = '';
+  }, [userPresets, logChange]);
+
+  const applyUserPreset = useCallback((up: UserPreset) => {
+    setActivePresetId(up.id);
+    setBpm(up.bpm);
+    setJitter(up.jitter);
+    setSwing(up.swing);
+    setDynamics(up.dynamics);
+    logChange(`User Preset: ${up.name}`, [`BPM:${up.bpm}`]);
+
+    setTracks(prev => prev.map(t => {
+      const config = up.tracks[t.id];
+      if (!config) return t;
+      return updateTrackPattern({
+        ...t,
+        pulses: config.pulses,
+        steps: config.steps,
+        offset: config.offset,
+        probabilities: [...config.probabilities],
+        chaosEnabled: config.chaosEnabled,
+        entropy: config.entropy,
+        evolveEnabled: config.evolveEnabled,
+        mutationRate: config.mutationRate,
+        mutationSpeed: config.mutationSpeed,
+        volume: config.volume,
+        delaySend: config.delaySend,
+        reverbSend: config.reverbSend,
+        hits: 0,
+        misses: 0,
+      });
+    }));
+  }, [logChange, updateTrackPattern]);
+
+
   const stepsKey = tracks.map(t => `${t.id}:${t.steps}`).join('|');
   const mcm = useMemo(() => {
     // Exclude cloud track from MCM as it's asynchronous
@@ -1934,6 +2029,109 @@ export const EuclideanSequencer = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* User Presets Section */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-px flex-1 bg-system-accent/10"></div>
+                  <span className="text-[8px] font-mono text-system-accent/60 uppercase tracking-widest">Mis Presets</span>
+                  <div className="h-px flex-1 bg-system-accent/10"></div>
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex gap-1 mb-2">
+                  <button
+                    onClick={() => { setIsSavingPreset(true); setImportError(null); }}
+                    className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md border border-dashed border-system-accent/30 text-system-accent text-[9px] font-mono hover:bg-system-accent/5 transition-all"
+                  >
+                    <Save size={10} /> Save
+                  </button>
+                  <button
+                    onClick={handleExportCurrent}
+                    className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md border border-dashed border-system-accent/30 text-system-accent text-[9px] font-mono hover:bg-system-accent/5 transition-all"
+                  >
+                    <Download size={10} /> Export
+                  </button>
+                  <button
+                    onClick={() => importInputRef.current?.click()}
+                    className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md border border-dashed border-system-accent/30 text-system-accent text-[9px] font-mono hover:bg-system-accent/5 transition-all"
+                  >
+                    <Upload size={10} /> Import
+                  </button>
+                  <input
+                    ref={importInputRef}
+                    type="file"
+                    accept=".json"
+                    className="hidden"
+                    onChange={handleImportPreset}
+                  />
+                </div>
+
+                {/* Save inline input */}
+                {isSavingPreset && (
+                  <div className="flex gap-1 items-center mb-2 animate-in fade-in duration-200">
+                    <input
+                      autoFocus
+                      value={newPresetName}
+                      onChange={e => setNewPresetName(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleSaveUserPreset(); if (e.key === 'Escape') setIsSavingPreset(false); }}
+                      placeholder="Mi preset..."
+                      className="flex-1 bg-transparent border-b border-system-accent/30 text-[10px] font-mono text-idm-ink py-1 px-1 outline-none focus:border-system-accent placeholder:text-idm-muted/50"
+                    />
+                    <button onClick={handleSaveUserPreset} className="text-system-accent hover:text-system-accent/80 p-1">
+                      <Save size={12} />
+                    </button>
+                    <button onClick={() => setIsSavingPreset(false)} className="text-idm-muted hover:text-idm-ink p-1">
+                      <X size={12} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Import error */}
+                {importError && (
+                  <div className="text-[9px] font-mono text-red-500 mb-2 animate-in fade-in duration-200">
+                    {importError}
+                  </div>
+                )}
+
+                {/* User preset list */}
+                <div className="flex flex-col gap-1">
+                  {userPresets.length === 0 && !isSavingPreset ? (
+                    <p className="text-idm-muted text-[9px] font-mono text-center py-3">Guarda tu primera configuración</p>
+                  ) : (
+                    userPresets.map(up => (
+                      <button
+                        key={up.id}
+                        onClick={() => applyUserPreset(up)}
+                        onMouseEnter={() => setHoveredPreset(userPresetToScenePreset(up))}
+                        onMouseLeave={() => setHoveredPreset(null)}
+                        className="text-left px-3 py-2 rounded-lg text-[10px] font-mono border border-transparent hover:border-black/10 hover:bg-black/[0.03] transition-all group flex justify-between items-center"
+                      >
+                        <div className="flex flex-col">
+                          <span className="text-idm-ink group-hover:text-idm-ink font-bold">{up.name}</span>
+                          <span className="text-[8px] text-idm-muted">{up.bpm} BPM · {new Date(up.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span
+                            role="button"
+                            onClick={e => { e.stopPropagation(); exportPresetAsJson(up); }}
+                            className="p-1 text-idm-muted hover:text-system-accent"
+                          >
+                            <Download size={10} />
+                          </span>
+                          <span
+                            role="button"
+                            onClick={e => { e.stopPropagation(); handleDeleteUserPreset(up.id); }}
+                            className="p-1 text-idm-muted hover:text-red-500"
+                          >
+                            <Trash2 size={10} />
+                          </span>
+                        </div>
+                      </button>
+                    ))
+                  )}
                 </div>
               </div>
             </div>

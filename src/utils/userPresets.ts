@@ -1,0 +1,114 @@
+export interface UserPresetTrack {
+  pulses: number;
+  steps: number;
+  offset: number;
+  probabilities: number[];
+  chaosEnabled: boolean;
+  entropy: number;
+  evolveEnabled: boolean;
+  mutationRate: number;
+  mutationSpeed: number;
+  volume: number;
+  delaySend: number;
+  reverbSend: number;
+}
+
+export interface UserPreset {
+  id: string;
+  name: string;
+  createdAt: string;
+  bpm: number;
+  jitter: number;
+  swing: number;
+  dynamics: number;
+  tracks: Record<string, UserPresetTrack>;
+}
+
+const STORAGE_KEY = 'euclidean-user-presets';
+
+export function loadUserPresets(): UserPreset[] {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') as UserPreset[];
+  } catch {
+    return [];
+  }
+}
+
+export function saveUserPresets(presets: UserPreset[]): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
+}
+
+export function validateUserPreset(obj: unknown): obj is UserPreset {
+  if (!obj || typeof obj !== 'object') return false;
+  const o = obj as Record<string, unknown>;
+  if (typeof o.name !== 'string' || !o.name) return false;
+  if (typeof o.bpm !== 'number') return false;
+  if (!o.tracks || typeof o.tracks !== 'object') return false;
+  const tracks = o.tracks as Record<string, unknown>;
+  const trackIds = Object.keys(tracks);
+  if (trackIds.length === 0) return false;
+  for (const id of trackIds) {
+    const t = tracks[id] as Record<string, unknown>;
+    if (!t || typeof t.pulses !== 'number' || typeof t.steps !== 'number') return false;
+  }
+  return true;
+}
+
+export function exportPresetAsJson(preset: UserPreset): void {
+  const blob = new Blob([JSON.stringify(preset, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${preset.name || 'preset'}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function importPresetFromFile(file: File): Promise<UserPreset> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result as string);
+        if (!validateUserPreset(parsed)) {
+          reject(new Error('JSON inválido: debe contener name, bpm y tracks con pulses/steps.'));
+          return;
+        }
+        // Ensure unique id and fresh timestamp
+        resolve({
+          ...parsed,
+          id: crypto.randomUUID(),
+          createdAt: new Date().toISOString(),
+        });
+      } catch {
+        reject(new Error('No se pudo parsear el archivo JSON.'));
+      }
+    };
+    reader.onerror = () => reject(new Error('Error leyendo el archivo.'));
+    reader.readAsText(file);
+  });
+}
+
+/**
+ * Convert a UserPreset to a ScenePreset-compatible shape for hover preview.
+ */
+export function userPresetToScenePreset(up: UserPreset) {
+  return {
+    id: up.id,
+    name: up.name,
+    type: 'master' as const,
+    category: 'Experimental' as const,
+    description: `Preset de usuario creado el ${new Date(up.createdAt).toLocaleDateString()}`,
+    bpm: up.bpm,
+    jitter: up.jitter,
+    swing: up.swing,
+    dynamics: up.dynamics,
+    tracks: Object.fromEntries(
+      Object.entries(up.tracks).map(([id, t]) => [id, {
+        pulses: t.pulses,
+        steps: t.steps,
+        offset: t.offset,
+      }])
+    ),
+  };
+}
