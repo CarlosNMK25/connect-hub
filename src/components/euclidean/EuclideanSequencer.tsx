@@ -593,27 +593,6 @@ export const EuclideanSequencer = () => {
     exportPresetAsJson(preset);
   }, [captureCurrentConfig]);
 
-  const handleImportPreset = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    setImportError(null);
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const preset = await importPresetFromFile(file);
-      const updated = [preset, ...userPresets];
-      setUserPresets(updated);
-      saveUserPresets(updated);
-      setIsSavingPreset(false);
-      applyUserPreset(preset);
-      logChange(`User Preset importado y aplicado: ${preset.name}`);
-    } catch (err: any) {
-      setImportError(err.message || 'Error de importación');
-    }
-
-    // Reset input so same file can be re-imported
-    if (importInputRef.current) importInputRef.current.value = '';
-  }, [userPresets, logChange, applyUserPreset]);
-
   const applyUserPreset = useCallback((up: UserPreset) => {
     setActivePresetId(up.id);
     setBpm(up.bpm);
@@ -644,6 +623,27 @@ export const EuclideanSequencer = () => {
       });
     }));
   }, [logChange, updateTrackPattern]);
+
+  const handleImportPreset = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImportError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const preset = await importPresetFromFile(file);
+      const updated = [preset, ...userPresets];
+      setUserPresets(updated);
+      saveUserPresets(updated);
+      setIsSavingPreset(false);
+      applyUserPreset(preset);
+      logChange(`User Preset importado y aplicado: ${preset.name}`);
+    } catch (err: any) {
+      setImportError(err.message || 'Error de importación');
+    }
+
+    // Reset input so same file can be re-imported
+    if (importInputRef.current) importInputRef.current.value = '';
+  }, [userPresets, logChange, applyUserPreset]);
 
 
   const stepsKey = tracks.map(t => `${t.id}:${t.steps}`).join('|');
