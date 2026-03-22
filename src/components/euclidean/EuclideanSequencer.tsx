@@ -306,6 +306,7 @@ export const EuclideanSequencer = () => {
   const [uiStats, setUiStats] = useState<{ [key: string]: { hits: number, misses: number, cycleCount: number } }>({});
   const lastScheduledTimesRef = useRef<{ [key: string]: number }>({});
   const stepIndicesRef = useRef<{ [key: string]: number }>({});
+  const pendingMutationsRef = useRef<{ [trackId: string]: number[] }>({});
   const masterBusRef = useRef<{ 
     compressor: Tone.Compressor; 
     limiter: Tone.Limiter; 
