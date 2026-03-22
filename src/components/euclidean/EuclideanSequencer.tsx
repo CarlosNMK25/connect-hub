@@ -2042,6 +2042,7 @@ export const EuclideanSequencer = () => {
           uiStats={uiStats}
           log={engineLog}
           onClearLog={() => { engineLogRef.current = []; setEngineLog([]); }}
+          activePresetId={activePresetId}
         />
       )}
 
