@@ -14,6 +14,12 @@ interface EuclideanStepProps {
   temporalOffset?: number;
   onProbabilityChange: (val: number) => void;
   onToggle: () => void;
+  // Tonal props
+  isTonal?: boolean;
+  noteName?: string;
+  noteIndex?: number;
+  maxNoteIndex?: number;
+  onNoteIndexChange?: (val: number) => void;
 }
 
 export const EuclideanStep: React.FC<EuclideanStepProps> = ({ 
@@ -28,7 +34,12 @@ export const EuclideanStep: React.FC<EuclideanStepProps> = ({
   previewActive,
   temporalOffset = 0,
   onProbabilityChange,
-  onToggle
+  onToggle,
+  isTonal = false,
+  noteName,
+  noteIndex = 0,
+  maxNoteIndex = 14,
+  onNoteIndexChange
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -54,20 +65,28 @@ export const EuclideanStep: React.FC<EuclideanStepProps> = ({
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isEditing) return;
     dragStartY.current = e.clientY;
-    dragStartProb.current = baseProbability;
+    dragStartProb.current = isTonal ? noteIndex : baseProbability;
     hasMoved.current = false;
     setIsDragging(true);
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const deltaY = dragStartY.current - moveEvent.clientY;
-      const sensitivity = 150; 
-      const newProb = Math.max(0, Math.min(1, dragStartProb.current + (deltaY / sensitivity)));
       
       if (Math.abs(deltaY) > 5) {
         hasMoved.current = true;
       }
       
-      onProbabilityChange(newProb);
+      if (isTonal && onNoteIndexChange) {
+        // Tonal: vertical drag changes note index
+        const sensitivity = 20; // pixels per note step
+        const noteSteps = Math.round(deltaY / sensitivity);
+        const newIndex = Math.max(0, Math.min(maxNoteIndex - 1, Math.round(dragStartProb.current) + noteSteps));
+        onNoteIndexChange(newIndex);
+      } else {
+        const sensitivity = 150; 
+        const newProb = Math.max(0, Math.min(1, dragStartProb.current + (deltaY / sensitivity)));
+        onProbabilityChange(newProb);
+      }
     };
 
     const handleMouseUp = () => {
@@ -219,8 +238,15 @@ export const EuclideanStep: React.FC<EuclideanStepProps> = ({
                 );
               })()}
 
-              {/* Probability Percentage Label */}
-              {active && (
+              {/* Note Name or Probability Label */}
+              {active && isTonal && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <span className="text-[7px] font-mono font-bold leading-none" style={{ color: effectiveProbability > 0.5 ? '#000' : color }}>
+                    {noteName || '?'}
+                  </span>
+                </div>
+              )}
+              {active && !isTonal && (
                 <div className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-200 ${isDragging ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                   <span className="text-[8px] font-mono font-bold" style={{ color: effectiveProbability > 0.5 ? '#000' : color }}>
                     {Math.round(effectiveProbability * 100)}%

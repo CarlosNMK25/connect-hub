@@ -15,6 +15,7 @@ import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
 import { UserPreset, loadUserPresets, saveUserPresets, exportPresetAsJson, importPresetFromFile, userPresetToScenePreset } from '../../utils/userPresets';
 import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../../utils/temporality';
+import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex } from '../../utils/scales';
 
 interface TrackState {
   id: string;
@@ -53,6 +54,13 @@ interface TrackState {
   delaySend: number;
   reverbSend: number;
   ratchet: number;
+  // Tonal Engine
+  isTonal: boolean;
+  rootNote: number;
+  scaleId: string;
+  octaveRange: number;
+  noteIndices: number[];
+  synthType: string;
   hits: number;
   misses: number;
 }
@@ -318,7 +326,9 @@ export const EuclideanSequencer = () => {
       sampleStart: 0, sampleEnd: 1, attack: 0, decay: 200, mode: 'TRIGGER', pitch: 0, normalize: true,
       grainSize: 100, overlap: 0.1, spray: 0, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
-      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0, hits: 0, misses: 0
+      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0,
+      isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
+      hits: 0, misses: 0
     }),
     updateTrackPattern({ 
       id: 'snare', name: 'Snare', color: '#9D174D', pulses: 2, steps: 16, offset: 4, 
@@ -327,7 +337,9 @@ export const EuclideanSequencer = () => {
       sampleStart: 0, sampleEnd: 1, attack: 0, decay: 200, mode: 'TRIGGER', pitch: 0, normalize: true,
       grainSize: 100, overlap: 0.1, spray: 0, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
-      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0, hits: 0, misses: 0
+      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0,
+      isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
+      hits: 0, misses: 0
     }),
     updateTrackPattern({ 
       id: 'hat', name: 'Hi-Hat', color: '#155E75', pulses: 8, steps: 16, offset: 2, 
@@ -336,7 +348,9 @@ export const EuclideanSequencer = () => {
       sampleStart: 0, sampleEnd: 1, attack: 0, decay: 100, mode: 'TRIGGER', pitch: 0, normalize: true,
       grainSize: 50, overlap: 0.2, spray: 0, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
-      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0, hits: 0, misses: 0
+      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0,
+      isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
+      hits: 0, misses: 0
     }),
     updateTrackPattern({ 
       id: 'cloud', name: 'Atmosphere', color: '#5B21B6', pulses: 4, steps: 16, offset: 0, 
@@ -345,7 +359,20 @@ export const EuclideanSequencer = () => {
       sampleStart: 0, sampleEnd: 1, attack: 2000, decay: 5000, mode: 'TRIGGER', pitch: 0, normalize: true,
       grainSize: 500, overlap: 0.5, spray: 200, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
-      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0, hits: 0, misses: 0
+      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0,
+      isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
+      hits: 0, misses: 0
+    }),
+    updateTrackPattern({ 
+      id: 'tone', name: 'Tone', color: '#B45309', pulses: 3, steps: 8, offset: 0, 
+      probabilities: new Array(64).fill(1), pattern: [],
+      samplerBuffer: null, samplerStatus: 'IDLE', samplerFilename: null,
+      sampleStart: 0, sampleEnd: 1, attack: 0, decay: 300, mode: 'TRIGGER', pitch: 0, normalize: true,
+      grainSize: 100, overlap: 0.1, spray: 0, bitCrush: 16,
+      chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
+      isMuted: false, isSoloed: false, volume: 0.7, delaySend: 0.15, reverbSend: 0.2, ratchet: 0,
+      isTonal: true, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
+      hits: 0, misses: 0
     }),
   ]);
 
@@ -571,6 +598,7 @@ export const EuclideanSequencer = () => {
           chaosEnabled: t.chaosEnabled, entropy: t.entropy,
           evolveEnabled: t.evolveEnabled, mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed,
           volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend, ratchet: t.ratchet,
+          ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices] } : {}),
         }])
       ),
     };
@@ -625,6 +653,12 @@ export const EuclideanSequencer = () => {
         delaySend: config.delaySend,
         reverbSend: config.reverbSend,
         ratchet: config.ratchet ?? 0,
+        ...(t.isTonal ? {
+          rootNote: config.rootNote ?? t.rootNote,
+          scaleId: config.scaleId ?? t.scaleId,
+          octaveRange: config.octaveRange ?? t.octaveRange,
+          noteIndices: config.noteIndices ? [...config.noteIndices] : t.noteIndices,
+        } : {}),
         hits: 0,
         misses: 0,
       });
@@ -655,7 +689,6 @@ export const EuclideanSequencer = () => {
 
   const stepsKey = tracks.map(t => `${t.id}:${t.steps}`).join('|');
   const mcm = useMemo(() => {
-    // Exclude cloud track from MCM as it's asynchronous
     const rhythmicTracks = tracks.filter(t => t.id !== 'cloud');
     if (rhythmicTracks.length === 0) return 1;
     return lcmArray(rhythmicTracks.map(t => t.steps));
@@ -887,6 +920,45 @@ export const EuclideanSequencer = () => {
     sidechainInverter.connect(cloudDucker.gain);
     sidechainBias.connect(cloudDucker.gain);
 
+    // Tone Synth Setup (MonoSynth)
+    const toneDelaySend = new Tone.Gain(0.15).connect(delayBus);
+    const toneReverbSend = new Tone.Gain(0.2).connect(reverbBus);
+    const toneFilter = new Tone.Filter(2000, "lowpass").connect(compressor);
+    toneFilter.connect(toneDelaySend);
+    toneFilter.connect(toneReverbSend);
+
+    const toneMonoSynth = new Tone.MonoSynth({
+      oscillator: { type: 'sawtooth' },
+      filter: { Q: 6, type: 'lowpass', rolloff: -24 },
+      envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 },
+      filterEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8, baseFrequency: 200, octaves: 4 },
+      volume: -6
+    }).connect(toneFilter);
+
+    synthsRef.current.tone = {
+      triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
+        toneMonoSynth.triggerAttackRelease(note, duration, time, velocity);
+        const baseCutoff = 600;
+        const dynamicCutoff = baseCutoff + (velocity * 4000);
+        if (isFinite(dynamicCutoff)) {
+          toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+        }
+      },
+      setVolume: (vol: number) => {
+        toneMonoSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
+      },
+      setSends: (delayVal: number, reverbVal: number) => {
+        toneDelaySend.gain.rampTo(delayVal, 0.05);
+        toneReverbSend.gain.rampTo(reverbVal, 0.05);
+      },
+      dispose: () => {
+        toneMonoSynth.dispose();
+        toneFilter.dispose();
+        toneDelaySend.dispose();
+        toneReverbSend.dispose();
+      }
+    };
+
     synthsRef.current.kickFollower = kickFollower;
 
     return () => {
@@ -1045,7 +1117,14 @@ export const EuclideanSequencer = () => {
             if (synth.triggerAttackRelease) {
               const duration = track.mode === 'GATE' ? "16n" : (track.decay / 1000);
               
-              if (track.id === 'kick' && !synth.grainPlayer) {
+              if (track.isTonal) {
+                // Tonal track: compute note from scale + noteIndex
+                const noteIdx = track.noteIndices[idx] ?? 0;
+                const scaleIntervals = SCALES[track.scaleId] || SCALES.phrygianDominant;
+                const midi = noteIndexToMidi(track.rootNote, scaleIntervals, noteIdx);
+                const noteName = midiToNoteName(midi);
+                synth.triggerAttackRelease(noteName, duration, scheduledTime, velocity);
+              } else if (track.id === 'kick' && !synth.grainPlayer) {
                 synth.triggerAttackRelease("C1", duration, scheduledTime, velocity);
               } else {
                 synth.triggerAttackRelease(duration, scheduledTime, velocity);
@@ -1070,7 +1149,13 @@ export const EuclideanSequencer = () => {
                 try {
                   if (synth.triggerAttackRelease) {
                     const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
-                    if (track.id === 'kick' && !synth.grainPlayer) {
+                    if (track.isTonal) {
+                      const noteIdx = track.noteIndices[idx] ?? 0;
+                      const scaleIntervals = SCALES[track.scaleId] || SCALES.phrygianDominant;
+                      const midi = noteIndexToMidi(track.rootNote, scaleIntervals, noteIdx);
+                      const noteName = midiToNoteName(midi);
+                      synth.triggerAttackRelease(noteName, dur, ratchetTime, ratchetVelocity);
+                    } else if (track.id === 'kick' && !synth.grainPlayer) {
                       synth.triggerAttackRelease("C1", dur, ratchetTime, ratchetVelocity);
                     } else {
                       synth.triggerAttackRelease(dur, ratchetTime, ratchetVelocity);
@@ -1389,7 +1474,7 @@ export const EuclideanSequencer = () => {
     }
     
     // Re-initialize original synth
-    if (trackId === 'kick' || trackId === 'snare' || trackId === 'hat') {
+    if (trackId === 'kick' || trackId === 'snare' || trackId === 'hat' || trackId === 'tone') {
       initializeOriginalSynth(trackId);
     }
 
@@ -1520,6 +1605,44 @@ export const EuclideanSequencer = () => {
           hatFilter.dispose();
           hatDelaySend.dispose();
           hatReverbSend.dispose();
+        }
+      };
+    } else if (trackId === 'tone') {
+      const toneDelaySend = new Tone.Gain(0.15).connect(master.delayBus);
+      const toneReverbSend = new Tone.Gain(0.2).connect(master.reverbBus);
+      const toneFilter = new Tone.Filter(2000, "lowpass").connect(master.compressor);
+      toneFilter.connect(toneDelaySend);
+      toneFilter.connect(toneReverbSend);
+
+      const toneMonoSynth = new Tone.MonoSynth({
+        oscillator: { type: 'sawtooth' },
+        filter: { Q: 6, type: 'lowpass', rolloff: -24 },
+        envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 },
+        filterEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8, baseFrequency: 200, octaves: 4 },
+        volume: -6
+      }).connect(toneFilter);
+
+      synthsRef.current.tone = {
+        triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
+          toneMonoSynth.triggerAttackRelease(note, duration, time, velocity);
+          const baseCutoff = 600;
+          const dynamicCutoff = baseCutoff + (velocity * 4000);
+          if (isFinite(dynamicCutoff)) {
+            toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+          }
+        },
+        setVolume: (vol: number) => {
+          toneMonoSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
+        },
+        setSends: (delayVal: number, reverbVal: number) => {
+          toneDelaySend.gain.rampTo(delayVal, 0.05);
+          toneReverbSend.gain.rampTo(reverbVal, 0.05);
+        },
+        dispose: () => {
+          toneMonoSynth.dispose();
+          toneFilter.dispose();
+          toneDelaySend.dispose();
+          toneReverbSend.dispose();
         }
       };
     }
@@ -2419,6 +2542,22 @@ export const EuclideanSequencer = () => {
               onReverbSendChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, reverbSend: val } : t))}
               ratchet={track.ratchet}
               onRatchetChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, ratchet: val } : t))}
+              isTonal={track.isTonal}
+              rootNote={track.rootNote}
+              scaleId={track.scaleId}
+              octaveRange={track.octaveRange}
+              noteIndices={track.noteIndices}
+              onRootNoteChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, rootNote: val } : t))}
+              onScaleChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, scaleId: val } : t))}
+              onOctaveRangeChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, octaveRange: val } : t))}
+              onNoteIndexChange={(stepIdx, val) => setTracks(prev => prev.map(t => {
+                if (t.id === track.id) {
+                  const newIndices = [...t.noteIndices];
+                  newIndices[stepIdx] = val;
+                  return { ...t, noteIndices: newIndices };
+                }
+                return t;
+              }))}
               isStudyMode={isStudyMode}
               studyVoice={studyVoice}
               anySoloed={tracks.some(t => t.isSoloed)}
@@ -2435,6 +2574,7 @@ export const EuclideanSequencer = () => {
           <span>KICK: Membrane</span>
           <span>SNARE: Noise</span>
           <span>HAT: Metal</span>
+          <span>TONE: Mono</span>
         </div>
         <div>{isPlaying ? "Engine: Running" : "Engine: Idle"}</div>
       </div>
