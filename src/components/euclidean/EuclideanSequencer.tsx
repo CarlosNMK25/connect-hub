@@ -1490,7 +1490,9 @@ export const EuclideanSequencer = () => {
               {showControls && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 animate-in fade-in slide-in-from-top-2 duration-500">
                   <div className="flex flex-col gap-2 transition-all duration-500 opacity-100 scale-100">
-                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                    <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('bpm'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
                       <span>Tempo</span>
                       <span className="text-idm-ink">{bpm} BPM</span>
                     </div>
