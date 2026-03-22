@@ -958,6 +958,7 @@ export const EuclideanSequencer = () => {
   const togglePlay = async () => {
     if (Tone.getContext().state !== 'running') await Tone.start();
     if (isPlaying) {
+      logChange('■ Stop');
       Tone.getTransport().stop();
       // Stop cloud grain player if it exists
       if (synthsRef.current.cloud?.grainPlayer) {
@@ -978,6 +979,8 @@ export const EuclideanSequencer = () => {
       globalStepRef.current = 0;
       setGlobalStep(0);
     } else {
+      const activeTracks = tracks.filter(t => !t.isMuted).length;
+      logChange('▶ Play', [`BPM ${bpm}`, `${activeTracks} activos`]);
       Tone.getTransport().bpm.value = bpm;
       Tone.getTransport().start();
       // Start cloud grain player if it exists
