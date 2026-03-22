@@ -1,44 +1,40 @@
 
 
-## Plan: Add Eclipse Countdown and Hit Rate indicators to Sync panel
+## Plan: User Presets System (localStorage + JSON export/import)
 
-### Summary
-Add two new metric cells to the existing Sync panel grid, expanding it from 2 columns to a responsive 4-column layout. Pure UI work — no audio engine changes.
+### Assessment
 
-### Changes (single file: `EuclideanSequencer.tsx`)
+The plan is **well-suited** to the current codebase. Key observations:
 
-**1. Derived calculations before the return**
+1. **`applyPreset` only restores partial state** — it sets BPM, jitter, swing, dynamics, and per-track pulses/steps/offset, but does NOT restore probabilities, chaos, evolve, volume, or sends. The `UserPreset` format captures all of these, so `applyUserPreset` will be a more complete restoration function. This is correct and necessary.
 
-- **Eclipse countdown**: `stepsRestantes = mcm - (globalStep % mcm)`. Format seconds as `Xm Ys` or `Xs`. If not playing, show total cycle time. If > 10min, show `~Xm`.
-- **Eclipse detection**: Use a `useRef` + `useEffect` to latch the eclipse state. When `stepsRestantes <= 1`, set `eclipseFlash = true` and start a 1.2s `setTimeout` to clear it. The ref prevents re-triggering during the same eclipse window. This way the "NOW ✦" label persists for a full animation cycle regardless of how many frames `globalStep % mcm` stays at 0.
-- **Hit Rate**: Aggregate `uiStats[trackId].hits` and `.misses` for non-cloud tracks. `hitRate = total > 0 ? Math.round(hits/total*100) : null`. Show "—" when null.
+2. **Library panel column 1** (lines 1867-1939) has clean section structure — adding "Mis Presets" as a third section below "Patrones Atómicos" fits naturally.
 
-**2. Expand the grid** (lines ~1690-1705)
+3. **Hover preview** currently relies on `hoveredPreset` being a `ScenePreset` with `tracks` containing only pulses/steps/offset. For user presets (which have more fields), the preview will work but will show the same visual pattern preview — no code change needed in the preview renderer since it only reads pulses/steps/offset from tracks.
 
-Change `grid-cols-2` → `grid-cols-2 lg:grid-cols-4` and add two new cells after Impacto:
+4. **One concern**: The hover preview system uses `setHoveredPreset(preset: ScenePreset)`. User presets have a different interface (`UserPreset`). We need either a union type or convert `UserPreset` to a compatible shape for preview. Simplest: create a `toScenePreset(up: UserPreset): ScenePreset` adapter for hover preview only.
 
-- **Eclipse cell**: Label "ECLIPSE", value in `font-mono text-system-accent`. When `eclipseFlash` is true, show "NOW ✦" with `animate-pulse` (CSS, ~1.2s). Otherwise show the countdown.
-- **Hit Rate cell**: Label "HIT RATE", value `XX%` in `font-mono`. Color: `text-idm-ink` (≥80%), `text-system-accent` (50-79%), `text-red-500` (<50%).
+5. **Debounce on sliders is already handled** by existing `logSliderChange` — no conflict.
 
-**3. Study Mode tooltips** on both new labels (same pattern as existing MCM/Impacto).
+### Changes
 
-### Eclipse latch detail
+**File 1: `src/utils/userPresets.ts` (CREATE)**
+- `UserPreset` interface
+- `loadUserPresets(): UserPreset[]` — reads from localStorage
+- `saveUserPresets(presets: UserPreset[]): void` — writes to localStorage
+- `captureCurrentConfig(name, tracks, bpm, jitter, swing, dynamics): UserPreset` — snapshots current state
+- `exportPresetAsJson(preset: UserPreset): void` — triggers download
+- `importPresetFromFile(file: File): Promise<UserPreset>` — reads + validates JSON
+- `validateUserPreset(obj: unknown): boolean` — checks required fields
+- `userPresetToScenePreset(up: UserPreset): ScenePreset` — adapter for hover preview
 
-```text
-useEffect:
-  if stepsRestantes <= 1 AND !eclipseRef.current:
-    eclipseRef.current = true
-    setEclipseFlash(true)
-    setTimeout(() => {
-      setEclipseFlash(false)
-      eclipseRef.current = false
-    }, 1200)
+**File 2: `src/components/euclidean/EuclideanSequencer.tsx` (MODIFY)**
+- Add state: `userPresets` (loaded from localStorage on mount), `isSavingPreset`, `newPresetName`, `importError`
+- Add `applyUserPreset(up: UserPreset)` — full restoration including probabilities, chaos, evolve, volume, sends
+- Add save/delete/export/import handlers
+- Add "Mis Presets" section in Library column 1 (after Patrones Atómicos)
+- Wire hover preview for user presets via adapter
+- Hidden file input for import
 
-deps: [stepsRestantes]
-```
-
-One `useRef` (boolean flag) + one `useState` (for render). The ref gates re-entry so even if `stepsRestantes` bounces between 0 and 1 across multiple 100ms ticks, the flash fires exactly once per eclipse and stays visible for 1.2 seconds.
-
-### Files touched
-- `src/components/euclidean/EuclideanSequencer.tsx` only
+### No files touched outside the allowed list. No audio engine changes. No changes to presets.ts or EngineRoom.
 
