@@ -399,6 +399,31 @@ export const EuclideanTrack = React.memo(({
                 />
               </div>
             </div>
+
+            {/* Ratchet mini-fader */}
+            <div 
+              className="flex flex-col gap-1 relative"
+              onMouseEnter={(e) => handleParamEnter('ratchet', e)}
+              onMouseLeave={handleParamLeave}
+            >
+              <div className="flex justify-between items-center w-16">
+                <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rtch</span>
+                <span className="text-[6px] font-mono text-idm-muted leading-none">{ratchet}×</span>
+              </div>
+              <div 
+                className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative group border border-black/5"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = e.clientX - rect.left;
+                  onRatchetChange(Math.round(Math.max(0, Math.min(4, (x / rect.width) * 4))));
+                }}
+              >
+                <div 
+                  className="h-full transition-all duration-100"
+                  style={{ width: `${(ratchet / 4) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }}
+                />
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-col">
