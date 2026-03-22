@@ -1610,7 +1610,7 @@ export const EuclideanSequencer = () => {
                     <EnergyMonitor lastHit={lastHit} mode="distribution" />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <span className="text-[9px] font-mono uppercase text-idm-ink/30 tracking-widest text-center">Range</span>
+                    <span className="text-[9px] font-mono uppercase text-system-accent tracking-widest text-center">Range</span>
                     <EnergyMonitor lastHit={lastHit} mode="range" />
                   </div>
                   <div className="flex flex-col gap-2">
