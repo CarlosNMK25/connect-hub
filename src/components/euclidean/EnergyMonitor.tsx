@@ -124,7 +124,7 @@ export const EnergyMonitor: React.FC<EnergyMonitorProps> = ({ lastHit, mode }) =
         )}
       </div>
 
-      <div className="flex justify-between w-full text-[6px] font-mono text-idm-ink/30 uppercase mt-1">
+      <div className="flex justify-between w-full text-[6px] font-mono text-system-accent uppercase mt-1">
         <span>{mode === 'scatter' ? 'Rec' : 'Soft'}</span>
         <span>{mode === 'scatter' ? 'Old' : 'Hard'}</span>
       </div>

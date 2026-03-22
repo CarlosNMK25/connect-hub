@@ -114,7 +114,7 @@ export const JitterMonitor: React.FC<JitterMonitorProps> = ({ jitter, lastHit })
         <div className="absolute top-0 left-1/2 -translate-x-1/2 h-full w-[1px] bg-orange-500/10 pointer-events-none" />
       </div>
 
-      <div className="flex justify-between w-full text-[7px] font-mono text-idm-ink/30 uppercase mt-1">
+      <div className="flex justify-between w-full text-[7px] font-mono text-system-accent uppercase mt-1">
         <span>-Early</span>
         <span>Late+</span>
       </div>
