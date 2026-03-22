@@ -822,7 +822,21 @@ export const EuclideanSequencer = () => {
           stats.misses++;
           stats.lastGhostStep = idx;
         }
-        if (idx === 0) stats.cycleCount++;
+        if (idx === 0) {
+          stats.cycleCount++;
+          // Evolve: mutate probabilities at cycle boundary
+          if (track.evolveEnabled && stats.cycleCount > 0 && stats.cycleCount % track.mutationSpeed === 0) {
+            const probs = [...track.probabilities];
+            const rate = track.mutationRate;
+            for (let si = 0; si < track.steps; si++) {
+              if (Math.random() < 0.5) {
+                const delta = (Math.random() - 0.5) * 2 * rate;
+                probs[si] = Math.max(0, Math.min(1, probs[si] + delta));
+              }
+            }
+            pendingMutationsRef.current[track.id] = probs;
+          }
+        }
 
         if (isHit) {
           try {
