@@ -196,6 +196,17 @@ export const EuclideanTrack = React.memo(({
   const voice = studyVoice;
 
   const [hoveredParam, setHoveredParam] = useState<string | null>(null);
+  const [hoveredParamEl, setHoveredParamEl] = useState<HTMLElement | null>(null);
+
+  const handleParamEnter = (param: string, e: React.MouseEvent) => {
+    if (!isStudyMode) return;
+    setHoveredParam(param);
+    setHoveredParamEl(e.currentTarget as HTMLElement);
+  };
+  const handleParamLeave = () => {
+    setHoveredParam(null);
+    setHoveredParamEl(null);
+  };
   const [pendingOffset, setPendingOffset] = useState(offset);
   const [isEditingNext, setIsEditingNext] = useState(false);
   const [editNextValue, setEditNextValue] = useState(offset.toString());
