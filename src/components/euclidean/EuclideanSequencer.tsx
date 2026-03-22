@@ -596,14 +596,20 @@ export const EuclideanSequencer = () => {
   const handleImportPreset = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     setImportError(null);
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.warn('[UserPresets] No file selected');
+      return;
+    }
+    console.log('[UserPresets] Importing file:', file.name, file.type, file.size);
     try {
       const preset = await importPresetFromFile(file);
+      console.log('[UserPresets] Parsed preset:', preset.name);
       const updated = [...userPresets, preset];
       setUserPresets(updated);
       saveUserPresets(updated);
       logChange(`User Preset importado: ${preset.name}`);
     } catch (err: any) {
+      console.error('[UserPresets] Import error:', err);
       setImportError(err.message || 'Error de importación');
     }
     // Reset input so same file can be re-imported
@@ -2063,8 +2069,8 @@ export const EuclideanSequencer = () => {
                   <input
                     ref={importInputRef}
                     type="file"
-                    accept=".json"
-                    className="hidden"
+                    accept=".json,application/json"
+                    style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', opacity: 0 }}
                     onChange={handleImportPreset}
                   />
                 </div>
