@@ -1741,7 +1741,7 @@ export const EuclideanSequencer = () => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 pt-2">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
               <div className="bg-black/5 p-3 rounded-lg border border-black/5">
                 <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
                   onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('mcmValue'); setHoveredGlobalEl(e.currentTarget); } }}
@@ -1754,6 +1754,22 @@ export const EuclideanSequencer = () => {
                   onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>Impacto</div>
                 <div className="text-xl font-mono text-system-accent tracking-tighter">
                   {Math.round(syncImpacts.reduce((a, b) => a + b, 0) / Math.max(1, tracks.filter(t => t.id !== 'cloud').length))}%
+                </div>
+              </div>
+              <div className="bg-black/5 p-3 rounded-lg border border-black/5">
+                <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
+                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('eclipseCountdown'); setHoveredGlobalEl(e.currentTarget); } }}
+                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>ECLIPSE</div>
+                <div className={`text-xl font-mono tracking-tighter transition-colors duration-300 ${eclipseFlash ? 'text-system-accent animate-pulse' : 'text-system-accent'}`}>
+                  {eclipseDisplay}
+                </div>
+              </div>
+              <div className="bg-black/5 p-3 rounded-lg border border-black/5">
+                <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
+                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('hitRate'); setHoveredGlobalEl(e.currentTarget); } }}
+                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>HIT RATE</div>
+                <div className={`text-xl font-mono tracking-tighter ${hitRateColor}`}>
+                  {hitRateData.rate !== null ? `${hitRateData.rate}%` : '—'}
                 </div>
               </div>
             </div>
