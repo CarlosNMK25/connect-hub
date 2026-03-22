@@ -75,6 +75,9 @@ interface EuclideanTrackProps {
   onReverbSendChange: (val: number) => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
+  temporalityMode: TemporalityMode;
+  bpm: number;
+  swing: number;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
