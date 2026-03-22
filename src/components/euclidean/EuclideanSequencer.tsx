@@ -239,6 +239,8 @@ export const EuclideanSequencer = () => {
   const [globalStep, setGlobalStep] = useState(0);
   const [lastHit, setLastHit] = useState<{ offset: number; color: string; velocity: number; id?: number } | null>(null);
   const [hoveredPreset, setHoveredPreset] = useState<ScenePreset | null>(null);
+  const [eclipseFlash, setEclipseFlash] = useState(false);
+  const eclipseRef = useRef(false);
   
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const { scrollY } = useScroll();
