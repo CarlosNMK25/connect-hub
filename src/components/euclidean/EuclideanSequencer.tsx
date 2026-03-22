@@ -1474,7 +1474,7 @@ export const EuclideanSequencer = () => {
     }
     
     // Re-initialize original synth
-    if (trackId === 'kick' || trackId === 'snare' || trackId === 'hat') {
+    if (trackId === 'kick' || trackId === 'snare' || trackId === 'hat' || trackId === 'tone') {
       initializeOriginalSynth(trackId);
     }
 
