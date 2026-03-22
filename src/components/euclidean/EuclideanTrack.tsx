@@ -76,6 +76,16 @@ interface EuclideanTrackProps {
   onReverbSendChange: (val: number) => void;
   ratchet: number;
   onRatchetChange: (val: number) => void;
+  // Tonal Props
+  isTonal: boolean;
+  rootNote: number;
+  scaleId: string;
+  octaveRange: number;
+  noteIndices: number[];
+  onRootNoteChange: (val: number) => void;
+  onScaleChange: (val: string) => void;
+  onOctaveRangeChange: (val: number) => void;
+  onNoteIndexChange: (stepIdx: number, val: number) => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
   temporalityMode: TemporalityMode;
