@@ -562,7 +562,7 @@ export const EuclideanSequencer = () => {
       id: crypto.randomUUID(),
       name,
       createdAt: new Date().toISOString(),
-      bpm, jitter, swing, dynamics,
+      bpm, jitter, swing, dynamics, temporalityMode,
       tracks: Object.fromEntries(
         tracks.map(t => [t.id, {
           pulses: t.pulses, steps: t.steps, offset: t.offset,
