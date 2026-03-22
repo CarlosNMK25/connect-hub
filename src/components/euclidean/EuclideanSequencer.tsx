@@ -1504,7 +1504,9 @@ export const EuclideanSequencer = () => {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <div className="flex justify-between text-[10px] font-mono uppercase text-idm-muted">
+                    <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('jitter'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
                       <span>Jitter</span>
                       <span className="text-system-accent">{jitter}ms</span>
                     </div>
