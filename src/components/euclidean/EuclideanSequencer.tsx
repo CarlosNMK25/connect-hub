@@ -239,6 +239,8 @@ export const EuclideanSequencer = () => {
   const [globalStep, setGlobalStep] = useState(0);
   const [lastHit, setLastHit] = useState<{ offset: number; color: string; velocity: number; id?: number } | null>(null);
   const [hoveredPreset, setHoveredPreset] = useState<ScenePreset | null>(null);
+  const [eclipseFlash, setEclipseFlash] = useState(false);
+  const eclipseRef = useRef(false);
   
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const { scrollY } = useScroll();
@@ -1349,6 +1351,58 @@ export const EuclideanSequencer = () => {
 
   const progress = (globalStep % mcm) / mcm;
 
+  // Eclipse countdown
+  const stepsRestantes = mcm - (globalStep % mcm);
+  const sixteenthDuration = 60 / bpm / 4;
+  const segundosRestantes = stepsRestantes * sixteenthDuration;
+  const totalCycleSeconds = mcm * sixteenthDuration;
+
+  const formatEclipseTime = (secs: number, isEstimate: boolean) => {
+    if (secs >= 60) {
+      const m = Math.floor(secs / 60);
+      const s = Math.round(secs % 60);
+      return `${isEstimate ? '~' : ''}${m}m ${s}s`;
+    }
+    return `${Math.round(secs)}s`;
+  };
+
+  const eclipseDisplay = (() => {
+    if (eclipseFlash) return 'NOW ✦';
+    const secs = isPlaying ? segundosRestantes : totalCycleSeconds;
+    const isLong = secs > 600;
+    return formatEclipseTime(secs, isLong);
+  })();
+
+  // Eclipse latch
+  useEffect(() => {
+    if (isPlaying && stepsRestantes <= 1 && !eclipseRef.current) {
+      eclipseRef.current = true;
+      setEclipseFlash(true);
+      const timer = setTimeout(() => {
+        setEclipseFlash(false);
+        eclipseRef.current = false;
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [stepsRestantes, isPlaying]);
+
+  // Hit Rate
+  const hitRateData = useMemo(() => {
+    const rhythmicStats = tracks
+      .filter(t => t.id !== 'cloud')
+      .map(t => uiStats[t.id] || { hits: 0, misses: 0 });
+    const totalHits = rhythmicStats.reduce((sum, s) => sum + s.hits, 0);
+    const totalMisses = rhythmicStats.reduce((sum, s) => sum + s.misses, 0);
+    const total = totalHits + totalMisses;
+    const rate = total > 0 ? Math.round((totalHits / total) * 100) : null;
+    return { rate, total };
+  }, [tracks, uiStats]);
+
+  const hitRateColor = hitRateData.rate === null ? 'text-idm-muted'
+    : hitRateData.rate >= 80 ? 'text-idm-ink'
+    : hitRateData.rate >= 50 ? 'text-system-accent'
+    : 'text-red-500';
+
   // Perspective logic simplified (always standard)
 
   return (
@@ -1687,7 +1741,7 @@ export const EuclideanSequencer = () => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 pt-2">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
               <div className="bg-black/5 p-3 rounded-lg border border-black/5">
                 <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
                   onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('mcmValue'); setHoveredGlobalEl(e.currentTarget); } }}
@@ -1700,6 +1754,22 @@ export const EuclideanSequencer = () => {
                   onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>Impacto</div>
                 <div className="text-xl font-mono text-system-accent tracking-tighter">
                   {Math.round(syncImpacts.reduce((a, b) => a + b, 0) / Math.max(1, tracks.filter(t => t.id !== 'cloud').length))}%
+                </div>
+              </div>
+              <div className="bg-black/5 p-3 rounded-lg border border-black/5">
+                <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
+                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('eclipseCountdown'); setHoveredGlobalEl(e.currentTarget); } }}
+                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>ECLIPSE</div>
+                <div className={`text-xl font-mono tracking-tighter transition-colors duration-300 ${eclipseFlash ? 'text-system-accent animate-pulse' : 'text-system-accent'}`}>
+                  {eclipseDisplay}
+                </div>
+              </div>
+              <div className="bg-black/5 p-3 rounded-lg border border-black/5">
+                <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
+                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('hitRate'); setHoveredGlobalEl(e.currentTarget); } }}
+                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>HIT RATE</div>
+                <div className={`text-xl font-mono tracking-tighter ${hitRateColor}`}>
+                  {hitRateData.rate !== null ? `${hitRateData.rate}%` : '—'}
                 </div>
               </div>
             </div>
