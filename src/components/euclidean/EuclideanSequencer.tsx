@@ -318,7 +318,7 @@ export const EuclideanSequencer = () => {
       sampleStart: 0, sampleEnd: 1, attack: 0, decay: 200, mode: 'TRIGGER', pitch: 0, normalize: true,
       grainSize: 100, overlap: 0.1, spray: 0, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
-      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, hits: 0, misses: 0
+      isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0, hits: 0, misses: 0
     }),
     updateTrackPattern({ 
       id: 'snare', name: 'Snare', color: '#9D174D', pulses: 2, steps: 16, offset: 4, 
