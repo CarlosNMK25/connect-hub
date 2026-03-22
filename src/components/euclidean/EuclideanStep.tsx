@@ -34,7 +34,12 @@ export const EuclideanStep: React.FC<EuclideanStepProps> = ({
   previewActive,
   temporalOffset = 0,
   onProbabilityChange,
-  onToggle
+  onToggle,
+  isTonal = false,
+  noteName,
+  noteIndex = 0,
+  maxNoteIndex = 14,
+  onNoteIndexChange
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
