@@ -36,6 +36,7 @@ export const EuclideanStep: React.FC<EuclideanStepProps> = ({
   temporalOffset = 0,
   onProbabilityChange,
   onToggle,
+  evolveEnabled = false,
   isTonal = false,
   noteName,
   noteIndex = 0,
