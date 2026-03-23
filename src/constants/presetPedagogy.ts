@@ -1,5 +1,5 @@
 /**
- * Contenido pedagógico para los 10 presets de la Euclidean Machine.
+ * Contenido pedagógico para los presets de la Euclidean Machine.
  * Cada ficha tiene 5 secciones expandibles en el panel Engine Room → Diagnóstico.
  */
 
@@ -166,12 +166,94 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
     experiments: [
       'Activa Chaos con entropy 1.5. De repente, el 100% se convierte en ~67%. Los huecos que aparecen son aleatorios — la rejilla perfecta se agrieta. Sube el entropy a 2.0 y observa cómo se desintegra.',
       'Sube las dynamics al 100%. Cada golpe tiene una intensidad diferente. Sin dynamics el muro es plano; con dynamics aparecen acentos fantasma que crean groove emergente.',
-      'Baja los pulses a 9: E(9,16). Acabas de pasar de rejilla llena a ritmo euclidiano. Aparecen huecos y con ellos aparece la estructura. Nota cómo 9 golpes en 16 ya suenan completamente distinto: hay respiración.',
+      'Cambia steps a 17: E(16,17). Un hueco. Un solo silencio rota a través del ciclo primo. Es la mínima perturbación posible — y es suficiente para crear movimiento.',
     ],
     connections: [
-      'Guajira (Base): E(6,12). Densidad 50% — la mitad de Detroit Grid. La simetría sin la saturación.',
-      'Async Ecosystem: El opuesto filosófico — nada se repite, nada es predecible.',
-      'Soleá (Base): E(5,12). Densidad 42%. La selección deliberada de silencios frente a la pared de sonido.',
+      'Bulería (Base): E(7,12). De la rejilla pura al ritmo flamenco.',
+      'Async 11: E(5,11). De la simetría total al primo asimétrico.',
+      'Guajira (Base): E(6,12). La hemiola: otra forma de simetría.',
+    ],
+  },
+
+  // --- FUSION PRESETS ---
+  'tercer-cielo': {
+    listening: 'El encuentro entre el cante jondo y la electrónica de vanguardia. Todo respira a 72 BPM — el tempo de una conversación íntima. El kick marca la Soleá con solo 3 golpes, dejando enormes huecos. La pista tonal traza una melodía en escala frigia dominante que muta lentamente. La reverb lo envuelve todo en un espacio enorme, como una catedral abandonada.',
+    structure: 'Base de Soleá (compás de 12) en todas las pistas. Kick E(3,12) — mínimo, solo ancla. Snare E(2,12)+5 con ratchet ×2 — cada golpe de snare rebota, como un eco de palmas. Hat E(5,12) con Chaos a 1.2× y probabilidad base del 60% — textura fantasmática. Tone E(4,12)+2 en Phrygian Dominant, con Evolve al 5% — la melodía se reescribe cada 2 ciclos. Modo Flamenco: los golpes gravitan hacia los acentos del compás. Reverb altísima en todo.',
+    origin: 'Inspirado en "Tercer Cielo" de Raúl Refree y Rocío Márquez (2019) — el ejemplo más puro de fusión entre glitch, síntesis modular y cante flamenco. Refree usa granular y modulares para "congelar" momentos del cante, creando paisajes donde la tradición y la electrónica son indistinguibles. Este preset captura esa estética: lento, espacial, con la frigia dominante como hilo conductor.',
+    experiments: [
+      'Sube la reverb del Tone al 100%. La melodía se disuelve en un pad. Es síntesis granular simulada con reverb — el cante se convierte en atmósfera.',
+      'Activa Evolve en el kick (Rate 3%, Speed 8x). La base empieza a dudar muy lentamente. Cada 8 ciclos, un golpe podría desaparecer. El suelo se vuelve frágil.',
+      'Cambia la escala del Tone a Minor. De frigio dominante (tenso, flamenco) a menor natural (melancólico, cinematográfico). Mismo patrón, otro universo emocional.',
+    ],
+    connections: [
+      'Soleá Completa: La base rítmica sin la capa tonal ni los FX. El esqueleto.',
+      'Duende Digital: Más energía, más densidad, pero el mismo ADN flamenco.',
+      'Confield: El opuesto estético — donde Tercer Cielo es contemplativo, Confield es abstracto.',
+    ],
+  },
+
+  'malamente': {
+    listening: 'Trap con acento flamenco. El kick y el snare marchan en 4/4 a 140 BPM con swing MPC agresivo — el empuje del hip-hop de Atlanta. Pero el hat hace triples (ratchet ×3) con Chaos, creando ese hi-hat nervioso del trap. La pista tonal corre en compás de 12 contra el 16 del resto — ahí está la poliritmia flamenco/trap. La melodía es grave (G2), pocas notas, como un bajo de 808 con escala frigia.',
+    structure: 'Percusión en 16 steps (4/4 estándar). Kick E(4,16) — four-on-the-floor. Snare E(4,16)+4 — backbeat clásico. Hat E(10,16) con ratchet ×3 y Chaos — el hat que define el trap. Tone E(3,12) en Phrygian Dominant desde G2 — un bajo con solo 3 notas por ciclo de 12. El MCM de 16 y 12 es 48 — las pistas se cruzan cada 48 semicorcheas (≈5 segundos a 140 BPM). Modo MPC con swing al 55%: el groove empuja duro.',
+    origin: 'Inspirado en "Malamente" de Rosalía (2018) — el tema que demostró que palmas + 808 + compás flamenco no son incompatibles. El productor El Guincho usó la estética del trap (hi-hats rápidos, kicks pesados, swing duro) sobre una estructura rítmica que respira flamenco. La clave: el trap es 4/4, el flamenco es 12. Cuando los combinas, el bajo "cojea" contra el beat — y ese cojeo es la magia.',
+    experiments: [
+      'Quita el ratchet del hat (ponlo a 0). El trap desaparece. Vuelve a ponerlo a 2. El ratchet ES el trap.',
+      'Cambia los steps del Tone de 12 a 16. La poliritmia desaparece — el bajo ahora marcha con el beat. Suena más "normal" y menos interesante. Vuelve a 12.',
+      'Sube el BPM a 180. De trap pasas a jungle-flamenco. El hat con ratchet a esa velocidad es pura ametralladora.',
+    ],
+    connections: [
+      'Bulería Completa: Flamenco puro a alta velocidad. Misma energía, otra estética.',
+      'Arrhythmia: Trap deconstruido — lo que pasa cuando rompes la simetría del 4/4.',
+      'Detroit Grid: La rejilla pura de 16 sin flamenco. El DNA del kick four-on-the-floor.',
+    ],
+  },
+
+  'arrhythmia': {
+    listening: 'Un ritmo que se está cayendo constantemente pero nunca colapsa. Tres ciclos primos (11, 13, 17) garantizan que nada se alinea. Modo Arritmia desplaza cada golpe para maximizar la distancia al grid. Chaos activo en las 4 pistas — cada ciclo suena diferente. Evolve muta snare, hat y tone. Es un organismo rítmico que respira, tropieza y se recompone. A 105 BPM tiene ese tempo "hip-hop lento" que deja espacio para que el caos se asiente.',
+    structure: 'Kick E(3,11), Snare E(4,13)+3, Hat E(7,17)+5, Tone E(5,11)+2. Todo primo, todo coprimo. MCM: 11×13×17 = 2.431. El ciclo completo tarda más de 4 minutos en repetirse. Chaos en todo: kick 1.3×, snare 1.2×, hat 1.4×, tone 1.25×. Evolve en snare (8%/ciclo), hat (12%/ciclo) y tone (6% cada 2 ciclos). Modo Arritmia con swing al 70% — los desplazamientos son extremos. La pista tonal en A2 menor con saltos amplios (noteIndices variados) — una línea de bajo que zigzaguea.',
+    origin: 'Inspirado en "Arrhythmia" de Antipop Consortium (Warp Records, 2002). El trío de Oakland forzó la colisión entre lírica rap y arquitectura IDM. Sus MPC no cuantizaban — los beats "arrastraban" deliberadamente. Beans, High Priest y M. Sayyid rapeaban encima de ritmos que cambiaban de forma bajo sus pies. Este preset captura esa inestabilidad controlada: sabes que hay un patrón, pero no puedes predecir dónde caerá el siguiente golpe.',
+    experiments: [
+      'Cambia el modo de Arritmia a Grid. De repente todo se ordena. Mismo patrón, pero "correcto". Escucha cuánta personalidad pierde. La arritmia ES la estética.',
+      'Desactiva Chaos en todo. El patrón se vuelve predecible. Hit Rate sube a 100%. La incertidumbre desaparece.',
+      'Cambia los steps del kick de 11 a 12. El MCM baja drásticamente (de 2431 a algo manejable). Una pista no-prima "ancla" el sistema. Sientes la diferencia inmediatamente.',
+    ],
+    connections: [
+      'Async Ecosystem: La base IDM sin la capa tonal ni la mutación. El esqueleto.',
+      'Malamente: Trap estructurado — lo que pasa cuando ordenas el caos.',
+      'Confield: Más abstracto, más cerebral, más frío.',
+    ],
+  },
+
+  'confield': {
+    listening: 'Matemática hecha sonido. Cuatro ciclos primos (19, 17, 23, 19) con Chaos y Evolve al máximo en todo. Jitter a 16ms — cada golpe tiembla notablemente. Modo Dilla: el kick se mantiene casi firme pero todo lo demás flota en un espacio elástico. La pista tonal usa escala de tonos enteros — sin semitono, sin gravedad tonal, todo equidistante. Es música que rechaza la familiaridad deliberadamente. Cada segundo que escuchas es único: los patrones mutan, los golpes se pierden, las notas derivan.',
+    structure: 'Kick E(5,19), Snare E(3,17)+7 con ratchet ×4, Hat E(11,23), Tone E(7,19)+4 con ratchet ×3. MCM: 19×17×23 = 7.429 — el ciclo completo tarda más de 10 minutos. Chaos extremo en todo: hat a 1.8× (casi la mitad de los golpes se pierden). Evolve agresivo: hat muta un 25% por ciclo, snare un 20%. La escala de tonos enteros (Whole Tone) elimina la jerarquía tonal — no hay nota "principal". Todo es igualmente extraño. Dynamics al 95%: los acentos son violentos, los ghost notes casi inaudibles.',
+    origin: 'Inspirado en "Confield" de Autechre (Warp Records, 2001) — el disco que redefinió qué podía ser el ritmo electrónico. Sean Booth y Rob Brown usaron Max/MSP para crear sistemas generativos que producían patrones imposibles de programar manualmente. Cada track del álbum es un ecosistema autónomo donde las reglas mutan en tiempo real. Este preset captura esa filosofía: no estás escuchando un loop, estás escuchando un proceso.',
+    experiments: [
+      'Mira el Hit Rate en el panel Sync. Con Chaos a 1.8× en el hat, debería estar por debajo del 55%. Ahora desactiva Chaos en el hat. El Hit Rate sube a 100%. Escucha la diferencia: con Chaos, el hat es una textura irregular. Sin Chaos, es un muro.',
+      'Cambia la escala del Tone de Whole Tone a Phrygian Dominant. De repente hay un centro tonal — una nota que "manda". El mismo patrón caótico adquiere dirección emocional.',
+      'Baja el jitter a 0ms y cambia a modo Grid. Confield se convierte en techno abstracto. Preciso pero complejo. Es interesante cómo la misma complejidad rítmica suena radicalmente distinta con y sin humanización.',
+    ],
+    connections: [
+      'Arrhythmia: Menos abstracto, más hip-hop. Primos + arritmia pero con más groove.',
+      'Async Ecosystem: El antecesor — poliritmia prima sin las herramientas de fusión.',
+      'Tercer Cielo: El polo opuesto — contemplación flamenca contra abstracción pura.',
+    ],
+  },
+
+  'duende-digital': {
+    listening: 'El punto de encuentro. La Soleá y el algoritmo se abrazan. El kick marca E(5,12) con ratchet ×2 — el zapateado del siglo XXI, cada pisada tiene rebote. El hat en 17 steps rompe la simetría del 12, inyectando incertidumbre IDM en el compás flamenco. La pista tonal camina por la frigia dominante con Evolve — una melodía que muta tan lentamente que no sabes cuándo cambió. Modo Flamenco: los golpes gravitan hacia los acentos, el "soniquete" emerge naturalmente. Todo envuelto en reverb y cloud — la atmósfera que une los mundos.',
+    structure: 'Kick E(5,12) — la Soleá pura con ratchet ×2 (doble golpe, como el zapateado). Snare E(3,12)+3 con Chaos sutil (1.15×) y Evolve lento (4% cada 3 ciclos) — las palmas que a veces dudan. Hat E(8,17) — rompiendo la simetría: 17 contra 12, MCM 204, ciclo de ~36 segundos. Tone E(5,12)+1 en Phrygian Dominant — el mismo patrón euclidiano que el kick pero desplazado 1 step y tocando notas. Es la guitarra siguiendo al zapateado, pero un paso detrás. Modo Flamenco a 85 BPM con Swing al 40%: gravedad hacia los acentos del compás.',
+    origin: '"Duende" es la palabra flamenca para el momento donde la técnica desaparece y queda la emoción pura. "Digital" porque ese momento aquí lo produce un algoritmo. Este preset no tiene un referente único — es la tesis del proyecto hecha sonido. La Soleá y el Bjorklund. El zapateado y el ratchet. La frigia dominante y el parameter locking. El compás de 12 y el primo de 17. Flamenco e IDM como lenguajes del mismo impulso: resistir la simplicidad.',
+    experiments: [
+      'Quita el ratchet del kick. El "zapateado" desaparece. Ahora es solo un kick. Vuelve a poner ratchet ×1. Un solo retrigger y el kick cobra vida.',
+      'Cambia los steps del hat de 17 a 12. Todo se alinea en compás de 12. Más flamenco puro, menos IDM. El MCM baja a 12. El countdown de Eclipse pasa de 36 segundos a 3.6 segundos. Sientes cómo la predictibilidad aumenta.',
+      'Cambia el modo de Flamenco a Arritmia. El mismo patrón se desmorona — los acentos dejan de tener gravedad y cada golpe huye del grid. De duende a glitch en un click.',
+      'Déjalo sonar 3 minutos. Evolve está trabajando en snare, hat y tone. El patrón de los primeros 30 segundos no es el de los últimos. Estás escuchando evolución.',
+    ],
+    connections: [
+      'Soleá Completa: El ancestro — la Soleá sin capa tonal, sin ratchet, sin Evolve.',
+      'Tercer Cielo: Más lento, más espacial, más contemplativo. La versión ambient del duende.',
+      'Arrhythmia: La versión violenta — cuando el duende se convierte en trance.',
     ],
   },
 };
