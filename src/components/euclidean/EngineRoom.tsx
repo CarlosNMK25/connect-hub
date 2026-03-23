@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Trash2, ChevronRight, ChevronDown } from 'lucide-react';
 import { PRESET_PEDAGOGY } from '../../constants/presetPedagogy';
 import { PRESETS } from '../../constants/presets';
+import { evaluateDiagnosis, computeMcm, computeEclipseTime, type DiagnosisContext } from '../../utils/diagnosis';
 
 export interface LogEntry {
   timestamp: string;
@@ -21,6 +22,10 @@ interface TrackSnapshot {
   entropy: number;
   evolveEnabled: boolean;
   mutationRate: number;
+  mutationSpeed?: number;
+  ratchet?: number;
+  isTonal?: boolean;
+  scaleId?: string;
 }
 
 interface EngineRoomProps {
@@ -29,6 +34,11 @@ interface EngineRoomProps {
   log: LogEntry[];
   onClearLog: () => void;
   activePresetId: string | null;
+  bpm: number;
+  temporalityMode: string;
+  jitter: number;
+  swing: number;
+  hitRate: number | null;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -44,6 +54,7 @@ const SECTION_LABELS = [
   { key: 'origin', label: 'Origen' },
   { key: 'experiments', label: 'Experimenta' },
   { key: 'connections', label: 'Conexiones' },
+  { key: 'listeningGuide', label: 'Guía de escucha' },
 ] as const;
 
 const DiagnosticSection: React.FC<{ activePresetId: string | null }> = React.memo(({ activePresetId }) => {
@@ -91,6 +102,9 @@ const DiagnosticSection: React.FC<{ activePresetId: string | null }> = React.mem
       {/* Sections */}
       <div className="space-y-0.5">
         {SECTION_LABELS.map(({ key, label }) => {
+          // Hide listeningGuide section if not available
+          if (key === 'listeningGuide' && !pedagogy.listeningGuide) return null;
+
           const isOpen = openSections.has(key);
           const Icon = isOpen ? ChevronDown : ChevronRight;
 
@@ -124,6 +138,32 @@ const DiagnosticSection: React.FC<{ activePresetId: string | null }> = React.mem
                         </div>
                       ))}
                     </div>
+                  ) : key === 'listeningGuide' && pedagogy.listeningGuide ? (
+                    <div className="space-y-3">
+                      {/* IDM Refs badges */}
+                      <div className="flex flex-wrap gap-1.5">
+                        {pedagogy.listeningGuide.idmRefs.map((ref, i) => (
+                          <span key={i} className="text-[8px] font-mono px-2 py-0.5 rounded-full bg-system-accent/10 text-system-accent">
+                            {ref}
+                          </span>
+                        ))}
+                      </div>
+                      {/* 🎧 Qué escuchar */}
+                      <div>
+                        <div className="text-[9px] font-mono uppercase tracking-wider text-idm-muted mb-1">🎧 Qué escuchar</div>
+                        <p>{pedagogy.listeningGuide.whatToHear}</p>
+                      </div>
+                      {/* 🎛 Qué experimentar */}
+                      <div>
+                        <div className="text-[9px] font-mono uppercase tracking-wider text-idm-muted mb-1">🎛 Qué experimentar</div>
+                        <p>{pedagogy.listeningGuide.experiment}</p>
+                      </div>
+                      {/* 💡 Lo que aprendiste */}
+                      <div>
+                        <div className="text-[9px] font-mono uppercase tracking-wider text-idm-muted mb-1">💡 Lo que aprendiste</div>
+                        <p>{pedagogy.listeningGuide.insight}</p>
+                      </div>
+                    </div>
                   ) : (
                     <p>{pedagogy[key as 'listening' | 'structure' | 'origin']}</p>
                   )}
@@ -139,7 +179,71 @@ const DiagnosticSection: React.FC<{ activePresetId: string | null }> = React.mem
 
 DiagnosticSection.displayName = 'DiagnosticSection';
 
-export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiStats, log, onClearLog, activePresetId }) => {
+const DiagnosisPanel: React.FC<{
+  tracks: TrackSnapshot[];
+  bpm: number;
+  temporalityMode: string;
+  jitter: number;
+  swing: number;
+  hitRate: number | null;
+}> = React.memo(({ tracks, bpm, temporalityMode, jitter, swing, hitRate }) => {
+  const insights = useMemo(() => {
+    const diagTracks: DiagnosisContext['tracks'] = tracks.map(t => ({
+      id: t.id,
+      name: t.name,
+      steps: t.steps,
+      pulses: t.pulses,
+      offset: t.offset,
+      chaosEnabled: t.chaosEnabled,
+      entropy: t.entropy,
+      evolveEnabled: t.evolveEnabled,
+      mutationRate: t.mutationRate,
+      mutationSpeed: t.mutationSpeed ?? 1,
+      ratchet: t.ratchet ?? 0,
+      isMuted: false,
+      isTonal: t.isTonal ?? false,
+      scaleId: t.scaleId,
+    }));
+
+    const mcm = computeMcm(diagTracks);
+    const eclipseTime = computeEclipseTime(mcm, bpm);
+
+    const ctx: DiagnosisContext = {
+      tracks: diagTracks,
+      globalState: { bpm, temporalityMode, jitter, swing },
+      computed: { mcm, eclipseTime, hitRate },
+    };
+
+    return evaluateDiagnosis(ctx);
+  }, [tracks, bpm, temporalityMode, jitter, swing, hitRate]);
+
+  return (
+    <div className="mb-5">
+      <div className="text-[8px] uppercase tracking-[0.2em] text-idm-muted mb-2">── Intérprete ──</div>
+      {insights.length === 0 ? (
+        <div className="text-[9px] text-idm-muted/50 py-3 text-center">Sin diagnóstico activo</div>
+      ) : (
+        <div className="space-y-2">
+          {insights.map((ins) => (
+            <div key={ins.id} className="p-2.5 rounded-lg bg-idm-ink/[0.02] border border-black/[0.04]">
+              <div className="flex items-start gap-2 text-[10px] font-mono leading-relaxed text-idm-ink">
+                <span className="shrink-0 text-sm">{ins.icon}</span>
+                <span>{ins.insight}</span>
+              </div>
+              <div className="mt-1.5 pl-6 text-[9px] font-mono leading-relaxed text-idm-muted">
+                {ins.suggestion}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
+DiagnosisPanel.displayName = 'DiagnosisPanel';
+
+export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiStats, log, onClearLog, activePresetId, bpm, temporalityMode, jitter, swing, hitRate }) => {
   const rows = useMemo(() => tracks.map(t => {
     const density = t.steps > 0 ? Math.round((t.pulses / t.steps) * 100) : 0;
     const activeProbs = t.probabilities.slice(0, t.steps);
@@ -236,6 +340,16 @@ export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiSta
           </div>
         )}
       </div>
+
+      {/* Diagnosis Panel */}
+      <DiagnosisPanel
+        tracks={tracks}
+        bpm={bpm}
+        temporalityMode={temporalityMode}
+        jitter={jitter}
+        swing={swing}
+        hitRate={hitRate}
+      />
 
       {/* Diagnostic Section */}
       <DiagnosticSection activePresetId={activePresetId} />

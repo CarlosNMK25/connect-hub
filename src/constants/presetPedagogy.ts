@@ -9,6 +9,13 @@ export interface PresetPedagogy {
   origin: string;
   experiments: string[];
   connections: string[];
+  listeningGuide?: {
+    order: number;
+    idmRefs: string[];
+    whatToHear: string;
+    experiment: string;
+    insight: string;
+  };
 }
 
 export type PresetPedagogyMap = Record<string, PresetPedagogy>;
@@ -28,6 +35,13 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
       'Soleá (Base): El kick aislado, sin snare ni hat. Para estudiar el esqueleto.',
       'Async Ecosystem: El opuesto — ciclos que nunca coinciden. De la tradición al caos controlado.',
     ],
+    listeningGuide: {
+      order: 1,
+      idmRefs: ['§1.4 Euclidean Rhythms', '§2.2 Métricas Asimétricas', '§3.3 Velocity Humanization'],
+      whatToHear: 'El kick toca 5 veces en un ciclo de 12 pasos. Pero no en los pasos 1, 4, 7, 9 y 11 por capricho — el algoritmo de Bjorklund los distribuye para que los 7 silencios queden lo más uniformes posible. Escucha los silencios como si fueran notas. El beat 12 es el que resuelve siempre — la «caída a tierra» del flamenco. Cuando lo notes, ya estás oyendo compás.',
+      experiment: 'Con la Soleá sonando, sube el Chaos del kick progresivamente: 10%, 20%, 40%, 60%. Escucha en qué punto exacto el patrón deja de sentirse flamenco. Cuando lo encuentres, bájalo un poco — acabas de localizar el umbral entre el duende y el glitch. Ese umbral no es el mismo para todos: es subjetivo, y eso es parte de la lección.',
+      insight: 'El algoritmo de Bjorklund fue publicado en 1999 para distribuir pulsos en aceleradores de partículas. Godfried Toussaint demostró en 2005 que ese mismo algoritmo genera los ritmos más importantes del mundo — incluido el compás de soleá, que los cantaores llevan practicando desde el siglo XVIII. No es una coincidencia: ambos están buscando la distribución más uniforme posible. Las matemáticas y el cuerpo no llegaron al mismo sitio por accidente — es que la uniformidad tiene una sola solución óptima.',
+    },
   },
 
   'buleria-master': {
@@ -44,6 +58,13 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
       'Bulería (Base): El kick aislado para estudiar el patrón.',
       'Guajira (Base): E(6,12) — el punto medio entre Soleá (5) y Bulería (7).',
     ],
+    listeningGuide: {
+      order: 2,
+      idmRefs: ['§1.4 Euclidean Rhythms', '§2.2 Métricas Asimétricas', '§2.1 Polirritmos'],
+      whatToHear: 'El mismo ciclo de 12 pasos que la Soleá, pero ahora con 7 hits en lugar de 5. Dos pasos más llenos significa dos silencios menos — y a 220 BPM, esa densidad extra cambia completamente el carácter. Escucha cómo los acentos canónicos del flamenco (posiciones 3, 6, 8, 10, 12 del ciclo) siguen ahí pero con menos aire entre ellos. La urgencia no viene del tempo — viene de la densidad euclidiana.',
+      experiment: 'Baja el BPM a 80 sin cambiar nada más. Escucha si el patrón resultante te recuerda a la Soleá. Luego abre el Pattern Space y observa la distancia entre ambos presets. La swap distance entre E(5,12) y E(7,12) es de solo 2 movimientos — son familia cercana en el árbol filogenético del flamenco. Lo que separa la soleá de la bulería no es la geometría del ritmo: es la velocidad a la que se ejecuta esa geometría.',
+      insight: 'En teoría de ritmos euclidianos, la «distancia de intercambio» mide cuántos movimientos mínimos necesitas para transformar un patrón en otro. Soleá y Bulería están a 2 movimientos de distancia — más cerca que cualquier otro par de palos flamencos principales. Eso explica por qué en el flamenco real se puede «romper por bulerías» desde la soleá sin que el tablao pierda el hilo. La transición tiene lógica matemática.',
+    },
   },
 
   'async-master': {
@@ -60,6 +81,13 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
       'Folded 13 (Base): E(7,13) — el patrón del snare, aislado.',
       'Soleá Completa: El opuesto total. Tres pistas en 12, sincronizadas, tradicionales.',
     ],
+    listeningGuide: {
+      order: 4, // mapea desde async-ecosystem del MD
+      idmRefs: ['§1.4 Euclidean Rhythms', '§2.1 Polirritmos', '§5.3 Self-Similarity'],
+      whatToHear: 'Tres pistas con 11, 13 y 17 pasos — todos números primos. El MCM de esos tres números es 2.431 semicorcheas. A 128 BPM, un ciclo completo tarda 4 minutos y 44 segundos. Escucha durante al menos 2 minutos sin mirar la pantalla. ¿Notas que se repite o te parece libre? La respuesta que des define qué tipo de oyente eres — y ninguna es incorrecta.',
+      experiment: 'Activa Evolve en el hat con una tasa de mutación baja. Ahora el ciclo ya era casi infinito y encima muta. Luego abre el Pattern Space y localiza este preset — está en la esquina más alejada de los presets flamencos. Esa distancia en el espacio visual es la distancia entre la estructura euclidiana como identidad cultural (flamenco) y la estructura euclidiana como sistema autónomo (Autechre).',
+      insight: 'Autechre no usa números primos porque suenan bien — los usa porque los números primos no tienen divisores comunes, lo que garantiza que ningún subpatrón periódico simple emerja del sistema. Es una decisión de ingeniería con consecuencia estética: el oído busca patrones y no los encuentra de forma predecible. La complejidad percibida no es caos — es matemática con periodicidad demasiado larga para que la memoria auditiva humana la registre.',
+    },
   },
 
   'solea-atom': {
@@ -95,6 +123,7 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
     ],
   },
 
+  // TODO: renombrar a siguiriya-master cuando exista el preset maestro completo
   'siguiriya-atom': {
     listening: 'El palo más oscuro del flamenco. Tiene los mismos 5 golpes en 12 que la Soleá, pero desplazados 2 posiciones. Ese desplazamiento cambia qué silencio cae dónde, y transforma una estructura contemplativa en algo dramático y tenso.',
     structure: 'E(5,12) con offset 2. Los golpes caen en posiciones distintas a la Soleá, creando una agrupación interna diferente: 2-2-3-3-2 en vez de 2-1-2-2-3-2. Misma densidad (42%), misma fórmula euclidiana, pero el acento "uno" aterriza en otro sitio del ciclo. Es la prueba de que el offset no es cosmético — es identidad.',
@@ -109,6 +138,13 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
       'Guajira (Base): E(6,12). Un golpe más, sin offset. Otra lectura del 12.',
       'Bulería (Base): E(7,12). Misma familia, más densidad.',
     ],
+    listeningGuide: {
+      order: 3, // TODO: renombrar a siguiriya-master cuando exista el preset maestro completo
+      idmRefs: ['§1.4 Euclidean Rhythms', '§2.2 Métricas Asimétricas (amalgama quinaria)', '§3.3 Velocity Humanization'],
+      whatToHear: 'La Siguiriya también usa 12 pasos, pero con un offset de +2 respecto a la Soleá — el mismo patrón E(5,12) rotado dos posiciones. Escucha dónde cae el primer golpe: ya no es en el 1 del ciclo, sino dos pasos después. Eso desplaza toda la acentuación. En el flamenco, la Siguiriya tiene carácter trágico precisamente porque el acento «llega tarde» respecto a donde el cuerpo lo espera. El offset no es un parámetro técnico — es emoción codificada en posición.',
+      experiment: 'Abre el control de offset del kick y muévelo de 0 a +2 mientras suena. Escucha cómo el mismo patrón E(5,12) cambia de carácter con cada paso. En offset 0 es Soleá. En offset +2 es Siguiriya. Ahora prueba +6. No es ningún palo flamenco reconocido — estás en territorio propio. El offset es el parámetro que convierte la geometría en identidad.',
+      insight: 'El sistema de palos flamencos no es un conjunto de ritmos distintos — es un conjunto de rotaciones y variaciones del mismo conjunto de patrones euclidianos sobre el ciclo de 12. La Siguiriya, la Soleá y la Guajira comparten geometría. Lo que los distingue es el offset, el tempo y la densidad. La app te permite navegar ese espacio con precisión matemática que ningún tratado de flamenco tradicional tiene.',
+    },
   },
 
   'guajira-atom': {
@@ -190,6 +226,13 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
       'Duende Digital: Más energía, más densidad, pero el mismo ADN flamenco.',
       'Confield: El opuesto estético — donde Tercer Cielo es contemplativo, Confield es abstracto.',
     ],
+    listeningGuide: {
+      order: 8,
+      idmRefs: ['§3.1 Flamenco mode', '§10.2 Escalas no-occidentales', '§2.1 Polirritmo tonal'],
+      whatToHear: 'El modo Flamenco aplica «gravedad» hacia los acentos canónicos del ciclo de 12 (posiciones 3, 6, 8, 10, 12) — los golpes que caen cerca de esos acentos se desplazan ligeramente hacia ellos, como si el pulso flamenco tuviera masa. Y la pista tonal tiene su propio patrón euclidiano E(4,12) completamente independiente del rítmico. Son dos sistemas euclidianos en diálogo: uno percusivo, uno melódico.',
+      experiment: 'Cambia la escala de la pista tonal de Phrygian Dominant a Minor. Escucha qué pierde. Luego prueba Chromatic. El Phrygian Dominant tiene el intervalo II♭ — el medio tono desde la tónica que crea la tensión característica del cante jondo y de la música árabe-andaluza. Ese intervalo es lo que hace que suene «a madrugada en Jerez» y no a otra cosa. Cuando lo quitas, el sistema rítmico sigue igual pero la identidad cultural desaparece.',
+      insight: 'La escala Phrygian Dominant es la misma que el Maqam Hijaz árabe, que el flamenco heredó del Al-Ándalus. Raúl Refree y Rocío Márquez la usaron en *Tercer Cielo* (2021) pasándola por síntesis modular y glitch — el referente directo de este preset. La escala no es un ornamento: es el ADN cultural que conecta Bagdad del siglo IX con un estudio de síntesis modular en Madrid en 2021 pasando por los tablaos de Jerez.',
+    },
   },
 
   'malamente': {
@@ -206,6 +249,13 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
       'Arrhythmia: Trap deconstruido — lo que pasa cuando rompes la simetría del 4/4.',
       'Detroit Grid: La rejilla pura de 16 sin flamenco. El DNA del kick four-on-the-floor.',
     ],
+    listeningGuide: {
+      order: 7,
+      idmRefs: ['§3.1 MPC Classic (swing)', '§1.4 Euclidean', '§2.2 16 pasos'],
+      whatToHear: 'El modo MPC Classic retrasa las semicorcheas de contratiempo exactamente como hacían los samplers MPC3000 de los años 90 — un retraso de aproximadamente un tercio del intervalo entre steps. No es mucho en milisegundos, pero es suficiente para que el oído lo registre como groove. Escucha el hat: toca en tiempo, fuera de tiempo, en tiempo, fuera de tiempo. Ese «fuera» tiene el timing exacto que Dilla convirtió en identidad.',
+      experiment: 'Alterna entre MPC y Grid escuchando toda la mezcla. En Grid el patrón es correcto. En MPC el patrón groovea. Ahora activa también la pista tonal — en Phrygian Dominant sobre 140 BPM, el swing del MPC y la escala del cante jondo comparten espacio. Eso es lo que hace Rosalía en *El Mal Querer* (2018): el compás de palmas flamenco sobre producción trap con swing de sampler.',
+      insight: 'El «swing del MPC» era técnicamente un error de cuantización del hardware — los chips de la época no podían subdividir el tiempo con suficiente precisión y los off-beats llegaban ligeramente tarde. Productores como Dilla convirtieron ese defecto en una estética. El «zapateado al aire» del flamenco — la resolución sincopada que llega un instante después de donde el cuerpo la espera — funciona exactamente igual: la identidad se construye en el retraso deliberado.',
+    },
   },
 
   'arrhythmia': {
@@ -222,6 +272,13 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
       'Malamente: Trap estructurado — lo que pasa cuando ordenas el caos.',
       'Confield: Más abstracto, más cerebral, más frío.',
     ],
+    listeningGuide: {
+      order: 6,
+      idmRefs: ['§3.2 Micro-Timing', '§2.2 11 pasos primos', '§1.5 Probabilistic Sequencing'],
+      whatToHear: 'Las micro-barras grises debajo de cada step muestran el desplazamiento real de ese golpe respecto al grid. En modo Arritmia ningún golpe toca exactamente donde el grid lo indica — cada pista tiene un hash determinista calculado a partir de su trackId y posición. No es aleatorio: es sistemáticamente irregular. El patrón nunca miente de la misma manera dos veces, pero tampoco miente de forma impredecible.',
+      experiment: 'Pon el hat en solo y alterna entre Grid y Arritmia varias veces seguidas. En Grid: metrónomo. En Arritmia: el hat respira, tiene peso, tiene personalidad. Ese «respirar» es exactamente lo que Anticon describía en sus notas de álbum como «expansión emocional del ritmo» — la convicción de que el tiempo regular es una convención impuesta, no una verdad natural.',
+      insight: 'El álbum *Arrhythmia* (Antipop Consortium, Warp Records, 2002) no es un disco de beats irregulares por accidente técnico — es un manifiesto. El pulso cuantizado perfecto del 4/4 comercial es, en esa lectura, la hegemonía sonora del mercado. Deformarlo sistemáticamente es un acto de resistencia. La tesis del estudio llama a esto «síncopa como identidad» — el contratiempo como prueba de que el tiempo no pertenece a nadie.',
+    },
   },
 
   'confield': {
@@ -238,6 +295,13 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
       'Async Ecosystem: El antecesor — poliritmia prima sin las herramientas de fusión.',
       'Tercer Cielo: El polo opuesto — contemplación flamenca contra abstracción pura.',
     ],
+    listeningGuide: {
+      order: 5,
+      idmRefs: ['§3.1 Dilla mode', '§3.2 Micro-Timing', '§2.2 Métricas Asimétricas (19 pasos primos)'],
+      whatToHear: 'En Dilla mode, cada pista tiene un multiplicador de jitter distinto: el kick ×0.1 (muy tight), el snare ×1.2 (suelto), el hat ×1.5 (muy suelto). Escucha primero el kick solo, luego el hat solo. Son el mismo BPM pero tienen diferente «humanidad» — el kick suena más mecánico, el hat más orgánico. Eso es exactamente lo que hace una batería acústica real: lo grave ancla, lo agudo flota.',
+      experiment: 'Cambia el modo de temporalidad de Dilla a Grid. Escucha qué le pasa a esa jerarquía de humanidad. En Grid todos los instrumentos tienen el mismo timing perfecto — desaparece la diferencia entre kick y hat. Luego vuelve a Dilla. La jerarquía de micro-timing no es un efecto decorativo: es la diferencia entre una máquina que imita a un batería y una máquina que entiende cómo funciona la percusión.',
+      insight: 'J Dilla descubrió empíricamente con el MPC que si retrasas el kick y adelantas el hat, el groove parece más humano. Lo que Dilla hizo por intuición, Autechre en Confield (2001) lo sistematizó: jitter selectivo por pista como arquitectura deliberada del tiempo. La app implementa exactamente ese sistema en `temporality.ts` con multiplicadores por instrumento. No es homenaje — es la misma solución técnica redescubierta.',
+    },
   },
 
   'duende-digital': {
@@ -255,5 +319,12 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
       'Tercer Cielo: Más lento, más espacial, más contemplativo. La versión ambient del duende.',
       'Arrhythmia: La versión violenta — cuando el duende se convierte en trance.',
     ],
+    listeningGuide: {
+      order: 9,
+      idmRefs: ['§3.4 Ratchet/Flam', '§3.1 Flamenco mode', '§10.2 Phrygian Dominant', '§1.4 Euclidean'],
+      whatToHear: 'El kick tiene ratchet activo — cada golpe se dobla sobre sí mismo en un intervalo muy corto, con la segunda repetición a menor velocidad (decay 0.65). Es el flam electrónico: el gesto del zapateado que redobla antes de resolver. Y la pista tonal usa exactamente el mismo patrón E(5,12) que el kick pero con voz propia en Phrygian Dominant. Dos instancias del mismo algoritmo en capas distintas de la música.',
+      experiment: 'Sube el ratchet del kick de 1 a 2, luego a 3. Escucha cómo un golpe simple se convierte en un redoble y luego en un grupeto. Ahora activa Evolve en la pista tonal con tasa baja. El patrón melódico empieza a mutar dentro del compás de soleá. Estás viendo simultáneamente §3.4 (Ratchet), §3.1 (Flamenco mode), §10.2 (escalas no-occidentales) y §1.5 (Evolve) del documento IDM. Este preset es el laboratorio completo.',
+      insight: 'El Ratchet del documento IDM (§3.4), el redoble del zapateado flamenco y el «step repeat» de Autechre son el mismo gesto rítmico nombrado por tres tradiciones distintas: la computación musical académica, la tradición corporal gitana-andaluza y la producción electrónica experimental. La convergencia no es forzada — los tres llegaron independientemente a que un golpe que se niega a ser solo uno tiene más carga expresiva que uno que se resigna a serlo.',
+    },
   },
 };
