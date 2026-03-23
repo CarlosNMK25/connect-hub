@@ -6,14 +6,24 @@ import { lcmArray } from '../../utils/math';
 interface PhaseRadarProps {
   tracks: {
     id: string;
+    name?: string;
     steps: number;
+    pulses?: number;
     color: string;
     offset: number;
+    chaosEnabled?: boolean;
+    evolveEnabled?: boolean;
+    entropy?: number;
+    mutationRate?: number;
   }[];
   globalStep: number;
   onSync: () => void;
   isDjMode: boolean;
   onDjModeToggle: () => void;
+  uiStats?: Record<string, { hits: number; misses: number; cycleCount: number }>;
+  syncImpacts?: number[];
+  entropyLabel?: string;
+  bpm?: number;
 }
 
 export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSync, isDjMode, onDjModeToggle }) => {
