@@ -598,6 +598,7 @@ export const EuclideanSequencer = () => {
         if (config.scaleId !== undefined) newTrack.scaleId = config.scaleId;
         if (config.octaveRange !== undefined) newTrack.octaveRange = config.octaveRange;
         if (config.noteIndices !== undefined) newTrack.noteIndices = [...config.noteIndices];
+        // TODO: aplicar fmRatio y fmIndex desde preset cuando se añadan a TrackPreset
         
         // Reset counters for fresh start
         newTrack.hits = 0;
