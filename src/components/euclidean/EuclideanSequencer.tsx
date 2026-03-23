@@ -549,6 +549,13 @@ export const EuclideanSequencer = () => {
       if (preset.swing !== undefined) setSwing(preset.swing);
       if (preset.dynamics !== undefined) setDynamics(preset.dynamics);
 
+      // Temporality mode: reset to grid for presets that don't specify
+      if (preset.temporalityMode) {
+        setTemporalityMode(preset.temporalityMode as TemporalityMode);
+      } else {
+        setTemporalityMode('grid');
+      }
+
       setTracks(prev => prev.map(t => {
         const config = preset.tracks![t.id];
         if (!config) return t;
@@ -557,6 +564,36 @@ export const EuclideanSequencer = () => {
         if (config.steps !== undefined) newTrack.steps = config.steps;
         if (config.pulses !== undefined) newTrack.pulses = config.pulses;
         if (config.offset !== undefined) newTrack.offset = config.offset;
+
+        // Ratchet
+        if (config.ratchet !== undefined) newTrack.ratchet = config.ratchet;
+
+        // Chaos
+        if (config.chaosEnabled !== undefined) newTrack.chaosEnabled = config.chaosEnabled;
+        else newTrack.chaosEnabled = false;
+        if (config.entropy !== undefined) newTrack.entropy = config.entropy;
+
+        // Evolve
+        if (config.evolveEnabled !== undefined) newTrack.evolveEnabled = config.evolveEnabled;
+        else newTrack.evolveEnabled = false;
+        if (config.mutationRate !== undefined) newTrack.mutationRate = config.mutationRate;
+        if (config.mutationSpeed !== undefined) newTrack.mutationSpeed = config.mutationSpeed;
+
+        // Base probability → fill all steps
+        if (config.baseProbability !== undefined) {
+          newTrack.probabilities = new Array(64).fill(config.baseProbability);
+        }
+
+        // Volume & sends
+        if (config.volume !== undefined) newTrack.volume = config.volume;
+        if (config.delaySend !== undefined) newTrack.delaySend = config.delaySend;
+        if (config.reverbSend !== undefined) newTrack.reverbSend = config.reverbSend;
+
+        // Tonal fields
+        if (config.rootNote !== undefined) newTrack.rootNote = config.rootNote;
+        if (config.scaleId !== undefined) newTrack.scaleId = config.scaleId;
+        if (config.octaveRange !== undefined) newTrack.octaveRange = config.octaveRange;
+        if (config.noteIndices !== undefined) newTrack.noteIndices = [...config.noteIndices];
         
         // Reset counters for fresh start
         newTrack.hits = 0;
