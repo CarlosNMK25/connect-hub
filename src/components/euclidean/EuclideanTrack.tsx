@@ -86,6 +86,13 @@ interface EuclideanTrackProps {
   onScaleChange: (val: string) => void;
   onOctaveRangeChange: (val: number) => void;
   onNoteIndexChange: (stepIdx: number, val: number) => void;
+  // FM Synth Props
+  synthType: string;
+  fmRatio: number;
+  fmIndex: number;
+  onSynthTypeChange: (val: string) => void;
+  onFmRatioChange: (val: number) => void;
+  onFmIndexChange: (val: number) => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
   temporalityMode: TemporalityMode;
