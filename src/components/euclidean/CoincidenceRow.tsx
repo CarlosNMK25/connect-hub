@@ -50,6 +50,55 @@ export const CoincidenceRow: React.FC<CoincidenceRowProps> = React.memo(({ track
   const maxCount = useMemo(() => Math.max(...coincidence.map(c => c.count), 1), [coincidence]);
   const totalCoincidences = useMemo(() => coincidence.filter(c => c.isCoincidence).length, [coincidence]);
 
+  // Contextual micro-annotation
+  const annotation = useMemo(() => {
+    const coIndices = coincidence.map((c, i) => c.isCoincidence ? i : -1).filter(i => i >= 0);
+    if (coIndices.length === 0) return null;
+
+    const density = coIndices.length / maxSteps;
+
+    // Check for clusters (2+ consecutive coincidences)
+    const clusters: number[][] = [];
+    let current: number[] = [coIndices[0]];
+    for (let i = 1; i < coIndices.length; i++) {
+      if (coIndices[i] === coIndices[i - 1] + 1) {
+        current.push(coIndices[i]);
+      } else {
+        if (current.length >= 2) clusters.push(current);
+        current = [coIndices[i]];
+      }
+    }
+    if (current.length >= 2) clusters.push(current);
+
+    // Check for regular spacing
+    if (coIndices.length >= 2) {
+      const gaps = coIndices.slice(1).map((v, i) => v - coIndices[i]);
+      const allEqual = gaps.every(g => g === gaps[0]);
+      if (allEqual && gaps[0] > 0) {
+        return `Coincidencia regular cada ${gaps[0]} steps → acento métrico periódico`;
+      }
+    }
+
+    // Check for offbeat pattern (avoid multiples of 4)
+    const onDownbeats = coIndices.filter(i => i % 4 === 0).length;
+    const offbeatRatio = 1 - onDownbeats / coIndices.length;
+    if (coIndices.length >= 3 && offbeatRatio > 0.7) {
+      return `${Math.round(offbeatRatio * 100)}% coincidencias en offbeat → síncopa estructural`;
+    }
+
+    // Clusters
+    if (clusters.length > 0) {
+      const cl = clusters[0];
+      return `Cluster en steps ${cl[0]}–${cl[cl.length - 1]} → zona de densidad rítmica`;
+    }
+
+    // Density interpretation
+    if (density >= 0.7) return `${Math.round(density * 100)}% superposición → textura homofónica`;
+    if (density <= 0.2) return `${Math.round(density * 100)}% superposición → textura polirrítmica abierta`;
+
+    return `${coIndices.length}/${maxSteps} puntos de encuentro (${Math.round(density * 100)}%)`;
+  }, [coincidence, maxSteps]);
+
   if (activeTracks.length < 2) return null;
 
   return (
