@@ -2518,7 +2518,7 @@ export const EuclideanSequencer = () => {
           jitter={jitter}
           swing={swing}
           hitRate={(() => {
-            const stats = Object.entries(uiStats).filter(([id]) => id !== 'cloud');
+            const stats = Object.entries(uiStats).filter(([id]) => id !== 'cloud') as [string, { hits: number; misses: number; cycleCount: number }][];
             const totalHits = stats.reduce((sum, [, s]) => sum + s.hits, 0);
             const totalMisses = stats.reduce((sum, [, s]) => sum + s.misses, 0);
             const total = totalHits + totalMisses;
