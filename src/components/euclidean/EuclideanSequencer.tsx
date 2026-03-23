@@ -1232,6 +1232,29 @@ export const EuclideanSequencer = () => {
 
       Tone.Draw.schedule(() => {
         setGlobalStep(currentGlobalStep);
+        // Record phase dispersion for sparkline
+        const ct = tracksRef.current.filter(t => t.id !== 'cloud' && !t.isMuted);
+        if (ct.length >= 2) {
+          const phases = ct.map(t => ((currentGlobalStep + t.offset) % t.steps) / t.steps);
+          // Mean pairwise distance (circular)
+          let sum = 0, count = 0;
+          for (let a = 0; a < phases.length; a++) {
+            for (let b = a + 1; b < phases.length; b++) {
+              const diff = Math.abs(phases[a] - phases[b]);
+              sum += Math.min(diff, 1 - diff);
+              count++;
+            }
+          }
+          const dispersion = count > 0 ? (sum / count) / 0.5 : 0; // normalize 0-1
+          const buf = phaseBufferRef.current;
+          const head = phaseBufferHeadRef.current;
+          if (buf.length < PHASE_BUFFER_SIZE) {
+            buf.push(Math.min(1, dispersion));
+          } else {
+            buf[head % PHASE_BUFFER_SIZE] = Math.min(1, dispersion);
+          }
+          phaseBufferHeadRef.current = (head + 1) % PHASE_BUFFER_SIZE;
+        }
       }, baseTime);
 
       globalStepRef.current = (currentGlobalStep + 1);
