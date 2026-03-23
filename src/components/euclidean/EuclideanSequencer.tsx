@@ -375,7 +375,7 @@ export const EuclideanSequencer = () => {
       grainSize: 100, overlap: 0.1, spray: 0, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
       isMuted: false, isSoloed: false, volume: 0.7, delaySend: 0.15, reverbSend: 0.2, ratchet: 0,
-      isTonal: true, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
+      isTonal: true, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono', fmRatio: 2, fmIndex: 10,
       hits: 0, misses: 0
     }),
   ]);
