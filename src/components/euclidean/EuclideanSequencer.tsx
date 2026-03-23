@@ -2393,6 +2393,44 @@ export const EuclideanSequencer = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Bloque E — Sparkline de convergencia temporal */}
+                <PhaseSparkline
+                  buffer={phaseBufferRef.current}
+                  head={phaseBufferHeadRef.current}
+                  capacity={PHASE_BUFFER_SIZE}
+                />
+
+                {/* Bloque F — Insight de diagnóstico principal */}
+                {(() => {
+                  const diagTracks = tracks.filter(t => t.id !== 'cloud').map(t => ({
+                    id: t.id, name: t.name, steps: t.steps, pulses: t.pulses, offset: t.offset,
+                    chaosEnabled: t.chaosEnabled, entropy: t.entropy, evolveEnabled: t.evolveEnabled,
+                    mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed, ratchet: t.ratchet,
+                    isMuted: t.isMuted, isTonal: t.isTonal, scaleId: t.scaleId,
+                  }));
+                  const diagMcm = computeMcm(diagTracks);
+                  const ctx: DiagnosisContext = {
+                    tracks: diagTracks,
+                    globalState: { bpm, temporalityMode, jitter, swing },
+                    computed: { mcm: diagMcm, eclipseTime: computeEclipseTime(diagMcm, bpm), hitRate: hitRateData.rate },
+                  };
+                  const insights = evaluateDiagnosis(ctx);
+                  if (insights.length === 0) return null;
+                  const top = insights[0];
+                  return (
+                    <div className="border-l-2 border-system-accent/40 pl-2 bg-system-accent/[0.02] py-1.5">
+                      <div className="text-[7px] font-mono uppercase tracking-widest text-system-accent mb-1">Diagnóstico</div>
+                      <div className="flex items-start gap-2 text-[10px] font-mono leading-relaxed text-idm-ink/80">
+                        <span className="shrink-0 text-sm">{top.icon}</span>
+                        <span>{top.insight}</span>
+                      </div>
+                      <div className="mt-1 pl-6 text-[9px] font-mono leading-relaxed text-idm-muted">
+                        {top.suggestion}
+                      </div>
+                    </div>
+                  );
+                })()}
               </motion.div>
             )}
             </AnimatePresence>
