@@ -86,13 +86,6 @@ interface EuclideanTrackProps {
   onScaleChange: (val: string) => void;
   onOctaveRangeChange: (val: number) => void;
   onNoteIndexChange: (stepIdx: number, val: number) => void;
-  // FM Synth Props
-  synthType: string;
-  fmRatio: number;
-  fmIndex: number;
-  onSynthTypeChange: (val: string) => void;
-  onFmRatioChange: (val: number) => void;
-  onFmIndexChange: (val: number) => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
   temporalityMode: TemporalityMode;
@@ -225,12 +218,6 @@ export const EuclideanTrack = React.memo(({
   onScaleChange,
   onOctaveRangeChange,
   onNoteIndexChange,
-  synthType,
-  fmRatio,
-  fmIndex,
-  onSynthTypeChange,
-  onFmRatioChange,
-  onFmIndexChange,
   isStudyMode,
   studyVoice = 'technical',
   temporalityMode,
@@ -947,45 +934,6 @@ export const EuclideanTrack = React.memo(({
                 ))}
               </select>
             </div>
-            <div className="space-y-1">
-              <span className="text-[8px] font-mono uppercase text-idm-muted">Synth</span>
-              <select
-                value={synthType}
-                onChange={(e) => onSynthTypeChange(e.target.value)}
-                className="block w-16 bg-white border border-black/10 rounded-lg text-[10px] font-mono px-1.5 py-1 text-idm-ink focus:outline-none focus:border-system-accent"
-              >
-                <option value="mono">Mono</option>
-                <option value="fm">FM</option>
-              </select>
-            </div>
-            {synthType === 'fm' && (
-              <>
-                <div className="space-y-1">
-                  <span className="text-[8px] font-mono uppercase text-idm-muted">Ratio <span className="text-idm-ink/40">{fmRatio.toFixed(1)}</span></span>
-                  <input
-                    type="range"
-                    min={0.1}
-                    max={10}
-                    step={0.1}
-                    value={fmRatio}
-                    onChange={(e) => onFmRatioChange(parseFloat(e.target.value))}
-                    className="block w-20 h-1 accent-system-accent"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[8px] font-mono uppercase text-idm-muted">Index <span className="text-idm-ink/40">{fmIndex}</span></span>
-                  <input
-                    type="range"
-                    min={0}
-                    max={50}
-                    step={1}
-                    value={fmIndex}
-                    onChange={(e) => onFmIndexChange(parseInt(e.target.value))}
-                    className="block w-20 h-1 accent-system-accent"
-                  />
-                </div>
-              </>
-            )}
           </div>
         </div>
       )}
@@ -1170,9 +1118,6 @@ export const EuclideanTrack = React.memo(({
     prevProps.rootNote === nextProps.rootNote &&
     prevProps.scaleId === nextProps.scaleId &&
     prevProps.octaveRange === nextProps.octaveRange &&
-    prevProps.noteIndices === nextProps.noteIndices &&
-    prevProps.synthType === nextProps.synthType &&
-    prevProps.fmRatio === nextProps.fmRatio &&
-    prevProps.fmIndex === nextProps.fmIndex
+    prevProps.noteIndices === nextProps.noteIndices
   );
 });
