@@ -62,6 +62,8 @@ interface TrackState {
   octaveRange: number;
   noteIndices: number[];
   synthType: string;
+  fmRatio: number;
+  fmIndex: number;
   hits: number;
   misses: number;
 }
@@ -329,7 +331,7 @@ export const EuclideanSequencer = () => {
       grainSize: 100, overlap: 0.1, spray: 0, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
       isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0,
-      isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
+      isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono', fmRatio: 2, fmIndex: 10,
       hits: 0, misses: 0
     }),
     updateTrackPattern({ 
@@ -340,7 +342,7 @@ export const EuclideanSequencer = () => {
       grainSize: 100, overlap: 0.1, spray: 0, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
       isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0,
-      isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
+      isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono', fmRatio: 2, fmIndex: 10,
       hits: 0, misses: 0
     }),
     updateTrackPattern({ 
@@ -351,7 +353,7 @@ export const EuclideanSequencer = () => {
       grainSize: 50, overlap: 0.2, spray: 0, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
       isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0,
-      isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
+      isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono', fmRatio: 2, fmIndex: 10,
       hits: 0, misses: 0
     }),
     updateTrackPattern({ 
@@ -362,7 +364,7 @@ export const EuclideanSequencer = () => {
       grainSize: 500, overlap: 0.5, spray: 200, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
       isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0,
-      isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
+      isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono', fmRatio: 2, fmIndex: 10,
       hits: 0, misses: 0
     }),
     updateTrackPattern({ 
@@ -373,7 +375,7 @@ export const EuclideanSequencer = () => {
       grainSize: 100, overlap: 0.1, spray: 0, bitCrush: 16,
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
       isMuted: false, isSoloed: false, volume: 0.7, delaySend: 0.15, reverbSend: 0.2, ratchet: 0,
-      isTonal: true, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
+      isTonal: true, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono', fmRatio: 2, fmIndex: 10,
       hits: 0, misses: 0
     }),
   ]);
@@ -596,6 +598,7 @@ export const EuclideanSequencer = () => {
         if (config.scaleId !== undefined) newTrack.scaleId = config.scaleId;
         if (config.octaveRange !== undefined) newTrack.octaveRange = config.octaveRange;
         if (config.noteIndices !== undefined) newTrack.noteIndices = [...config.noteIndices];
+        // TODO: aplicar fmRatio y fmIndex desde preset cuando se añadan a TrackPreset
         
         // Reset counters for fresh start
         newTrack.hits = 0;
@@ -1647,23 +1650,40 @@ export const EuclideanSequencer = () => {
         }
       };
     } else if (trackId === 'tone') {
+      const track = tracksRef.current.find(t => t.id === 'tone');
+      const currentSynthType = track?.synthType || 'mono';
+
       const toneDelaySend = new Tone.Gain(0.15).connect(master.delayBus);
       const toneReverbSend = new Tone.Gain(0.2).connect(master.reverbBus);
       const toneFilter = new Tone.Filter(2000, "lowpass").connect(master.compressor);
       toneFilter.connect(toneDelaySend);
       toneFilter.connect(toneReverbSend);
 
-      const toneMonoSynth = new Tone.MonoSynth({
-        oscillator: { type: 'sawtooth' },
-        filter: { Q: 6, type: 'lowpass', rolloff: -24 },
-        envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 },
-        filterEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8, baseFrequency: 200, octaves: 4 },
-        volume: -6
-      }).connect(toneFilter);
+      let toneSynth: any;
+
+      if (currentSynthType === 'fm') {
+        toneSynth = new Tone.FMSynth({
+          harmonicity: track?.fmRatio ?? 2,
+          modulationIndex: track?.fmIndex ?? 10,
+          oscillator: { type: 'sawtooth' },
+          modulation: { type: 'square' },
+          envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 },
+          modulationEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8 },
+          volume: -6
+        }).connect(toneFilter);
+      } else {
+        toneSynth = new Tone.MonoSynth({
+          oscillator: { type: 'sawtooth' },
+          filter: { Q: 6, type: 'lowpass', rolloff: -24 },
+          envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 },
+          filterEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8, baseFrequency: 200, octaves: 4 },
+          volume: -6
+        }).connect(toneFilter);
+      }
 
       synthsRef.current.tone = {
         triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
-          toneMonoSynth.triggerAttackRelease(note, duration, time, velocity);
+          toneSynth.triggerAttackRelease(note, duration, time, velocity);
           const baseCutoff = 600;
           const dynamicCutoff = baseCutoff + (velocity * 4000);
           if (isFinite(dynamicCutoff)) {
@@ -1671,18 +1691,20 @@ export const EuclideanSequencer = () => {
           }
         },
         setVolume: (vol: number) => {
-          toneMonoSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
+          toneSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
         },
         setSends: (delayVal: number, reverbVal: number) => {
           toneDelaySend.gain.rampTo(delayVal, 0.05);
           toneReverbSend.gain.rampTo(reverbVal, 0.05);
         },
         dispose: () => {
-          toneMonoSynth.dispose();
+          toneSynth.dispose();
           toneFilter.dispose();
           toneDelaySend.dispose();
           toneReverbSend.dispose();
-        }
+        },
+        // Direct access for live FM param updates
+        rawSynth: toneSynth
       };
     }
     
@@ -2496,7 +2518,7 @@ export const EuclideanSequencer = () => {
           jitter={jitter}
           swing={swing}
           hitRate={(() => {
-            const stats = Object.entries(uiStats).filter(([id]) => id !== 'cloud');
+            const stats = Object.entries(uiStats).filter(([id]) => id !== 'cloud') as [string, { hits: number; misses: number; cycleCount: number }][];
             const totalHits = stats.reduce((sum, [, s]) => sum + s.hits, 0);
             const totalMisses = stats.reduce((sum, [, s]) => sum + s.misses, 0);
             const total = totalHits + totalMisses;
@@ -2632,6 +2654,33 @@ export const EuclideanSequencer = () => {
                 }
                 return t;
               }))}
+              synthType={track.synthType}
+              fmRatio={track.fmRatio}
+              fmIndex={track.fmIndex}
+              onSynthTypeChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, synthType: val } : t));
+                // Dispose old synth and reinitialize with new type
+                setTimeout(() => {
+                  if (synthsRef.current.tone) {
+                    synthsRef.current.tone.dispose();
+                  }
+                  initializeOriginalSynth('tone');
+                }, 50);
+              }}
+              onFmRatioChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, fmRatio: val } : t));
+                const synth = synthsRef.current.tone;
+                if (synth?.rawSynth?.harmonicity) {
+                  synth.rawSynth.harmonicity.value = val;
+                }
+              }}
+              onFmIndexChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, fmIndex: val } : t));
+                const synth = synthsRef.current.tone;
+                if (synth?.rawSynth?.modulationIndex) {
+                  synth.rawSynth.modulationIndex.value = val;
+                }
+              }}
               isStudyMode={isStudyMode}
               studyVoice={studyVoice}
               anySoloed={tracks.some(t => t.isSoloed)}
@@ -2648,7 +2697,7 @@ export const EuclideanSequencer = () => {
           <span>KICK: Membrane</span>
           <span>SNARE: Noise</span>
           <span>HAT: Metal</span>
-          <span>TONE: Mono</span>
+          <span>TONE: {tracks.find(t => t.id === 'tone')?.synthType === 'fm' ? 'FM' : 'Mono'}</span>
         </div>
         <div>{isPlaying ? "Engine: Running" : "Engine: Idle"}</div>
       </div>
