@@ -310,7 +310,7 @@ export const EuclideanTrack = React.memo(({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className={`space-y-4 p-4 bg-white border border-black/5 rounded-2xl relative transition-all duration-500 ${isTrackDimmed ? 'opacity-30' : 'opacity-100 shadow-sm'}`}>
+    <div className={`space-y-3 p-4 bg-white border border-black/5 rounded-2xl relative transition-all duration-500 ${isTrackDimmed ? 'opacity-30' : 'opacity-100 shadow-sm'}`}>
       {/* Phase Rails: El corazón visual de la polirritmia */}
       <div className={`absolute top-0 left-0 w-full h-[6px] flex flex-col overflow-hidden bg-idm-bg rounded-t-2xl z-20 transition-opacity duration-500 ${isTrackDimmed ? 'opacity-50' : 'opacity-100'}`}>
         {/* Capa Superior: Fase Local (Ritmo Propio) */}
