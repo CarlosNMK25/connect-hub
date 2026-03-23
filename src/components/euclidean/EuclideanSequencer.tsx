@@ -10,6 +10,7 @@ import { EnergyMonitor } from './EnergyMonitor';
 import { PhaseRadar } from './PhaseRadar';
 import { EngineRoom, type LogEntry } from './EngineRoom';
 import { PatternSpace } from './PatternSpace';
+import { CoincidenceRow } from './CoincidenceRow';
 import { bjorklund, rotate } from '../../utils/bjorklund';
 import { lcmArray, calculateLcmImpact } from '../../utils/math';
 import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
