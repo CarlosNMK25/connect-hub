@@ -394,22 +394,20 @@ export const EuclideanTrack = React.memo(({
             </div>
           </div>
 
-          {/* Track Name + Solo/Mute */}
-          <div className="flex flex-col flex-none">
-            <div className="flex items-center gap-2">
-              <h3 className="font-mono text-lg font-black uppercase tracking-tighter text-idm-ink leading-none">{name}</h3>
-              <div className="flex gap-1 ml-1">
-                <button onClick={(e) => { e.stopPropagation(); onSoloToggle(); }}
-                  className={`w-4 h-4 flex items-center justify-center rounded-[2px] text-[8px] font-mono font-bold transition-all border ${isSoloed ? 'bg-system-accent text-white border-system-accent shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
-                  title="Solo">S</button>
-                <button onClick={(e) => { e.stopPropagation(); onMuteToggle(); }}
-                  className={`w-4 h-4 flex items-center justify-center rounded-[2px] text-[8px] font-mono font-bold transition-all border ${isMuted ? 'bg-idm-ink text-white border-idm-ink shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
-                  title="Mute">M</button>
-              </div>
+          {/* Track Name + Solo/Mute + Status */}
+          <div className="flex items-center gap-2 flex-none">
+            <h3 className="font-mono text-lg font-black uppercase tracking-tighter text-idm-ink leading-none">{name}</h3>
+            <div className="flex gap-1">
+              <button onClick={(e) => { e.stopPropagation(); onSoloToggle(); }}
+                className={`w-4 h-4 flex items-center justify-center rounded-[2px] text-[8px] font-mono font-bold transition-all border ${isSoloed ? 'bg-system-accent text-white border-system-accent shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
+                title="Solo">S</button>
+              <button onClick={(e) => { e.stopPropagation(); onMuteToggle(); }}
+                className={`w-4 h-4 flex items-center justify-center rounded-[2px] text-[8px] font-mono font-bold transition-all border ${isMuted ? 'bg-idm-ink text-white border-idm-ink shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
+                title="Mute">M</button>
             </div>
-            <div className="flex items-center gap-2 mt-1">
-              <div className={`w-2 h-2 rounded-full ${isMuted ? 'bg-idm-muted/30' : samplerStatus === 'IDLE' ? 'bg-idm-muted/20' : samplerStatus === 'DECODING' ? 'bg-system-accent animate-pulse' : 'bg-green-600 shadow-sm'}`} />
-              <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-idm-muted">{isMuted ? 'MUTED' : samplerStatus}</span>
+            <div className="flex items-center gap-1.5 ml-1">
+              <div className={`w-1.5 h-1.5 rounded-full ${isMuted ? 'bg-idm-muted/30' : samplerStatus === 'IDLE' ? 'bg-idm-muted/20' : samplerStatus === 'DECODING' ? 'bg-system-accent animate-pulse' : 'bg-green-600 shadow-sm'}`} />
+              <span className="text-[8px] font-mono font-bold uppercase tracking-widest text-idm-muted">{isMuted ? 'MUTED' : samplerStatus}</span>
             </div>
           </div>
 
