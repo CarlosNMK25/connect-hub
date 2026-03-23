@@ -1,7 +1,7 @@
 /**
- * Euclidean Machine (Nivel 1) - Master Presets Library
+ * Euclidean Machine — Master Presets Library
  * 
- * This library integrates Flamenco tradition with IDM/Autechre algorithmic complexity.
+ * Integrates Flamenco tradition with IDM/Autechre algorithmic complexity.
  */
 
 export interface TrackPreset {
@@ -13,7 +13,16 @@ export interface TrackPreset {
   evolveEnabled?: boolean;
   mutationRate?: number;
   mutationSpeed?: number;
-  baseProbability?: number; // Applied to all steps in the track
+  baseProbability?: number;
+  ratchet?: number; // 0-4
+  volume?: number;
+  delaySend?: number;
+  reverbSend?: number;
+  // Tonal (only for 'tone' track)
+  rootNote?: number;      // MIDI (48 = C3)
+  scaleId?: string;       // 'phrygianDominant', 'minor', etc.
+  octaveRange?: number;   // 1-3
+  noteIndices?: number[]; // per-step pitch index
 }
 
 export interface ScenePreset {
@@ -23,13 +32,14 @@ export interface ScenePreset {
   category: 'Flamenco' | 'IDM' | 'Glitch' | 'Experimental';
   description: string;
   bpm?: number;
-  jitter?: number; // 0-20ms
-  swing?: number; // 0-100%
-  dynamics?: number; // 0-100%
+  jitter?: number;
+  swing?: number;
+  dynamics?: number;
+  temporalityMode?: string; // 'grid' | 'mpc' | 'dilla' | 'flamenco' | 'arritmia'
   tracks?: {
     [trackId: string]: TrackPreset;
   };
-  config?: TrackPreset; // For atomic patterns
+  config?: TrackPreset;
 }
 
 export const PRESETS: ScenePreset[] = [
@@ -80,6 +90,103 @@ export const PRESETS: ScenePreset[] = [
       kick: { pulses: 5, steps: 11, offset: 0 },
       snare: { pulses: 7, steps: 13, offset: 4 },
       hat: { pulses: 9, steps: 17, offset: 0 }
+    }
+  },
+
+  // --- FUSIÓN (MASTER) ---
+  {
+    id: 'tercer-cielo',
+    name: 'Tercer Cielo',
+    type: 'master',
+    category: 'Experimental',
+    description: 'Refree/Márquez — Glitch + síntesis + cante. Soleá contemplativa con melodía frigia y reverb inmensa.',
+    bpm: 72,
+    jitter: 4,
+    swing: 20,
+    dynamics: 55,
+    temporalityMode: 'flamenco',
+    tracks: {
+      kick: { pulses: 3, steps: 12, offset: 0, ratchet: 0, volume: 0.7, delaySend: 0.1, reverbSend: 0.4 },
+      snare: { pulses: 2, steps: 12, offset: 5, ratchet: 1, evolveEnabled: true, mutationRate: 0.03, mutationSpeed: 4, volume: 0.5, delaySend: 0.3, reverbSend: 0.6 },
+      hat: { pulses: 5, steps: 12, offset: 0, ratchet: 0, chaosEnabled: true, entropy: 1.2, baseProbability: 0.6, volume: 0.4, delaySend: 0.15, reverbSend: 0.3 },
+      tone: { pulses: 4, steps: 12, offset: 2, ratchet: 0, evolveEnabled: true, mutationRate: 0.05, mutationSpeed: 2, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: [0, 3, 1, 4, 0, 5, 2, 4, 1, 3, 5, 2], volume: 0.6, delaySend: 0.25, reverbSend: 0.8 },
+      cloud: { pulses: 3, steps: 12, offset: 0, volume: 0.3, delaySend: 0.2, reverbSend: 0.7 }
+    }
+  },
+  {
+    id: 'malamente',
+    name: 'Malamente',
+    type: 'master',
+    category: 'Experimental',
+    description: 'Rosalía trap-flamenco — Palmas + 808 + swing agresivo. El hat con ratchet ×3 define el trap.',
+    bpm: 140,
+    jitter: 2,
+    swing: 55,
+    dynamics: 90,
+    temporalityMode: 'mpc',
+    tracks: {
+      kick: { pulses: 4, steps: 16, offset: 0, ratchet: 0, volume: 0.9, delaySend: 0, reverbSend: 0.1 },
+      snare: { pulses: 4, steps: 16, offset: 4, ratchet: 0, volume: 0.8, delaySend: 0.05, reverbSend: 0.15 },
+      hat: { pulses: 10, steps: 16, offset: 0, ratchet: 2, chaosEnabled: true, entropy: 1.15, baseProbability: 0.85, volume: 0.55, delaySend: 0, reverbSend: 0 },
+      tone: { pulses: 3, steps: 12, offset: 0, ratchet: 0, rootNote: 43, scaleId: 'phrygianDominant', octaveRange: 1, noteIndices: [0, 0, 4, 0, 0, 3, 0, 0, 2, 0, 4, 0], volume: 0.75, delaySend: 0.1, reverbSend: 0.05 },
+      cloud: { pulses: 2, steps: 16, offset: 0, volume: 0.2, delaySend: 0, reverbSend: 0.3 }
+    }
+  },
+  {
+    id: 'arrhythmia',
+    name: 'Arrhythmia',
+    type: 'master',
+    category: 'Experimental',
+    description: 'Antipop Consortium fracturado — rap-IDM donde nada cae donde debería. Primos + Chaos + Evolve.',
+    bpm: 105,
+    jitter: 8,
+    swing: 70,
+    dynamics: 80,
+    temporalityMode: 'arritmia',
+    tracks: {
+      kick: { pulses: 3, steps: 11, offset: 0, ratchet: 0, chaosEnabled: true, entropy: 1.3, volume: 0.85, delaySend: 0.05, reverbSend: 0.2 },
+      snare: { pulses: 4, steps: 13, offset: 3, ratchet: 1, chaosEnabled: true, entropy: 1.2, evolveEnabled: true, mutationRate: 0.08, mutationSpeed: 1, volume: 0.7, delaySend: 0.2, reverbSend: 0.25 },
+      hat: { pulses: 7, steps: 17, offset: 5, ratchet: 0, chaosEnabled: true, entropy: 1.4, evolveEnabled: true, mutationRate: 0.12, mutationSpeed: 1, volume: 0.5, delaySend: 0.1, reverbSend: 0.15 },
+      tone: { pulses: 5, steps: 11, offset: 2, ratchet: 0, chaosEnabled: true, entropy: 1.25, evolveEnabled: true, mutationRate: 0.06, mutationSpeed: 2, rootNote: 45, scaleId: 'minor', octaveRange: 2, noteIndices: [0, 4, 2, 6, 1, 5, 3, 7, 0, 4, 2], volume: 0.6, delaySend: 0.15, reverbSend: 0.35 },
+      cloud: { pulses: 3, steps: 11, offset: 0, volume: 0.25, delaySend: 0.25, reverbSend: 0.5 }
+    }
+  },
+  {
+    id: 'confield',
+    name: 'Confield',
+    type: 'master',
+    category: 'IDM',
+    description: 'Autechre abstracción pura — donde el ritmo es textura y la textura es ritmo. Todo muta.',
+    bpm: 118,
+    jitter: 16,
+    swing: 35,
+    dynamics: 95,
+    temporalityMode: 'dilla',
+    tracks: {
+      kick: { pulses: 5, steps: 19, offset: 0, ratchet: 0, chaosEnabled: true, entropy: 1.5, evolveEnabled: true, mutationRate: 0.15, mutationSpeed: 1, volume: 0.8, delaySend: 0.1, reverbSend: 0.2 },
+      snare: { pulses: 3, steps: 17, offset: 7, ratchet: 3, chaosEnabled: true, entropy: 1.6, evolveEnabled: true, mutationRate: 0.20, mutationSpeed: 1, volume: 0.6, delaySend: 0.3, reverbSend: 0.3 },
+      hat: { pulses: 11, steps: 23, offset: 0, ratchet: 1, chaosEnabled: true, entropy: 1.8, evolveEnabled: true, mutationRate: 0.25, mutationSpeed: 1, volume: 0.45, delaySend: 0.05, reverbSend: 0.1 },
+      tone: { pulses: 7, steps: 19, offset: 4, ratchet: 2, chaosEnabled: true, entropy: 1.3, evolveEnabled: true, mutationRate: 0.10, mutationSpeed: 1, rootNote: 50, scaleId: 'wholeTone', octaveRange: 2, noteIndices: [0, 5, 2, 4, 1, 3, 5, 0, 4, 2, 1, 3, 5, 4, 0, 2, 3, 1, 5], volume: 0.5, delaySend: 0.2, reverbSend: 0.4 },
+      cloud: { pulses: 4, steps: 19, offset: 0, volume: 0.35, delaySend: 0.3, reverbSend: 0.6 }
+    }
+  },
+  {
+    id: 'duende-digital',
+    name: 'Duende Digital',
+    type: 'master',
+    category: 'Experimental',
+    description: 'Fusión pura — Soleá + tonal + IDM. Donde flamenco e IDM son indistinguibles.',
+    bpm: 85,
+    jitter: 5,
+    swing: 40,
+    dynamics: 65,
+    temporalityMode: 'flamenco',
+    tracks: {
+      kick: { pulses: 5, steps: 12, offset: 0, ratchet: 1, volume: 0.8, delaySend: 0.05, reverbSend: 0.3 },
+      snare: { pulses: 3, steps: 12, offset: 3, ratchet: 0, chaosEnabled: true, entropy: 1.15, evolveEnabled: true, mutationRate: 0.04, mutationSpeed: 3, volume: 0.65, delaySend: 0.15, reverbSend: 0.4 },
+      hat: { pulses: 8, steps: 17, offset: 0, ratchet: 0, evolveEnabled: true, mutationRate: 0.08, mutationSpeed: 1, volume: 0.5, delaySend: 0.1, reverbSend: 0.2 },
+      tone: { pulses: 5, steps: 12, offset: 1, ratchet: 0, evolveEnabled: true, mutationRate: 0.03, mutationSpeed: 4, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: [0, 1, 4, 3, 0, 5, 2, 4, 1, 0, 3, 2], volume: 0.65, delaySend: 0.2, reverbSend: 0.7 },
+      cloud: { pulses: 4, steps: 12, offset: 0, volume: 0.35, delaySend: 0.25, reverbSend: 0.8 }
     }
   },
 
