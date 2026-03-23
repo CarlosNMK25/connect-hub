@@ -14,6 +14,7 @@ interface EuclideanStepProps {
   temporalOffset?: number;
   onProbabilityChange: (val: number) => void;
   onToggle: () => void;
+  evolveEnabled?: boolean;
   // Tonal props
   isTonal?: boolean;
   noteName?: string;
@@ -35,6 +36,7 @@ export const EuclideanStep: React.FC<EuclideanStepProps> = ({
   temporalOffset = 0,
   onProbabilityChange,
   onToggle,
+  evolveEnabled = false,
   isTonal = false,
   noteName,
   noteIndex = 0,
@@ -212,12 +214,29 @@ export const EuclideanStep: React.FC<EuclideanStepProps> = ({
                 />
               )}
 
-              {/* Mutation Pulse Indicator */}
+              {/* Mutation Pulse Indicator (brief flash) */}
               {mutationPulse && (
                 <motion.div
                   initial={{ opacity: 1, scale: 0.5 }}
                   animate={{ opacity: 0, scale: 1.5 }}
                   className={`absolute inset-0 border-2 rounded-sm pointer-events-none ${mutationPulse === 'up' ? 'border-white' : 'border-orange-500'}`}
+                />
+              )}
+
+              {/* Evolution Halo — persistent glow on mutated steps */}
+              {evolveEnabled && active && Math.abs(baseProbability - 1) > 0.02 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ 
+                    opacity: [0.15, 0.4, 0.15],
+                    boxShadow: [
+                      `0 0 3px ${color}40`,
+                      `0 0 8px ${color}80`,
+                      `0 0 3px ${color}40`
+                    ]
+                  }}
+                  transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+                  className="absolute inset-[-2px] rounded-sm pointer-events-none border border-white/30"
                 />
               )}
 

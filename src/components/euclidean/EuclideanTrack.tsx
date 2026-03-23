@@ -831,6 +831,7 @@ export const EuclideanTrack = React.memo(({
                 temporalOffset={temporalOffsets?.[i] ?? 0}
                 onProbabilityChange={(val) => onProbabilityChange(i, val)}
                 onToggle={() => onToggleStep(i)}
+                evolveEnabled={evolveEnabled}
                 isTonal={isTonal}
                 noteName={noteName}
                 noteIndex={noteIdx}
