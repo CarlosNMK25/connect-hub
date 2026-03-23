@@ -185,12 +185,12 @@ export const CoincidenceRow: React.FC<CoincidenceRowProps> = React.memo(({ track
         })}
       </div>
 
-      {/* Legend */}
-      <div className="flex items-center gap-3 mt-2 text-[7px] text-idm-muted">
-        <span>Altura = nº tracks superpuestos</span>
-        <span>·</span>
-        <span>Color = mezcla de tracks coincidentes</span>
-      </div>
+      {/* Contextual annotation */}
+      {annotation && (
+        <div className="mt-2 text-[7px] text-system-accent/70 italic truncate">
+          ▸ {annotation}
+        </div>
+      )}
     </div>
   );
 });
