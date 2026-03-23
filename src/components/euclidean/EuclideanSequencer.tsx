@@ -11,8 +11,10 @@ import { PhaseRadar } from './PhaseRadar';
 import { EngineRoom, type LogEntry } from './EngineRoom';
 import { PatternSpace } from './PatternSpace';
 import { CoincidenceRow } from './CoincidenceRow';
+import { PhaseSparkline } from './PhaseSparkline';
 import { bjorklund, rotate } from '../../utils/bjorklund';
 import { lcmArray, calculateLcmImpact } from '../../utils/math';
+import { evaluateDiagnosis, computeMcm, computeEclipseTime, type DiagnosisContext, type DiagnosisInsight } from '../../utils/diagnosis';
 import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
 import { UserPreset, loadUserPresets, saveUserPresets, exportPresetAsJson, importPresetFromFile, userPresetToScenePreset } from '../../utils/userPresets';
@@ -257,6 +259,9 @@ export const EuclideanSequencer = () => {
   const eclipseRef = useRef(false);
   const [syncAnalysisOpen, setSyncAnalysisOpen] = useState(false);
   const eclipseHistoryRef = useRef<{ time: string; mcm: number; bpm: number }[]>([]);
+  const PHASE_BUFFER_SIZE = 128;
+  const phaseBufferRef = useRef<number[]>([]);
+  const phaseBufferHeadRef = useRef(0);
   const [showEngine, setShowEngine] = useState(false);
   const [showPatternSpace, setShowPatternSpace] = useState(false);
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
@@ -1227,6 +1232,29 @@ export const EuclideanSequencer = () => {
 
       Tone.Draw.schedule(() => {
         setGlobalStep(currentGlobalStep);
+        // Record phase dispersion for sparkline
+        const ct = tracksRef.current.filter(t => t.id !== 'cloud' && !t.isMuted);
+        if (ct.length >= 2) {
+          const phases = ct.map(t => ((currentGlobalStep + t.offset) % t.steps) / t.steps);
+          // Mean pairwise distance (circular)
+          let sum = 0, count = 0;
+          for (let a = 0; a < phases.length; a++) {
+            for (let b = a + 1; b < phases.length; b++) {
+              const diff = Math.abs(phases[a] - phases[b]);
+              sum += Math.min(diff, 1 - diff);
+              count++;
+            }
+          }
+          const dispersion = count > 0 ? (sum / count) / 0.5 : 0; // normalize 0-1
+          const buf = phaseBufferRef.current;
+          const head = phaseBufferHeadRef.current;
+          if (buf.length < PHASE_BUFFER_SIZE) {
+            buf.push(Math.min(1, dispersion));
+          } else {
+            buf[head % PHASE_BUFFER_SIZE] = Math.min(1, dispersion);
+          }
+          phaseBufferHeadRef.current = (head + 1) % PHASE_BUFFER_SIZE;
+        }
       }, baseTime);
 
       globalStepRef.current = (currentGlobalStep + 1);
@@ -2365,6 +2393,44 @@ export const EuclideanSequencer = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Bloque E — Sparkline de convergencia temporal */}
+                <PhaseSparkline
+                  buffer={phaseBufferRef.current}
+                  head={phaseBufferHeadRef.current}
+                  capacity={PHASE_BUFFER_SIZE}
+                />
+
+                {/* Bloque F — Insight de diagnóstico principal */}
+                {(() => {
+                  const diagTracks = tracks.filter(t => t.id !== 'cloud').map(t => ({
+                    id: t.id, name: t.name, steps: t.steps, pulses: t.pulses, offset: t.offset,
+                    chaosEnabled: t.chaosEnabled, entropy: t.entropy, evolveEnabled: t.evolveEnabled,
+                    mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed, ratchet: t.ratchet,
+                    isMuted: t.isMuted, isTonal: t.isTonal, scaleId: t.scaleId,
+                  }));
+                  const diagMcm = computeMcm(diagTracks);
+                  const ctx: DiagnosisContext = {
+                    tracks: diagTracks,
+                    globalState: { bpm, temporalityMode, jitter, swing },
+                    computed: { mcm: diagMcm, eclipseTime: computeEclipseTime(diagMcm, bpm), hitRate: hitRateData.rate },
+                  };
+                  const insights = evaluateDiagnosis(ctx);
+                  if (insights.length === 0) return null;
+                  const top = insights[0];
+                  return (
+                    <div className="border-l-2 border-system-accent/40 pl-2 bg-system-accent/[0.02] py-1.5">
+                      <div className="text-[7px] font-mono uppercase tracking-widest text-system-accent mb-1">Diagnóstico</div>
+                      <div className="flex items-start gap-2 text-[10px] font-mono leading-relaxed text-idm-ink/80">
+                        <span className="shrink-0 text-sm">{top.icon}</span>
+                        <span>{top.insight}</span>
+                      </div>
+                      <div className="mt-1 pl-6 text-[9px] font-mono leading-relaxed text-idm-muted">
+                        {top.suggestion}
+                      </div>
+                    </div>
+                  );
+                })()}
               </motion.div>
             )}
             </AnimatePresence>
