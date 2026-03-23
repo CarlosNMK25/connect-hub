@@ -2204,7 +2204,164 @@ export const EuclideanSequencer = () => {
               globalStep={globalStep}
               maxSteps={Math.max(...tracks.map(t => t.steps))}
             />
-          </div>
+
+            {/* Expanded Analysis — Left Column */}
+            <AnimatePresence>
+            {syncAnalysisOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden mt-4 pt-4 border-t border-idm-ink/10 space-y-4"
+              >
+                {/* Bloque A — Impacto por pista */}
+                <div>
+                  <div className="text-[8px] font-mono uppercase tracking-widest text-idm-muted mb-2">
+                    Impacto en MCM por pista
+                  </div>
+                  <div className="space-y-1.5">
+                    {tracks.filter(t => t.id !== 'cloud').map((track, i) => (
+                      <div key={track.id} className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: track.color }} />
+                        <span className="text-[9px] font-mono text-idm-ink/70 w-20 truncate">{track.name}</span>
+                        <span className="text-[8px] font-mono text-idm-muted w-16">{`E(${track.pulses},${track.steps})`}</span>
+                        <div className="flex-1 h-1.5 bg-idm-ink/5 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.min(100, syncImpacts[i] || 0)}%`,
+                              background: track.color,
+                              opacity: 0.7
+                            }}
+                          />
+                        </div>
+                        <span className={`text-[9px] font-mono w-8 text-right ${(syncImpacts[i] || 0) > 30 ? 'text-system-accent' : 'text-idm-muted'}`}>
+                          {Math.round(syncImpacts[i] || 0)}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Bloque B — Velocidad relativa (cycleCount) */}
+                <div>
+                  <div className="text-[8px] font-mono uppercase tracking-widest text-idm-muted mb-2">
+                    Ciclos completados por pista
+                  </div>
+                  <div className="space-y-1.5">
+                    {(() => {
+                      const rhythmic = tracks.filter(t => t.id !== 'cloud');
+                      const maxCycles = Math.max(...rhythmic.map(t => uiStats[t.id]?.cycleCount || 0), 1);
+                      return rhythmic.map(track => {
+                        const cycles = uiStats[track.id]?.cycleCount || 0;
+                        return (
+                          <div key={track.id} className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: track.color }} />
+                            <span className="text-[9px] font-mono text-idm-ink/70 w-20 truncate">{track.name}</span>
+                            <div className="flex-1 h-1.5 bg-idm-ink/5 rounded-full overflow-hidden">
+                              <div
+                                className="h-full rounded-full transition-all duration-500"
+                                style={{
+                                  width: `${(cycles / maxCycles) * 100}%`,
+                                  background: track.color,
+                                  opacity: 0.6
+                                }}
+                              />
+                            </div>
+                            <span className="text-[9px] font-mono text-idm-muted w-16 text-right">
+                              {cycles} ciclos
+                            </span>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                  <div className="text-[7px] font-mono text-idm-muted/60 mt-1.5">
+                    Más ciclos = ciclo más corto = gira más rápido
+                  </div>
+                </div>
+
+                {/* Bloque C — Probabilidad media por pista */}
+                <div>
+                  <div className="text-[8px] font-mono uppercase tracking-widest text-idm-muted mb-2">
+                    Probabilidad media por pista
+                  </div>
+                  <div className="space-y-1.5">
+                    {tracks.filter(t => t.id !== 'cloud').map(track => {
+                      const activeProbs = track.probabilities.slice(0, track.steps);
+                      const avgProb = activeProbs.length > 0
+                        ? Math.round(activeProbs.reduce((s, p) => s + p, 0) / activeProbs.length * 100)
+                        : 100;
+                      const hitRate = (() => {
+                        const s = uiStats[track.id];
+                        if (!s || (s.hits + s.misses) === 0) return null;
+                        return Math.round(s.hits / (s.hits + s.misses) * 100);
+                      })();
+                      return (
+                        <div key={track.id} className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: track.color }} />
+                          <span className="text-[9px] font-mono text-idm-ink/70 w-20 truncate">{track.name}</span>
+                          <div className="flex-1 h-1.5 bg-idm-ink/5 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-500"
+                              style={{
+                                width: `${avgProb}%`,
+                                background: track.color,
+                                opacity: 0.6
+                              }}
+                            />
+                          </div>
+                          <span className="text-[9px] font-mono w-8 text-right text-idm-muted">
+                            {avgProb}%
+                          </span>
+                          {hitRate !== null && avgProb !== hitRate && (
+                            <span className={`text-[8px] font-mono w-12 text-right ${hitRate < avgProb ? 'text-system-accent' : 'text-idm-muted'}`}>
+                              hit {hitRate}%
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="text-[7px] font-mono text-idm-muted/60 mt-1.5">
+                    Prob. programada vs hit rate real — diferencia = efecto Chaos
+                  </div>
+                </div>
+
+                {/* Bloque D — Historial de eclipses */}
+                <div>
+                  <div className="text-[8px] font-mono uppercase tracking-widest text-idm-muted mb-2">
+                    Historial de eclipses
+                  </div>
+                  {eclipseHistoryRef.current.length === 0 ? (
+                    <div className="text-[9px] font-mono text-idm-muted/50 italic">
+                      Sin eclipses registrados aún
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      {eclipseHistoryRef.current.map((e, i) => (
+                        <div key={i} className="flex items-center gap-3 text-[9px] font-mono">
+                          <span className={`${i === 0 ? 'text-system-accent' : 'text-idm-muted/50'}`}>
+                            {i === 0 ? '✦' : '·'}
+                          </span>
+                          <span className={`${i === 0 ? 'text-idm-ink/70' : 'text-idm-muted/50'}`}>
+                            {e.time}
+                          </span>
+                          <span className={`${i === 0 ? 'text-system-accent' : 'text-idm-muted/40'}`}>
+                            MCM {e.mcm}
+                          </span>
+                          <span className={`${i === 0 ? 'text-idm-muted' : 'text-idm-muted/40'}`}>
+                            {e.bpm} BPM
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+            </AnimatePresence>
 
           <div className={isStudyMode ? 'cursor-help' : ''}
             onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('phaseRadar'); setHoveredGlobalEl(e.currentTarget); } }}
