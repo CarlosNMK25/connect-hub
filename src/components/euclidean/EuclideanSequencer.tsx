@@ -1749,13 +1749,17 @@ export const EuclideanSequencer = () => {
     if (isPlaying && stepsRestantes <= 1 && !eclipseRef.current) {
       eclipseRef.current = true;
       setEclipseFlash(true);
+      // Record eclipse in history
+      const now = new Date();
+      const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+      eclipseHistoryRef.current = [{ time: timeStr, mcm, bpm }, ...eclipseHistoryRef.current].slice(0, 5);
       const timer = setTimeout(() => {
         setEclipseFlash(false);
         eclipseRef.current = false;
       }, 1200);
       return () => clearTimeout(timer);
     }
-  }, [stepsRestantes, isPlaying]);
+  }, [stepsRestantes, isPlaying, mcm, bpm]);
 
   // Hit Rate
   const hitRateData = useMemo(() => {
