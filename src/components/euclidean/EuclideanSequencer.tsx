@@ -2362,6 +2362,7 @@ export const EuclideanSequencer = () => {
               </motion.div>
             )}
             </AnimatePresence>
+          </div>
 
           <div className={isStudyMode ? 'cursor-help' : ''}
             onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('phaseRadar'); setHoveredGlobalEl(e.currentTarget); } }}
