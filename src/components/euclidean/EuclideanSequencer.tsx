@@ -255,6 +255,8 @@ export const EuclideanSequencer = () => {
   const [hoveredPreset, setHoveredPreset] = useState<ScenePreset | null>(null);
   const [eclipseFlash, setEclipseFlash] = useState(false);
   const eclipseRef = useRef(false);
+  const [syncAnalysisOpen, setSyncAnalysisOpen] = useState(false);
+  const eclipseHistoryRef = useRef<{ time: string; mcm: number; bpm: number }[]>([]);
   const [showEngine, setShowEngine] = useState(false);
   const [showPatternSpace, setShowPatternSpace] = useState(false);
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
