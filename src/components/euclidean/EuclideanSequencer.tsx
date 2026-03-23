@@ -259,6 +259,9 @@ export const EuclideanSequencer = () => {
   const eclipseRef = useRef(false);
   const [syncAnalysisOpen, setSyncAnalysisOpen] = useState(false);
   const eclipseHistoryRef = useRef<{ time: string; mcm: number; bpm: number }[]>([]);
+  const PHASE_BUFFER_SIZE = 128;
+  const phaseBufferRef = useRef<number[]>([]);
+  const phaseBufferHeadRef = useRef(0);
   const [showEngine, setShowEngine] = useState(false);
   const [showPatternSpace, setShowPatternSpace] = useState(false);
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
