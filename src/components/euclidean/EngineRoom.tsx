@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Trash2, ChevronRight, ChevronDown } from 'lucide-react';
 import { PRESET_PEDAGOGY } from '../../constants/presetPedagogy';
 import { PRESETS } from '../../constants/presets';
+import { diagnose, type DiagnosisTrack } from '../../utils/diagnosis';
 
 export interface LogEntry {
   timestamp: string;
@@ -21,6 +22,10 @@ interface TrackSnapshot {
   entropy: number;
   evolveEnabled: boolean;
   mutationRate: number;
+  ratchet: number;
+  scaleId?: string;
+  rootNote?: number;
+  isTonal?: boolean;
 }
 
 interface EngineRoomProps {
@@ -29,6 +34,12 @@ interface EngineRoomProps {
   log: LogEntry[];
   onClearLog: () => void;
   activePresetId: string | null;
+  temporalityMode: string;
+  jitter: number;
+  swing: number;
+  dynamics: number;
+  bpm: number;
+  hitRate: number | null;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
