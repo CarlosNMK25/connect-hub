@@ -187,7 +187,7 @@ export const CoincidenceRow: React.FC<CoincidenceRowProps> = React.memo(({ track
 
       {/* Contextual annotation */}
       {annotation && (
-        <div className="mt-2 text-[7px] text-system-accent/70 italic truncate">
+        <div className="mt-2 text-[9px] text-system-accent/80 italic truncate">
           ▸ {annotation}
         </div>
       )}
