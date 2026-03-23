@@ -2219,6 +2219,7 @@ export const EuclideanSequencer = () => {
               syncImpacts={syncImpacts}
               entropyLabel={entropy.label}
               bpm={bpm}
+              onAnalysisToggle={(open) => setSyncAnalysisOpen(open)}
             />
           </div>
 
