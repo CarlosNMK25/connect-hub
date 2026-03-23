@@ -2204,11 +2204,15 @@ export const EuclideanSequencer = () => {
             onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('phaseRadar'); setHoveredGlobalEl(e.currentTarget); } }}
             onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
             <PhaseRadar 
-              tracks={tracks.map(t => ({ id: t.id, steps: t.steps, color: t.color, offset: t.offset }))}
+              tracks={tracks.map(t => ({ id: t.id, name: t.name, steps: t.steps, pulses: t.pulses, color: t.color, offset: t.offset, chaosEnabled: (t as any).chaosEnabled, evolveEnabled: (t as any).evolveEnabled, entropy: (t as any).entropy, mutationRate: (t as any).mutationRate }))}
               globalStep={globalStep}
               onSync={handlePhaseSync}
               isDjMode={isDjMode}
               onDjModeToggle={() => setIsDjMode(!isDjMode)}
+              uiStats={uiStats}
+              syncImpacts={syncImpacts}
+              entropyLabel={entropy.label}
+              bpm={bpm}
             />
           </div>
 
