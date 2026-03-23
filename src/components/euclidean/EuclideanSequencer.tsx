@@ -255,6 +255,7 @@ export const EuclideanSequencer = () => {
   const [eclipseFlash, setEclipseFlash] = useState(false);
   const eclipseRef = useRef(false);
   const [showEngine, setShowEngine] = useState(false);
+  const [showPatternSpace, setShowPatternSpace] = useState(false);
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
   const engineLogRef = useRef<LogEntry[]>([]);
   const [engineLog, setEngineLog] = useState<LogEntry[]>([]);
