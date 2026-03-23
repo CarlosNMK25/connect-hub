@@ -2494,6 +2494,18 @@ export const EuclideanSequencer = () => {
         />
       )}
 
+      {/* Pattern Space */}
+      {showPatternSpace && (
+        <PatternSpace
+          presets={PRESETS}
+          userPresets={userPresets}
+          currentPattern={rotate(bjorklund(tracks[0].pulses, tracks[0].steps), tracks[0].offset)}
+          currentSteps={tracks[0].steps}
+          onSelectPreset={applyPreset}
+          onSelectUserPreset={applyUserPreset}
+        />
+      )}
+
       {/* Tracks Container with z-index to ensure interactivity */}
       <div className="space-y-6 relative z-10">
         <MesoInsightMonitor tracks={tracks} isStudyMode={isStudyMode} />
