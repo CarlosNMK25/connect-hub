@@ -204,15 +204,17 @@ export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSy
 
         {/* 1.4 — Countdown to eclipse */}
         {!isEclipse && (
-          <text
-            x={center}
-            y={95}
-            textAnchor="middle"
-            className="fill-idm-ink/50 text-[6px] font-mono"
-            style={{ position: 'absolute' }}
-          >
-            {mcm > 2000 ? '∞' : stepsToEclipse}
-          </text>
+          <svg width={size} height={size} className="absolute inset-0 pointer-events-none">
+            <text
+              x={center}
+              y={95}
+              textAnchor="middle"
+              className="fill-idm-ink/50"
+              style={{ fontSize: '6px', fontFamily: 'monospace' }}
+            >
+              {mcm > 2000 ? '∞' : stepsToEclipse}
+            </text>
+          </svg>
         )}
       </div>
 
