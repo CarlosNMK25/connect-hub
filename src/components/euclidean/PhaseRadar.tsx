@@ -95,7 +95,19 @@ export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSy
 
       <div className="relative" style={{ width: size, height: size }}>
         {/* Technical Labels */}
-        <div className="absolute -top-2 -left-2 text-[7px] font-mono text-idm-ink/20 uppercase tracking-tighter">Phase_Monitor_v2.1</div>
+        <div className="absolute -top-2 -left-2 flex items-center gap-2">
+          <span className="text-[7px] font-mono text-idm-ink/20 uppercase tracking-tighter">Phase_Monitor_v2.1</span>
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowAnalysis(!showAnalysis); }}
+            className={`text-[7px] font-mono uppercase tracking-widest px-2 py-1 rounded-full border transition-all ${
+              showAnalysis
+                ? 'bg-orange-500/10 border-orange-500/30 text-orange-500'
+                : 'bg-idm-ink/5 border-idm-ink/10 text-idm-ink/40 hover:text-idm-ink/60'
+            }`}
+          >
+            {showAnalysis ? '▾ Análisis' : '▸ Análisis'}
+          </button>
+        </div>
         <div className="absolute -bottom-2 -right-2 text-[7px] font-mono text-idm-ink/20 uppercase tracking-tighter">Sync_Lock: {isEclipse ? "TRUE" : "FALSE"}</div>
 
         {/* Static Rings & Grid */}
