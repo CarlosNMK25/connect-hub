@@ -2643,19 +2643,6 @@ export const EuclideanSequencer = () => {
           </div>
         ))}
 
-        {/* Coincidence Row — rhythmic overlap indicator */}
-        <CoincidenceRow
-          tracks={tracks.map(t => ({
-            id: t.id,
-            pattern: t.pattern,
-            steps: t.steps,
-            offset: t.offset,
-            color: t.color,
-            isMuted: t.isMuted,
-          }))}
-          globalStep={globalStep}
-          maxSteps={Math.max(...tracks.map(t => t.steps))}
-        />
       </div>
 
       <div className="mt-8 pt-4 border-t border-idm-muted/30 flex justify-between items-center text-[10px] font-mono text-idm-ink/40 uppercase tracking-widest">
