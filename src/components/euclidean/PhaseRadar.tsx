@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Disc } from 'lucide-react';
+import { lcmArray } from '../../utils/math';
 
 interface PhaseRadarProps {
   tracks: {
@@ -20,10 +21,50 @@ export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSy
   const center = size / 2;
   const radiusStep = 18;
 
+  const mcm = useMemo(() => lcmArray(tracks.map(t => t.steps)), [tracks]);
+
   // Calculate if an "Eclipse" is happening (all active tracks at their effective step 0)
   const isEclipse = useMemo(() => {
     return tracks.every(t => ((globalStep + t.offset) % t.steps) === 0);
   }, [globalStep, tracks]);
+
+  // MCM arc progress
+  const mcmProgress = mcm > 0 && mcm <= 2000 ? (globalStep % mcm) / mcm : null;
+
+  // Steps to eclipse
+  const stepsToEclipse = mcm > 0 ? mcm - (globalStep % mcm) : 0;
+
+  // Max steps for differential stroke
+  const maxSteps = useMemo(() => Math.max(...tracks.map(t => t.steps), 1), [tracks]);
+
+  // MCM arc path helper
+  const mcmArcPath = useMemo(() => {
+    if (mcmProgress === null || mcmProgress === 0) return null;
+    const r = 74;
+    const startAngle = -Math.PI / 2;
+    const endAngle = startAngle + mcmProgress * 2 * Math.PI;
+    const largeArc = mcmProgress > 0.5 ? 1 : 0;
+    const x1 = center + r * Math.cos(startAngle);
+    const y1 = center + r * Math.sin(startAngle);
+    const x2 = center + r * Math.cos(endAngle);
+    const y2 = center + r * Math.sin(endAngle);
+    return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
+  }, [mcmProgress, center]);
+
+  // Phase point coordinates for polyline
+  const phasePoints = useMemo(() => {
+    return tracks.map((track, i) => {
+      const currentStep = (globalStep + track.offset) % track.steps;
+      const angle = (currentStep / track.steps) * 2 * Math.PI - Math.PI / 2;
+      const r = (i + 1) * radiusStep;
+      return {
+        x: center + r * Math.cos(angle),
+        y: center + r * Math.sin(angle),
+      };
+    });
+  }, [globalStep, tracks, center, radiusStep]);
+
+  const polylinePoints = phasePoints.map(p => `${p.x},${p.y}`).join(' ');
 
   return (
     <div className="flex flex-col items-center gap-4 bg-idm-bg p-5 rounded-xl border-2 border-idm-ink/10 relative overflow-hidden group shadow-2xl">
@@ -63,22 +104,49 @@ export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSy
             />
           ))}
 
-          {tracks.map((_, i) => (
-            <circle
-              key={i}
-              cx={center}
-              cy={center}
-              r={(i + 1) * radiusStep}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={i === tracks.length - 1 ? "1.5" : "0.5"}
-              className={i === tracks.length - 1 ? "text-idm-ink/30" : "text-idm-ink/10"}
-            />
-          ))}
+          {/* 1.3 — Differential stroke width per track */}
+          {tracks.map((track, i) => {
+            const sw = Math.max(0.5, 2 - (track.steps / maxSteps) * 1.5);
+            return (
+              <circle
+                key={i}
+                cx={center}
+                cy={center}
+                r={(i + 1) * radiusStep}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={i === tracks.length - 1 ? Math.max(sw, 1.5) : sw}
+                className={i === tracks.length - 1 ? "text-idm-ink/30" : "text-idm-ink/10"}
+              />
+            );
+          })}
           
           {/* Vertical Alignment Guide (Technical) */}
           <line x1={center} y1={0} x2={center} y2={size} stroke="currentColor" strokeWidth="1" className="text-orange-500/20" strokeDasharray="4 2" />
           <circle cx={center} cy={radiusStep} r="2" className="fill-orange-500/40" />
+
+          {/* 1.1 — MCM Progress Arc */}
+          {mcmArcPath && (
+            <path
+              d={mcmArcPath}
+              fill="none"
+              stroke="#f97316"
+              strokeWidth="2"
+              opacity="0.4"
+              strokeLinecap="round"
+            />
+          )}
+
+          {/* 1.2 — Polyline connecting phase points */}
+          {tracks.length >= 2 && (
+            <polyline
+              points={polylinePoints}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="0.5"
+              className="text-idm-ink/15"
+            />
+          )}
         </svg>
 
         {/* Moving Phase Points */}
@@ -133,6 +201,19 @@ export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSy
             transition={{ duration: 0.2 }}
           />
         </div>
+
+        {/* 1.4 — Countdown to eclipse */}
+        {!isEclipse && (
+          <text
+            x={center}
+            y={95}
+            textAnchor="middle"
+            className="fill-idm-ink/50 text-[6px] font-mono"
+            style={{ position: 'absolute' }}
+          >
+            {mcm > 2000 ? '∞' : stepsToEclipse}
+          </text>
+        )}
       </div>
 
       {/* Controls */}
