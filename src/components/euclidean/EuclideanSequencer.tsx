@@ -2220,28 +2220,34 @@ export const EuclideanSequencer = () => {
                   <div className="text-[8px] font-mono uppercase tracking-widest text-idm-muted mb-2">
                     Impacto en MCM por pista
                   </div>
-                  <div className="space-y-1.5">
-                    {tracks.filter(t => t.id !== 'cloud').map((track, i) => (
-                      <div key={track.id} className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: track.color }} />
-                        <span className="text-[9px] font-mono text-idm-ink/70 w-20 truncate">{track.name}</span>
-                        <span className="text-[8px] font-mono text-idm-muted w-16">{`E(${track.pulses},${track.steps})`}</span>
-                        <div className="flex-1 h-1.5 bg-idm-ink/5 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{
-                              width: `${Math.min(100, syncImpacts[i] || 0)}%`,
-                              background: track.color,
-                              opacity: 0.7
-                            }}
-                          />
+                  {tracks.filter(t => t.id !== 'cloud').every((_, i) => (syncImpacts[i] || 0) < 1) ? (
+                    <div className="text-[9px] font-mono text-idm-muted/60 italic leading-relaxed">
+                      Todos los ciclos comparten el mismo número de steps — sin interferencia entre ciclos. Cambia un track a steps diferente para ver el impacto.
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {tracks.filter(t => t.id !== 'cloud').map((track, i) => (
+                        <div key={track.id} className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: track.color }} />
+                          <span className="text-[9px] font-mono text-idm-ink/70 w-20 truncate">{track.name}</span>
+                          <span className="text-[8px] font-mono text-idm-muted w-16">{`E(${track.pulses},${track.steps})`}</span>
+                          <div className="flex-1 h-1.5 bg-idm-ink/5 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-500"
+                              style={{
+                                width: `${Math.min(100, syncImpacts[i] || 0)}%`,
+                                background: track.color,
+                                opacity: 0.7
+                              }}
+                            />
+                          </div>
+                          <span className={`text-[9px] font-mono w-8 text-right ${(syncImpacts[i] || 0) > 30 ? 'text-system-accent' : 'text-idm-muted'}`}>
+                            {Math.round(syncImpacts[i] || 0)}%
+                          </span>
                         </div>
-                        <span className={`text-[9px] font-mono w-8 text-right ${(syncImpacts[i] || 0) > 30 ? 'text-system-accent' : 'text-idm-muted'}`}>
-                          {Math.round(syncImpacts[i] || 0)}%
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Bloque B — Velocidad relativa (cycleCount) */}
