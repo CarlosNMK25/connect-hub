@@ -492,7 +492,7 @@ export const EuclideanTrack = React.memo(({
         </div>
 
         {/* Waveform Display */}
-        <div className="flex-1 min-w-[250px] h-24 relative group bg-idm-bg rounded-xl border border-black/5 overflow-hidden">
+        <div className="flex-1 min-w-[180px] h-16 relative group bg-idm-bg rounded-xl border border-black/5 overflow-hidden">
           <WaveformDisplay 
             buffer={samplerBuffer}
             color={color}
