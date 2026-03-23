@@ -26,7 +26,8 @@ interface PhaseRadarProps {
   bpm?: number;
 }
 
-export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSync, isDjMode, onDjModeToggle }) => {
+export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSync, isDjMode, onDjModeToggle, uiStats = {}, syncImpacts = [], entropyLabel = '', bpm = 120 }) => {
+  const [showAnalysis, setShowAnalysis] = useState(false);
   const size = 160;
   const center = size / 2;
   const radiusStep = 18;
