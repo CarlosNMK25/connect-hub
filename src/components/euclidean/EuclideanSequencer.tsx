@@ -9,6 +9,7 @@ import { JitterMonitor } from './JitterMonitor';
 import { EnergyMonitor } from './EnergyMonitor';
 import { PhaseRadar } from './PhaseRadar';
 import { EngineRoom, type LogEntry } from './EngineRoom';
+import { PatternSpace } from './PatternSpace';
 import { bjorklund, rotate } from '../../utils/bjorklund';
 import { lcmArray, calculateLcmImpact } from '../../utils/math';
 import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
@@ -254,6 +255,7 @@ export const EuclideanSequencer = () => {
   const [eclipseFlash, setEclipseFlash] = useState(false);
   const eclipseRef = useRef(false);
   const [showEngine, setShowEngine] = useState(false);
+  const [showPatternSpace, setShowPatternSpace] = useState(false);
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
   const engineLogRef = useRef<LogEntry[]>([]);
   const [engineLog, setEngineLog] = useState<LogEntry[]>([]);
@@ -1894,6 +1896,18 @@ export const EuclideanSequencer = () => {
               <Settings size={12} />
               <span className="hidden sm:inline">Engine</span>
             </button>
+            <button 
+              onClick={() => setShowPatternSpace(!showPatternSpace)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-300 border ${
+                showPatternSpace 
+                  ? 'bg-system-accent/10 text-system-accent border-system-accent/30' 
+                  : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'
+              }`}
+              title="Toggle Pattern Space"
+            >
+              <Target size={12} />
+              <span className="hidden sm:inline">Space</span>
+            </button>
           </div>
 
           <button 
@@ -2477,6 +2491,18 @@ export const EuclideanSequencer = () => {
           log={engineLog}
           onClearLog={() => { engineLogRef.current = []; setEngineLog([]); }}
           activePresetId={activePresetId}
+        />
+      )}
+
+      {/* Pattern Space */}
+      {showPatternSpace && (
+        <PatternSpace
+          presets={PRESETS}
+          userPresets={userPresets}
+          currentPattern={rotate(bjorklund(tracks[0].pulses, tracks[0].steps), tracks[0].offset)}
+          currentSteps={tracks[0].steps}
+          onSelectPreset={applyPreset}
+          onSelectUserPreset={applyUserPreset}
         />
       )}
 
