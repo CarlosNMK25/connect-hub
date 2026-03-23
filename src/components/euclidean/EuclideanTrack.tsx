@@ -310,7 +310,7 @@ export const EuclideanTrack = React.memo(({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className={`space-y-4 p-4 bg-white border border-black/5 rounded-2xl relative transition-all duration-500 ${isTrackDimmed ? 'opacity-30' : 'opacity-100 shadow-sm'}`}>
+    <div className={`space-y-3 p-4 bg-white border border-black/5 rounded-2xl relative transition-all duration-500 ${isTrackDimmed ? 'opacity-30' : 'opacity-100 shadow-sm'}`}>
       {/* Phase Rails: El corazón visual de la polirritmia */}
       <div className={`absolute top-0 left-0 w-full h-[6px] flex flex-col overflow-hidden bg-idm-bg rounded-t-2xl z-20 transition-opacity duration-500 ${isTrackDimmed ? 'opacity-50' : 'opacity-100'}`}>
         {/* Capa Superior: Fase Local (Ritmo Propio) */}
@@ -334,295 +334,167 @@ export const EuclideanTrack = React.memo(({
       </div>
 
       <div className={`transition-all duration-500 ${isTrackDimmed ? 'grayscale-[0.8]' : ''}`}>
-        <div className="flex flex-col 2xl:flex-row 2xl:items-center gap-6 xl:flex-wrap overflow-hidden">
-        {/* Track Info */}
-        <div className="flex items-center gap-4 min-w-[140px]">
-          {/* Accent Bar (Interactive Volume Fader) */}
+        {/* === ROW 1: Identity + Controls + Waveform === */}
+        <div className="flex items-center gap-4 flex-wrap overflow-hidden">
+          {/* Volume Fader */}
           <div 
             ref={volumeBarRef}
             onMouseDown={handleVolumeMouseDown}
             onMouseEnter={(e) => handleParamEnter('volume', e)}
             onMouseLeave={handleParamLeave}
-            className="w-2.5 h-14 rounded-full bg-idm-bg border border-black/5 shadow-inner transition-all duration-300 relative overflow-hidden cursor-ns-resize group"
+            className="w-2.5 h-14 rounded-full bg-idm-bg border border-black/5 shadow-inner transition-all duration-300 relative overflow-hidden cursor-ns-resize group flex-none"
             title={`Volume: ${Math.round(volume * 100)}%`}
           >
-            {/* Fill Level */}
             <div 
               className="absolute bottom-0 left-0 w-full transition-all duration-100 ease-out"
-              style={{ 
-                height: `${volume * 100}%`, 
-                backgroundColor: isMuted ? '#d1d1d1' : color,
-                opacity: isMuted ? 0.2 : 0.6
-              }}
+              style={{ height: `${volume * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: isMuted ? 0.2 : 0.6 }}
             >
-              {/* Glossy overlay */}
               <div className="absolute inset-0 bg-white/10 opacity-50" />
             </div>
-
-            {/* Mute Pattern Overlay */}
             {isMuted && (
               <div className="absolute inset-0 opacity-20" style={{ 
                 backgroundImage: 'linear-gradient(45deg, #fff 25%, transparent 25%, transparent 50%, #fff 50%, #fff 75%, transparent 75%, transparent)',
                 backgroundSize: '4px 4px'
               }} />
             )}
-            
-            {/* Hover Highlight */}
             <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors" />
           </div>
 
           {/* FX Sends (Mini-Faders) */}
-          <div className="flex flex-col gap-2 ml-1">
-            <div 
-              className="flex flex-col gap-1 relative"
-              onMouseEnter={(e) => handleParamEnter('delaySend', e)}
-              onMouseLeave={handleParamLeave}
-            >
+          <div className="flex flex-col gap-2 flex-none">
+            <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('delaySend', e)} onMouseLeave={handleParamLeave}>
               <div className="flex justify-between items-center w-16">
                 <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Dly</span>
                 <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round(delaySend * 100)}%</span>
               </div>
-              <div 
-                className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative group border border-black/5"
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const x = e.clientX - rect.left;
-                  onDelaySendChange(Math.max(0, Math.min(1, x / rect.width)));
-                }}
-              >
-                <div 
-                  className="h-full transition-all duration-100"
-                  style={{ width: `${delaySend * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }}
-                />
+              <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
+                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onDelaySendChange(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
+                <div className="h-full transition-all duration-100" style={{ width: `${delaySend * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
               </div>
             </div>
-            <div 
-              className="flex flex-col gap-1 relative"
-              onMouseEnter={(e) => handleParamEnter('reverbSend', e)}
-              onMouseLeave={handleParamLeave}
-            >
+            <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('reverbSend', e)} onMouseLeave={handleParamLeave}>
               <div className="flex justify-between items-center w-16">
                 <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rvb</span>
                 <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round(reverbSend * 100)}%</span>
               </div>
-              <div 
-                className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative group border border-black/5"
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const x = e.clientX - rect.left;
-                  onReverbSendChange(Math.max(0, Math.min(1, x / rect.width)));
-                }}
-              >
-                <div 
-                  className="h-full transition-all duration-100"
-                  style={{ width: `${reverbSend * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }}
-                />
+              <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
+                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onReverbSendChange(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
+                <div className="h-full transition-all duration-100" style={{ width: `${reverbSend * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
               </div>
             </div>
-
-            {/* Ratchet mini-fader */}
-            <div 
-              className="flex flex-col gap-1 relative"
-              onMouseEnter={(e) => handleParamEnter('ratchet', e)}
-              onMouseLeave={handleParamLeave}
-            >
+            <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('ratchet', e)} onMouseLeave={handleParamLeave}>
               <div className="flex justify-between items-center w-16">
                 <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rtch</span>
                 <span className="text-[6px] font-mono text-idm-muted leading-none">{ratchet}×</span>
               </div>
-              <div 
-                className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative group border border-black/5"
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const x = e.clientX - rect.left;
-                  onRatchetChange(Math.round(Math.max(0, Math.min(4, (x / rect.width) * 4))));
-                }}
-              >
-                <div 
-                  className="h-full transition-all duration-100"
-                  style={{ width: `${(ratchet / 4) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }}
-                />
+              <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
+                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onRatchetChange(Math.round(Math.max(0, Math.min(4, ((e.clientX - rect.left) / rect.width) * 4)))); }}>
+                <div className="h-full transition-all duration-100" style={{ width: `${(ratchet / 4) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col">
+          {/* Track Name + Solo/Mute */}
+          <div className="flex flex-col flex-none">
             <div className="flex items-center gap-2">
               <h3 className="font-mono text-lg font-black uppercase tracking-tighter text-idm-ink leading-none">{name}</h3>
-              
-              {/* Solo/Mute Small Buttons */}
-              <div className="flex gap-1 ml-2">
-                <button 
-                  onClick={(e) => { e.stopPropagation(); onSoloToggle(); }}
-                  className={`w-4 h-4 flex items-center justify-center rounded-[2px] text-[8px] font-mono font-bold transition-all border ${
-                    isSoloed 
-                      ? 'bg-system-accent text-white border-system-accent shadow-sm' 
-                      : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'
-                  }`}
-                  title="Solo"
-                >
-                  S
-                </button>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); onMuteToggle(); }}
-                  className={`w-4 h-4 flex items-center justify-center rounded-[2px] text-[8px] font-mono font-bold transition-all border ${
-                    isMuted 
-                      ? 'bg-idm-ink text-white border-idm-ink shadow-sm' 
-                      : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'
-                  }`}
-                  title="Mute"
-                >
-                  M
-                </button>
+              <div className="flex gap-1 ml-1">
+                <button onClick={(e) => { e.stopPropagation(); onSoloToggle(); }}
+                  className={`w-4 h-4 flex items-center justify-center rounded-[2px] text-[8px] font-mono font-bold transition-all border ${isSoloed ? 'bg-system-accent text-white border-system-accent shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
+                  title="Solo">S</button>
+                <button onClick={(e) => { e.stopPropagation(); onMuteToggle(); }}
+                  className={`w-4 h-4 flex items-center justify-center rounded-[2px] text-[8px] font-mono font-bold transition-all border ${isMuted ? 'bg-idm-ink text-white border-idm-ink shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
+                  title="Mute">M</button>
               </div>
             </div>
-
-            <div className="flex items-center gap-2 mt-1.5">
-              <div className={`w-2 h-2 rounded-full ${
-                isMuted ? 'bg-idm-muted/30' :
-                samplerStatus === 'IDLE' ? 'bg-idm-muted/20' : 
-                samplerStatus === 'DECODING' ? 'bg-system-accent animate-pulse' : 
-                'bg-green-600 shadow-sm'
-              }`} />
-              <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-idm-muted">
-                {isMuted ? 'MUTED' : samplerStatus}
-              </span>
+            <div className="flex items-center gap-2 mt-1">
+              <div className={`w-2 h-2 rounded-full ${isMuted ? 'bg-idm-muted/30' : samplerStatus === 'IDLE' ? 'bg-idm-muted/20' : samplerStatus === 'DECODING' ? 'bg-system-accent animate-pulse' : 'bg-green-600 shadow-sm'}`} />
+              <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-idm-muted">{isMuted ? 'MUTED' : samplerStatus}</span>
             </div>
           </div>
-        </div>
 
-        {/* Waveform Display */}
-        <div className="w-[180px] h-16 relative group bg-idm-bg rounded-xl border border-black/5 overflow-hidden">
-          <WaveformDisplay 
-            buffer={samplerBuffer}
-            color={color}
-            start={sampleStart}
-            end={sampleEnd}
-            currentStepProgress={0}
-            isPlaying={false}
-            isTriggered={false}
-          />
-          
-          {samplerStatus === 'IDLE' && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px] group-hover:bg-white/80 transition-all">
-              <button 
-                onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-3 px-6 py-3 bg-white border border-black/5 hover:border-system-accent/50 text-idm-ink rounded-lg text-[11px] font-mono uppercase tracking-[0.2em] transition-all shadow-sm active:scale-95"
-              >
-                <Upload size={14} className="text-system-accent" />
-                Load Sample
-              </button>
-            </div>
-          )}
-
-          {samplerStatus === 'READY' && (
-            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button 
-                onClick={onClearSampler}
-                className="p-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-md transition-all border border-red-500/20"
-                title="Clear Sample"
-              >
-                <Trash2 size={12} />
-              </button>
-            </div>
-          )}
-
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            className="hidden" 
-            accept="audio/*"
-            onChange={(e) => e.target.files?.[0] && onFileUpload(e.target.files[0])}
-          />
-        </div>
-
-        {/* Bjorklund Stats & Sliders */}
-        <div className="flex-1 flex flex-col xl:flex-row gap-6 items-center">
-          {/* Stats */}
-          <div className="flex items-center gap-6 px-5 py-3 bg-idm-bg rounded-xl border border-black/5 transition-all duration-500 flex-none opacity-100 scale-100 shadow-sm">
+          {/* Formula + Density Badges */}
+          <div className="flex items-center gap-3 px-3 py-2 bg-idm-bg rounded-lg border border-black/5 flex-none">
             <div className="flex flex-col">
-              <span className="text-[8px] font-mono text-idm-muted uppercase tracking-widest mb-1">Formula</span>
-              <span className="text-xs font-mono font-black" style={{ color }}>
-                E({pulses}, {steps})
-              </span>
+              <span className="text-[7px] font-mono text-idm-muted uppercase tracking-widest leading-none">Formula</span>
+              <span className="text-[11px] font-mono font-black leading-tight" style={{ color }}>E({pulses}, {steps})</span>
             </div>
-
-            <div className="flex flex-col border-l border-black/5 pl-5">
-              <span className="text-[8px] font-mono text-idm-muted uppercase tracking-widest mb-1">Density</span>
-              <span className="text-xs font-mono font-black" style={{ color }}>
-                {Math.round((pulses / steps) * 100)}%
-              </span>
-            </div>
-
-            <div className="hidden 2xl:flex flex-col border-l border-black/5 pl-5 min-w-[90px]">
-              <span className="text-[8px] font-mono text-idm-muted uppercase tracking-widest mb-1">Activity</span>
-              <div className="flex gap-4">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-mono font-black tabular-nums" style={{ color }}>{stats.hits}</span>
-                  <span className="text-[7px] font-mono text-idm-muted uppercase">Hits</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-mono font-black text-idm-muted tabular-nums">{stats.misses}</span>
-                  <span className="text-[7px] font-mono text-idm-muted uppercase">Miss</span>
-                </div>
-              </div>
+            <div className="w-px h-6 bg-black/5" />
+            <div className="flex flex-col">
+              <span className="text-[7px] font-mono text-idm-muted uppercase tracking-widest leading-none">Density</span>
+              <span className="text-[11px] font-mono font-black leading-tight" style={{ color }}>{Math.round((pulses / steps) * 100)}%</span>
             </div>
           </div>
 
-          {/* Sliders with z-index to ensure interactivity */}
-          <div className="grid grid-cols-3 gap-6 flex-1 w-full transition-all duration-500 relative z-20 opacity-100 scale-100">
-            <div 
-              className="space-y-2 relative"
-              onMouseEnter={(e) => handleParamEnter('pulses', e)}
-              onMouseLeave={handleParamLeave}
-            >
-              <div className="flex justify-between text-[9px] font-mono font-bold uppercase text-idm-muted">
-                <span>Pulses</span>
-                <span style={{ color }}>{pulses}</span>
+          {/* Waveform Display (fills remaining space) */}
+          <div className="flex-1 min-w-[120px] h-14 relative group bg-idm-bg rounded-xl border border-black/5 overflow-hidden">
+            <WaveformDisplay 
+              buffer={samplerBuffer}
+              color={color}
+              start={sampleStart}
+              end={sampleEnd}
+              currentStepProgress={0}
+              isPlaying={false}
+              isTriggered={false}
+            />
+            
+            {samplerStatus === 'IDLE' && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px] group-hover:bg-white/80 transition-all">
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-black/5 hover:border-system-accent/50 text-idm-ink rounded-lg text-[10px] font-mono uppercase tracking-[0.15em] transition-all shadow-sm active:scale-95"
+                >
+                  <Upload size={12} className="text-system-accent" />
+                  Load Sample
+                </button>
               </div>
-              <input 
-                type="range" min="0" max={steps} value={pulses} 
+            )}
+
+            {samplerStatus === 'READY' && (
+              <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={onClearSampler}
+                  className="p-1 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-md transition-all border border-red-500/20"
+                  title="Clear Sample">
+                  <Trash2 size={10} />
+                </button>
+              </div>
+            )}
+
+            <input type="file" ref={fileInputRef} className="hidden" accept="audio/*"
+              onChange={(e) => e.target.files?.[0] && onFileUpload(e.target.files[0])} />
+          </div>
+        </div>
+
+        {/* === ROW 2: Sliders P/S/O + Steps === */}
+        <div className="flex items-center gap-4 flex-wrap">
+          {/* Compact Sliders */}
+          <div className="flex items-center gap-4 flex-none">
+            <div className="space-y-1 w-28 relative" onMouseEnter={(e) => handleParamEnter('pulses', e)} onMouseLeave={handleParamLeave}>
+              <div className="flex justify-between text-[8px] font-mono font-bold uppercase text-idm-muted">
+                <span>Pulses</span><span style={{ color }}>{pulses}</span>
+              </div>
+              <input type="range" min="0" max={steps} value={pulses} 
                 onChange={(e) => onPulsesChange(parseInt(e.target.value))}
-                className="w-full h-1 bg-idm-bg appearance-none cursor-pointer rounded-full"
-                style={{ accentColor: color }}
-              />
+                className="w-full h-1 bg-idm-bg appearance-none cursor-pointer rounded-full" style={{ accentColor: color }} />
             </div>
-            <div 
-              className="space-y-2 relative"
-              onMouseEnter={(e) => handleParamEnter('steps', e)}
-              onMouseLeave={handleParamLeave}
-            >
-              <div className="flex justify-between text-[9px] font-mono font-bold uppercase text-idm-muted">
-                <span>Steps</span>
-                <span style={{ color }}>{steps}</span>
+            <div className="space-y-1 w-28 relative" onMouseEnter={(e) => handleParamEnter('steps', e)} onMouseLeave={handleParamLeave}>
+              <div className="flex justify-between text-[8px] font-mono font-bold uppercase text-idm-muted">
+                <span>Steps</span><span style={{ color }}>{steps}</span>
               </div>
-              <input 
-                type="range" min="1" max="32" value={steps} 
+              <input type="range" min="1" max="32" value={steps} 
                 onChange={(e) => onStepsChange(parseInt(e.target.value))}
-                className="w-full h-1 bg-idm-bg appearance-none cursor-pointer rounded-full"
-                style={{ accentColor: color }}
-              />
+                className="w-full h-1 bg-idm-bg appearance-none cursor-pointer rounded-full" style={{ accentColor: color }} />
             </div>
-            <div 
-              className="space-y-2 relative"
-              onMouseEnter={(e) => handleParamEnter('offset', e)}
-              onMouseLeave={handleParamLeave}
-            >
-              <div className="flex justify-between text-[9px] font-mono font-bold uppercase text-idm-muted">
-                <span>Offset</span>
-                <span style={{ color }}>{offset}</span>
+            <div className="space-y-1 w-28 relative" onMouseEnter={(e) => handleParamEnter('offset', e)} onMouseLeave={handleParamLeave}>
+              <div className="flex justify-between text-[8px] font-mono font-bold uppercase text-idm-muted">
+                <span>Offset</span><span style={{ color }}>{offset}</span>
               </div>
-              <input 
-                type="range" min="0" max={steps - 1} value={offset} 
+              <input type="range" min="0" max={steps - 1} value={offset} 
                 onChange={(e) => onOffsetChange(parseInt(e.target.value))}
-                className="w-full h-1 bg-idm-bg appearance-none cursor-pointer rounded-full"
-                style={{ accentColor: color }}
-              />
+                className="w-full h-1 bg-idm-bg appearance-none cursor-pointer rounded-full" style={{ accentColor: color }} />
             </div>
           </div>
         </div>
-      </div>
-
       {/* DJ Nudge Controls (Full Width, Below Parameters) */}
       {isDjMode && (
         <div className="mt-2 flex items-center justify-between gap-6 bg-idm-bg border border-black/5 rounded-2xl p-3 animate-in slide-in-from-top-2 duration-300 shadow-sm">
