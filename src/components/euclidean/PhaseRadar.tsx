@@ -24,9 +24,10 @@ interface PhaseRadarProps {
   syncImpacts?: number[];
   entropyLabel?: string;
   bpm?: number;
+  onAnalysisToggle?: (open: boolean) => void;
 }
 
-export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSync, isDjMode, onDjModeToggle, uiStats = {}, syncImpacts = [], entropyLabel = '', bpm = 120 }) => {
+export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSync, isDjMode, onDjModeToggle, uiStats = {}, syncImpacts = [], entropyLabel = '', bpm = 120, onAnalysisToggle }) => {
   const [showAnalysis, setShowAnalysis] = useState(false);
   const size = 160;
   const center = size / 2;
@@ -98,7 +99,7 @@ export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSy
         <div className="absolute -top-2 -left-2 flex items-center gap-2">
           <span className="text-[7px] font-mono text-idm-ink/20 uppercase tracking-tighter">Phase_Monitor_v2.1</span>
           <button
-            onClick={(e) => { e.stopPropagation(); setShowAnalysis(!showAnalysis); }}
+            onClick={(e) => { e.stopPropagation(); const next = !showAnalysis; setShowAnalysis(next); onAnalysisToggle?.(next); }}
             className={`text-[7px] font-mono uppercase tracking-widest px-2 py-1 rounded-full border transition-all ${
               showAnalysis
                 ? 'bg-orange-500/10 border-orange-500/30 text-orange-500'
