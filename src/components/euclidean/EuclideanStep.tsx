@@ -14,6 +14,7 @@ interface EuclideanStepProps {
   temporalOffset?: number;
   onProbabilityChange: (val: number) => void;
   onToggle: () => void;
+  evolveEnabled?: boolean;
   // Tonal props
   isTonal?: boolean;
   noteName?: string;
