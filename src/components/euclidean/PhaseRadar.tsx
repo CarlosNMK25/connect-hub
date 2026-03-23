@@ -268,6 +268,121 @@ export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSy
         <span className="text-[8px] font-mono text-idm-ink/40 uppercase mt-1">
           {isEclipse ? "Eclipse Detected" : "Phase Drifting"}
         </span>
+
+        {/* Collapsible Analysis Panel */}
+        <AnimatePresence>
+          {showAnalysis && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden w-full"
+            >
+              <div className="mt-3 pt-3 border-t border-idm-ink/10 space-y-3">
+                {/* Métricas del ciclo */}
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { label: 'MCM', value: mcm.toString(), sub: 'steps' },
+                    { label: 'Eclipse', value: (() => {
+                      const sToE = (mcm - (globalStep % mcm)) * (60 / bpm / 4);
+                      if (sToE > 600) return '∞';
+                      if (sToE >= 60) return `${Math.floor(sToE/60)}m ${Math.round(sToE%60)}s`;
+                      return `${Math.round(sToE)}s`;
+                    })(), sub: `${bpm} BPM` },
+                    { label: 'Hit Rate', value: (() => {
+                      const rhythmic = tracks.filter(t => t.id !== 'cloud');
+                      const h = rhythmic.reduce((s,t) => s + (uiStats[t.id]?.hits || 0), 0);
+                      const m = rhythmic.reduce((s,t) => s + (uiStats[t.id]?.misses || 0), 0);
+                      return h + m > 0 ? `${Math.round(h/(h+m)*100)}%` : '—';
+                    })(), sub: 'global' }
+                  ].map(card => (
+                    <div key={card.label} className="bg-idm-ink/[0.03] rounded-lg p-2 border border-idm-ink/5">
+                      <div className="text-[7px] font-mono uppercase tracking-widest text-idm-muted mb-1">{card.label}</div>
+                      <div className="text-sm font-mono font-bold text-system-accent leading-none">{card.value}</div>
+                      <div className="text-[7px] font-mono text-idm-muted mt-0.5">{card.sub}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Estado por pista */}
+                <div>
+                  <div className="text-[7px] font-mono uppercase tracking-widest text-idm-muted mb-1.5">Estado por pista</div>
+                  <div className="space-y-0">
+                    {tracks.map((track) => {
+                      const stats = uiStats[track.id];
+                      const hr = stats && (stats.hits + stats.misses) > 0
+                        ? Math.round(stats.hits / (stats.hits + stats.misses) * 100)
+                        : null;
+                      const hrColor = hr === null ? 'text-idm-muted' : hr >= 80 ? 'text-green-700' : hr >= 50 ? 'text-system-accent' : 'text-red-500';
+                      const currentStep = (globalStep + track.offset) % track.steps;
+                      const phase = Math.round((currentStep / track.steps) * 100);
+                      const hasChaos = track.chaosEnabled;
+                      const hasEvolve = track.evolveEnabled;
+                      const modeLabel = hasChaos && hasEvolve ? 'C+Ev' : hasChaos ? 'C' : hasEvolve ? 'Ev' : '—';
+
+                      return (
+                        <div key={track.id} className="flex items-center gap-1.5 py-1 border-b border-idm-ink/5 last:border-0">
+                          <div className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: track.color }} />
+                          <span className="text-[8px] font-mono font-bold text-idm-ink flex-1 truncate">{track.name || track.id}</span>
+                          <span className="text-[7px] font-mono text-idm-muted">E({track.pulses},{track.steps})</span>
+                          <span className="text-[8px] font-mono text-system-accent w-6 text-right">{phase}%</span>
+                          <span className={`text-[8px] font-mono w-6 text-right ${hrColor}`}>
+                            {hr !== null ? `${hr}%` : '—'}
+                          </span>
+                          <span className="text-[7px] font-mono px-1 py-0.5 rounded bg-orange-500/10 text-orange-500 w-8 text-center">{modeLabel}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Entropía */}
+                <div className="flex justify-between items-center">
+                  <span className="text-[7px] font-mono uppercase tracking-widest text-idm-muted">Entropía</span>
+                  <span className="text-[7px] font-mono text-system-accent font-bold">{entropyLabel}</span>
+                </div>
+
+                {/* Intérprete */}
+                <div className="border-l-2 border-orange-500/40 pl-2 bg-orange-500/[0.02] py-1.5">
+                  <div className="text-[7px] font-mono uppercase tracking-widest text-orange-500 mb-1">Intérprete</div>
+                  <div className="text-[9px] font-mono text-idm-ink/70 leading-relaxed">
+                    {(() => {
+                      const rhythmic = tracks.filter(t => t.id !== 'cloud');
+                      const hasPrimes = rhythmic.some(t => {
+                        const n = t.steps;
+                        return n > 1 && !Array.from({length: n-2}, (_,i) => i+2).some(i => n%i===0);
+                      });
+                      const lowestHr = rhythmic
+                        .filter(t => uiStats[t.id] && (uiStats[t.id].hits + uiStats[t.id].misses) > 0)
+                        .sort((a,b) => {
+                          const ha = uiStats[a.id].hits / (uiStats[a.id].hits + uiStats[a.id].misses);
+                          const hb = uiStats[b.id].hits / (uiStats[b.id].hits + uiStats[b.id].misses);
+                          return ha - hb;
+                        })[0];
+                      const evolvingCount = rhythmic.filter(t => t.evolveEnabled).length;
+                      const stepsToE = mcm - (globalStep % mcm);
+                      const eclipseImminent = stepsToE < mcm * 0.05;
+
+                      if (eclipseImminent) return 'Eclipse inminente — todos los ciclos convergen al step 0.';
+                      if (evolvingCount >= 3) return `${evolvingCount} pistas mutando — sistema generativo autónomo activo.`;
+                      if (lowestHr) {
+                        const hr = Math.round(uiStats[lowestHr.id].hits / (uiStats[lowestHr.id].hits + uiStats[lowestHr.id].misses) * 100);
+                        if (hr < 60) return `${lowestHr.name || lowestHr.id} al ${hr}% — Chaos lo convierte en textura, no en pulso.`;
+                      }
+                      if (hasPrimes && mcm > 1000) return `Ciclos primos: interferencia máxima. El patrón no se repetirá en ${Math.round(mcm * 60 / bpm / 4 / 60)}m.`;
+                      return `MCM ${mcm} — el sistema reinicia cada ${
+                        mcm * 60 / bpm / 4 < 60
+                          ? `${Math.round(mcm * 60 / bpm / 4)}s`
+                          : `${Math.floor(mcm * 60 / bpm / 240)}m`
+                      }.`;
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
