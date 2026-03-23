@@ -2185,6 +2185,19 @@ export const EuclideanSequencer = () => {
                 </div>
               </div>
             </div>
+            {/* Coincidence Row */}
+            <CoincidenceRow
+              tracks={tracks.map(t => ({
+                id: t.id,
+                pattern: t.pattern,
+                steps: t.steps,
+                offset: t.offset,
+                color: t.color,
+                isMuted: t.isMuted,
+              }))}
+              globalStep={globalStep}
+              maxSteps={Math.max(...tracks.map(t => t.steps))}
+            />
           </div>
 
           <div className={isStudyMode ? 'cursor-help' : ''}
