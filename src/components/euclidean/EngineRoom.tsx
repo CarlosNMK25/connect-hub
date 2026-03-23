@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { Trash2, ChevronRight, ChevronDown } from 'lucide-react';
 import { PRESET_PEDAGOGY } from '../../constants/presetPedagogy';
 import { PRESETS } from '../../constants/presets';
-import { diagnose, type DiagnosisTrack } from '../../utils/diagnosis';
 
 export interface LogEntry {
   timestamp: string;
@@ -22,10 +21,6 @@ interface TrackSnapshot {
   entropy: number;
   evolveEnabled: boolean;
   mutationRate: number;
-  ratchet: number;
-  scaleId?: string;
-  rootNote?: number;
-  isTonal?: boolean;
 }
 
 interface EngineRoomProps {
@@ -34,12 +29,6 @@ interface EngineRoomProps {
   log: LogEntry[];
   onClearLog: () => void;
   activePresetId: string | null;
-  temporalityMode: string;
-  jitter: number;
-  swing: number;
-  dynamics: number;
-  bpm: number;
-  hitRate: number | null;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -150,55 +139,7 @@ const DiagnosticSection: React.FC<{ activePresetId: string | null }> = React.mem
 
 DiagnosticSection.displayName = 'DiagnosticSection';
 
-const LiveDiagnosis: React.FC<{
-  tracks: TrackSnapshot[];
-  temporalityMode: string;
-  jitter: number;
-  swing: number;
-  dynamics: number;
-  bpm: number;
-  hitRate: number | null;
-}> = React.memo(({ tracks, temporalityMode, jitter, swing, dynamics, bpm, hitRate }) => {
-  const insights = useMemo(() => {
-    const diagTracks: DiagnosisTrack[] = tracks.map(t => ({
-      id: t.id, name: t.name, steps: t.steps, pulses: t.pulses,
-      offset: t.offset, chaosEnabled: t.chaosEnabled, entropy: t.entropy,
-      evolveEnabled: t.evolveEnabled, mutationRate: t.mutationRate,
-      ratchet: t.ratchet, scaleId: t.scaleId, rootNote: t.rootNote, isTonal: t.isTonal,
-    }));
-    return diagnose({ tracks: diagTracks, temporalityMode, jitter, swing, dynamics, bpm, hitRate });
-  }, [tracks, temporalityMode, jitter, swing, dynamics, bpm, hitRate]);
-
-  return (
-    <div>
-      <div className="text-[8px] uppercase tracking-[0.2em] text-idm-muted mb-3">── Intérprete ──</div>
-      {insights.length === 0 ? (
-        <div className="text-[9px] text-idm-muted/50 py-3 text-center">
-          Cambia parámetros para ver el diagnóstico en tiempo real.
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {insights.map(ins => (
-            <div key={ins.id} className="space-y-1">
-              <div className="flex items-start gap-2">
-                <span className="text-sm shrink-0 leading-none mt-0.5">{ins.icon}</span>
-                <p className="text-[11px] font-mono leading-relaxed text-idm-ink/80">{ins.insight}</p>
-              </div>
-              <div className="flex items-start gap-1.5 pl-6">
-                <span className="text-system-accent shrink-0">→</span>
-                <p className="text-[10px] font-mono leading-relaxed text-system-accent/90">{ins.suggestion}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-});
-
-LiveDiagnosis.displayName = 'LiveDiagnosis';
-
-export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiStats, log, onClearLog, activePresetId, temporalityMode, jitter, swing, dynamics, bpm, hitRate }) => {
+export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiStats, log, onClearLog, activePresetId }) => {
   const rows = useMemo(() => tracks.map(t => {
     const density = t.steps > 0 ? Math.round((t.pulses / t.steps) * 100) : 0;
     const activeProbs = t.probabilities.slice(0, t.steps);
@@ -296,21 +237,8 @@ export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiSta
         )}
       </div>
 
-      {/* Diagnostic Section (Fase C) */}
+      {/* Diagnostic Section */}
       <DiagnosticSection activePresetId={activePresetId} />
-
-      {/* Live Diagnosis (Fase D) */}
-      <div className="mt-5">
-        <LiveDiagnosis
-          tracks={tracks}
-          temporalityMode={temporalityMode}
-          jitter={jitter}
-          swing={swing}
-          dynamics={dynamics}
-          bpm={bpm}
-          hitRate={hitRate}
-        />
-      </div>
     </div>
   );
 });

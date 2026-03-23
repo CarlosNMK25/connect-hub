@@ -2491,12 +2491,6 @@ export const EuclideanSequencer = () => {
           log={engineLog}
           onClearLog={() => { engineLogRef.current = []; setEngineLog([]); }}
           activePresetId={activePresetId}
-          temporalityMode={temporalityMode}
-          jitter={jitter}
-          swing={swing}
-          dynamics={dynamics}
-          bpm={bpm}
-          hitRate={hitRateData.rate}
         />
       )}
 
