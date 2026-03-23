@@ -1896,6 +1896,18 @@ export const EuclideanSequencer = () => {
               <Settings size={12} />
               <span className="hidden sm:inline">Engine</span>
             </button>
+            <button 
+              onClick={() => setShowPatternSpace(!showPatternSpace)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-300 border ${
+                showPatternSpace 
+                  ? 'bg-system-accent/10 text-system-accent border-system-accent/30' 
+                  : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'
+              }`}
+              title="Toggle Pattern Space"
+            >
+              <Target size={12} />
+              <span className="hidden sm:inline">Space</span>
+            </button>
           </div>
 
           <button 
