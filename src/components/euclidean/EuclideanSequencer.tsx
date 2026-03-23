@@ -2127,7 +2127,7 @@ export const EuclideanSequencer = () => {
 
       {/* Pattern Synchrony & Phase Radar */}
       {showSync && (
-        <div className="mb-8 bg-white p-6 rounded-2xl border border-black/5 flex flex-col lg:flex-row items-center gap-8 relative overflow-hidden transition-all duration-500 animate-in fade-in slide-in-from-top-2 duration-500 opacity-100 shadow-sm">
+        <div className="mb-8 bg-white p-6 rounded-2xl border border-black/5 flex flex-col lg:flex-row items-start gap-8 relative overflow-hidden transition-all duration-500 animate-in fade-in slide-in-from-top-2 duration-500 opacity-100 shadow-sm">
           <div className="flex-1 space-y-4 w-full">
             <div className="flex justify-between items-end">
               <div className="space-y-1">
