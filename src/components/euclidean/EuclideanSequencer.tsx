@@ -418,6 +418,16 @@ export const EuclideanSequencer = () => {
   const recordingDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
   const toneFilterRef = useRef<Tone.Filter | null>(null);
   const lastRecordedBufferRef = useRef<AudioBuffer | null>(null);
+  const globalRecordingDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
+  const globalRecordingChunksRef = useRef<Blob[]>([]);
+  const globalMediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const [globalRecordingState, setGlobalRecordingState] = 
+    useState<'idle' | 'armed' | 'recording'>('idle');
+  const cloudRecordingDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
+  const cloudRecordingChunksRef = useRef<Blob[]>([]);
+  const cloudMediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const [cloudRecordingState, setCloudRecordingState] = 
+    useState<'idle' | 'armed' | 'recording'>('idle');
   const [toneRecordingState, setToneRecordingState] = useState<'idle' | 'armed' | 'recording'>('idle');
 
   const masterBusRef = useRef<{ 
