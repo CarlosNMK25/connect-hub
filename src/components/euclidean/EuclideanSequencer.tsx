@@ -1251,7 +1251,16 @@ export const EuclideanSequencer = () => {
               
               if (track.isTonal) {
                 // Tonal track: compute note from scale + noteIndex
-                const noteIdx = track.noteIndices[idx] ?? 0;
+                let noteIdx: number;
+                if (track.rrEnabled && track.noteIndices.length > 1) {
+                  // RR activo: rotación secuencial por noteIndices
+                  const rrIdx = rrNoteIndexRef.current[track.id] ?? 0;
+                  noteIdx = track.noteIndices[rrIdx % track.noteIndices.length];
+                  rrNoteIndexRef.current[track.id] = (rrIdx + 1) % track.noteIndices.length;
+                } else {
+                  // Sin RR: comportamiento original — determinista por step
+                  noteIdx = track.noteIndices[idx] ?? 0;
+                }
                 const scaleIntervals = SCALES[track.scaleId] || SCALES.phrygianDominant;
                 const midi = noteIndexToMidi(track.rootNote, scaleIntervals, noteIdx);
                 const noteName = midiToNoteName(midi);
