@@ -70,6 +70,10 @@ interface TrackState {
   fmIndex?: number;   // modulationIndex del FMSynth, rango 0–50
   wfAmount?: number;   // intensidad del wavefolding (0-10, default 3)
   wfSymmetry?: number; // sesgo de la curva wavefold (-1 a 1, default 0)
+  addPartials?: number;   // número de parciales (2-8, default 4)
+  addBrightness?: number; // pendiente espectral (0-1, default 0.5)
+  arRate?: number;        // frecuencia del LFO audio-rate (20-2000Hz, default 80)
+  arDepth?: number;       // profundidad de modulación en Hz (0-3000, default 0)
   hits: number;
   misses: number;
 }
