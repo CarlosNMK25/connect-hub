@@ -20,6 +20,7 @@ import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/peda
 import { UserPreset, loadUserPresets, saveUserPresets, exportPresetAsJson, importPresetFromFile, userPresetToScenePreset } from '../../utils/userPresets';
 import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../../utils/temporality';
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex } from '../../utils/scales';
+import { buildWavefoldCurve, vactrolfiltFreq } from '../../utils/waveshaping';
 
 interface TrackState {
   id: string;
@@ -67,6 +68,8 @@ interface TrackState {
   synthType: string;
   fmRatio?: number;   // harmonicity del FMSynth, rango 0.1–10
   fmIndex?: number;   // modulationIndex del FMSynth, rango 0–50
+  wfAmount?: number;   // intensidad del wavefolding (0-10, default 3)
+  wfSymmetry?: number; // sesgo de la curva wavefold (-1 a 1, default 0)
   hits: number;
   misses: number;
 }
@@ -385,6 +388,7 @@ export const EuclideanSequencer = () => {
       isMuted: false, isSoloed: false, volume: 0.7, delaySend: 0.15, reverbSend: 0.2, ratchet: 0,
       isTonal: true, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
       fmRatio: 2, fmIndex: 10,
+      wfAmount: 3, wfSymmetry: 0,
       hits: 0, misses: 0
     }),
   ]);
@@ -648,7 +652,7 @@ export const EuclideanSequencer = () => {
           chaosEnabled: t.chaosEnabled, entropy: t.entropy,
           evolveEnabled: t.evolveEnabled, mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed,
           volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend, ratchet: t.ratchet,
-          ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices], synthType: t.synthType, fmRatio: t.fmRatio, fmIndex: t.fmIndex } : {}),
+          ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices], synthType: t.synthType, fmRatio: t.fmRatio, fmIndex: t.fmIndex, wfAmount: t.wfAmount, wfSymmetry: t.wfSymmetry } : {}),
         }])
       ),
     };
@@ -711,6 +715,8 @@ export const EuclideanSequencer = () => {
           synthType: config.synthType ?? t.synthType,
           fmRatio: config.fmRatio ?? t.fmRatio,
           fmIndex: config.fmIndex ?? t.fmIndex,
+          wfAmount: config.wfAmount ?? t.wfAmount,
+          wfSymmetry: config.wfSymmetry ?? t.wfSymmetry,
         } : {}),
         hits: 0,
         misses: 0,
@@ -1694,6 +1700,8 @@ export const EuclideanSequencer = () => {
       const currentSynthType = overrideSynthType ?? toneTrack?.synthType ?? 'mono';
       const fmRatio = toneTrack?.fmRatio ?? 2;
       const fmIndex = toneTrack?.fmIndex ?? 10;
+      const wfAmount = toneTrack?.wfAmount ?? 3;
+      const wfSymmetry = toneTrack?.wfSymmetry ?? 0;
 
       let toneSynth: any;
 
@@ -1707,6 +1715,126 @@ export const EuclideanSequencer = () => {
           modulationEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8 },
           volume: -6
         }).connect(toneFilter);
+
+        synthsRef.current.tone = {
+          triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
+            toneSynth.triggerAttackRelease(note, duration, time, velocity);
+            const baseCutoff = 600;
+            const dynamicCutoff = baseCutoff + (velocity * 4000);
+            if (isFinite(dynamicCutoff)) {
+              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+            }
+          },
+          setVolume: (vol: number) => {
+            toneSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
+          },
+          setSends: (delayVal: number, reverbVal: number) => {
+            toneDelaySend.gain.rampTo(delayVal, 0.05);
+            toneReverbSend.gain.rampTo(reverbVal, 0.05);
+          },
+          updateFmParams: (ratio: number, index: number) => {
+            (toneSynth as Tone.FMSynth).harmonicity.value = ratio;
+            (toneSynth as Tone.FMSynth).modulationIndex.value = index;
+          },
+          dispose: () => {
+            toneSynth.dispose();
+            toneFilter.dispose();
+            toneDelaySend.dispose();
+            toneReverbSend.dispose();
+          }
+        };
+      } else if (currentSynthType === 'wf') {
+        // West Coast synthesis: oscillator → wavefolder → LPG
+        const wfOsc = new Tone.Oscillator({
+          type: 'triangle',
+          frequency: 220,
+          volume: -6
+        });
+
+        const waveFolder = new Tone.WaveShaper(
+          buildWavefoldCurve(wfAmount, wfSymmetry),
+          65536
+        );
+
+        const preFoldGain = new Tone.Gain(1 + wfAmount * 0.3);
+
+        // Low Pass Gate: filtro + VCA acoplados (comportamiento Vactrol)
+        const lpgFilter = new Tone.Filter({
+          type: 'lowpass',
+          frequency: 200,
+          Q: 3,
+          rolloff: -24
+        });
+        const lpgVca = new Tone.Gain(0);
+
+        // Routing: osc → gain → wavefolder → LPG filter → LPG vca → toneFilter
+        wfOsc.connect(preFoldGain);
+        preFoldGain.connect(waveFolder);
+        waveFolder.connect(lpgFilter);
+        lpgFilter.connect(lpgVca);
+        lpgVca.connect(toneFilter);
+
+        synthsRef.current.tone = {
+          triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
+            const freq = Tone.Frequency(note).toFrequency();
+            wfOsc.frequency.setValueAtTime(freq, time);
+
+            const attackTime = 0.005;
+            const decayTime = typeof duration === 'number'
+              ? duration * 1.2
+              : Tone.Time(duration).toSeconds() * 1.2;
+
+            // Start/stop oscillator per note
+            wfOsc.start(time);
+            wfOsc.stop(time + attackTime + decayTime + 0.05);
+
+            // VCA envelope
+            lpgVca.gain.cancelScheduledValues(time);
+            lpgVca.gain.setValueAtTime(0, time);
+            lpgVca.gain.linearRampToValueAtTime(velocity, time + attackTime);
+            lpgVca.gain.exponentialRampToValueAtTime(
+              0.001, time + attackTime + decayTime
+            );
+
+            // Filter envelope — más lento que VCA (característica Vactrol)
+            const filterFreq = vactrolfiltFreq(velocity);
+            lpgFilter.frequency.cancelScheduledValues(time);
+            lpgFilter.frequency.setValueAtTime(200, time);
+            lpgFilter.frequency.exponentialRampToValueAtTime(
+              filterFreq, time + attackTime * 1.5
+            );
+            lpgFilter.frequency.exponentialRampToValueAtTime(
+              200, time + attackTime * 1.5 + decayTime * 1.3
+            );
+
+            // Filtro dinámico global también responde a velocity
+            const dynamicCutoff = 600 + velocity * 4000;
+            if (isFinite(dynamicCutoff)) {
+              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+            }
+          },
+          setVolume: (vol: number) => {
+            wfOsc.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
+          },
+          setSends: (delayVal: number, reverbVal: number) => {
+            toneDelaySend.gain.rampTo(delayVal, 0.05);
+            toneReverbSend.gain.rampTo(reverbVal, 0.05);
+          },
+          updateWfParams: (amount: number, symmetry: number) => {
+            waveFolder.curve = buildWavefoldCurve(amount, symmetry);
+            preFoldGain.gain.rampTo(1 + amount * 0.3, 0.05);
+          },
+          dispose: () => {
+            wfOsc.stop().dispose();
+            waveFolder.dispose();
+            preFoldGain.dispose();
+            lpgFilter.dispose();
+            lpgVca.dispose();
+            toneFilter.dispose();
+            toneDelaySend.dispose();
+            toneReverbSend.dispose();
+          }
+        };
       } else {
         toneSynth = new Tone.MonoSynth({
           oscillator: { type: 'sawtooth' },
@@ -1715,39 +1843,32 @@ export const EuclideanSequencer = () => {
           filterEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8, baseFrequency: 200, octaves: 4 },
           volume: -6
         }).connect(toneFilter);
-      }
 
-      synthsRef.current.tone = {
-        triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
-          toneSynth.triggerAttackRelease(note, duration, time, velocity);
-          const baseCutoff = 600;
-          const dynamicCutoff = baseCutoff + (velocity * 4000);
-          if (isFinite(dynamicCutoff)) {
-            toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+        synthsRef.current.tone = {
+          triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
+            toneSynth.triggerAttackRelease(note, duration, time, velocity);
+            const baseCutoff = 600;
+            const dynamicCutoff = baseCutoff + (velocity * 4000);
+            if (isFinite(dynamicCutoff)) {
+              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+            }
+          },
+          setVolume: (vol: number) => {
+            toneSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
+          },
+          setSends: (delayVal: number, reverbVal: number) => {
+            toneDelaySend.gain.rampTo(delayVal, 0.05);
+            toneReverbSend.gain.rampTo(reverbVal, 0.05);
+          },
+          dispose: () => {
+            toneSynth.dispose();
+            toneFilter.dispose();
+            toneDelaySend.dispose();
+            toneReverbSend.dispose();
           }
-        },
-        setVolume: (vol: number) => {
-          toneSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
-        },
-        setSends: (delayVal: number, reverbVal: number) => {
-          toneDelaySend.gain.rampTo(delayVal, 0.05);
-          toneReverbSend.gain.rampTo(reverbVal, 0.05);
-        },
-        updateFmParams: (ratio: number, index: number) => {
-          if (currentSynthType === 'fm') {
-            (toneSynth as Tone.FMSynth).harmonicity.value = ratio;
-            (toneSynth as Tone.FMSynth).modulationIndex.value = index;
-          }
-        },
-        dispose: () => {
-          toneSynth.dispose();
-          toneFilter.dispose();
-          toneDelaySend.dispose();
-          toneReverbSend.dispose();
-        }
-      };
+        };
+      }
     }
-    
     // Apply current volume and sends
     const track = tracksRef.current.find(t => t.id === trackId);
     if (track && synthsRef.current[trackId]) {
@@ -2941,6 +3062,22 @@ export const EuclideanSequencer = () => {
                 if (synthsRef.current.tone?.updateFmParams) {
                   const toneTrack = tracksRef.current.find(t => t.id === 'tone');
                   synthsRef.current.tone.updateFmParams(toneTrack?.fmRatio ?? 2, val);
+                }
+              }}
+              wfAmount={track.wfAmount}
+              wfSymmetry={track.wfSymmetry}
+              onWfAmountChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, wfAmount: val } : t));
+                if (synthsRef.current.tone?.updateWfParams) {
+                  const toneTrack = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateWfParams(val, toneTrack?.wfSymmetry ?? 0);
+                }
+              }}
+              onWfSymmetryChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, wfSymmetry: val } : t));
+                if (synthsRef.current.tone?.updateWfParams) {
+                  const toneTrack = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateWfParams(toneTrack?.wfAmount ?? 3, val);
                 }
               }}
               isStudyMode={isStudyMode}

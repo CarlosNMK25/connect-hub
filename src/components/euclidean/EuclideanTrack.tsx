@@ -92,6 +92,10 @@ interface EuclideanTrackProps {
   onSynthTypeChange?: (val: string) => void;
   onFmRatioChange?: (val: number) => void;
   onFmIndexChange?: (val: number) => void;
+  wfAmount?: number;
+  wfSymmetry?: number;
+  onWfAmountChange?: (val: number) => void;
+  onWfSymmetryChange?: (val: number) => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
   temporalityMode: TemporalityMode;
@@ -227,9 +231,13 @@ export const EuclideanTrack = React.memo(({
   synthType,
   fmRatio,
   fmIndex,
+  wfAmount,
+  wfSymmetry,
   onSynthTypeChange,
   onFmRatioChange,
   onFmIndexChange,
+  onWfAmountChange,
+  onWfSymmetryChange,
   isStudyMode,
   studyVoice = 'technical',
   temporalityMode,
@@ -790,6 +798,7 @@ export const EuclideanTrack = React.memo(({
               >
                 <option value="mono">Mono</option>
                 <option value="fm">FM</option>
+                <option value="wf">WF</option>
               </select>
             </div>
             <div className="space-y-1">
@@ -862,6 +871,41 @@ export const EuclideanTrack = React.memo(({
             />
             <span className="text-[8px] font-mono text-system-accent w-6">
               {fmIndex ?? 10}
+            </span>
+          </div>
+        </div>
+      )}
+      {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
+      {isTonal && synthType === 'wf' && (
+        <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Fold</span>
+            <input
+              type="range"
+              min="0"
+              max="10"
+              step="0.1"
+              value={wfAmount ?? 3}
+              onChange={(e) => onWfAmountChange?.(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-6">
+              {(wfAmount ?? 3).toFixed(1)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Symm</span>
+            <input
+              type="range"
+              min="-1"
+              max="1"
+              step="0.05"
+              value={wfSymmetry ?? 0}
+              onChange={(e) => onWfSymmetryChange?.(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-8">
+              {(wfSymmetry ?? 0).toFixed(2)}
             </span>
           </div>
         </div>
@@ -1051,6 +1095,8 @@ export const EuclideanTrack = React.memo(({
     prevProps.noteIndices === nextProps.noteIndices &&
     prevProps.synthType === nextProps.synthType &&
     prevProps.fmRatio === nextProps.fmRatio &&
-    prevProps.fmIndex === nextProps.fmIndex
+    prevProps.fmIndex === nextProps.fmIndex &&
+    prevProps.wfAmount === nextProps.wfAmount &&
+    prevProps.wfSymmetry === nextProps.wfSymmetry
   );
 });
