@@ -65,6 +65,8 @@ interface TrackState {
   octaveRange: number;
   noteIndices: number[];
   synthType: string;
+  fmRatio?: number;   // harmonicity del FMSynth, rango 0.1–10
+  fmIndex?: number;   // modulationIndex del FMSynth, rango 0–50
   hits: number;
   misses: number;
 }
