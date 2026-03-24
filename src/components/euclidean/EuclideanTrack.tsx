@@ -130,6 +130,10 @@ interface EuclideanTrackProps {
   enoSpeed?: number;
   onCloudModeChange?: (mode: 'granular' | 'eno') => void;
   onEnoSpeedChange?: (val: number) => void;
+  rrEnabled?: boolean;
+  rrAmount?: number;
+  onRrEnabledChange?: (val: boolean) => void;
+  onRrAmountChange?: (val: number) => void;
   toneRecordingState?: 'idle' | 'armed' | 'recording';
   onRecordAction?: () => void;
   cloudRecordingState?: 'idle' | 'armed' | 'recording';
