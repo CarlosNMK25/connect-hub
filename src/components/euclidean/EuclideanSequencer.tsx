@@ -418,7 +418,7 @@ export const EuclideanSequencer = () => {
   const recordingDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
   const toneFilterRef = useRef<Tone.Filter | null>(null);
   const lastRecordedBufferRef = useRef<AudioBuffer | null>(null);
-  const [isRecordingTone, setIsRecordingTone] = useState(false);
+  const [toneRecordingState, setToneRecordingState] = useState<'idle' | 'armed' | 'recording'>('idle');
 
   const masterBusRef = useRef<{ 
     compressor: Tone.Compressor; 
@@ -1569,42 +1569,39 @@ export const EuclideanSequencer = () => {
     }
   }, []);
 
-  const handleStartRecording = useCallback(() => {
-    // Lazy-create el nodo de captura si no existe
+  const startRecordingNow = useCallback(() => {
     if (!recordingDestRef.current) {
       if (!toneFilterRef.current) {
         console.warn('REC: No hay toneFilter activo');
         return;
       }
-      const rawCtx = Tone.getContext().rawContext as AudioContext;
-      const dest = rawCtx.createMediaStreamDestination();
-      toneFilterRef.current.connect(dest as unknown as Tone.ToneAudioNode);
-      recordingDestRef.current = dest;
+      try {
+        const dest = (Tone.getContext().rawContext as AudioContext).createMediaStreamDestination();
+        toneFilterRef.current.connect(dest as unknown as Tone.ToneAudioNode);
+        recordingDestRef.current = dest;
+      } catch(e) {
+        console.warn('No se pudo crear nodo de captura:', e);
+        return;
+      }
     }
-    
+
     recordingChunksRef.current = [];
-    
     const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
       ? 'audio/webm;codecs=opus'
       : 'audio/webm';
-    
+
     const recorder = new MediaRecorder(
       recordingDestRef.current.stream,
       { mimeType }
     );
-    
+
     recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) {
-        recordingChunksRef.current.push(e.data);
-      }
+      if (e.data.size > 0) recordingChunksRef.current.push(e.data);
     };
-    
+
     recorder.onstop = async () => {
       const blob = new Blob(recordingChunksRef.current, { type: mimeType });
-      
       // TODO: Safari no soporta decodeAudioData de webm.
-      // Para Send to Atmosphere en Safari necesitaremos
-      // grabación en WAV via AudioWorklet o conversión offline.
       try {
         const arrayBuffer = await blob.arrayBuffer();
         const audioBuffer = await Tone.getContext().rawContext
@@ -1613,30 +1610,41 @@ export const EuclideanSequencer = () => {
       } catch(e) {
         console.warn('No se pudo decodificar el buffer grabado:', e);
       }
-      
-      // Descarga automática
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `tone-${Date.now()}.webm`;
       a.click();
       URL.revokeObjectURL(url);
-      
-      setIsRecordingTone(false);
+      setToneRecordingState('idle');
       logChange('Tone grabado y descargado');
     };
-    
+
     recorder.start(100);
     mediaRecorderRef.current = recorder;
-    setIsRecordingTone(true);
+    setToneRecordingState('recording');
     logChange('Tone REC iniciado');
   }, [logChange]);
 
-  const handleStopRecording = useCallback(() => {
-    if (mediaRecorderRef.current?.state === 'recording') {
-      mediaRecorderRef.current.stop();
+  const handleArmOrRecord = useCallback(() => {
+    if (toneRecordingState === 'recording') {
+      if (mediaRecorderRef.current?.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
+      return;
     }
-  }, []);
+    if (toneRecordingState === 'armed') {
+      setToneRecordingState('idle');
+      return;
+    }
+    // idle → comportamiento según isPlaying
+    if (isPlaying) {
+      startRecordingNow();
+    } else {
+      setToneRecordingState('armed');
+      logChange('Tone REC armado — esperando Play');
+    }
+  }, [toneRecordingState, isPlaying, logChange, startRecordingNow]);
 
   const handleClearSampler = (trackId: string) => {
     if (synthsRef.current[trackId]?.dispose) {
@@ -1779,9 +1787,9 @@ export const EuclideanSequencer = () => {
       };
     } else if (trackId === 'tone') {
       // Si hay grabación activa, pararla antes de rebuild
-      if (isRecordingTone && mediaRecorderRef.current?.state === 'recording') {
+      if (toneRecordingState === 'recording' && mediaRecorderRef.current?.state === 'recording') {
         mediaRecorderRef.current.stop();
-        setIsRecordingTone(false);
+        setToneRecordingState('idle');
       }
 
       const toneDelaySend = new Tone.Gain(0.15).connect(master.delayBus);
@@ -2104,6 +2112,18 @@ export const EuclideanSequencer = () => {
       synthsRef.current[trackId].setSends(track.delaySend, track.reverbSend);
     }
   };
+
+  // Armed→recording cuando arranca play, auto-stop cuando para
+  useEffect(() => {
+    if (isPlaying && toneRecordingState === 'armed') {
+      startRecordingNow();
+    }
+    if (!isPlaying && toneRecordingState === 'recording') {
+      if (mediaRecorderRef.current?.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
+    }
+  }, [isPlaying]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { Tone.getTransport().bpm.value = bpm; }, [bpm]);
   
@@ -3343,9 +3363,8 @@ export const EuclideanSequencer = () => {
                   synthsRef.current.tone.updateArParams(tt?.arRate ?? 80, val);
                 }
               }}
-              isRecordingTone={isRecordingTone}
-              onStartRecording={handleStartRecording}
-              onStopRecording={handleStopRecording}
+              toneRecordingState={toneRecordingState}
+              onRecordAction={handleArmOrRecord}
               isStudyMode={isStudyMode}
               studyVoice={studyVoice}
               anySoloed={tracks.some(t => t.isSoloed)}
