@@ -715,6 +715,8 @@ export const EuclideanSequencer = () => {
           synthType: config.synthType ?? t.synthType,
           fmRatio: config.fmRatio ?? t.fmRatio,
           fmIndex: config.fmIndex ?? t.fmIndex,
+          wfAmount: config.wfAmount ?? t.wfAmount,
+          wfSymmetry: config.wfSymmetry ?? t.wfSymmetry,
         } : {}),
         hits: 0,
         misses: 0,
