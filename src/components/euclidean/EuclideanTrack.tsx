@@ -930,7 +930,7 @@ export const EuclideanTrack = React.memo(({
       {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
       {isTonal && synthType === 'add' && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('addPartials', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Parts</span>
             <input
               type="range" min="2" max="8" step="1"
@@ -942,7 +942,7 @@ export const EuclideanTrack = React.memo(({
               {addPartials ?? 4}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('addBrightness', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-12">Bright</span>
             <input
               type="range" min="0" max="1" step="0.05"
