@@ -1722,7 +1722,7 @@ export const EuclideanSequencer = () => {
     }
   }, [initCloudEno, isPlaying]);
 
-
+  const handleSamplerParamChange = useCallback((trackId: string, param: string, val: any) => {
     setTracks(prev => prev.map(t => {
       if (t.id !== trackId) return t;
       return { ...t, [param]: val };
