@@ -34,6 +34,8 @@ export interface UserPresetTrack {
   ksBrightness?: number;
   modalBody?: string;
   modalDecay?: number;
+  ambientVolume?: number;
+  ambientSpeed?: number;
 }
 
 export interface UserPreset {
