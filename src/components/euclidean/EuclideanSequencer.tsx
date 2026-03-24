@@ -74,6 +74,11 @@ interface TrackState {
   addBrightness?: number; // pendiente espectral (0-1, default 0.5)
   arRate?: number;        // frecuencia del LFO audio-rate (20-2000Hz, default 80)
   arDepth?: number;       // profundidad de modulación en Hz (0-3000, default 0)
+  padVoices?: number;     // voces del pad unísono (3-7, default 5)
+  padDetune?: number;     // spread de detune en cents (0-100, default 30)
+  padAttack?: number;     // tiempo de ataque en segundos (0.01-2.0, default 0.3)
+  droneFeedback?: number;    // feedback del delay loop (0.7-0.98, default 0.88)
+  droneFilterFreq?: number;  // frecuencia del filtro del loop (200-8000Hz, default 2000)
   hits: number;
   misses: number;
 }
