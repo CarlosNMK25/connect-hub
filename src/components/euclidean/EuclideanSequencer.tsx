@@ -4050,6 +4050,10 @@ export const EuclideanSequencer = () => {
               onReverbSendChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, reverbSend: val } : t))}
               ratchet={track.ratchet}
               onRatchetChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, ratchet: val } : t))}
+              rrEnabled={track.rrEnabled}
+              rrAmount={track.rrAmount}
+              onRrEnabledChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, rrEnabled: val } : t))}
+              onRrAmountChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, rrAmount: val } : t))}
               isTonal={track.isTonal}
               rootNote={track.rootNote}
               scaleId={track.scaleId}
