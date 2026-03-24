@@ -1364,8 +1364,11 @@ export const EuclideanSequencer = () => {
       logChange('▶ Play', [`BPM ${bpm}`, `${activeTracks} activos`]);
       Tone.getTransport().bpm.value = bpm;
       Tone.getTransport().start();
-      // Start cloud grain player if it exists
-      if (synthsRef.current.cloud?.grainPlayer) {
+      // Start cloud based on mode
+      const cloudTrackStart = tracksRef.current.find(t => t.id === 'cloud');
+      if (cloudTrackStart?.cloudMode === 'eno') {
+        synthsRef.current.cloud?.startEno?.();
+      } else if (synthsRef.current.cloud?.grainPlayer) {
         synthsRef.current.cloud.grainPlayer.start();
       }
     }
