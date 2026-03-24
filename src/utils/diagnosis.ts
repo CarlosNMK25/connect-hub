@@ -18,6 +18,13 @@ export interface DiagnosisContext {
     isMuted: boolean;
     isTonal: boolean;
     scaleId?: string;
+    synthType?: string;
+    arRate?: number;
+    arDepth?: number;
+    wfAmount?: number;
+    wfSymmetry?: number;
+    addPartials?: number;
+    addBrightness?: number;
   }>;
   globalState: {
     bpm: number;
