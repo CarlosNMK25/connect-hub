@@ -862,6 +862,8 @@ export const EuclideanTrack = React.memo(({
                 <option value="fm">FM</option>
                 <option value="wf">WF</option>
                 <option value="add">ADD</option>
+                <option value="pad">PAD</option>
+                <option value="drone">DRN</option>
               </select>
             </div>
             <div className="space-y-1">

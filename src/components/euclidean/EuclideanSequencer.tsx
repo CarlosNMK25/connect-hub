@@ -2089,6 +2089,142 @@ export const EuclideanSequencer = () => {
           synthsRef.current.tone.setVolume(track.volume);
           synthsRef.current.tone.setSends(track.delaySend, track.reverbSend);
         }
+      } else if (currentSynthType === 'pad') {
+        // Pad synthesis: N osciladores sawtooth desafinados → chorus natural
+        const voices = track?.padVoices ?? 5;
+        const detuneAmount = track?.padDetune ?? 30;
+        const attackTime = track?.padAttack ?? 0.3;
+
+        const padOscillators: Tone.Oscillator[] = [];
+        const padVoiceGains: Tone.Gain[] = [];
+        const padMasterGain = new Tone.Gain(1 / voices);
+        padMasterGain.connect(toneFilter);
+
+        for (let i = 0; i < voices; i++) {
+          const osc = new Tone.Oscillator({ type: 'sawtooth', frequency: 220, volume: -6 });
+          const g = new Tone.Gain(0);
+          // Spread de detune simétrico
+          const spread = voices > 1 ? (i - (voices - 1) / 2) / ((voices - 1) / 2) : 0;
+          osc.detune.value = spread * detuneAmount; // detuneAmount ya está en cents
+          osc.connect(g);
+          g.connect(padMasterGain);
+          osc.start();
+          padOscillators.push(osc);
+          padVoiceGains.push(g);
+        }
+
+        let currentPadAttack = attackTime;
+
+        synthsRef.current.tone = {
+          triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
+            const freq = Tone.Frequency(note).toFrequency();
+            const dur = typeof duration === 'number' ? duration : Tone.Time(duration).toSeconds();
+            padOscillators.forEach(osc => {
+              osc.frequency.setValueAtTime(freq, time);
+            });
+            padVoiceGains.forEach(g => {
+              g.gain.cancelScheduledValues(time);
+              g.gain.setValueAtTime(0, time);
+              g.gain.linearRampToValueAtTime(velocity, time + currentPadAttack);
+              g.gain.setValueAtTime(velocity, time + Math.max(dur - 0.05, currentPadAttack));
+              g.gain.linearRampToValueAtTime(0, time + dur);
+            });
+            const dynamicCutoff = 600 + velocity * 4000;
+            if (isFinite(dynamicCutoff)) {
+              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+            }
+          },
+          setVolume: (vol: number) => {
+            padMasterGain.gain.rampTo((1 / padOscillators.length) * vol, 0.05);
+          },
+          setSends: (delayVal: number, reverbVal: number) => {
+            toneDelaySend.gain.rampTo(delayVal, 0.05);
+            toneReverbSend.gain.rampTo(reverbVal, 0.05);
+          },
+          updatePadParams: (newVoices: number, newDetune: number, newAttack: number) => {
+            // Update detune spread on existing voices
+            padOscillators.forEach((osc, i) => {
+              const spread = padOscillators.length > 1
+                ? (i - (padOscillators.length - 1) / 2) / ((padOscillators.length - 1) / 2) : 0;
+              osc.detune.rampTo(spread * newDetune, 0.05);
+            });
+            currentPadAttack = newAttack;
+          },
+          dispose: () => {
+            padOscillators.forEach(osc => { try { osc.stop(); osc.dispose(); } catch(e) {} });
+            padVoiceGains.forEach(g => g.dispose());
+            padMasterGain.dispose();
+            toneFilter.dispose();
+            toneDelaySend.dispose();
+            toneReverbSend.dispose();
+          }
+        };
+      } else if (currentSynthType === 'drone') {
+        // Drone synthesis: sine → inject gain → feedback delay → filter → output
+        const feedbackAmount = track?.droneFeedback ?? 0.88;
+        const filterFreq = track?.droneFilterFreq ?? 2000;
+
+        const droneOsc = new Tone.Oscillator({ type: 'sine', frequency: 220, volume: -6 });
+        const injectGain = new Tone.Gain(0);
+        const droneMasterGain = new Tone.Gain(0.7); // nodo separado para setVolume
+        const feedbackDelay = new Tone.FeedbackDelay({
+          delayTime: 0.5,
+          feedback: feedbackAmount,
+          wet: 1
+        });
+        const loopFilter = new Tone.Filter({
+          frequency: filterFreq,
+          type: 'lowpass',
+          rolloff: -12
+        });
+        const droneLimiter = new Tone.Limiter(-3); // protección contra acumulación
+
+        droneOsc.connect(injectGain);
+        injectGain.connect(feedbackDelay);
+        feedbackDelay.connect(loopFilter);
+        loopFilter.connect(droneLimiter);
+        droneLimiter.connect(droneMasterGain);
+        droneMasterGain.connect(toneFilter);
+        droneOsc.start();
+
+        synthsRef.current.tone = {
+          triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
+            const freq = Tone.Frequency(note).toFrequency();
+            droneOsc.frequency.setValueAtTime(freq, time);
+            // Inyectar burst corto de energía en el loop
+            injectGain.gain.cancelScheduledValues(time);
+            injectGain.gain.setValueAtTime(0, time);
+            injectGain.gain.linearRampToValueAtTime(velocity, time + 0.01);
+            injectGain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
+            const dynamicCutoff = 600 + velocity * 4000;
+            if (isFinite(dynamicCutoff)) {
+              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+            }
+          },
+          setVolume: (vol: number) => {
+            droneMasterGain.gain.rampTo(vol * 0.7, 0.05);
+          },
+          setSends: (delayVal: number, reverbVal: number) => {
+            toneDelaySend.gain.rampTo(delayVal, 0.05);
+            toneReverbSend.gain.rampTo(reverbVal, 0.05);
+          },
+          updateDroneParams: (newFeedback: number, newFilterFreq: number) => {
+            feedbackDelay.feedback.rampTo(newFeedback, 0.1);
+            loopFilter.frequency.rampTo(newFilterFreq, 0.1);
+          },
+          dispose: () => {
+            droneOsc.stop();
+            droneOsc.dispose();
+            injectGain.dispose();
+            droneMasterGain.dispose();
+            feedbackDelay.dispose();
+            loopFilter.dispose();
+            droneLimiter.dispose();
+            toneFilter.dispose();
+            toneDelaySend.dispose();
+            toneReverbSend.dispose();
+          }
+        };
       } else if (currentSynthType === 'wf') {
         // West Coast synthesis: oscillator → wavefolder → LPG
         const wfOsc = new Tone.Oscillator({
