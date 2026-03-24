@@ -780,6 +780,18 @@ export const EuclideanTrack = React.memo(({
             <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-idm-muted">Tonal</span>
           </div>
           <div className="flex items-center gap-3">
+            {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
+            <div className="space-y-1">
+              <span className="text-[8px] font-mono uppercase text-idm-muted">Synth</span>
+              <select
+                value={synthType || 'mono'}
+                onChange={(e) => onSynthTypeChange?.(e.target.value)}
+                className="block w-14 bg-white border border-black/10 rounded-lg text-[10px] font-mono px-1.5 py-1 text-idm-ink focus:outline-none focus:border-system-accent"
+              >
+                <option value="mono">Mono</option>
+                <option value="fm">FM</option>
+              </select>
+            </div>
             <div className="space-y-1">
               <span className="text-[8px] font-mono uppercase text-idm-muted">Root</span>
               <select
