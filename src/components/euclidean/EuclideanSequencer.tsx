@@ -1492,7 +1492,9 @@ export const EuclideanSequencer = () => {
         };
       }));
 
-      if (trackId === 'cloud' && isPlaying) {
+      // Check cloudMode — start granular or Eno
+      const currentCloudTrack = tracksRef.current.find(t => t.id === 'cloud');
+      if (trackId === 'cloud' && isPlaying && currentCloudTrack?.cloudMode !== 'eno') {
         grainPlayer.start();
       }
 
