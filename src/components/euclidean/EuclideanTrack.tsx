@@ -106,6 +106,8 @@ interface EuclideanTrackProps {
   onArDepthChange?: (val: number) => void;
   toneRecordingState?: 'idle' | 'armed' | 'recording';
   onRecordAction?: () => void;
+  cloudRecordingState?: 'idle' | 'armed' | 'recording';
+  onCloudRecordAction?: () => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
   temporalityMode: TemporalityMode;
