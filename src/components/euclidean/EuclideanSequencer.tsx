@@ -4006,6 +4006,14 @@ export const EuclideanSequencer = () => {
               onModalDecayChange={(val) => {
                 setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, modalDecay: val } : t));
               }}
+              ambientVolume={track.ambientVolume}
+              ambientSpeed={track.ambientSpeed}
+              onAmbientVolumeChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, ambientVolume: val } : t));
+              }}
+              onAmbientSpeedChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, ambientSpeed: val } : t));
+              }}
               toneRecordingState={toneRecordingState}
               onRecordAction={handleArmOrRecord}
               cloudRecordingState={cloudRecordingState}
