@@ -2341,9 +2341,10 @@ export const EuclideanSequencer = () => {
         synthsRef.current.tone = {
           triggerAttackRelease: (note: string, _duration: string | number, time: number, velocity = 0.8) => {
             const freq = Tone.Frequency(note).toFrequency();
-            const bodyKey = (track.modalBody ?? 'bell') as keyof typeof MODAL_BODIES;
+            const toneTrackModal = tracksRef.current.find(t => t.id === 'tone');
+            const bodyKey = (toneTrackModal?.modalBody ?? 'bell') as keyof typeof MODAL_BODIES;
             const body = MODAL_BODIES[bodyKey] || MODAL_BODIES.bell;
-            const decayMult = track.modalDecay ?? 1.0;
+            const decayMult = toneTrackModal?.modalDecay ?? 1.0;
 
             body.forEach(mode => {
               const osc = new Tone.Oscillator({ type: 'sine' });
