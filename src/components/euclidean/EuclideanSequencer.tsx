@@ -3877,6 +3877,30 @@ export const EuclideanSequencer = () => {
                   synthsRef.current.tone.updateDroneParams(tt?.droneFeedback ?? 0.88, val);
                 }
               }}
+              ksDecay={track.ksDecay}
+              ksBrightness={track.ksBrightness}
+              modalBody={track.modalBody}
+              modalDecay={track.modalDecay}
+              onKsDecayChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, ksDecay: val } : t));
+                if (synthsRef.current.tone?.updateKsParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateKsParams(val, tt?.ksBrightness ?? 5000);
+                }
+              }}
+              onKsBrightnessChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, ksBrightness: val } : t));
+                if (synthsRef.current.tone?.updateKsParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateKsParams(tt?.ksDecay ?? 0.97, val);
+                }
+              }}
+              onModalBodyChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, modalBody: val } : t));
+              }}
+              onModalDecayChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, modalDecay: val } : t));
+              }}
               toneRecordingState={toneRecordingState}
               onRecordAction={handleArmOrRecord}
               cloudRecordingState={cloudRecordingState}
