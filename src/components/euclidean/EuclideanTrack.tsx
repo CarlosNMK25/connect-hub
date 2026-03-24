@@ -104,6 +104,9 @@ interface EuclideanTrackProps {
   onAddBrightnessChange?: (val: number) => void;
   onArRateChange?: (val: number) => void;
   onArDepthChange?: (val: number) => void;
+  isRecordingTone?: boolean;
+  onStartRecording?: () => void;
+  onStopRecording?: () => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
   temporalityMode: TemporalityMode;
@@ -254,6 +257,9 @@ export const EuclideanTrack = React.memo(({
   onAddBrightnessChange,
   onArRateChange,
   onArDepthChange,
+  isRecordingTone,
+  onStartRecording,
+  onStopRecording,
   isStudyMode,
   studyVoice = 'technical',
   temporalityMode,
@@ -857,6 +863,23 @@ export const EuclideanTrack = React.memo(({
           </div>
         </div>
       )}
+      {isTonal && (
+        <button
+          onClick={isRecordingTone ? onStopRecording : onStartRecording}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full 
+            text-[8px] font-mono uppercase tracking-widest transition-all
+            border ${isRecordingTone
+              ? 'bg-red-500 text-white border-red-600 animate-pulse'
+              : 'bg-idm-ink/5 border-idm-ink/10 text-idm-ink/50 hover:border-red-400 hover:text-red-500'
+            }`}
+          title={isRecordingTone ? 'Parar grabación' : 'Grabar audio del Tone'}
+        >
+          <span className={`w-1.5 h-1.5 rounded-full ${
+            isRecordingTone ? 'bg-white' : 'bg-red-400'
+          }`} />
+          {isRecordingTone ? 'Stop' : 'Rec'}
+        </button>
+      )}
       {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
       {isTonal && synthType === 'fm' && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
@@ -1177,6 +1200,7 @@ export const EuclideanTrack = React.memo(({
     prevProps.addPartials === nextProps.addPartials &&
     prevProps.addBrightness === nextProps.addBrightness &&
     prevProps.arRate === nextProps.arRate &&
-    prevProps.arDepth === nextProps.arDepth
+    prevProps.arDepth === nextProps.arDepth &&
+    prevProps.isRecordingTone === nextProps.isRecordingTone
   );
 });
