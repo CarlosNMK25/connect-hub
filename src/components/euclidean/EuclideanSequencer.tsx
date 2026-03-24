@@ -2091,9 +2091,10 @@ export const EuclideanSequencer = () => {
         }
       } else if (currentSynthType === 'pad') {
         // Pad synthesis: N osciladores sawtooth desafinados → chorus natural
-        const voices = track?.padVoices ?? 5;
-        const detuneAmount = track?.padDetune ?? 30;
-        const attackTime = track?.padAttack ?? 0.3;
+        const toneTrackPad = tracksRef.current.find(t => t.id === 'tone');
+        const voices = toneTrackPad?.padVoices ?? 5;
+        const detuneAmount = toneTrackPad?.padDetune ?? 30;
+        const attackTime = toneTrackPad?.padAttack ?? 0.3;
 
         const padOscillators: Tone.Oscillator[] = [];
         const padVoiceGains: Tone.Gain[] = [];
