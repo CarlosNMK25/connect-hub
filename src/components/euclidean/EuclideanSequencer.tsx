@@ -1707,11 +1707,23 @@ export const EuclideanSequencer = () => {
         }
       };
     } else if (trackId === 'tone') {
+      // Si hay grabación activa, pararla antes de rebuild
+      if (isRecordingTone && mediaRecorderRef.current?.state === 'recording') {
+        mediaRecorderRef.current.stop();
+        setIsRecordingTone(false);
+      }
+
       const toneDelaySend = new Tone.Gain(0.15).connect(master.delayBus);
       const toneReverbSend = new Tone.Gain(0.2).connect(master.reverbBus);
       const toneFilter = new Tone.Filter(2000, "lowpass").connect(master.compressor);
       toneFilter.connect(toneDelaySend);
       toneFilter.connect(toneReverbSend);
+
+      // Nodo de captura para grabación — conectado a toneFilter (siempre reconectar en rebuild)
+      const dest = recordingDestRef.current 
+        ?? Tone.getContext().rawContext.createMediaStreamDestination();
+      toneFilter.connect(dest as unknown as Tone.ToneAudioNode);
+      recordingDestRef.current = dest;
 
       const toneTrack = tracksRef.current.find(t => t.id === 'tone');
       const currentSynthType = overrideSynthType ?? toneTrack?.synthType ?? 'mono';
