@@ -70,6 +70,10 @@ interface TrackState {
   fmIndex?: number;   // modulationIndex del FMSynth, rango 0–50
   wfAmount?: number;   // intensidad del wavefolding (0-10, default 3)
   wfSymmetry?: number; // sesgo de la curva wavefold (-1 a 1, default 0)
+  addPartials?: number;   // número de parciales (2-8, default 4)
+  addBrightness?: number; // pendiente espectral (0-1, default 0.5)
+  arRate?: number;        // frecuencia del LFO audio-rate (20-2000Hz, default 80)
+  arDepth?: number;       // profundidad de modulación en Hz (0-3000, default 0)
   hits: number;
   misses: number;
 }
@@ -389,6 +393,8 @@ export const EuclideanSequencer = () => {
       isTonal: true, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
       fmRatio: 2, fmIndex: 10,
       wfAmount: 3, wfSymmetry: 0,
+      addPartials: 4, addBrightness: 0.5,
+      arRate: 80, arDepth: 0,
       hits: 0, misses: 0
     }),
   ]);
@@ -652,7 +658,7 @@ export const EuclideanSequencer = () => {
           chaosEnabled: t.chaosEnabled, entropy: t.entropy,
           evolveEnabled: t.evolveEnabled, mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed,
           volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend, ratchet: t.ratchet,
-          ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices], synthType: t.synthType, fmRatio: t.fmRatio, fmIndex: t.fmIndex, wfAmount: t.wfAmount, wfSymmetry: t.wfSymmetry } : {}),
+          ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices], synthType: t.synthType, fmRatio: t.fmRatio, fmIndex: t.fmIndex, wfAmount: t.wfAmount, wfSymmetry: t.wfSymmetry, addPartials: t.addPartials, addBrightness: t.addBrightness, arRate: t.arRate, arDepth: t.arDepth } : {}),
         }])
       ),
     };
@@ -717,6 +723,10 @@ export const EuclideanSequencer = () => {
           fmIndex: config.fmIndex ?? t.fmIndex,
           wfAmount: config.wfAmount ?? t.wfAmount,
           wfSymmetry: config.wfSymmetry ?? t.wfSymmetry,
+          addPartials: config.addPartials ?? t.addPartials,
+          addBrightness: config.addBrightness ?? t.addBrightness,
+          arRate: config.arRate ?? t.arRate,
+          arDepth: config.arDepth ?? t.arDepth,
         } : {}),
         hits: 0,
         misses: 0,
@@ -1702,6 +1712,8 @@ export const EuclideanSequencer = () => {
       const fmIndex = toneTrack?.fmIndex ?? 10;
       const wfAmount = toneTrack?.wfAmount ?? 3;
       const wfSymmetry = toneTrack?.wfSymmetry ?? 0;
+      const addPartials = toneTrack?.addPartials ?? 4;
+      const addBrightness = toneTrack?.addBrightness ?? 0.5;
 
       let toneSynth: any;
 
@@ -1743,6 +1755,104 @@ export const EuclideanSequencer = () => {
             toneReverbSend.dispose();
           }
         };
+      } else if (currentSynthType === 'add') {
+        // Síntesis aditiva: suma de parciales armónicos
+        const oscillators: Tone.Oscillator[] = [];
+        const gains: Tone.Gain[] = [];
+        const outputGain = new Tone.Gain(0.6).connect(toneFilter);
+        let currentFreq = 220;
+
+        const buildPartials = (freq: number, nPartials: number, brightness: number) => {
+          oscillators.forEach(o => { try { o.stop(); o.dispose(); } catch(e) {} });
+          gains.forEach(g => g.dispose());
+          oscillators.length = 0;
+          gains.length = 0;
+
+          for (let i = 1; i <= nPartials; i++) {
+            const osc = new Tone.Oscillator({
+              type: 'sine',
+              frequency: freq * i,
+              volume: -60
+            });
+            const gain = new Tone.Gain(0);
+            const naturalAmp = 1 / i;
+            const flatAmp = 1 / nPartials;
+            gain.gain.value = naturalAmp + (flatAmp - naturalAmp) * brightness;
+            osc.connect(gain);
+            gain.connect(outputGain);
+            oscillators.push(osc);
+            gains.push(gain);
+          }
+        };
+
+        buildPartials(currentFreq, addPartials, addBrightness);
+
+        synthsRef.current.tone = {
+          triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
+            const freq = Tone.Frequency(note).toFrequency();
+            currentFreq = freq;
+
+            const attackTime = 0.01;
+            const decayTime = typeof duration === 'number'
+              ? duration
+              : Tone.Time(duration).toSeconds();
+
+            oscillators.forEach((osc, i) => {
+              osc.frequency.setValueAtTime(freq * (i + 1), time);
+              try { osc.start(time); } catch(e) {}
+            });
+
+            outputGain.gain.cancelScheduledValues(time);
+            outputGain.gain.setValueAtTime(0, time);
+            outputGain.gain.linearRampToValueAtTime(
+              0.6 * velocity, time + attackTime
+            );
+            outputGain.gain.exponentialRampToValueAtTime(
+              0.001, time + attackTime + decayTime
+            );
+
+            oscillators.forEach(osc => {
+              try { osc.stop(time + attackTime + decayTime + 0.05); } catch(e) {}
+            });
+
+            const dynamicCutoff = 600 + velocity * 4000;
+            if (isFinite(dynamicCutoff)) {
+              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+            }
+          },
+          setVolume: (vol: number) => {
+            outputGain.gain.rampTo(vol * 0.6, 0.05);
+          },
+          setSends: (delayVal: number, reverbVal: number) => {
+            toneDelaySend.gain.rampTo(delayVal, 0.05);
+            toneReverbSend.gain.rampTo(reverbVal, 0.05);
+          },
+          updateAddParams: (nPartials: number, brightness: number) => {
+            if (nPartials !== oscillators.length) {
+              buildPartials(currentFreq, nPartials, brightness);
+            } else {
+              gains.forEach((g, i) => {
+                const naturalAmp = 1 / (i + 1);
+                const flatAmp = 1 / nPartials;
+                g.gain.rampTo(naturalAmp + (flatAmp - naturalAmp) * brightness, 0.05);
+              });
+            }
+          },
+          dispose: () => {
+            oscillators.forEach(o => { try { o.stop(); o.dispose(); } catch(e) {} });
+            gains.forEach(g => g.dispose());
+            outputGain.dispose();
+            toneFilter.dispose();
+            toneDelaySend.dispose();
+            toneReverbSend.dispose();
+          }
+        };
+
+        const track = tracksRef.current.find(t => t.id === 'tone');
+        if (track && synthsRef.current.tone) {
+          synthsRef.current.tone.setVolume(track.volume);
+          synthsRef.current.tone.setSends(track.delaySend, track.reverbSend);
+        }
       } else if (currentSynthType === 'wf') {
         // West Coast synthesis: oscillator → wavefolder → LPG
         const wfOsc = new Tone.Oscillator({
@@ -1868,6 +1978,34 @@ export const EuclideanSequencer = () => {
           }
         };
       }
+      // Audio-Rate Modulation module — disponible en todos los modos de synth tonal
+      const toneTrackCurrent = tracksRef.current.find(t => t.id === 'tone');
+      const arRate = toneTrackCurrent?.arRate ?? 80;
+      const arDepth = toneTrackCurrent?.arDepth ?? 0;
+
+      const arLFO = new Tone.Oscillator({
+        type: 'sine',
+        frequency: arRate
+      });
+      const arGain = new Tone.Gain(arDepth);
+      arLFO.connect(arGain);
+      arGain.connect(toneFilter.frequency);
+      let arRunning = arDepth > 0;
+      if (arRunning) arLFO.start();
+
+      // Extender la interfaz del synth con métodos AR
+      const existingDispose = synthsRef.current.tone.dispose;
+      synthsRef.current.tone.updateArParams = (rate: number, depth: number) => {
+        arLFO.frequency.rampTo(rate, 0.05);
+        arGain.gain.rampTo(depth, 0.05);
+        if (depth > 0 && !arRunning) { arLFO.start(); arRunning = true; }
+        if (depth === 0 && arRunning) { arLFO.stop(); arRunning = false; }
+      };
+      synthsRef.current.tone.dispose = () => {
+        try { arLFO.stop(); arLFO.dispose(); } catch(e) {}
+        arGain.dispose();
+        existingDispose();
+      };
     }
     // Apply current volume and sends
     const track = tracksRef.current.find(t => t.id === trackId);
@@ -3078,6 +3216,38 @@ export const EuclideanSequencer = () => {
                 if (synthsRef.current.tone?.updateWfParams) {
                   const toneTrack = tracksRef.current.find(t => t.id === 'tone');
                   synthsRef.current.tone.updateWfParams(toneTrack?.wfAmount ?? 3, val);
+                }
+              }}
+              addPartials={track.addPartials}
+              addBrightness={track.addBrightness}
+              arRate={track.arRate}
+              arDepth={track.arDepth}
+              onAddPartialsChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, addPartials: val } : t));
+                if (synthsRef.current.tone?.updateAddParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateAddParams(val, tt?.addBrightness ?? 0.5);
+                }
+              }}
+              onAddBrightnessChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, addBrightness: val } : t));
+                if (synthsRef.current.tone?.updateAddParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateAddParams(tt?.addPartials ?? 4, val);
+                }
+              }}
+              onArRateChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, arRate: val } : t));
+                if (synthsRef.current.tone?.updateArParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateArParams(val, tt?.arDepth ?? 0);
+                }
+              }}
+              onArDepthChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, arDepth: val } : t));
+                if (synthsRef.current.tone?.updateArParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateArParams(tt?.arRate ?? 80, val);
                 }
               }}
               isStudyMode={isStudyMode}

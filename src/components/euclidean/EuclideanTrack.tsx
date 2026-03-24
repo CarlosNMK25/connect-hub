@@ -96,6 +96,14 @@ interface EuclideanTrackProps {
   wfSymmetry?: number;
   onWfAmountChange?: (val: number) => void;
   onWfSymmetryChange?: (val: number) => void;
+  addPartials?: number;
+  addBrightness?: number;
+  arRate?: number;
+  arDepth?: number;
+  onAddPartialsChange?: (val: number) => void;
+  onAddBrightnessChange?: (val: number) => void;
+  onArRateChange?: (val: number) => void;
+  onArDepthChange?: (val: number) => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
   temporalityMode: TemporalityMode;
@@ -238,6 +246,14 @@ export const EuclideanTrack = React.memo(({
   onFmIndexChange,
   onWfAmountChange,
   onWfSymmetryChange,
+  addPartials,
+  addBrightness,
+  arRate,
+  arDepth,
+  onAddPartialsChange,
+  onAddBrightnessChange,
+  onArRateChange,
+  onArDepthChange,
   isStudyMode,
   studyVoice = 'technical',
   temporalityMode,
@@ -799,6 +815,7 @@ export const EuclideanTrack = React.memo(({
                 <option value="mono">Mono</option>
                 <option value="fm">FM</option>
                 <option value="wf">WF</option>
+                <option value="add">ADD</option>
               </select>
             </div>
             <div className="space-y-1">
@@ -1097,6 +1114,10 @@ export const EuclideanTrack = React.memo(({
     prevProps.fmRatio === nextProps.fmRatio &&
     prevProps.fmIndex === nextProps.fmIndex &&
     prevProps.wfAmount === nextProps.wfAmount &&
-    prevProps.wfSymmetry === nextProps.wfSymmetry
+    prevProps.wfSymmetry === nextProps.wfSymmetry &&
+    prevProps.addPartials === nextProps.addPartials &&
+    prevProps.addBrightness === nextProps.addBrightness &&
+    prevProps.arRate === nextProps.arRate &&
+    prevProps.arDepth === nextProps.arDepth
   );
 });
