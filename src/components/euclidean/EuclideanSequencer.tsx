@@ -1778,12 +1778,12 @@ export const EuclideanSequencer = () => {
       const toneFilter = new Tone.Filter(2000, "lowpass").connect(master.compressor);
       toneFilter.connect(toneDelaySend);
       toneFilter.connect(toneReverbSend);
+      toneFilterRef.current = toneFilter;
 
-      const rawCtx = Tone.getContext().rawContext as AudioContext;
-      const dest = recordingDestRef.current 
-        ?? rawCtx.createMediaStreamDestination();
-      toneFilter.connect(dest as unknown as Tone.ToneAudioNode);
-      recordingDestRef.current = dest;
+      // Reconectar nodo de captura si existe
+      if (recordingDestRef.current) {
+        toneFilter.connect(recordingDestRef.current as unknown as Tone.ToneAudioNode);
+      }
 
       const toneTrack = tracksRef.current.find(t => t.id === 'tone');
       const currentSynthType = overrideSynthType ?? toneTrack?.synthType ?? 'mono';
