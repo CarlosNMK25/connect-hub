@@ -1271,7 +1271,38 @@ export const EuclideanTrack = React.memo(({
         </div>
       )}
 
-      {id !== 'cloud' && (
+      {/* Cloud Mode Selector */}
+      {id === 'cloud' && (
+        <div className="flex items-center gap-4 mb-2">
+          <div className="space-y-0.5">
+            <span className="text-[7px] font-mono uppercase text-idm-muted">Mode</span>
+            <select
+              value={cloudMode ?? 'granular'}
+              onChange={e => onCloudModeChange?.(e.target.value as 'granular' | 'eno')}
+              className="block w-16 bg-white border border-black/10 rounded-lg text-[10px] font-mono px-1.5 py-1 text-idm-ink focus:outline-none focus:border-system-accent"
+            >
+              <option value="granular">Gran</option>
+              <option value="eno">Eno</option>
+            </select>
+          </div>
+          {cloudMode === 'eno' && (
+            <div className="space-y-0.5">
+              <span className="text-[7px] font-mono uppercase text-idm-muted">Speed</span>
+              <input
+                type="range" min={0.5} max={2.0} step={0.1}
+                value={enoSpeed ?? 1.0}
+                onChange={e => onEnoSpeedChange?.(parseFloat(e.target.value))}
+                className="w-20 h-[7px] accent-system-accent"
+              />
+              <span className="text-[7px] font-mono text-idm-ink">
+                {(enoSpeed ?? 1.0).toFixed(1)}×
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+
         <div className="flex flex-wrap gap-3 pt-2">
           {pattern.map((active, i) => {
             const scaleIntervals = SCALES[scaleId] || SCALES.phrygianDominant;
