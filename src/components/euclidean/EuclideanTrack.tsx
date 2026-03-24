@@ -92,6 +92,10 @@ interface EuclideanTrackProps {
   onSynthTypeChange?: (val: string) => void;
   onFmRatioChange?: (val: number) => void;
   onFmIndexChange?: (val: number) => void;
+  wfAmount?: number;
+  wfSymmetry?: number;
+  onWfAmountChange?: (val: number) => void;
+  onWfSymmetryChange?: (val: number) => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
   temporalityMode: TemporalityMode;
