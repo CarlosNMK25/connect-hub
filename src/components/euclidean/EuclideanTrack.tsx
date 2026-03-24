@@ -1246,6 +1246,7 @@ export const EuclideanTrack = React.memo(({
     prevProps.addBrightness === nextProps.addBrightness &&
     prevProps.arRate === nextProps.arRate &&
     prevProps.arDepth === nextProps.arDepth &&
-    prevProps.toneRecordingState === nextProps.toneRecordingState
+    prevProps.toneRecordingState === nextProps.toneRecordingState &&
+    prevProps.cloudRecordingState === nextProps.cloudRecordingState
   );
 });

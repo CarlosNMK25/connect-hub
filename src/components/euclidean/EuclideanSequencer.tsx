@@ -3536,6 +3536,8 @@ export const EuclideanSequencer = () => {
               }}
               toneRecordingState={toneRecordingState}
               onRecordAction={handleArmOrRecord}
+              cloudRecordingState={cloudRecordingState}
+              onCloudRecordAction={handleCloudArmOrRecord}
               isStudyMode={isStudyMode}
               studyVoice={studyVoice}
               anySoloed={tracks.some(t => t.isSoloed)}
