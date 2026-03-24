@@ -58,6 +58,14 @@ export const PEDAGOGY = {
     phaseRadar: "Radar de fase circular que visualiza la posición actual de cada pista dentro de su ciclo individual. Cada pista se representa como un punto en un anillo proporcional a sus steps. Cuando todos los puntos se alinean → momento de sincronía (beat 1 global). La velocidad angular de cada punto depende de n: pistas con más steps giran más lento.",
     eclipseCountdown: "Countdown en tiempo real hasta el próximo eclipse rítmico (momento en que todos los patrones coinciden en el beat 1). Calculado como (MCM − step_actual) × duración_semicorchea. Cuando MCM es bajo (16-32), los eclipses son frecuentes y el countdown se recicla rápido. Con MCM alto (>1000), el eclipse puede tardar minutos, indicando una poliritmia de evolución lenta donde la repetición exacta es imperceptible.",
     hitRate: "Porcentaje de onsets que realmente sonaron vs los que fueron programados por el algoritmo euclidiano. Hit Rate = hits / (hits + misses) × 100. Con probabilidad=1 y chaos=0, el hit rate es 100% (determinista). Al activar Chaos o reducir la probabilidad, los onsets se filtran estocásticamente y el hit rate baja, indicando cuánto silencio activo está generando el sistema. Es el termómetro de la densidad efectiva del patrón.",
+    fmRatio: "Harmonicity — relación de frecuencia entre portadora y modulador. Valores enteros (1, 2, 3) = timbres armónicos. Valores no enteros (1.5, 2.718) = inarmónicos, metálicos. Autechre usa ratios irracionales para leads que suenan 'rotos pero musicales'.",
+    fmIndex: "Modulación Index — profundidad del FM. A 0 suena como el oscilador puro. A 10 empieza la riqueza armónica. A 30+ el espectro colapsa en ruido denso. Aphex Twin usa índices >50 para sus leads más agresivos.",
+    wfAmount: "Intensidad del wavefolding — cuántas veces se dobla la onda sobre sí misma. A 0 es el triángulo puro. A 3-4 aparecen los armónicos característicos del Buchla. A 8+ el timbre colapsa en densidad espectral máxima. Técnica §7.1 del documento IDM.",
+    wfSymmetry: "Sesgo de la curva de wavefold — desplaza el punto de doblez respecto al centro. A 0 es simétrico (armónicos pares e impares). Positivo enfatiza impares. Negativo crea asimetría que el oído percibe como 'calidez' o 'suciedad' según el contexto.",
+    addPartials: "Número de parciales armónicos activos. 2 = fundamental + octava, timbre hueco. 4 = timbre completo natural. 8 = denso, rico, casi como un instrumento acústico. Cada parcial es un oscilador sine a frecuencia n×fundamental.",
+    addBrightness: "Pendiente espectral — mezcla entre caída natural (1/n, oscuro) y amplitud plana (todos iguales, brillante). A 0 los graves dominan. A 1 todos los parciales tienen el mismo peso — timbre metálico, artificial. Additive synthesis pura de Yamaha DX7 usaba pendientes intermedias.",
+    arRate: "Frecuencia del LFO de audio-rate (20-2000Hz). Por debajo de 20Hz es vibrato/tremolo convencional. Entre 20-100Hz crea sidebands audibles — nuevas frecuencias que no existían en la señal original. A 440Hz el LFO crea una frecuencia diferencia audible. Técnica §6.3 IDM.",
+    arDepth: "Profundidad de la modulación audio-rate en Hz. A 0 el LFO está parado — sin efecto. A 100Hz crea sidebands sutiles. A 1000Hz+ el timbre cambia radicalmente — aparecen frecuencias de diferencia e intermodulación que el oído interpreta como inarmónicas o metálicas.",
   } as PedagogyMicro,
 
   microLiterary: {
@@ -96,6 +104,14 @@ export const PEDAGOGY = {
     phaseRadar: "Un radar circular donde cada pista es un satélite en órbita. Los puntos giran a velocidades distintas según la longitud de su ciclo, y el momento en que todos se alinean es el 'eclipse' rítmico. Es la visualización más intuitiva de la poliritmia: ves literalmente cómo los tiempos se persiguen y se encuentran.",
     eclipseCountdown: "El reloj de arena del eclipse rítmico. Cuenta los segundos que faltan para que todos los satélites se alineen en el mismo meridiano — el momento donde la poliritmia colapsa brevemente en unísono antes de volver a divergir. En ciclos cortos es un metrónomo cósmico; en ciclos largos, es una promesa lejana que transforma la escucha en una espera contemplativa.",
     hitRate: "El pulso vital del patrón. Mide cuántos golpes programados realmente llegaron a sonar, revelando la tensión entre intención y azar. Al 100% el algoritmo manda; al 50% el silencio y el sonido negocian en igualdad de condiciones. Es el indicador más directo de cuánto 'aire' respira tu ritmo — cuánto espacio le has dado al fantasma del silencio para habitar entre los golpes.",
+    fmRatio: "El ratio FM es la distancia entre dos voces que cantan juntas. Cuando es un número limpio, armonizan. Cuando es irracional, crean tensión — como dos relojes que nunca sincronizan del todo.",
+    fmIndex: "El Index FM es cuánto tiembla la voz. A 0 es cristalina. A 50 es un grito.",
+    wfAmount: "El fold es origami sónico. Doblar la onda una vez crea un pliegue. Doblarla ocho veces crea una textura que el oído no puede desenredar.",
+    wfSymmetry: "La simetría del fold decide si la onda respira igual por los dos lados. Rota hacia un lado y el sonido pierde su equilibrio — como una silla con una pata más corta.",
+    addPartials: "Los parciales son las voces del coro. Con 2 cantan al unísono y la octava. Con 8 cantan todas las voces de la serie armónica — la física del sonido hecha visible.",
+    addBrightness: "El brillo es cuánto poder cedes a los armónicos agudos. A 0 el fundamental manda. A 1 es una democracia espectral — todos los armónicos votan igual.",
+    arRate: "Cuando el modulador supera 20Hz deja de ser movimiento y se convierte en sonido. El LFO ya no balancea la nota — la infecta con nuevas frecuencias.",
+    arDepth: "La profundidad AR decide qué tan lejos viaja la infección. A 0 no hay enfermedad. A 3000Hz el sonido ya no recuerda de dónde vino.",
   } as PedagogyMicro,
 
   meso: {

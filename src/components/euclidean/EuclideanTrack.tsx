@@ -860,7 +860,7 @@ export const EuclideanTrack = React.memo(({
       {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
       {isTonal && synthType === 'fm' && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('fmRatio', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Ratio</span>
             <input
               type="range"
@@ -875,7 +875,7 @@ export const EuclideanTrack = React.memo(({
               {(fmRatio ?? 2).toFixed(1)}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('fmIndex', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Index</span>
             <input
               type="range"
@@ -895,7 +895,7 @@ export const EuclideanTrack = React.memo(({
       {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
       {isTonal && synthType === 'wf' && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('wfAmount', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Fold</span>
             <input
               type="range"
@@ -910,7 +910,7 @@ export const EuclideanTrack = React.memo(({
               {(wfAmount ?? 3).toFixed(1)}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('wfSymmetry', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Symm</span>
             <input
               type="range"
@@ -930,7 +930,7 @@ export const EuclideanTrack = React.memo(({
       {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
       {isTonal && synthType === 'add' && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('addPartials', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Parts</span>
             <input
               type="range" min="2" max="8" step="1"
@@ -942,7 +942,7 @@ export const EuclideanTrack = React.memo(({
               {addPartials ?? 4}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('addBrightness', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-12">Bright</span>
             <input
               type="range" min="0" max="1" step="0.05"
@@ -960,7 +960,7 @@ export const EuclideanTrack = React.memo(({
       {isTonal && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5 opacity-60 hover:opacity-100 transition-opacity">
           <span className="text-[7px] font-mono uppercase text-idm-muted">AR mod</span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('arRate', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted w-6">Rate</span>
             <input
               type="range" min="20" max="2000" step="10"
@@ -972,7 +972,7 @@ export const EuclideanTrack = React.memo(({
               {arRate ?? 80}Hz
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('arDepth', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted w-8">Depth</span>
             <input
               type="range" min="0" max="3000" step="50"
