@@ -416,6 +416,7 @@ export const EuclideanSequencer = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingChunksRef = useRef<Blob[]>([]);
   const recordingDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
+  const toneFilterRef = useRef<Tone.Filter | null>(null);
   const lastRecordedBufferRef = useRef<AudioBuffer | null>(null);
   const [isRecordingTone, setIsRecordingTone] = useState(false);
 
