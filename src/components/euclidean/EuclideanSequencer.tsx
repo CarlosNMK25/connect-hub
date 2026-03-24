@@ -1567,6 +1567,65 @@ export const EuclideanSequencer = () => {
     }
   }, []);
 
+  const handleStartRecording = useCallback(() => {
+    if (!recordingDestRef.current) return;
+    
+    recordingChunksRef.current = [];
+    
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus'
+      : 'audio/webm';
+    
+    const recorder = new MediaRecorder(
+      recordingDestRef.current.stream,
+      { mimeType }
+    );
+    
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) {
+        recordingChunksRef.current.push(e.data);
+      }
+    };
+    
+    recorder.onstop = async () => {
+      const blob = new Blob(recordingChunksRef.current, { type: mimeType });
+      
+      // TODO: Safari no soporta decodeAudioData de webm.
+      // Para Send to Atmosphere en Safari necesitaremos
+      // grabación en WAV via AudioWorklet o conversión offline.
+      try {
+        const arrayBuffer = await blob.arrayBuffer();
+        const audioBuffer = await Tone.getContext().rawContext
+          .decodeAudioData(arrayBuffer);
+        lastRecordedBufferRef.current = audioBuffer;
+      } catch(e) {
+        console.warn('No se pudo decodificar el buffer grabado:', e);
+      }
+      
+      // Descarga automática
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tone-${Date.now()}.webm`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      setIsRecordingTone(false);
+      logChange('Tone grabado y descargado');
+    };
+    
+    recorder.start(100);
+    mediaRecorderRef.current = recorder;
+    setIsRecordingTone(true);
+    logChange('Tone REC iniciado');
+  }, [logChange]);
+
+  const handleStopRecording = useCallback(() => {
+    if (mediaRecorderRef.current?.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+  }, []);
+
   const handleClearSampler = (trackId: string) => {
     if (synthsRef.current[trackId]?.dispose) {
       synthsRef.current[trackId].dispose();
