@@ -494,8 +494,39 @@ export const EuclideanTrack = React.memo(({
               <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
                 onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onRatchetChange(Math.round(Math.max(0, Math.min(4, ((e.clientX - rect.left) / rect.width) * 4)))); }}>
                 <div className="h-full transition-all duration-100" style={{ width: `${(ratchet / 4) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
-              </div>
             </div>
+            {/* Round Robin toggle + amount */}
+            <div className="flex flex-col gap-1">
+              <button
+                onClick={() => onRrEnabledChange?.(!rrEnabled)}
+                className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                  rrEnabled
+                    ? 'bg-system-accent text-white border-system-accent'
+                    : 'bg-white text-idm-muted border-black/10'
+                }`}
+                title="Round Robin — micro-variación por hit"
+              >
+                RR
+              </button>
+              {rrEnabled && (
+                <div className="flex items-center gap-1">
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={rrAmount ?? 30}
+                    onChange={e => onRrAmountChange?.(Number(e.target.value))}
+                    className="w-12 h-[7px] accent-system-accent"
+                    title={`RR Amount: ${rrAmount ?? 30}%`}
+                  />
+                  <span className="text-[7px] font-mono text-idm-muted">
+                    {rrAmount ?? 30}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
           </div>
 
           {/* Track Name + Solo/Mute + Status */}
