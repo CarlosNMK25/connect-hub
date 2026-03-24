@@ -96,6 +96,14 @@ interface EuclideanTrackProps {
   wfSymmetry?: number;
   onWfAmountChange?: (val: number) => void;
   onWfSymmetryChange?: (val: number) => void;
+  addPartials?: number;
+  addBrightness?: number;
+  arRate?: number;
+  arDepth?: number;
+  onAddPartialsChange?: (val: number) => void;
+  onAddBrightnessChange?: (val: number) => void;
+  onArRateChange?: (val: number) => void;
+  onArDepthChange?: (val: number) => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
   temporalityMode: TemporalityMode;
