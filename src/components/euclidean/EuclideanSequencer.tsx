@@ -3351,9 +3351,8 @@ export const EuclideanSequencer = () => {
                   synthsRef.current.tone.updateArParams(tt?.arRate ?? 80, val);
                 }
               }}
-              isRecordingTone={isRecordingTone}
-              onStartRecording={handleStartRecording}
-              onStopRecording={handleStopRecording}
+              toneRecordingState={toneRecordingState}
+              onRecordAction={handleArmOrRecord}
               isStudyMode={isStudyMode}
               studyVoice={studyVoice}
               anySoloed={tracks.some(t => t.isSoloed)}
