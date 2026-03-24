@@ -2240,6 +2240,151 @@ export const EuclideanSequencer = () => {
             toneReverbSend.dispose();
           }
         };
+      } else if (currentSynthType === 'ks') {
+        // Karplus-Strong: noise burst → delay loop → filter
+        const ksDecayAmount = track.ksDecay ?? 0.97;
+        const ksBrightnessFreq = track.ksBrightness ?? 5000;
+
+        const ksMasterGain = new Tone.Gain(1);
+        ksMasterGain.connect(toneFilter);
+
+        const ksDelay = new Tone.Delay({ delayTime: 0.01, maxDelay: 0.05 });
+        const ksFilter = new Tone.Filter({ frequency: ksBrightnessFreq, type: 'lowpass', rolloff: -12 });
+        const ksLimiter = new Tone.Limiter(-3);
+        const ksFeedback = new Tone.Gain(ksDecayAmount);
+
+        // Loop: ksDelay → ksFilter → ksLimiter → ksFeedback → ksDelay
+        ksDelay.connect(ksFilter);
+        ksFilter.connect(ksLimiter);
+        ksLimiter.connect(ksFeedback);
+        ksFeedback.connect(ksDelay);
+        // Output from loop
+        ksFilter.connect(ksMasterGain);
+
+        synthsRef.current.tone = {
+          triggerAttackRelease: (note: string, _duration: string | number, time: number, velocity = 0.8) => {
+            const freq = Tone.Frequency(note).toFrequency();
+            const delayTime = 1 / freq;
+            ksDelay.delayTime.setValueAtTime(delayTime, time);
+
+            // Noise burst excitation (~50ms)
+            const rawCtx = Tone.context.rawContext as AudioContext;
+            const bufferSize = Math.ceil(rawCtx.sampleRate * 0.05);
+            const noiseBuffer = rawCtx.createBuffer(1, bufferSize, rawCtx.sampleRate);
+            const data = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+              data[i] = (Math.random() - 0.5) * 2 * velocity;
+            }
+            const noiseSource = rawCtx.createBufferSource();
+            noiseSource.buffer = noiseBuffer;
+            noiseSource.connect((ksDelay as any).input);
+            noiseSource.start(time);
+            noiseSource.stop(time + 0.05);
+
+            // Dynamic filter
+            const dynamicCutoff = 600 + velocity * 4000;
+            if (isFinite(dynamicCutoff)) {
+              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+            }
+          },
+          setVolume: (vol: number) => {
+            ksMasterGain.gain.rampTo(Tone.dbToGain(vol) * 0.8, 0.05);
+          },
+          setSends: (delayVal: number, reverbVal: number) => {
+            toneDelaySend.gain.rampTo(delayVal, 0.05);
+            toneReverbSend.gain.rampTo(reverbVal, 0.05);
+          },
+          updateKsParams: (newDecay: number, newBrightness: number) => {
+            ksFeedback.gain.rampTo(newDecay, 0.1);
+            ksFilter.frequency.rampTo(newBrightness, 0.1);
+          },
+          dispose: () => {
+            ksDelay.dispose();
+            ksFilter.dispose();
+            ksLimiter.dispose();
+            ksFeedback.dispose();
+            ksMasterGain.dispose();
+            toneFilter.dispose();
+            toneDelaySend.dispose();
+            toneReverbSend.dispose();
+          }
+        };
+      } else if (currentSynthType === 'modal') {
+        // Modal synthesis: banco de resonadores
+        const MODAL_BODIES = {
+          bell: [
+            { ratio: 1.000, decay: 3.0, amp: 1.00 },
+            { ratio: 2.756, decay: 2.0, amp: 0.67 },
+            { ratio: 5.404, decay: 1.5, amp: 0.45 },
+            { ratio: 8.933, decay: 1.0, amp: 0.28 },
+          ],
+          plate: [
+            { ratio: 1.000, decay: 2.0, amp: 1.00 },
+            { ratio: 1.414, decay: 1.5, amp: 0.80 },
+            { ratio: 2.000, decay: 1.2, amp: 0.60 },
+            { ratio: 2.449, decay: 0.8, amp: 0.40 },
+            { ratio: 3.000, decay: 0.5, amp: 0.25 },
+          ],
+          string: [
+            { ratio: 1.0, decay: 2.5, amp: 1.00 },
+            { ratio: 2.0, decay: 2.0, amp: 0.50 },
+            { ratio: 3.0, decay: 1.5, amp: 0.33 },
+            { ratio: 4.0, decay: 1.0, amp: 0.25 },
+            { ratio: 5.0, decay: 0.8, amp: 0.20 },
+          ],
+        } as const;
+
+        const modalMasterGain = new Tone.Gain(1);
+        modalMasterGain.connect(toneFilter);
+
+        synthsRef.current.tone = {
+          triggerAttackRelease: (note: string, _duration: string | number, time: number, velocity = 0.8) => {
+            const freq = Tone.Frequency(note).toFrequency();
+            const bodyKey = (track.modalBody ?? 'bell') as keyof typeof MODAL_BODIES;
+            const body = MODAL_BODIES[bodyKey] || MODAL_BODIES.bell;
+            const decayMult = track.modalDecay ?? 1.0;
+
+            body.forEach(mode => {
+              const osc = new Tone.Oscillator({ type: 'sine' });
+              const env = new Tone.Gain(0);
+              const totalDecay = mode.decay * decayMult;
+
+              osc.frequency.value = freq * mode.ratio;
+              env.gain.setValueAtTime(mode.amp * velocity, time);
+              env.gain.exponentialRampToValueAtTime(0.0001, time + totalDecay);
+
+              osc.connect(env);
+              env.connect(modalMasterGain);
+              osc.start(time);
+              osc.stop(time + totalDecay + 0.1);
+
+              // Cleanup env after decay to prevent memory leak
+              const cleanupMs = (totalDecay + 0.2) * 1000;
+              setTimeout(() => {
+                try { env.dispose(); } catch {}
+              }, cleanupMs);
+            });
+
+            // Dynamic filter
+            const dynamicCutoff = 600 + velocity * 4000;
+            if (isFinite(dynamicCutoff)) {
+              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+            }
+          },
+          setVolume: (vol: number) => {
+            modalMasterGain.gain.rampTo(Tone.dbToGain(vol) * 0.8, 0.05);
+          },
+          setSends: (delayVal: number, reverbVal: number) => {
+            toneDelaySend.gain.rampTo(delayVal, 0.05);
+            toneReverbSend.gain.rampTo(reverbVal, 0.05);
+          },
+          dispose: () => {
+            modalMasterGain.dispose();
+            toneFilter.dispose();
+            toneDelaySend.dispose();
+            toneReverbSend.dispose();
+          }
+        };
       } else if (currentSynthType === 'wf') {
         // West Coast synthesis: oscillator → wavefolder → LPG
         const wfOsc = new Tone.Oscillator({
