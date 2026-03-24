@@ -1778,9 +1778,9 @@ export const EuclideanSequencer = () => {
       toneFilter.connect(toneDelaySend);
       toneFilter.connect(toneReverbSend);
 
-      // Nodo de captura para grabación — conectado a toneFilter (siempre reconectar en rebuild)
+      const rawCtx = Tone.getContext().rawContext as AudioContext;
       const dest = recordingDestRef.current 
-        ?? Tone.getContext().rawContext.createMediaStreamDestination();
+        ?? rawCtx.createMediaStreamDestination();
       toneFilter.connect(dest as unknown as Tone.ToneAudioNode);
       recordingDestRef.current = dest;
 
