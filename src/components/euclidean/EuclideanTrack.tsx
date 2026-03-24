@@ -126,6 +126,10 @@ interface EuclideanTrackProps {
   ambientSpeed?: number;
   onAmbientVolumeChange?: (val: number) => void;
   onAmbientSpeedChange?: (val: number) => void;
+  cloudMode?: 'granular' | 'eno';
+  enoSpeed?: number;
+  onCloudModeChange?: (mode: 'granular' | 'eno') => void;
+  onEnoSpeedChange?: (val: number) => void;
   toneRecordingState?: 'idle' | 'armed' | 'recording';
   onRecordAction?: () => void;
   cloudRecordingState?: 'idle' | 'armed' | 'recording';
