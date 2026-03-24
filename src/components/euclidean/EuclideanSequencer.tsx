@@ -2162,8 +2162,9 @@ export const EuclideanSequencer = () => {
         };
       } else if (currentSynthType === 'drone') {
         // Drone synthesis: sine → inject gain → feedback delay → filter → output
-        const feedbackAmount = track?.droneFeedback ?? 0.88;
-        const filterFreq = track?.droneFilterFreq ?? 2000;
+        const toneTrackDrone = tracksRef.current.find(t => t.id === 'tone');
+        const feedbackAmount = toneTrackDrone?.droneFeedback ?? 0.88;
+        const filterFreq = toneTrackDrone?.droneFilterFreq ?? 2000;
 
         const droneOsc = new Tone.Oscillator({ type: 'sine', frequency: 220, volume: -6 });
         const injectGain = new Tone.Gain(0);
