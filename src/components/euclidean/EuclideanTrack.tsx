@@ -1004,6 +1004,76 @@ export const EuclideanTrack = React.memo(({
           </div>
         </div>
       )}
+      {/* Pad controls */}
+      {isTonal && synthType === 'pad' && (
+        <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Voices</span>
+            <input
+              type="range" min="3" max="7" step="1"
+              value={padVoices ?? 5}
+              onChange={(e) => onPadVoicesChange?.(parseInt(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-4">
+              {padVoices ?? 5}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Detune</span>
+            <input
+              type="range" min="0" max="100" step="1"
+              value={padDetune ?? 30}
+              onChange={(e) => onPadDetuneChange?.(parseInt(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-6">
+              {padDetune ?? 30}¢
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Attack</span>
+            <input
+              type="range" min="0.01" max="2.0" step="0.01"
+              value={padAttack ?? 0.3}
+              onChange={(e) => onPadAttackChange?.(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-8">
+              {(padAttack ?? 0.3).toFixed(2)}s
+            </span>
+          </div>
+        </div>
+      )}
+      {/* Drone controls */}
+      {isTonal && synthType === 'drone' && (
+        <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-12">Feedback</span>
+            <input
+              type="range" min="0.70" max="0.98" step="0.01"
+              value={droneFeedback ?? 0.88}
+              onChange={(e) => onDroneFeedbackChange?.(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-8">
+              {((droneFeedback ?? 0.88) * 100).toFixed(0)}%
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Filter</span>
+            <input
+              type="range" min="200" max="8000" step="50"
+              value={droneFilterFreq ?? 2000}
+              onChange={(e) => onDroneFilterFreqChange?.(parseInt(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-12">
+              {droneFilterFreq ?? 2000}Hz
+            </span>
+          </div>
+        </div>
+      )}
       {/* Audio-Rate Modulation — disponible en todos los modos de synth tonal */}
       {isTonal && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5 opacity-60 hover:opacity-100 transition-opacity">
