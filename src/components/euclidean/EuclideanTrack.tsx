@@ -260,6 +260,8 @@ export const EuclideanTrack = React.memo(({
   onArDepthChange,
   toneRecordingState,
   onRecordAction,
+  cloudRecordingState,
+  onCloudRecordAction,
   isStudyMode,
   studyVoice = 'technical',
   temporalityMode,
