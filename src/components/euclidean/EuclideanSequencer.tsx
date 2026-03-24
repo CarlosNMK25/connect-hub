@@ -1755,6 +1755,104 @@ export const EuclideanSequencer = () => {
             toneReverbSend.dispose();
           }
         };
+      } else if (currentSynthType === 'add') {
+        // Síntesis aditiva: suma de parciales armónicos
+        const oscillators: Tone.Oscillator[] = [];
+        const gains: Tone.Gain[] = [];
+        const outputGain = new Tone.Gain(0.6).connect(toneFilter);
+        let currentFreq = 220;
+
+        const buildPartials = (freq: number, nPartials: number, brightness: number) => {
+          oscillators.forEach(o => { try { o.stop(); o.dispose(); } catch(e) {} });
+          gains.forEach(g => g.dispose());
+          oscillators.length = 0;
+          gains.length = 0;
+
+          for (let i = 1; i <= nPartials; i++) {
+            const osc = new Tone.Oscillator({
+              type: 'sine',
+              frequency: freq * i,
+              volume: -60
+            });
+            const gain = new Tone.Gain(0);
+            const naturalAmp = 1 / i;
+            const flatAmp = 1 / nPartials;
+            gain.gain.value = naturalAmp + (flatAmp - naturalAmp) * brightness;
+            osc.connect(gain);
+            gain.connect(outputGain);
+            oscillators.push(osc);
+            gains.push(gain);
+          }
+        };
+
+        buildPartials(currentFreq, addPartials, addBrightness);
+
+        synthsRef.current.tone = {
+          triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
+            const freq = Tone.Frequency(note).toFrequency();
+            currentFreq = freq;
+
+            const attackTime = 0.01;
+            const decayTime = typeof duration === 'number'
+              ? duration
+              : Tone.Time(duration).toSeconds();
+
+            oscillators.forEach((osc, i) => {
+              osc.frequency.setValueAtTime(freq * (i + 1), time);
+              try { osc.start(time); } catch(e) {}
+            });
+
+            outputGain.gain.cancelScheduledValues(time);
+            outputGain.gain.setValueAtTime(0, time);
+            outputGain.gain.linearRampToValueAtTime(
+              0.6 * velocity, time + attackTime
+            );
+            outputGain.gain.exponentialRampToValueAtTime(
+              0.001, time + attackTime + decayTime
+            );
+
+            oscillators.forEach(osc => {
+              try { osc.stop(time + attackTime + decayTime + 0.05); } catch(e) {}
+            });
+
+            const dynamicCutoff = 600 + velocity * 4000;
+            if (isFinite(dynamicCutoff)) {
+              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+            }
+          },
+          setVolume: (vol: number) => {
+            outputGain.gain.rampTo(vol * 0.6, 0.05);
+          },
+          setSends: (delayVal: number, reverbVal: number) => {
+            toneDelaySend.gain.rampTo(delayVal, 0.05);
+            toneReverbSend.gain.rampTo(reverbVal, 0.05);
+          },
+          updateAddParams: (nPartials: number, brightness: number) => {
+            if (nPartials !== oscillators.length) {
+              buildPartials(currentFreq, nPartials, brightness);
+            } else {
+              gains.forEach((g, i) => {
+                const naturalAmp = 1 / (i + 1);
+                const flatAmp = 1 / nPartials;
+                g.gain.rampTo(naturalAmp + (flatAmp - naturalAmp) * brightness, 0.05);
+              });
+            }
+          },
+          dispose: () => {
+            oscillators.forEach(o => { try { o.stop(); o.dispose(); } catch(e) {} });
+            gains.forEach(g => g.dispose());
+            outputGain.dispose();
+            toneFilter.dispose();
+            toneDelaySend.dispose();
+            toneReverbSend.dispose();
+          }
+        };
+
+        const track = tracksRef.current.find(t => t.id === 'tone');
+        if (track && synthsRef.current.tone) {
+          synthsRef.current.tone.setVolume(track.volume);
+          synthsRef.current.tone.setSends(track.delaySend, track.reverbSend);
+        }
       } else if (currentSynthType === 'wf') {
         // West Coast synthesis: oscillator → wavefolder → LPG
         const wfOsc = new Tone.Oscillator({
