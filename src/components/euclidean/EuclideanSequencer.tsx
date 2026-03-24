@@ -763,8 +763,6 @@ export const EuclideanSequencer = () => {
     if (importInputRef.current) importInputRef.current.value = '';
   }, [userPresets, logChange, applyUserPreset]);
 
-    toneFilterRef.current = toneFilter;
-
 
   const stepsKey = tracks.map(t => `${t.id}:${t.steps}`).join('|');
   const mcm = useMemo(() => {
