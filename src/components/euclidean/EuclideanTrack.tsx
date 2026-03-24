@@ -1102,6 +1102,64 @@ export const EuclideanTrack = React.memo(({
           </div>
         </div>
       )}
+      {/* KS controls */}
+      {isTonal && synthType === 'ks' && (
+        <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Decay</span>
+            <input
+              type="range" min="0.80" max="0.999" step="0.001"
+              value={ksDecay ?? 0.97}
+              onChange={(e) => onKsDecayChange?.(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-10">
+              {(ksDecay ?? 0.97).toFixed(3)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Bright</span>
+            <input
+              type="range" min="500" max="8000" step="100"
+              value={ksBrightness ?? 5000}
+              onChange={(e) => onKsBrightnessChange?.(parseInt(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-12">
+              {ksBrightness ?? 5000}Hz
+            </span>
+          </div>
+        </div>
+      )}
+      {/* Modal controls */}
+      {isTonal && synthType === 'modal' && (
+        <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Body</span>
+            <select
+              value={modalBody ?? 'bell'}
+              onChange={(e) => onModalBodyChange?.(e.target.value)}
+              className="block w-14 bg-white border border-black/10 rounded-lg text-[10px] font-mono px-1.5 py-1 text-idm-ink focus:outline-none focus:border-system-accent"
+            >
+              <option value="bell">Bell</option>
+              <option value="plate">Plate</option>
+              <option value="string">String</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Decay</span>
+            <input
+              type="range" min="0.5" max="3.0" step="0.1"
+              value={modalDecay ?? 1.0}
+              onChange={(e) => onModalDecayChange?.(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-8">
+              {(modalDecay ?? 1.0).toFixed(1)}×
+            </span>
+          </div>
+        </div>
+      )}
       {/* Audio-Rate Modulation — disponible en todos los modos de synth tonal */}
       {isTonal && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5 opacity-60 hover:opacity-100 transition-opacity">
