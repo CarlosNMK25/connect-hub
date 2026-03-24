@@ -1333,6 +1333,10 @@ export const EuclideanSequencer = () => {
       if (synthsRef.current.cloud?.grainPlayer) {
         synthsRef.current.cloud.grainPlayer.stop();
       }
+      // Stop ambient loops if running
+      if (synthsRef.current.tone?.stop) {
+        synthsRef.current.tone.stop();
+      }
       // Reset current steps ref
       Object.keys(currentStepsRef.current).forEach(id => currentStepsRef.current[id] = -1);
       
