@@ -2399,7 +2399,8 @@ export const EuclideanSequencer = () => {
         // Ambient synthesis: Eno-style asynchronous sine loops
         const BASE_DURATIONS = [2.3, 3.7, 5.1, 7.3];
         const NUM_LOOPS = BASE_DURATIONS.length;
-        const ambientMasterGain = new Tone.Gain(track.ambientVolume ?? 0.6);
+        const toneTrackAmb = tracksRef.current.find(t => t.id === 'tone');
+        const ambientMasterGain = new Tone.Gain(toneTrackAmb?.ambientVolume ?? 0.6);
         ambientMasterGain.connect(toneFilter);
 
         const ambientOscs: Tone.Oscillator[] = [];
