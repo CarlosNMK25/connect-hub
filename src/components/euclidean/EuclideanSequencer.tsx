@@ -2698,6 +2698,9 @@ export const EuclideanSequencer = () => {
                     chaosEnabled: t.chaosEnabled, entropy: t.entropy, evolveEnabled: t.evolveEnabled,
                     mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed, ratchet: t.ratchet,
                     isMuted: t.isMuted, isTonal: t.isTonal, scaleId: t.scaleId,
+                    synthType: t.synthType, arRate: t.arRate, arDepth: t.arDepth,
+                    wfAmount: t.wfAmount, wfSymmetry: t.wfSymmetry,
+                    addPartials: t.addPartials, addBrightness: t.addBrightness,
                   }));
                   const diagMcm = computeMcm(diagTracks);
                   const ctx: DiagnosisContext = {
