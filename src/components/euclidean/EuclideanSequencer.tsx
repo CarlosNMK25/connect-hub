@@ -781,6 +781,8 @@ export const EuclideanSequencer = () => {
           cloudMode: (config.cloudMode as 'granular' | 'eno') ?? t.cloudMode,
           enoSpeed: config.enoSpeed ?? t.enoSpeed,
         } : {}),
+        rrEnabled: config.rrEnabled ?? false,
+        rrAmount: config.rrAmount ?? 30,
         hits: 0,
         misses: 0,
       });
