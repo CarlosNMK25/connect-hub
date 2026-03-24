@@ -802,7 +802,7 @@ export const EuclideanTrack = React.memo(({
       )}
       {/* Tonal Controls */}
       {isTonal && (
-        <div className="flex items-center gap-4 p-3 bg-idm-bg rounded-2xl border border-black/5 mt-2">
+        <div className="flex items-end gap-4 p-3 bg-idm-bg rounded-2xl border border-black/5 mt-2">
           <div className="flex flex-col items-center gap-1">
             <div className="flex items-center gap-2">
               <Music size={14} className="text-system-accent" />
