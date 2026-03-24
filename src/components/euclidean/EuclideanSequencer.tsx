@@ -2918,6 +2918,31 @@ export const EuclideanSequencer = () => {
                 }
                 return t;
               }))}
+              synthType={track.synthType}
+              fmRatio={track.fmRatio}
+              fmIndex={track.fmIndex}
+              onSynthTypeChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, synthType: val } : t));
+                if (synthsRef.current.tone?.dispose) {
+                  synthsRef.current.tone.dispose();
+                }
+                initializeOriginalSynth('tone', val);
+                logChange(`Tone synth → ${val.toUpperCase()}`);
+              }}
+              onFmRatioChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, fmRatio: val } : t));
+                if (synthsRef.current.tone?.updateFmParams) {
+                  const toneTrack = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateFmParams(val, toneTrack?.fmIndex ?? 10);
+                }
+              }}
+              onFmIndexChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, fmIndex: val } : t));
+                if (synthsRef.current.tone?.updateFmParams) {
+                  const toneTrack = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateFmParams(toneTrack?.fmRatio ?? 2, val);
+                }
+              }}
               isStudyMode={isStudyMode}
               studyVoice={studyVoice}
               anySoloed={tracks.some(t => t.isSoloed)}
