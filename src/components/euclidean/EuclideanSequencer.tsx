@@ -765,6 +765,8 @@ export const EuclideanSequencer = () => {
           ksBrightness: config.ksBrightness ?? t.ksBrightness,
           modalBody: config.modalBody ?? t.modalBody,
           modalDecay: config.modalDecay ?? t.modalDecay,
+          ambientVolume: config.ambientVolume ?? t.ambientVolume,
+          ambientSpeed: config.ambientSpeed ?? t.ambientSpeed,
         } : {}),
         hits: 0,
         misses: 0,
