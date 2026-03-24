@@ -1039,7 +1039,7 @@ export const EuclideanTrack = React.memo(({
             title={
               cloudRecordingState === 'recording' ? 'Parar grabación'
               : cloudRecordingState === 'armed' ? 'Armado — esperando Play'
-              : isPlaying ? 'Grabar Atmosphere ahora' : 'Armar grabación'
+              : 'Grabar Atmosphere'
             }
           >
             <span className={`w-1.5 h-1.5 rounded-full ${
