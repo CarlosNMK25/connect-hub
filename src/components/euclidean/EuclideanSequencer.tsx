@@ -1559,7 +1559,7 @@ export const EuclideanSequencer = () => {
     } : t));
   };
 
-  const initializeOriginalSynth = (trackId: string) => {
+  const initializeOriginalSynth = (trackId: string, overrideSynthType?: string) => {
     const master = masterBusRef.current!;
     if (trackId === 'kick') {
       const kickDelaySend = new Tone.Gain(0).connect(master.delayBus);
