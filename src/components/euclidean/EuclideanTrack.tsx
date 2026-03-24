@@ -927,6 +927,65 @@ export const EuclideanTrack = React.memo(({
           </div>
         </div>
       )}
+      {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
+      {isTonal && synthType === 'add' && (
+        <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Parts</span>
+            <input
+              type="range" min="2" max="8" step="1"
+              value={addPartials ?? 4}
+              onChange={(e) => onAddPartialsChange?.(parseInt(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-4">
+              {addPartials ?? 4}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-12">Bright</span>
+            <input
+              type="range" min="0" max="1" step="0.05"
+              value={addBrightness ?? 0.5}
+              onChange={(e) => onAddBrightnessChange?.(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-6">
+              {(addBrightness ?? 0.5).toFixed(2)}
+            </span>
+          </div>
+        </div>
+      )}
+      {/* Audio-Rate Modulation — disponible en todos los modos de synth tonal */}
+      {isTonal && (
+        <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5 opacity-60 hover:opacity-100 transition-opacity">
+          <span className="text-[7px] font-mono uppercase text-idm-muted">AR mod</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono text-idm-muted w-6">Rate</span>
+            <input
+              type="range" min="20" max="2000" step="10"
+              value={arRate ?? 80}
+              onChange={(e) => onArRateChange?.(parseInt(e.target.value))}
+              className="w-16 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-10">
+              {arRate ?? 80}Hz
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono text-idm-muted w-8">Depth</span>
+            <input
+              type="range" min="0" max="3000" step="50"
+              value={arDepth ?? 0}
+              onChange={(e) => onArDepthChange?.(parseInt(e.target.value))}
+              className="w-16 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-10">
+              {arDepth ?? 0}Hz
+            </span>
+          </div>
+        </div>
+      )}
 
       {id !== 'cloud' && (
         <div className="flex flex-wrap gap-3 pt-2">
