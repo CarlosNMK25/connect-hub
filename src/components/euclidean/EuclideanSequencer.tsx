@@ -393,6 +393,8 @@ export const EuclideanSequencer = () => {
       isTonal: true, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
       fmRatio: 2, fmIndex: 10,
       wfAmount: 3, wfSymmetry: 0,
+      addPartials: 4, addBrightness: 0.5,
+      arRate: 80, arDepth: 0,
       hits: 0, misses: 0
     }),
   ]);
