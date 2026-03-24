@@ -887,34 +887,6 @@ export const EuclideanTrack = React.memo(({
           </div>
         </div>
       )}
-      {isTonal && (
-        <button
-          onClick={onRecordAction}
-          className={`flex items-center gap-1.5 px-2.5 py-1 
-            rounded-full text-[8px] font-mono uppercase tracking-widest 
-            transition-all border ${
-              toneRecordingState === 'recording'
-                ? 'bg-red-500 text-white border-red-600 animate-pulse'
-                : toneRecordingState === 'armed'
-                ? 'bg-amber-400 text-white border-amber-500 animate-pulse'
-                : 'bg-idm-ink/5 border-idm-ink/10 text-idm-ink/50 hover:border-red-400 hover:text-red-500'
-            }`}
-          title={
-            toneRecordingState === 'recording' ? 'Parar grabación'
-            : toneRecordingState === 'armed' ? 'Armado — click para desarmar'
-            : 'Rec'
-          }
-        >
-          <span className={`w-1.5 h-1.5 rounded-full ${
-            toneRecordingState === 'recording' ? 'bg-white'
-            : toneRecordingState === 'armed' ? 'bg-white'
-            : 'bg-red-400'
-          }`} />
-          {toneRecordingState === 'recording' ? 'Stop'
-           : toneRecordingState === 'armed' ? 'Armed'
-           : 'Rec'}
-        </button>
-      )}
       {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
       {isTonal && synthType === 'fm' && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
