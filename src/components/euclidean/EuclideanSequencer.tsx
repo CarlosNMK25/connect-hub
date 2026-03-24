@@ -416,6 +416,7 @@ export const EuclideanSequencer = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingChunksRef = useRef<Blob[]>([]);
   const recordingDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
+  const toneFilterRef = useRef<Tone.Filter | null>(null);
   const lastRecordedBufferRef = useRef<AudioBuffer | null>(null);
   const [isRecordingTone, setIsRecordingTone] = useState(false);
 
@@ -1002,6 +1003,7 @@ export const EuclideanSequencer = () => {
     const toneFilter = new Tone.Filter(2000, "lowpass").connect(compressor);
     toneFilter.connect(toneDelaySend);
     toneFilter.connect(toneReverbSend);
+    toneFilterRef.current = toneFilter;
 
     const toneMonoSynth = new Tone.MonoSynth({
       oscillator: { type: 'sawtooth' },
@@ -1568,7 +1570,17 @@ export const EuclideanSequencer = () => {
   }, []);
 
   const handleStartRecording = useCallback(() => {
-    if (!recordingDestRef.current) return;
+    // Lazy-create el nodo de captura si no existe
+    if (!recordingDestRef.current) {
+      if (!toneFilterRef.current) {
+        console.warn('REC: No hay toneFilter activo');
+        return;
+      }
+      const rawCtx = Tone.getContext().rawContext as AudioContext;
+      const dest = rawCtx.createMediaStreamDestination();
+      toneFilterRef.current.connect(dest as unknown as Tone.ToneAudioNode);
+      recordingDestRef.current = dest;
+    }
     
     recordingChunksRef.current = [];
     
@@ -1777,12 +1789,12 @@ export const EuclideanSequencer = () => {
       const toneFilter = new Tone.Filter(2000, "lowpass").connect(master.compressor);
       toneFilter.connect(toneDelaySend);
       toneFilter.connect(toneReverbSend);
+      toneFilterRef.current = toneFilter;
 
-      const rawCtx = Tone.getContext().rawContext as AudioContext;
-      const dest = recordingDestRef.current 
-        ?? rawCtx.createMediaStreamDestination();
-      toneFilter.connect(dest as unknown as Tone.ToneAudioNode);
-      recordingDestRef.current = dest;
+      // Reconectar nodo de captura si existe
+      if (recordingDestRef.current) {
+        toneFilter.connect(recordingDestRef.current as unknown as Tone.ToneAudioNode);
+      }
 
       const toneTrack = tracksRef.current.find(t => t.id === 'tone');
       const currentSynthType = overrideSynthType ?? toneTrack?.synthType ?? 'mono';
