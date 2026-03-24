@@ -875,8 +875,42 @@ export const EuclideanTrack = React.memo(({
           </div>
         </div>
       )}
+      {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
+      {isTonal && synthType === 'wf' && (
+        <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Fold</span>
+            <input
+              type="range"
+              min="0"
+              max="10"
+              step="0.1"
+              value={wfAmount ?? 3}
+              onChange={(e) => onWfAmountChange?.(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-6">
+              {(wfAmount ?? 3).toFixed(1)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Symm</span>
+            <input
+              type="range"
+              min="-1"
+              max="1"
+              step="0.05"
+              value={wfSymmetry ?? 0}
+              onChange={(e) => onWfSymmetryChange?.(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-8">
+              {(wfSymmetry ?? 0).toFixed(2)}
+            </span>
+          </div>
+        </div>
+      )}
 
-      {id !== 'cloud' && (
         <div className="flex flex-wrap gap-3 pt-2">
           {pattern.map((active, i) => {
             const scaleIntervals = SCALES[scaleId] || SCALES.phrygianDominant;
