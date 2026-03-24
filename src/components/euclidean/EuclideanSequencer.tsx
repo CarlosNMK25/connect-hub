@@ -1390,11 +1390,16 @@ export const EuclideanSequencer = () => {
     
     if (isPlaying) {
       Tone.getTransport().stop();
-      if (synthsRef.current.cloud?.grainPlayer) {
+      const cloudTrackSync = tracksRef.current.find(t => t.id === 'cloud');
+      if (cloudTrackSync?.cloudMode === 'eno') {
+        synthsRef.current.cloud?.stopEno?.();
+      } else if (synthsRef.current.cloud?.grainPlayer) {
         synthsRef.current.cloud.grainPlayer.stop();
       }
       Tone.getTransport().start();
-      if (synthsRef.current.cloud?.grainPlayer) {
+      if (cloudTrackSync?.cloudMode === 'eno') {
+        synthsRef.current.cloud?.startEno?.();
+      } else if (synthsRef.current.cloud?.grainPlayer) {
         synthsRef.current.cloud.grainPlayer.start();
       }
     }
