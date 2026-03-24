@@ -318,6 +318,95 @@ const RULES: DiagnosisRule[] = [
     },
     suggestion: () => 'Baja el Evolve Rate a 2-3% para una deriva casi imperceptible. Las mejores mutaciones son las que no notas hasta que de repente te das cuenta de que el patrón ya no es el que era.',
   },
+  // === Reglas de síntesis tonal ===
+  {
+    id: 'fm-con-ar',
+    category: 'tonal' as const,
+    icon: '≈',
+    priority: 55,
+    condition: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal);
+      return !!tone && tone.synthType === 'fm' && (tone.arDepth ?? 0) > 200;
+    },
+    insight: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal)!;
+      return `FM Synthesis con Audio-Rate Modulation activa. El LFO a ${tone.arRate ?? 80}Hz está creando sidebands — frecuencias nuevas por encima y por debajo de cada armónico FM. Es modulación de la modulación: el territorio donde Autechre y los sintetizadores Buchla convergen.`;
+    },
+    suggestion: () => 'Sube arRate a 400-800Hz. Las sidebands empezarán a cruzarse con los armónicos FM y crearán diferencias de frecuencia audibles como notas fantasma.',
+  },
+  {
+    id: 'wf-fold-alto',
+    category: 'tonal' as const,
+    icon: '∿',
+    priority: 50,
+    condition: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal);
+      return !!tone && tone.synthType === 'wf' && (tone.wfAmount ?? 0) > 6;
+    },
+    insight: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal)!;
+      return `Wavefolding intenso (fold ${(tone.wfAmount ?? 0).toFixed(1)}). La onda se ha doblado sobre sí misma ${Math.floor(tone.wfAmount ?? 0)} veces — el espectro original es irreconocible. Esto es síntesis West Coast en estado puro: complejidad tímbrica que ningún oscilador convencional puede generar.`;
+    },
+    suggestion: () => 'Mueve wfSymmetry lejos del centro (±0.7). La asimetría del fold crea armónicos pares que añaden \'calidez\' al caos espectral.',
+  },
+  {
+    id: 'add-brightness-extremo',
+    category: 'tonal' as const,
+    icon: '∑',
+    priority: 45,
+    condition: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal);
+      return !!tone && tone.synthType === 'add' && ((tone.addBrightness ?? 0.5) < 0.1 || (tone.addBrightness ?? 0.5) > 0.9);
+    },
+    insight: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal)!;
+      const bright = tone.addBrightness ?? 0.5;
+      return `Síntesis aditiva en extremo de pendiente espectral. Con Bright ${bright < 0.5 ? 'bajo' : 'alto'} el timbre es ${bright < 0.5 ? 'oscuro — el fundamental domina, los armónicos susurran' : 'metálico — todos los parciales tienen el mismo peso, sin jerarquía natural'}. La Yamaha DX7 usaba valores intermedios (0.3-0.6) para imitar instrumentos acústicos.`;
+    },
+    suggestion: () => 'Compara Bright 0.0 y 1.0 con la misma nota. Son dos filosofías opuestas del sonido: la naturaleza (decaimiento 1/n) contra la máquina (todos iguales).',
+  },
+  {
+    id: 'synth-flamenco',
+    category: 'combinacion' as const,
+    icon: '♭',
+    priority: 70,
+    condition: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal);
+      return !!tone && tone.synthType === 'wf' && ctx.globalState.temporalityMode === 'flamenco' && tone.scaleId === 'phrygianDominant';
+    },
+    insight: () => 'Wavefolding sobre compás flamenco con escala Phrygian Dominant. La síntesis West Coast de Buchla genera timbres que los instrumentos acústicos flamencos no pueden producir — pero sobre la misma geometría armónica. Es Raúl Refree en \'Tercer Cielo\': la tradición y el algoritmo compartiendo el mismo espacio.',
+    suggestion: () => 'Sube wfAmount a 5-6 y activa Evolve. El timbre mutará sobre el compás fijo — el duende electrónico.',
+  },
+  {
+    id: 'ar-zona-critica',
+    category: 'tonal' as const,
+    icon: '≋',
+    priority: 60,
+    condition: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal);
+      return !!tone && (tone.arDepth ?? 0) > 0 && (tone.arRate ?? 80) >= 200 && (tone.arRate ?? 80) <= 800;
+    },
+    insight: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal)!;
+      return `Audio-Rate Modulation en zona crítica (${tone.arRate ?? 80}Hz). Entre 200 y 800Hz el LFO crea sidebands que caen dentro del rango de frecuencias fundamentales — se perciben como notas adicionales, no como timbre. Es la técnica §6.3 del documento IDM: el límite entre modulación y síntesis.`;
+    },
+    suggestion: () => 'Afina arRate a exactamente 220Hz (La3) o 440Hz (La4). Las sidebands resonarán con los armónicos de la nota tonal y crearán intervalos musicales en lugar de ruido.',
+  },
+  {
+    id: 'add-parciales-primos',
+    category: 'tonal' as const,
+    icon: 'ℙ',
+    priority: 40,
+    condition: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal);
+      return !!tone && tone.synthType === 'add' && [3, 5, 7].includes(tone.addPartials ?? 4);
+    },
+    insight: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal)!;
+      return `Síntesis aditiva con ${tone.addPartials ?? 4} parciales — número primo. Los parciales primos no comparten subarmónicos entre sí, lo que genera un timbre sin periodicidad regular. El oído percibe riqueza sin poder identificar el patrón. Es el mismo principio que usas en el motor rítmico: números primos = máxima no-repetición.`;
+    },
+    suggestion: () => 'Compara 4 parciales (no primo) con 5 (primo). La diferencia es sutil pero el timbre de 5 tiene una irregularidad característica que el de 4 no tiene.',
+  },
 ];
 
 export function computeMcm(tracks: DiagnosisContext['tracks']): number {
