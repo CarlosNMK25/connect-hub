@@ -1196,6 +1196,17 @@ export const EuclideanSequencer = () => {
             const baseVelocity = (idx === 0) ? 1.0 : 0.85;
             const randomVariation = (Math.random() * 0.2) * (dynamicsRef.current / 100);
             velocity = Math.max(0.1, baseVelocity - randomVariation);
+
+            // Round Robin: micro-variación gaussiana de velocity por hit
+            // El filtro varía automáticamente al variar velocity
+            if (track.rrEnabled && (track.rrAmount ?? 30) > 0) {
+              const rrScale = (track.rrAmount ?? 30) / 100;
+              const u1 = Math.random();
+              const u2 = Math.random();
+              const gaussian = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+              const rrVariation = gaussian * rrScale * 0.15;
+              velocity = Math.max(0.05, Math.min(1.0, velocity + rrVariation));
+            }
           } else {
             isMiss = true;
           }
