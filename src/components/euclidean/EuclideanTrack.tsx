@@ -122,6 +122,10 @@ interface EuclideanTrackProps {
   onKsBrightnessChange?: (val: number) => void;
   onModalBodyChange?: (val: string) => void;
   onModalDecayChange?: (val: number) => void;
+  ambientVolume?: number;
+  ambientSpeed?: number;
+  onAmbientVolumeChange?: (val: number) => void;
+  onAmbientSpeedChange?: (val: number) => void;
   toneRecordingState?: 'idle' | 'armed' | 'recording';
   onRecordAction?: () => void;
   cloudRecordingState?: 'idle' | 'armed' | 'recording';
