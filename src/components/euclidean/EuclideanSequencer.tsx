@@ -2242,8 +2242,9 @@ export const EuclideanSequencer = () => {
         };
       } else if (currentSynthType === 'ks') {
         // Karplus-Strong: noise burst → delay loop → filter
-        const ksDecayAmount = track.ksDecay ?? 0.97;
-        const ksBrightnessFreq = track.ksBrightness ?? 5000;
+        const toneTrackKs = tracksRef.current.find(t => t.id === 'tone');
+        const ksDecayAmount = toneTrackKs?.ksDecay ?? 0.97;
+        const ksBrightnessFreq = toneTrackKs?.ksBrightness ?? 5000;
 
         const ksMasterGain = new Tone.Gain(1);
         ksMasterGain.connect(toneFilter);
