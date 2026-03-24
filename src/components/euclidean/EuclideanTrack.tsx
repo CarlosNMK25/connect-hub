@@ -122,6 +122,10 @@ interface EuclideanTrackProps {
   onKsBrightnessChange?: (val: number) => void;
   onModalBodyChange?: (val: string) => void;
   onModalDecayChange?: (val: number) => void;
+  ambientVolume?: number;
+  ambientSpeed?: number;
+  onAmbientVolumeChange?: (val: number) => void;
+  onAmbientSpeedChange?: (val: number) => void;
   toneRecordingState?: 'idle' | 'armed' | 'recording';
   onRecordAction?: () => void;
   cloudRecordingState?: 'idle' | 'armed' | 'recording';
@@ -294,6 +298,10 @@ export const EuclideanTrack = React.memo(({
   onKsBrightnessChange,
   onModalBodyChange,
   onModalDecayChange,
+  ambientVolume,
+  ambientSpeed,
+  onAmbientVolumeChange,
+  onAmbientSpeedChange,
   toneRecordingState,
   onRecordAction,
   cloudRecordingState,
@@ -892,6 +900,7 @@ export const EuclideanTrack = React.memo(({
                 <option value="drone">DRN</option>
                 <option value="ks">KS</option>
                 <option value="modal">MOD</option>
+                <option value="ambient">AMB</option>
               </select>
             </div>
             <div className="space-y-1">
@@ -1160,6 +1169,35 @@ export const EuclideanTrack = React.memo(({
           </div>
         </div>
       )}
+      {/* Ambient controls */}
+      {isTonal && synthType === 'ambient' && (
+        <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-6">Vol</span>
+            <input
+              type="range" min="0.1" max="1.0" step="0.05"
+              value={ambientVolume ?? 0.6}
+              onChange={(e) => onAmbientVolumeChange?.(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-8">
+              {((ambientVolume ?? 0.6) * 100).toFixed(0)}%
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Speed</span>
+            <input
+              type="range" min="0.5" max="2.0" step="0.1"
+              value={ambientSpeed ?? 1.0}
+              onChange={(e) => onAmbientSpeedChange?.(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-8">
+              {(ambientSpeed ?? 1.0).toFixed(1)}×
+            </span>
+          </div>
+        </div>
+      )}
       {/* Audio-Rate Modulation — disponible en todos los modos de synth tonal */}
       {isTonal && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5 opacity-60 hover:opacity-100 transition-opacity">
@@ -1422,6 +1460,12 @@ export const EuclideanTrack = React.memo(({
     prevProps.droneFeedback === nextProps.droneFeedback &&
     prevProps.droneFilterFreq === nextProps.droneFilterFreq &&
     prevProps.toneRecordingState === nextProps.toneRecordingState &&
-    prevProps.cloudRecordingState === nextProps.cloudRecordingState
+    prevProps.cloudRecordingState === nextProps.cloudRecordingState &&
+    prevProps.ksDecay === nextProps.ksDecay &&
+    prevProps.ksBrightness === nextProps.ksBrightness &&
+    prevProps.modalBody === nextProps.modalBody &&
+    prevProps.modalDecay === nextProps.modalDecay &&
+    prevProps.ambientVolume === nextProps.ambientVolume &&
+    prevProps.ambientSpeed === nextProps.ambientSpeed
   );
 });

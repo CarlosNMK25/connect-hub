@@ -83,6 +83,8 @@ interface TrackState {
   ksBrightness?: number;     // frecuencia del filtro KS (500-8000Hz, default 5000)
   modalBody?: string;        // 'bell' | 'plate' | 'string', default 'bell'
   modalDecay?: number;       // multiplicador de decay (0.5-3.0, default 1.0)
+  ambientVolume?: number;    // volumen de los loops ambient (0.1-1.0, default 0.6)
+  ambientSpeed?: number;     // multiplicador de velocidad de loops (0.5-2.0, default 1.0)
   hits: number;
   misses: number;
 }
@@ -685,7 +687,7 @@ export const EuclideanSequencer = () => {
           chaosEnabled: t.chaosEnabled, entropy: t.entropy,
           evolveEnabled: t.evolveEnabled, mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed,
           volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend, ratchet: t.ratchet,
-          ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices], synthType: t.synthType, fmRatio: t.fmRatio, fmIndex: t.fmIndex, wfAmount: t.wfAmount, wfSymmetry: t.wfSymmetry, addPartials: t.addPartials, addBrightness: t.addBrightness, arRate: t.arRate, arDepth: t.arDepth, padVoices: t.padVoices, padDetune: t.padDetune, padAttack: t.padAttack, droneFeedback: t.droneFeedback, droneFilterFreq: t.droneFilterFreq, ksDecay: t.ksDecay, ksBrightness: t.ksBrightness, modalBody: t.modalBody, modalDecay: t.modalDecay } : {}),
+          ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices], synthType: t.synthType, fmRatio: t.fmRatio, fmIndex: t.fmIndex, wfAmount: t.wfAmount, wfSymmetry: t.wfSymmetry, addPartials: t.addPartials, addBrightness: t.addBrightness, arRate: t.arRate, arDepth: t.arDepth, padVoices: t.padVoices, padDetune: t.padDetune, padAttack: t.padAttack, droneFeedback: t.droneFeedback, droneFilterFreq: t.droneFilterFreq, ksDecay: t.ksDecay, ksBrightness: t.ksBrightness, modalBody: t.modalBody, modalDecay: t.modalDecay, ambientVolume: t.ambientVolume, ambientSpeed: t.ambientSpeed } : {}),
         }])
       ),
     };
@@ -763,6 +765,8 @@ export const EuclideanSequencer = () => {
           ksBrightness: config.ksBrightness ?? t.ksBrightness,
           modalBody: config.modalBody ?? t.modalBody,
           modalDecay: config.modalDecay ?? t.modalDecay,
+          ambientVolume: config.ambientVolume ?? t.ambientVolume,
+          ambientSpeed: config.ambientSpeed ?? t.ambientSpeed,
         } : {}),
         hits: 0,
         misses: 0,
@@ -1330,6 +1334,10 @@ export const EuclideanSequencer = () => {
       // Stop cloud grain player if it exists
       if (synthsRef.current.cloud?.grainPlayer) {
         synthsRef.current.cloud.grainPlayer.stop();
+      }
+      // Stop ambient loops if running
+      if (synthsRef.current.tone?.stop) {
+        synthsRef.current.tone.stop();
       }
       // Reset current steps ref
       Object.keys(currentStepsRef.current).forEach(id => currentStepsRef.current[id] = -1);
@@ -2382,6 +2390,103 @@ export const EuclideanSequencer = () => {
           },
           dispose: () => {
             modalMasterGain.dispose();
+            toneFilter.dispose();
+            toneDelaySend.dispose();
+            toneReverbSend.dispose();
+          }
+        };
+      } else if (currentSynthType === 'ambient') {
+        // Ambient synthesis: Eno-style asynchronous sine loops
+        const BASE_DURATIONS = [2.3, 3.7, 5.1, 7.3];
+        const NUM_LOOPS = BASE_DURATIONS.length;
+        const toneTrackAmb = tracksRef.current.find(t => t.id === 'tone');
+        const ambientMasterGain = new Tone.Gain(toneTrackAmb?.ambientVolume ?? 0.6);
+        ambientMasterGain.connect(toneFilter);
+
+        const ambientOscs: Tone.Oscillator[] = [];
+        const ambientGains: Tone.Gain[] = [];
+        const ambientRepeatIds: number[] = [];
+        let ambientStarted = false;
+
+        for (let i = 0; i < NUM_LOOPS; i++) {
+          const osc = new Tone.Oscillator({ type: 'sine' });
+          const g = new Tone.Gain(0);
+          osc.connect(g);
+          g.connect(ambientMasterGain);
+          osc.start();
+          ambientOscs.push(osc);
+          ambientGains.push(g);
+        }
+
+        const assignAmbientFreqs = () => {
+          const currentTrack = tracksRef.current.find(t => t.id === 'tone');
+          if (!currentTrack?.noteIndices?.length) return;
+          const scaleIntervals = SCALES[currentTrack.scaleId] || SCALES.phrygianDominant;
+          for (let i = 0; i < NUM_LOOPS; i++) {
+            const noteIdx = currentTrack.noteIndices[
+              Math.floor(Math.random() * currentTrack.noteIndices.length)
+            ];
+            const midi = noteIndexToMidi(currentTrack.rootNote, scaleIntervals, noteIdx);
+            ambientOscs[i].frequency.value = Tone.Frequency(midi, 'midi').toFrequency();
+          }
+        };
+
+        const scheduleAmbientLoop = (loopIdx: number) => {
+          const currentTrack = tracksRef.current.find(t => t.id === 'tone');
+          const speedMult = currentTrack?.ambientSpeed ?? 1.0;
+          const dur = BASE_DURATIONS[loopIdx] * speedMult;
+
+          const id = Tone.getTransport().scheduleRepeat((time) => {
+            if (!ambientStarted) return;
+            // Fade in
+            ambientGains[loopIdx].gain.cancelScheduledValues(time);
+            ambientGains[loopIdx].gain.setValueAtTime(0, time);
+            ambientGains[loopIdx].gain.linearRampToValueAtTime(0.7, time + 0.15);
+            // Sustain then fade out
+            ambientGains[loopIdx].gain.setValueAtTime(0.7, time + dur - 0.3);
+            ambientGains[loopIdx].gain.linearRampToValueAtTime(0, time + dur);
+          }, dur, Tone.now() + loopIdx * 0.3);
+          ambientRepeatIds.push(id);
+        };
+
+        const stopAmbientLoops = () => {
+          ambientStarted = false;
+          ambientRepeatIds.forEach(id => Tone.getTransport().clear(id));
+          ambientRepeatIds.length = 0;
+          ambientGains.forEach(g => {
+            g.gain.cancelScheduledValues(Tone.now());
+            g.gain.rampTo(0, 0.1);
+          });
+        };
+
+        synthsRef.current.tone = {
+          triggerAttackRelease: (_note: string, _duration: string | number, _time: number, _velocity = 0.8) => {
+            if (!ambientStarted) {
+              ambientStarted = true;
+              assignAmbientFreqs();
+              for (let i = 0; i < NUM_LOOPS; i++) {
+                scheduleAmbientLoop(i);
+              }
+            } else {
+              // Subsequent triggers: modulate notes
+              assignAmbientFreqs();
+            }
+          },
+          setVolume: (db: number) => {
+            ambientMasterGain.gain.rampTo(Tone.dbToGain(db) * 0.6, 0.05);
+          },
+          setSends: (delayVal: number, reverbVal: number) => {
+            toneDelaySend.gain.rampTo(delayVal, 0.05);
+            toneReverbSend.gain.rampTo(reverbVal, 0.05);
+          },
+          stop: () => {
+            stopAmbientLoops();
+          },
+          dispose: () => {
+            stopAmbientLoops();
+            ambientOscs.forEach(osc => { osc.stop(); osc.dispose(); });
+            ambientGains.forEach(g => g.dispose());
+            ambientMasterGain.dispose();
             toneFilter.dispose();
             toneDelaySend.dispose();
             toneReverbSend.dispose();
@@ -3900,6 +4005,14 @@ export const EuclideanSequencer = () => {
               }}
               onModalDecayChange={(val) => {
                 setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, modalDecay: val } : t));
+              }}
+              ambientVolume={track.ambientVolume}
+              ambientSpeed={track.ambientSpeed}
+              onAmbientVolumeChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, ambientVolume: val } : t));
+              }}
+              onAmbientSpeedChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, ambientSpeed: val } : t));
               }}
               toneRecordingState={toneRecordingState}
               onRecordAction={handleArmOrRecord}
