@@ -87,6 +87,8 @@ interface TrackState {
   ambientSpeed?: number;     // multiplicador de velocidad de loops (0.5-2.0, default 1.0)
   cloudMode?: 'granular' | 'eno';  // modo de Cloud, default 'granular'
   enoSpeed?: number;               // multiplicador de velocidad Eno (0.5-2.0, default 1.0)
+  rrEnabled?: boolean;             // Round Robin micro-variación por hit, default false
+  rrAmount?: number;               // intensidad RR 0-100, default 30
   hits: number;
   misses: number;
 }
@@ -426,6 +428,7 @@ export const EuclideanSequencer = () => {
   const lastScheduledTimesRef = useRef<{ [key: string]: number }>({});
   const stepIndicesRef = useRef<{ [key: string]: number }>({});
   const pendingMutationsRef = useRef<{ [trackId: string]: number[] }>({});
+  const rrNoteIndexRef = useRef<Record<string, number>>({});
   // Refs para grabación en tiempo real del track Tone
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingChunksRef = useRef<Blob[]>([]);
@@ -692,6 +695,8 @@ export const EuclideanSequencer = () => {
           volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend, ratchet: t.ratchet,
           ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices], synthType: t.synthType, fmRatio: t.fmRatio, fmIndex: t.fmIndex, wfAmount: t.wfAmount, wfSymmetry: t.wfSymmetry, addPartials: t.addPartials, addBrightness: t.addBrightness, arRate: t.arRate, arDepth: t.arDepth, padVoices: t.padVoices, padDetune: t.padDetune, padAttack: t.padAttack, droneFeedback: t.droneFeedback, droneFilterFreq: t.droneFilterFreq, ksDecay: t.ksDecay, ksBrightness: t.ksBrightness, modalBody: t.modalBody, modalDecay: t.modalDecay, ambientVolume: t.ambientVolume, ambientSpeed: t.ambientSpeed } : {}),
           ...(t.id === 'cloud' ? { cloudMode: t.cloudMode, enoSpeed: t.enoSpeed } : {}),
+          rrEnabled: t.rrEnabled,
+          rrAmount: t.rrAmount,
         }])
       ),
     };
@@ -776,6 +781,8 @@ export const EuclideanSequencer = () => {
           cloudMode: (config.cloudMode as 'granular' | 'eno') ?? t.cloudMode,
           enoSpeed: config.enoSpeed ?? t.enoSpeed,
         } : {}),
+        rrEnabled: config.rrEnabled ?? false,
+        rrAmount: config.rrAmount ?? 30,
         hits: 0,
         misses: 0,
       });
@@ -1193,6 +1200,17 @@ export const EuclideanSequencer = () => {
             const baseVelocity = (idx === 0) ? 1.0 : 0.85;
             const randomVariation = (Math.random() * 0.2) * (dynamicsRef.current / 100);
             velocity = Math.max(0.1, baseVelocity - randomVariation);
+
+            // Round Robin: micro-variación gaussiana de velocity por hit
+            // El filtro varía automáticamente al variar velocity
+            if (track.rrEnabled && (track.rrAmount ?? 30) > 0) {
+              const rrScale = (track.rrAmount ?? 30) / 100;
+              const u1 = Math.random();
+              const u2 = Math.random();
+              const gaussian = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+              const rrVariation = gaussian * rrScale * 0.15;
+              velocity = Math.max(0.05, Math.min(1.0, velocity + rrVariation));
+            }
           } else {
             isMiss = true;
           }
@@ -1237,7 +1255,16 @@ export const EuclideanSequencer = () => {
               
               if (track.isTonal) {
                 // Tonal track: compute note from scale + noteIndex
-                const noteIdx = track.noteIndices[idx] ?? 0;
+                let noteIdx: number;
+                if (track.rrEnabled && track.noteIndices.length > 1) {
+                  // RR activo: rotación secuencial por noteIndices
+                  const rrIdx = rrNoteIndexRef.current[track.id] ?? 0;
+                  noteIdx = track.noteIndices[rrIdx % track.noteIndices.length];
+                  rrNoteIndexRef.current[track.id] = (rrIdx + 1) % track.noteIndices.length;
+                } else {
+                  // Sin RR: comportamiento original — determinista por step
+                  noteIdx = track.noteIndices[idx] ?? 0;
+                }
                 const scaleIntervals = SCALES[track.scaleId] || SCALES.phrygianDominant;
                 const midi = noteIndexToMidi(track.rootNote, scaleIntervals, noteIdx);
                 const noteName = midiToNoteName(midi);
@@ -1364,6 +1391,7 @@ export const EuclideanSequencer = () => {
       
       globalStepRef.current = 0;
       setGlobalStep(0);
+      rrNoteIndexRef.current = {};
     } else {
       const activeTracks = tracks.filter(t => !t.isMuted).length;
       logChange('▶ Play', [`BPM ${bpm}`, `${activeTracks} activos`]);
@@ -4022,6 +4050,10 @@ export const EuclideanSequencer = () => {
               onReverbSendChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, reverbSend: val } : t))}
               ratchet={track.ratchet}
               onRatchetChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, ratchet: val } : t))}
+              rrEnabled={track.rrEnabled}
+              rrAmount={track.rrAmount}
+              onRrEnabledChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, rrEnabled: val } : t))}
+              onRrAmountChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, rrAmount: val } : t))}
               isTonal={track.isTonal}
               rootNote={track.rootNote}
               scaleId={track.scaleId}

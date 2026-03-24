@@ -38,6 +38,8 @@ export interface UserPresetTrack {
   ambientSpeed?: number;
   cloudMode?: string;
   enoSpeed?: number;
+  rrEnabled?: boolean;
+  rrAmount?: number;
 }
 
 export interface UserPreset {
