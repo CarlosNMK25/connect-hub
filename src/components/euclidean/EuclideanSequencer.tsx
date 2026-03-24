@@ -1712,6 +1712,8 @@ export const EuclideanSequencer = () => {
       const fmIndex = toneTrack?.fmIndex ?? 10;
       const wfAmount = toneTrack?.wfAmount ?? 3;
       const wfSymmetry = toneTrack?.wfSymmetry ?? 0;
+      const addPartials = toneTrack?.addPartials ?? 4;
+      const addBrightness = toneTrack?.addBrightness ?? 0.5;
 
       let toneSynth: any;
 

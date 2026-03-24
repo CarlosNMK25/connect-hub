@@ -21,6 +21,10 @@ export interface UserPresetTrack {
   fmIndex?: number;
   wfAmount?: number;
   wfSymmetry?: number;
+  addPartials?: number;
+  addBrightness?: number;
+  arRate?: number;
+  arDepth?: number;
 }
 
 export interface UserPreset {
