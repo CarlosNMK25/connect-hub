@@ -1003,6 +1003,7 @@ export const EuclideanSequencer = () => {
     const toneFilter = new Tone.Filter(2000, "lowpass").connect(compressor);
     toneFilter.connect(toneDelaySend);
     toneFilter.connect(toneReverbSend);
+    toneFilterRef.current = toneFilter;
 
     const toneMonoSynth = new Tone.MonoSynth({
       oscillator: { type: 'sawtooth' },
