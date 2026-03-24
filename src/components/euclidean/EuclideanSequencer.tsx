@@ -418,6 +418,16 @@ export const EuclideanSequencer = () => {
   const recordingDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
   const toneFilterRef = useRef<Tone.Filter | null>(null);
   const lastRecordedBufferRef = useRef<AudioBuffer | null>(null);
+  const globalRecordingDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
+  const globalRecordingChunksRef = useRef<Blob[]>([]);
+  const globalMediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const [globalRecordingState, setGlobalRecordingState] = 
+    useState<'idle' | 'armed' | 'recording'>('idle');
+  const cloudRecordingDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
+  const cloudRecordingChunksRef = useRef<Blob[]>([]);
+  const cloudMediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const [cloudRecordingState, setCloudRecordingState] = 
+    useState<'idle' | 'armed' | 'recording'>('idle');
   const [toneRecordingState, setToneRecordingState] = useState<'idle' | 'armed' | 'recording'>('idle');
 
   const masterBusRef = useRef<{ 
@@ -1626,6 +1636,129 @@ export const EuclideanSequencer = () => {
     logChange('Tone REC iniciado');
   }, [logChange]);
 
+  const handleCloudArmOrRecord = useCallback(() => {
+    if (cloudRecordingState === 'recording') {
+      if (cloudMediaRecorderRef.current?.state === 'recording') {
+        cloudMediaRecorderRef.current.stop();
+      }
+      return;
+    }
+    if (cloudRecordingState === 'armed') {
+      setCloudRecordingState('idle');
+      return;
+    }
+    if (isPlaying) {
+      startCloudRecordingNow();
+    } else {
+      setCloudRecordingState('armed');
+      logChange('REC Atmosphere armado — esperando Play');
+    }
+  }, [cloudRecordingState, isPlaying, logChange]);
+
+  const startCloudRecordingNow = useCallback(() => {
+    if (!cloudRecordingDestRef.current) {
+      try {
+        const cloudFilter = synthsRef.current.cloud?.filter;
+        if (!cloudFilter) {
+          console.warn('REC cloud: no hay cloudFilter activo');
+          return;
+        }
+        const dest = (Tone.getContext().rawContext as AudioContext)
+          .createMediaStreamDestination();
+        cloudFilter.connect(dest as unknown as Tone.ToneAudioNode);
+        cloudRecordingDestRef.current = dest;
+      } catch(e) {
+        console.warn('REC cloud: no se pudo crear nodo:', e);
+        return;
+      }
+    }
+    cloudRecordingChunksRef.current = [];
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus' : 'audio/webm';
+    const recorder = new MediaRecorder(
+      cloudRecordingDestRef.current.stream,
+      { mimeType }
+    );
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) cloudRecordingChunksRef.current.push(e.data);
+    };
+    recorder.onstop = () => {
+      const blob = new Blob(cloudRecordingChunksRef.current, { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `atmosphere-${Date.now()}.webm`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setCloudRecordingState('idle');
+      logChange('Atmosphere grabado y descargado');
+    };
+    recorder.start(100);
+    cloudMediaRecorderRef.current = recorder;
+    setCloudRecordingState('recording');
+    logChange('REC Atmosphere iniciado');
+  }, [logChange]);
+
+  const handleGlobalArmOrRecord = useCallback(() => {
+    if (globalRecordingState === 'recording') {
+      if (globalMediaRecorderRef.current?.state === 'recording') {
+        globalMediaRecorderRef.current.stop();
+      }
+      return;
+    }
+    if (globalRecordingState === 'armed') {
+      setGlobalRecordingState('idle');
+      return;
+    }
+    if (isPlaying) {
+      startGlobalRecordingNow();
+    } else {
+      setGlobalRecordingState('armed');
+      logChange('REC global armado — esperando Play');
+    }
+  }, [globalRecordingState, isPlaying, logChange]);
+
+  const startGlobalRecordingNow = useCallback(() => {
+    if (!globalRecordingDestRef.current) {
+      try {
+        const dest = (Tone.getContext().rawContext as AudioContext)
+          .createMediaStreamDestination();
+        masterBusRef.current?.compressor.connect(
+          dest as unknown as Tone.ToneAudioNode
+        );
+        globalRecordingDestRef.current = dest;
+      } catch(e) {
+        console.warn('REC global: no se pudo crear nodo:', e);
+        return;
+      }
+    }
+    globalRecordingChunksRef.current = [];
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus' : 'audio/webm';
+    const recorder = new MediaRecorder(
+      globalRecordingDestRef.current.stream,
+      { mimeType }
+    );
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) globalRecordingChunksRef.current.push(e.data);
+    };
+    recorder.onstop = () => {
+      const blob = new Blob(globalRecordingChunksRef.current, { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `mix-${Date.now()}.webm`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setGlobalRecordingState('idle');
+      logChange('Mix global grabado y descargado');
+    };
+    recorder.start(100);
+    globalMediaRecorderRef.current = recorder;
+    setGlobalRecordingState('recording');
+    logChange('REC global iniciado');
+  }, [logChange]);
+
   const handleArmOrRecord = useCallback(() => {
     if (toneRecordingState === 'recording') {
       if (mediaRecorderRef.current?.state === 'recording') {
@@ -2123,6 +2256,22 @@ export const EuclideanSequencer = () => {
         mediaRecorderRef.current.stop();
       }
     }
+    if (isPlaying && globalRecordingState === 'armed') {
+      startGlobalRecordingNow();
+    }
+    if (!isPlaying && globalRecordingState === 'recording') {
+      if (globalMediaRecorderRef.current?.state === 'recording') {
+        globalMediaRecorderRef.current.stop();
+      }
+    }
+    if (isPlaying && cloudRecordingState === 'armed') {
+      startCloudRecordingNow();
+    }
+    if (!isPlaying && cloudRecordingState === 'recording') {
+      if (cloudMediaRecorderRef.current?.state === 'recording') {
+        cloudMediaRecorderRef.current.stop();
+      }
+    }
   }, [isPlaying]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { Tone.getTransport().bpm.value = bpm; }, [bpm]);
@@ -2344,6 +2493,28 @@ export const EuclideanSequencer = () => {
               <span className="hidden sm:inline">Space</span>
             </button>
           </div>
+
+          <button
+            onClick={handleGlobalArmOrRecord}
+            className={`w-10 h-10 rounded-full border-2 flex items-center 
+              justify-center transition-all duration-300 ${
+              globalRecordingState === 'recording'
+                ? 'bg-red-500 text-white border-red-600 animate-pulse'
+                : globalRecordingState === 'armed'
+                ? 'bg-amber-400 text-white border-amber-500 animate-pulse'
+                : 'bg-white text-red-400 border-red-300 hover:bg-red-50 hover:border-red-400'
+            }`}
+            title={
+              globalRecordingState === 'recording' ? 'Parar grabación del mix'
+              : globalRecordingState === 'armed' ? 'Armado — esperando Play'
+              : 'Grabar mix completo'
+            }
+          >
+            {globalRecordingState === 'recording'
+              ? <Square size={14} fill="currentColor" />
+              : <span className="w-3 h-3 rounded-full bg-red-400 block" />
+            }
+          </button>
 
           <button 
             onClick={togglePlay} 
@@ -3365,6 +3536,8 @@ export const EuclideanSequencer = () => {
               }}
               toneRecordingState={toneRecordingState}
               onRecordAction={handleArmOrRecord}
+              cloudRecordingState={cloudRecordingState}
+              onCloudRecordAction={handleCloudArmOrRecord}
               isStudyMode={isStudyMode}
               studyVoice={studyVoice}
               anySoloed={tracks.some(t => t.isSoloed)}

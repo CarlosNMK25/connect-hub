@@ -106,6 +106,8 @@ interface EuclideanTrackProps {
   onArDepthChange?: (val: number) => void;
   toneRecordingState?: 'idle' | 'armed' | 'recording';
   onRecordAction?: () => void;
+  cloudRecordingState?: 'idle' | 'armed' | 'recording';
+  onCloudRecordAction?: () => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
   temporalityMode: TemporalityMode;
@@ -258,6 +260,8 @@ export const EuclideanTrack = React.memo(({
   onArDepthChange,
   toneRecordingState,
   onRecordAction,
+  cloudRecordingState,
+  onCloudRecordAction,
   isStudyMode,
   studyVoice = 'technical',
   temporalityMode,
@@ -1019,6 +1023,40 @@ export const EuclideanTrack = React.memo(({
         </div>
       )}
 
+      {id === 'cloud' && (
+        <div className="flex items-center gap-2 mb-2">
+          <button
+            onClick={onCloudRecordAction}
+            className={`flex items-center gap-1.5 px-2.5 py-1 
+              rounded-full text-[8px] font-mono uppercase tracking-widest 
+              transition-all border ${
+              cloudRecordingState === 'recording'
+                ? 'bg-red-500 text-white border-red-600 animate-pulse'
+                : cloudRecordingState === 'armed'
+                ? 'bg-amber-400 text-white border-amber-500 animate-pulse'
+                : 'bg-idm-ink/5 border-idm-ink/10 text-idm-ink/50 hover:border-red-400 hover:text-red-500'
+            }`}
+            title={
+              cloudRecordingState === 'recording' ? 'Parar grabación'
+              : cloudRecordingState === 'armed' ? 'Armado — esperando Play'
+              : 'Grabar Atmosphere'
+            }
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              cloudRecordingState === 'recording' || 
+              cloudRecordingState === 'armed' ? 'bg-white' : 'bg-red-400'
+            }`} />
+            {cloudRecordingState === 'recording' ? 'Stop'
+             : cloudRecordingState === 'armed' ? 'Armed'
+             : 'Rec'}
+          </button>
+          <span className="text-[7px] font-mono text-idm-muted uppercase 
+            tracking-widest">
+            Atmosphere
+          </span>
+        </div>
+      )}
+
       {id !== 'cloud' && (
         <div className="flex flex-wrap gap-3 pt-2">
           {pattern.map((active, i) => {
@@ -1210,6 +1248,7 @@ export const EuclideanTrack = React.memo(({
     prevProps.addBrightness === nextProps.addBrightness &&
     prevProps.arRate === nextProps.arRate &&
     prevProps.arDepth === nextProps.arDepth &&
-    prevProps.toneRecordingState === nextProps.toneRecordingState
+    prevProps.toneRecordingState === nextProps.toneRecordingState &&
+    prevProps.cloudRecordingState === nextProps.cloudRecordingState
   );
 });
