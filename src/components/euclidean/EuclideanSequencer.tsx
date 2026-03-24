@@ -2256,6 +2256,22 @@ export const EuclideanSequencer = () => {
         mediaRecorderRef.current.stop();
       }
     }
+    if (isPlaying && globalRecordingState === 'armed') {
+      startGlobalRecordingNow();
+    }
+    if (!isPlaying && globalRecordingState === 'recording') {
+      if (globalMediaRecorderRef.current?.state === 'recording') {
+        globalMediaRecorderRef.current.stop();
+      }
+    }
+    if (isPlaying && cloudRecordingState === 'armed') {
+      startCloudRecordingNow();
+    }
+    if (!isPlaying && cloudRecordingState === 'recording') {
+      if (cloudMediaRecorderRef.current?.state === 'recording') {
+        cloudMediaRecorderRef.current.stop();
+      }
+    }
   }, [isPlaying]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { Tone.getTransport().bpm.value = bpm; }, [bpm]);
