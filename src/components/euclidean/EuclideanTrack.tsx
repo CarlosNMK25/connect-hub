@@ -960,7 +960,7 @@ export const EuclideanTrack = React.memo(({
       {isTonal && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5 opacity-60 hover:opacity-100 transition-opacity">
           <span className="text-[7px] font-mono uppercase text-idm-muted">AR mod</span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('arRate', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted w-6">Rate</span>
             <input
               type="range" min="20" max="2000" step="10"
@@ -972,7 +972,7 @@ export const EuclideanTrack = React.memo(({
               {arRate ?? 80}Hz
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('arDepth', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted w-8">Depth</span>
             <input
               type="range" min="0" max="3000" step="50"
