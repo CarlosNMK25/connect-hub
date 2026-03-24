@@ -1577,6 +1577,7 @@ export const EuclideanSequencer = () => {
         initCloudEno(audioBuffer);
       }
 
+    } catch (e) {
       console.error("Error decodificando audio:", e);
       setTracks(prev => prev.map(t => t.id === trackId ? { ...t, samplerStatus: 'IDLE', samplerFilename: null } : t));
       alert("Error al cargar el archivo de audio. Asegúrate de que sea un formato compatible.");
