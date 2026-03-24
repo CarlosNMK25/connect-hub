@@ -79,6 +79,10 @@ interface TrackState {
   padAttack?: number;     // tiempo de ataque en segundos (0.01-2.0, default 0.3)
   droneFeedback?: number;    // feedback del delay loop (0.7-0.98, default 0.88)
   droneFilterFreq?: number;  // frecuencia del filtro del loop (200-8000Hz, default 2000)
+  ksDecay?: number;          // feedback del loop KS (0.80-0.999, default 0.97)
+  ksBrightness?: number;     // frecuencia del filtro KS (500-8000Hz, default 5000)
+  modalBody?: string;        // 'bell' | 'plate' | 'string', default 'bell'
+  modalDecay?: number;       // multiplicador de decay (0.5-3.0, default 1.0)
   hits: number;
   misses: number;
 }
