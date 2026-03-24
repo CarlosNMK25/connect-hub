@@ -1569,7 +1569,17 @@ export const EuclideanSequencer = () => {
   }, []);
 
   const handleStartRecording = useCallback(() => {
-    if (!recordingDestRef.current) return;
+    // Lazy-create el nodo de captura si no existe
+    if (!recordingDestRef.current) {
+      if (!toneFilterRef.current) {
+        console.warn('REC: No hay toneFilter activo');
+        return;
+      }
+      const rawCtx = Tone.getContext().rawContext as AudioContext;
+      const dest = rawCtx.createMediaStreamDestination();
+      toneFilterRef.current.connect(dest as unknown as Tone.ToneAudioNode);
+      recordingDestRef.current = dest;
+    }
     
     recordingChunksRef.current = [];
     
