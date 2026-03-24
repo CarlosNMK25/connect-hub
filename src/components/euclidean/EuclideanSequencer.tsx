@@ -68,6 +68,8 @@ interface TrackState {
   synthType: string;
   fmRatio?: number;   // harmonicity del FMSynth, rango 0.1–10
   fmIndex?: number;   // modulationIndex del FMSynth, rango 0–50
+  wfAmount?: number;   // intensidad del wavefolding (0-10, default 3)
+  wfSymmetry?: number; // sesgo de la curva wavefold (-1 a 1, default 0)
   hits: number;
   misses: number;
 }
