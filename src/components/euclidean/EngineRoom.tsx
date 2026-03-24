@@ -26,6 +26,13 @@ interface TrackSnapshot {
   ratchet?: number;
   isTonal?: boolean;
   scaleId?: string;
+  synthType?: string;
+  arRate?: number;
+  arDepth?: number;
+  wfAmount?: number;
+  wfSymmetry?: number;
+  addPartials?: number;
+  addBrightness?: number;
 }
 
 interface EngineRoomProps {
