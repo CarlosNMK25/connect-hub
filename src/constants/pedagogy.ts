@@ -104,6 +104,14 @@ export const PEDAGOGY = {
     phaseRadar: "Un radar circular donde cada pista es un satélite en órbita. Los puntos giran a velocidades distintas según la longitud de su ciclo, y el momento en que todos se alinean es el 'eclipse' rítmico. Es la visualización más intuitiva de la poliritmia: ves literalmente cómo los tiempos se persiguen y se encuentran.",
     eclipseCountdown: "El reloj de arena del eclipse rítmico. Cuenta los segundos que faltan para que todos los satélites se alineen en el mismo meridiano — el momento donde la poliritmia colapsa brevemente en unísono antes de volver a divergir. En ciclos cortos es un metrónomo cósmico; en ciclos largos, es una promesa lejana que transforma la escucha en una espera contemplativa.",
     hitRate: "El pulso vital del patrón. Mide cuántos golpes programados realmente llegaron a sonar, revelando la tensión entre intención y azar. Al 100% el algoritmo manda; al 50% el silencio y el sonido negocian en igualdad de condiciones. Es el indicador más directo de cuánto 'aire' respira tu ritmo — cuánto espacio le has dado al fantasma del silencio para habitar entre los golpes.",
+    fmRatio: "El ratio FM es la distancia entre dos voces que cantan juntas. Cuando es un número limpio, armonizan. Cuando es irracional, crean tensión — como dos relojes que nunca sincronizan del todo.",
+    fmIndex: "El Index FM es cuánto tiembla la voz. A 0 es cristalina. A 50 es un grito.",
+    wfAmount: "El fold es origami sónico. Doblar la onda una vez crea un pliegue. Doblarla ocho veces crea una textura que el oído no puede desenredar.",
+    wfSymmetry: "La simetría del fold decide si la onda respira igual por los dos lados. Rota hacia un lado y el sonido pierde su equilibrio — como una silla con una pata más corta.",
+    addPartials: "Los parciales son las voces del coro. Con 2 cantan al unísono y la octava. Con 8 cantan todas las voces de la serie armónica — la física del sonido hecha visible.",
+    addBrightness: "El brillo es cuánto poder cedes a los armónicos agudos. A 0 el fundamental manda. A 1 es una democracia espectral — todos los armónicos votan igual.",
+    arRate: "Cuando el modulador supera 20Hz deja de ser movimiento y se convierte en sonido. El LFO ya no balancea la nota — la infecta con nuevas frecuencias.",
+    arDepth: "La profundidad AR decide qué tan lejos viaja la infección. A 0 no hay enfermedad. A 3000Hz el sonido ya no recuerda de dónde vino.",
   } as PedagogyMicro,
 
   meso: {
