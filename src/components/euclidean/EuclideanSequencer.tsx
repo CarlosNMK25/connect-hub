@@ -1978,6 +1978,34 @@ export const EuclideanSequencer = () => {
           }
         };
       }
+      // Audio-Rate Modulation module — disponible en todos los modos de synth tonal
+      const toneTrackCurrent = tracksRef.current.find(t => t.id === 'tone');
+      const arRate = toneTrackCurrent?.arRate ?? 80;
+      const arDepth = toneTrackCurrent?.arDepth ?? 0;
+
+      const arLFO = new Tone.Oscillator({
+        type: 'sine',
+        frequency: arRate
+      });
+      const arGain = new Tone.Gain(arDepth);
+      arLFO.connect(arGain);
+      arGain.connect(toneFilter.frequency);
+      let arRunning = arDepth > 0;
+      if (arRunning) arLFO.start();
+
+      // Extender la interfaz del synth con métodos AR
+      const existingDispose = synthsRef.current.tone.dispose;
+      synthsRef.current.tone.updateArParams = (rate: number, depth: number) => {
+        arLFO.frequency.rampTo(rate, 0.05);
+        arGain.gain.rampTo(depth, 0.05);
+        if (depth > 0 && !arRunning) { arLFO.start(); arRunning = true; }
+        if (depth === 0 && arRunning) { arLFO.stop(); arRunning = false; }
+      };
+      synthsRef.current.tone.dispose = () => {
+        try { arLFO.stop(); arLFO.dispose(); } catch(e) {}
+        arGain.dispose();
+        existingDispose();
+      };
     }
     // Apply current volume and sends
     const track = tracksRef.current.find(t => t.id === trackId);
