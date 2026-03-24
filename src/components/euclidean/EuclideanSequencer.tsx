@@ -2935,7 +2935,7 @@ export const EuclideanSequencer = () => {
           <span>KICK: Membrane</span>
           <span>SNARE: Noise</span>
           <span>HAT: Metal</span>
-          <span>TONE: Mono</span>
+          <span>TONE: {tracks.find(t => t.id === 'tone')?.synthType?.toUpperCase() || 'MONO'}</span>
         </div>
         <div>{isPlaying ? "Engine: Running" : "Engine: Idle"}</div>
       </div>

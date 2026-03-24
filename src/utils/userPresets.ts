@@ -16,6 +16,9 @@ export interface UserPresetTrack {
   scaleId?: string;
   octaveRange?: number;
   noteIndices?: number[];
+  synthType?: string;
+  fmRatio?: number;
+  fmIndex?: number;
 }
 
 export interface UserPreset {
