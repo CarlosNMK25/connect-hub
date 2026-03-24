@@ -802,13 +802,15 @@ export const EuclideanTrack = React.memo(({
       )}
       {/* Tonal Controls */}
       {isTonal && (
-        <div className="flex items-center gap-4 p-3 bg-idm-bg rounded-2xl border border-black/5 mt-2">
+        <div className="p-3 bg-idm-bg rounded-2xl border border-black/5 mt-2 space-y-2">
           <div className="flex items-center gap-2">
             <Music size={14} className="text-system-accent" />
             <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-idm-muted">Tonal</span>
+          </div>
+          <div className="flex items-center gap-2">
             <button
               onClick={onRecordAction}
-              className={`flex items-center gap-1 px-2 py-0.5 ml-1
+              className={`flex items-center gap-1 px-2 py-0.5
                 rounded-full text-[8px] font-mono uppercase tracking-widest 
                 transition-all border ${
                   toneRecordingState === 'recording'
