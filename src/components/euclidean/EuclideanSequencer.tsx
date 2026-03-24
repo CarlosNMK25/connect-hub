@@ -4183,6 +4183,12 @@ export const EuclideanSequencer = () => {
               onAmbientSpeedChange={(val) => {
                 setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, ambientSpeed: val } : t));
               }}
+              cloudMode={track.cloudMode}
+              enoSpeed={track.enoSpeed}
+              onCloudModeChange={handleCloudModeChange}
+              onEnoSpeedChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'cloud' ? { ...t, enoSpeed: val } : t));
+              }}
               toneRecordingState={toneRecordingState}
               onRecordAction={handleArmOrRecord}
               cloudRecordingState={cloudRecordingState}
