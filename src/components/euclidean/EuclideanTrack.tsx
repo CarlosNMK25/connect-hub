@@ -105,6 +105,10 @@ interface EuclideanTrackProps {
   padAttack?: number;
   droneFeedback?: number;
   droneFilterFreq?: number;
+  ksDecay?: number;
+  ksBrightness?: number;
+  modalBody?: string;
+  modalDecay?: number;
   onAddPartialsChange?: (val: number) => void;
   onAddBrightnessChange?: (val: number) => void;
   onArRateChange?: (val: number) => void;
@@ -114,6 +118,10 @@ interface EuclideanTrackProps {
   onPadAttackChange?: (val: number) => void;
   onDroneFeedbackChange?: (val: number) => void;
   onDroneFilterFreqChange?: (val: number) => void;
+  onKsDecayChange?: (val: number) => void;
+  onKsBrightnessChange?: (val: number) => void;
+  onModalBodyChange?: (val: string) => void;
+  onModalDecayChange?: (val: number) => void;
   toneRecordingState?: 'idle' | 'armed' | 'recording';
   onRecordAction?: () => void;
   cloudRecordingState?: 'idle' | 'armed' | 'recording';
