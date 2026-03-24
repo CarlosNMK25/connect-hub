@@ -418,7 +418,7 @@ export const EuclideanSequencer = () => {
   const recordingDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
   const toneFilterRef = useRef<Tone.Filter | null>(null);
   const lastRecordedBufferRef = useRef<AudioBuffer | null>(null);
-  const [isRecordingTone, setIsRecordingTone] = useState(false);
+  const [toneRecordingState, setToneRecordingState] = useState<'idle' | 'armed' | 'recording'>('idle');
 
   const masterBusRef = useRef<{ 
     compressor: Tone.Compressor; 
