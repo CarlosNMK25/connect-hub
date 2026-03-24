@@ -1687,17 +1687,36 @@ export const EuclideanSequencer = () => {
       toneFilter.connect(toneDelaySend);
       toneFilter.connect(toneReverbSend);
 
-      const toneMonoSynth = new Tone.MonoSynth({
-        oscillator: { type: 'sawtooth' },
-        filter: { Q: 6, type: 'lowpass', rolloff: -24 },
-        envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 },
-        filterEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8, baseFrequency: 200, octaves: 4 },
-        volume: -6
-      }).connect(toneFilter);
+      const toneTrack = tracksRef.current.find(t => t.id === 'tone');
+      const currentSynthType = overrideSynthType ?? toneTrack?.synthType ?? 'mono';
+      const fmRatio = toneTrack?.fmRatio ?? 2;
+      const fmIndex = toneTrack?.fmIndex ?? 10;
+
+      let toneSynth: any;
+
+      if (currentSynthType === 'fm') {
+        toneSynth = new Tone.FMSynth({
+          harmonicity: fmRatio,
+          modulationIndex: fmIndex,
+          oscillator: { type: 'sawtooth' },
+          modulation: { type: 'square' },
+          envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 },
+          modulationEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8 },
+          volume: -6
+        }).connect(toneFilter);
+      } else {
+        toneSynth = new Tone.MonoSynth({
+          oscillator: { type: 'sawtooth' },
+          filter: { Q: 6, type: 'lowpass', rolloff: -24 },
+          envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 },
+          filterEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8, baseFrequency: 200, octaves: 4 },
+          volume: -6
+        }).connect(toneFilter);
+      }
 
       synthsRef.current.tone = {
         triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
-          toneMonoSynth.triggerAttackRelease(note, duration, time, velocity);
+          toneSynth.triggerAttackRelease(note, duration, time, velocity);
           const baseCutoff = 600;
           const dynamicCutoff = baseCutoff + (velocity * 4000);
           if (isFinite(dynamicCutoff)) {
@@ -1705,14 +1724,20 @@ export const EuclideanSequencer = () => {
           }
         },
         setVolume: (vol: number) => {
-          toneMonoSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
+          toneSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
         },
         setSends: (delayVal: number, reverbVal: number) => {
           toneDelaySend.gain.rampTo(delayVal, 0.05);
           toneReverbSend.gain.rampTo(reverbVal, 0.05);
         },
+        updateFmParams: (ratio: number, index: number) => {
+          if (currentSynthType === 'fm') {
+            (toneSynth as Tone.FMSynth).harmonicity.value = ratio;
+            (toneSynth as Tone.FMSynth).modulationIndex.value = index;
+          }
+        },
         dispose: () => {
-          toneMonoSynth.dispose();
+          toneSynth.dispose();
           toneFilter.dispose();
           toneDelaySend.dispose();
           toneReverbSend.dispose();
