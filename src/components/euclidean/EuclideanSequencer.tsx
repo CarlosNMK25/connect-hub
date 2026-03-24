@@ -1576,7 +1576,7 @@ export const EuclideanSequencer = () => {
         return;
       }
       try {
-        const dest = Tone.getContext().rawContext.createMediaStreamDestination();
+        const dest = (Tone.getContext().rawContext as AudioContext).createMediaStreamDestination();
         toneFilterRef.current.connect(dest as unknown as Tone.ToneAudioNode);
         recordingDestRef.current = dest;
       } catch(e) {
