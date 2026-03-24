@@ -1868,7 +1868,7 @@ export const EuclideanSequencer = () => {
           }
         };
       }
-    
+    }
     // Apply current volume and sends
     const track = tracksRef.current.find(t => t.id === trackId);
     if (track && synthsRef.current[trackId]) {
