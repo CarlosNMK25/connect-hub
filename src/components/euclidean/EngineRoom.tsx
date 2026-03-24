@@ -203,6 +203,13 @@ const DiagnosisPanel: React.FC<{
       isMuted: false,
       isTonal: t.isTonal ?? false,
       scaleId: t.scaleId,
+      synthType: t.synthType,
+      arRate: t.arRate,
+      arDepth: t.arDepth,
+      wfAmount: t.wfAmount,
+      wfSymmetry: t.wfSymmetry,
+      addPartials: t.addPartials,
+      addBrightness: t.addBrightness,
     }));
 
     const mcm = computeMcm(diagTracks);
