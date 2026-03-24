@@ -1387,6 +1387,7 @@ export const EuclideanSequencer = () => {
       
       globalStepRef.current = 0;
       setGlobalStep(0);
+      rrNoteIndexRef.current = {};
     } else {
       const activeTracks = tracks.filter(t => !t.isMuted).length;
       logChange('▶ Play', [`BPM ${bpm}`, `${activeTracks} activos`]);
