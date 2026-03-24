@@ -3064,6 +3064,22 @@ export const EuclideanSequencer = () => {
                   synthsRef.current.tone.updateFmParams(toneTrack?.fmRatio ?? 2, val);
                 }
               }}
+              wfAmount={track.wfAmount}
+              wfSymmetry={track.wfSymmetry}
+              onWfAmountChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, wfAmount: val } : t));
+                if (synthsRef.current.tone?.updateWfParams) {
+                  const toneTrack = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateWfParams(val, toneTrack?.wfSymmetry ?? 0);
+                }
+              }}
+              onWfSymmetryChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, wfSymmetry: val } : t));
+                if (synthsRef.current.tone?.updateWfParams) {
+                  const toneTrack = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateWfParams(toneTrack?.wfAmount ?? 3, val);
+                }
+              }}
               isStudyMode={isStudyMode}
               studyVoice={studyVoice}
               anySoloed={tracks.some(t => t.isSoloed)}
