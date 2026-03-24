@@ -3218,6 +3218,38 @@ export const EuclideanSequencer = () => {
                   synthsRef.current.tone.updateWfParams(toneTrack?.wfAmount ?? 3, val);
                 }
               }}
+              addPartials={track.addPartials}
+              addBrightness={track.addBrightness}
+              arRate={track.arRate}
+              arDepth={track.arDepth}
+              onAddPartialsChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, addPartials: val } : t));
+                if (synthsRef.current.tone?.updateAddParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateAddParams(val, tt?.addBrightness ?? 0.5);
+                }
+              }}
+              onAddBrightnessChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, addBrightness: val } : t));
+                if (synthsRef.current.tone?.updateAddParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateAddParams(tt?.addPartials ?? 4, val);
+                }
+              }}
+              onArRateChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, arRate: val } : t));
+                if (synthsRef.current.tone?.updateArParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateArParams(val, tt?.arDepth ?? 0);
+                }
+              }}
+              onArDepthChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, arDepth: val } : t));
+                if (synthsRef.current.tone?.updateArParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateArParams(tt?.arRate ?? 80, val);
+                }
+              }}
               isStudyMode={isStudyMode}
               studyVoice={studyVoice}
               anySoloed={tracks.some(t => t.isSoloed)}
