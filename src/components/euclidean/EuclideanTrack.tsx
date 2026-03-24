@@ -86,6 +86,12 @@ interface EuclideanTrackProps {
   onScaleChange: (val: string) => void;
   onOctaveRangeChange: (val: number) => void;
   onNoteIndexChange: (stepIdx: number, val: number) => void;
+  synthType?: string;
+  fmRatio?: number;
+  fmIndex?: number;
+  onSynthTypeChange?: (val: string) => void;
+  onFmRatioChange?: (val: number) => void;
+  onFmIndexChange?: (val: number) => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
   temporalityMode: TemporalityMode;
@@ -218,6 +224,12 @@ export const EuclideanTrack = React.memo(({
   onScaleChange,
   onOctaveRangeChange,
   onNoteIndexChange,
+  synthType,
+  fmRatio,
+  fmIndex,
+  onSynthTypeChange,
+  onFmRatioChange,
+  onFmIndexChange,
   isStudyMode,
   studyVoice = 'technical',
   temporalityMode,
@@ -768,6 +780,18 @@ export const EuclideanTrack = React.memo(({
             <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-idm-muted">Tonal</span>
           </div>
           <div className="flex items-center gap-3">
+            {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
+            <div className="space-y-1">
+              <span className="text-[8px] font-mono uppercase text-idm-muted">Synth</span>
+              <select
+                value={synthType || 'mono'}
+                onChange={(e) => onSynthTypeChange?.(e.target.value)}
+                className="block w-14 bg-white border border-black/10 rounded-lg text-[10px] font-mono px-1.5 py-1 text-idm-ink focus:outline-none focus:border-system-accent"
+              >
+                <option value="mono">Mono</option>
+                <option value="fm">FM</option>
+              </select>
+            </div>
             <div className="space-y-1">
               <span className="text-[8px] font-mono uppercase text-idm-muted">Root</span>
               <select
@@ -804,6 +828,41 @@ export const EuclideanTrack = React.memo(({
                 ))}
               </select>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
+      {isTonal && synthType === 'fm' && (
+        <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Ratio</span>
+            <input
+              type="range"
+              min="0.1"
+              max="10"
+              step="0.1"
+              value={fmRatio ?? 2}
+              onChange={(e) => onFmRatioChange?.(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-6">
+              {(fmRatio ?? 2).toFixed(1)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Index</span>
+            <input
+              type="range"
+              min="0"
+              max="50"
+              step="1"
+              value={fmIndex ?? 10}
+              onChange={(e) => onFmIndexChange?.(parseInt(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-6">
+              {fmIndex ?? 10}
+            </span>
           </div>
         </div>
       )}
@@ -989,6 +1048,9 @@ export const EuclideanTrack = React.memo(({
     prevProps.rootNote === nextProps.rootNote &&
     prevProps.scaleId === nextProps.scaleId &&
     prevProps.octaveRange === nextProps.octaveRange &&
-    prevProps.noteIndices === nextProps.noteIndices
+    prevProps.noteIndices === nextProps.noteIndices &&
+    prevProps.synthType === nextProps.synthType &&
+    prevProps.fmRatio === nextProps.fmRatio &&
+    prevProps.fmIndex === nextProps.fmIndex
   );
 });

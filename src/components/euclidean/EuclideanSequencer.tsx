@@ -65,6 +65,8 @@ interface TrackState {
   octaveRange: number;
   noteIndices: number[];
   synthType: string;
+  fmRatio?: number;   // harmonicity del FMSynth, rango 0.1–10
+  fmIndex?: number;   // modulationIndex del FMSynth, rango 0–50
   hits: number;
   misses: number;
 }
@@ -382,6 +384,7 @@ export const EuclideanSequencer = () => {
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
       isMuted: false, isSoloed: false, volume: 0.7, delaySend: 0.15, reverbSend: 0.2, ratchet: 0,
       isTonal: true, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
+      fmRatio: 2, fmIndex: 10,
       hits: 0, misses: 0
     }),
   ]);
@@ -645,7 +648,7 @@ export const EuclideanSequencer = () => {
           chaosEnabled: t.chaosEnabled, entropy: t.entropy,
           evolveEnabled: t.evolveEnabled, mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed,
           volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend, ratchet: t.ratchet,
-          ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices] } : {}),
+          ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices], synthType: t.synthType, fmRatio: t.fmRatio, fmIndex: t.fmIndex } : {}),
         }])
       ),
     };
@@ -705,6 +708,9 @@ export const EuclideanSequencer = () => {
           scaleId: config.scaleId ?? t.scaleId,
           octaveRange: config.octaveRange ?? t.octaveRange,
           noteIndices: config.noteIndices ? [...config.noteIndices] : t.noteIndices,
+          synthType: config.synthType ?? t.synthType,
+          fmRatio: config.fmRatio ?? t.fmRatio,
+          fmIndex: config.fmIndex ?? t.fmIndex,
         } : {}),
         hits: 0,
         misses: 0,
@@ -1556,7 +1562,7 @@ export const EuclideanSequencer = () => {
     } : t));
   };
 
-  const initializeOriginalSynth = (trackId: string) => {
+  const initializeOriginalSynth = (trackId: string, overrideSynthType?: string) => {
     const master = masterBusRef.current!;
     if (trackId === 'kick') {
       const kickDelaySend = new Tone.Gain(0).connect(master.delayBus);
@@ -1684,17 +1690,36 @@ export const EuclideanSequencer = () => {
       toneFilter.connect(toneDelaySend);
       toneFilter.connect(toneReverbSend);
 
-      const toneMonoSynth = new Tone.MonoSynth({
-        oscillator: { type: 'sawtooth' },
-        filter: { Q: 6, type: 'lowpass', rolloff: -24 },
-        envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 },
-        filterEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8, baseFrequency: 200, octaves: 4 },
-        volume: -6
-      }).connect(toneFilter);
+      const toneTrack = tracksRef.current.find(t => t.id === 'tone');
+      const currentSynthType = overrideSynthType ?? toneTrack?.synthType ?? 'mono';
+      const fmRatio = toneTrack?.fmRatio ?? 2;
+      const fmIndex = toneTrack?.fmIndex ?? 10;
+
+      let toneSynth: any;
+
+      if (currentSynthType === 'fm') {
+        toneSynth = new Tone.FMSynth({
+          harmonicity: fmRatio,
+          modulationIndex: fmIndex,
+          oscillator: { type: 'sawtooth' },
+          modulation: { type: 'square' },
+          envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 },
+          modulationEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8 },
+          volume: -6
+        }).connect(toneFilter);
+      } else {
+        toneSynth = new Tone.MonoSynth({
+          oscillator: { type: 'sawtooth' },
+          filter: { Q: 6, type: 'lowpass', rolloff: -24 },
+          envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 },
+          filterEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8, baseFrequency: 200, octaves: 4 },
+          volume: -6
+        }).connect(toneFilter);
+      }
 
       synthsRef.current.tone = {
         triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
-          toneMonoSynth.triggerAttackRelease(note, duration, time, velocity);
+          toneSynth.triggerAttackRelease(note, duration, time, velocity);
           const baseCutoff = 600;
           const dynamicCutoff = baseCutoff + (velocity * 4000);
           if (isFinite(dynamicCutoff)) {
@@ -1702,14 +1727,20 @@ export const EuclideanSequencer = () => {
           }
         },
         setVolume: (vol: number) => {
-          toneMonoSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
+          toneSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
         },
         setSends: (delayVal: number, reverbVal: number) => {
           toneDelaySend.gain.rampTo(delayVal, 0.05);
           toneReverbSend.gain.rampTo(reverbVal, 0.05);
         },
+        updateFmParams: (ratio: number, index: number) => {
+          if (currentSynthType === 'fm') {
+            (toneSynth as Tone.FMSynth).harmonicity.value = ratio;
+            (toneSynth as Tone.FMSynth).modulationIndex.value = index;
+          }
+        },
         dispose: () => {
-          toneMonoSynth.dispose();
+          toneSynth.dispose();
           toneFilter.dispose();
           toneDelaySend.dispose();
           toneReverbSend.dispose();
@@ -2887,6 +2918,31 @@ export const EuclideanSequencer = () => {
                 }
                 return t;
               }))}
+              synthType={track.synthType}
+              fmRatio={track.fmRatio}
+              fmIndex={track.fmIndex}
+              onSynthTypeChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, synthType: val } : t));
+                if (synthsRef.current.tone?.dispose) {
+                  synthsRef.current.tone.dispose();
+                }
+                initializeOriginalSynth('tone', val);
+                logChange(`Tone synth → ${val.toUpperCase()}`);
+              }}
+              onFmRatioChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, fmRatio: val } : t));
+                if (synthsRef.current.tone?.updateFmParams) {
+                  const toneTrack = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateFmParams(val, toneTrack?.fmIndex ?? 10);
+                }
+              }}
+              onFmIndexChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, fmIndex: val } : t));
+                if (synthsRef.current.tone?.updateFmParams) {
+                  const toneTrack = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateFmParams(toneTrack?.fmRatio ?? 2, val);
+                }
+              }}
               isStudyMode={isStudyMode}
               studyVoice={studyVoice}
               anySoloed={tracks.some(t => t.isSoloed)}
@@ -2904,7 +2960,7 @@ export const EuclideanSequencer = () => {
           <span>KICK: Membrane</span>
           <span>SNARE: Noise</span>
           <span>HAT: Metal</span>
-          <span>TONE: Mono</span>
+          <span>TONE: {tracks.find(t => t.id === 'tone')?.synthType?.toUpperCase() || 'MONO'}</span>
         </div>
         <div>{isPlaying ? "Engine: Running" : "Engine: Idle"}</div>
       </div>
