@@ -85,6 +85,8 @@ interface TrackState {
   modalDecay?: number;       // multiplicador de decay (0.5-3.0, default 1.0)
   ambientVolume?: number;    // volumen de los loops ambient (0.1-1.0, default 0.6)
   ambientSpeed?: number;     // multiplicador de velocidad de loops (0.5-2.0, default 1.0)
+  cloudMode?: 'granular' | 'eno';  // modo de Cloud, default 'granular'
+  enoSpeed?: number;               // multiplicador de velocidad Eno (0.5-2.0, default 1.0)
   hits: number;
   misses: number;
 }
@@ -391,6 +393,7 @@ export const EuclideanSequencer = () => {
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
       isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0,
       isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
+      cloudMode: 'granular' as const, enoSpeed: 1.0,
       hits: 0, misses: 0
     }),
     updateTrackPattern({ 
@@ -688,6 +691,7 @@ export const EuclideanSequencer = () => {
           evolveEnabled: t.evolveEnabled, mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed,
           volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend, ratchet: t.ratchet,
           ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices], synthType: t.synthType, fmRatio: t.fmRatio, fmIndex: t.fmIndex, wfAmount: t.wfAmount, wfSymmetry: t.wfSymmetry, addPartials: t.addPartials, addBrightness: t.addBrightness, arRate: t.arRate, arDepth: t.arDepth, padVoices: t.padVoices, padDetune: t.padDetune, padAttack: t.padAttack, droneFeedback: t.droneFeedback, droneFilterFreq: t.droneFilterFreq, ksDecay: t.ksDecay, ksBrightness: t.ksBrightness, modalBody: t.modalBody, modalDecay: t.modalDecay, ambientVolume: t.ambientVolume, ambientSpeed: t.ambientSpeed } : {}),
+          ...(t.id === 'cloud' ? { cloudMode: t.cloudMode, enoSpeed: t.enoSpeed } : {}),
         }])
       ),
     };
@@ -767,6 +771,10 @@ export const EuclideanSequencer = () => {
           modalDecay: config.modalDecay ?? t.modalDecay,
           ambientVolume: config.ambientVolume ?? t.ambientVolume,
           ambientSpeed: config.ambientSpeed ?? t.ambientSpeed,
+        } : {}),
+        ...(t.id === 'cloud' ? {
+          cloudMode: (config.cloudMode as 'granular' | 'eno') ?? t.cloudMode,
+          enoSpeed: config.enoSpeed ?? t.enoSpeed,
         } : {}),
         hits: 0,
         misses: 0,
@@ -1332,7 +1340,10 @@ export const EuclideanSequencer = () => {
       logChange('■ Stop');
       Tone.getTransport().stop();
       // Stop cloud grain player if it exists
-      if (synthsRef.current.cloud?.grainPlayer) {
+      const cloudTrackStop = tracksRef.current.find(t => t.id === 'cloud');
+      if (cloudTrackStop?.cloudMode === 'eno') {
+        synthsRef.current.cloud?.stopEno?.();
+      } else if (synthsRef.current.cloud?.grainPlayer) {
         synthsRef.current.cloud.grainPlayer.stop();
       }
       // Stop ambient loops if running
@@ -1358,8 +1369,11 @@ export const EuclideanSequencer = () => {
       logChange('▶ Play', [`BPM ${bpm}`, `${activeTracks} activos`]);
       Tone.getTransport().bpm.value = bpm;
       Tone.getTransport().start();
-      // Start cloud grain player if it exists
-      if (synthsRef.current.cloud?.grainPlayer) {
+      // Start cloud based on mode
+      const cloudTrackStart = tracksRef.current.find(t => t.id === 'cloud');
+      if (cloudTrackStart?.cloudMode === 'eno') {
+        synthsRef.current.cloud?.startEno?.();
+      } else if (synthsRef.current.cloud?.grainPlayer) {
         synthsRef.current.cloud.grainPlayer.start();
       }
     }
@@ -1381,11 +1395,16 @@ export const EuclideanSequencer = () => {
     
     if (isPlaying) {
       Tone.getTransport().stop();
-      if (synthsRef.current.cloud?.grainPlayer) {
+      const cloudTrackSync = tracksRef.current.find(t => t.id === 'cloud');
+      if (cloudTrackSync?.cloudMode === 'eno') {
+        synthsRef.current.cloud?.stopEno?.();
+      } else if (synthsRef.current.cloud?.grainPlayer) {
         synthsRef.current.cloud.grainPlayer.stop();
       }
       Tone.getTransport().start();
-      if (synthsRef.current.cloud?.grainPlayer) {
+      if (cloudTrackSync?.cloudMode === 'eno') {
+        synthsRef.current.cloud?.startEno?.();
+      } else if (synthsRef.current.cloud?.grainPlayer) {
         synthsRef.current.cloud.grainPlayer.start();
       }
     }
@@ -1489,7 +1508,9 @@ export const EuclideanSequencer = () => {
         };
       }));
 
-      if (trackId === 'cloud' && isPlaying) {
+      // Check cloudMode — start granular or Eno
+      const currentCloudTrack = tracksRef.current.find(t => t.id === 'cloud');
+      if (trackId === 'cloud' && isPlaying && currentCloudTrack?.cloudMode !== 'eno') {
         grainPlayer.start();
       }
 
@@ -1567,12 +1588,160 @@ export const EuclideanSequencer = () => {
         synthObj.setSends(track.delaySend, track.reverbSend);
       }
 
+      // If Cloud in Eno mode, initialize Eno engine after GrainPlayer setup
+      if (trackId === 'cloud' && track?.cloudMode === 'eno') {
+        initCloudEno(audioBuffer);
+      }
+
     } catch (e) {
       console.error("Error decodificando audio:", e);
       setTracks(prev => prev.map(t => t.id === trackId ? { ...t, samplerStatus: 'IDLE', samplerFilename: null } : t));
       alert("Error al cargar el archivo de audio. Asegúrate de que sea un formato compatible.");
     }
   };
+
+  // === Eno Engine for Cloud ===
+  const initCloudEno = useCallback((audioBuffer: AudioBuffer) => {
+    const cloudSynth = synthsRef.current.cloud;
+    if (!cloudSynth?.ducker) return;
+
+    // Capture skeleton refs before overwriting engine methods
+    const existingDucker = cloudSynth.ducker;
+    const existingDelaySend = cloudSynth.delaySend;
+    const existingReverbSend = cloudSynth.reverbSend;
+
+    // Stop granular if running
+    if (cloudSynth.grainPlayer) {
+      try { cloudSynth.grainPlayer.stop(); } catch {}
+    }
+
+    // Clean up previous Eno if any
+    if (cloudSynth.enoDispose) {
+      try { cloudSynth.enoDispose(); } catch {}
+    }
+
+    const BASE_DURATIONS = [2.3, 3.7, 5.1, 7.3];
+    const NUM_LOOPS = BASE_DURATIONS.length;
+
+    const enoMaster = new Tone.Gain(1);
+    enoMaster.connect(existingDucker);
+
+    const enoPlayers: Tone.Player[] = [];
+    const enoRepeatIds: number[] = [];
+    let enoActive = false;
+
+    const toneBuffer = new Tone.ToneAudioBuffer(audioBuffer);
+
+    for (let i = 0; i < NUM_LOOPS; i++) {
+      const player = new Tone.Player(toneBuffer);
+      player.connect(enoMaster);
+      enoPlayers.push(player);
+    }
+
+    const scheduleEnoLoop = (loopIdx: number) => {
+      const cloudTrack = tracksRef.current.find(t => t.id === 'cloud');
+      const speedMult = cloudTrack?.enoSpeed ?? 1.0;
+      const dur = BASE_DURATIONS[loopIdx] * speedMult;
+      const player = enoPlayers[loopIdx];
+      if (!player.buffer || !player.buffer.loaded || !enoActive) return;
+
+      const bufDur = player.buffer.duration;
+      const maxOffset = Math.max(0, bufDur - dur);
+      const offset = Math.random() * maxOffset;
+
+      try {
+        player.start(Tone.now(), offset, dur);
+      } catch {}
+
+      const nextTime = Tone.now() + dur;
+      const id = Tone.getTransport().scheduleOnce(() => {
+        if (enoActive) scheduleEnoLoop(loopIdx);
+      }, nextTime);
+      enoRepeatIds[loopIdx] = id;
+    };
+
+    const startEno = () => {
+      if (enoActive) return;
+      enoActive = true;
+      for (let i = 0; i < NUM_LOOPS; i++) {
+        Tone.getTransport().scheduleOnce(() => {
+          if (enoActive) scheduleEnoLoop(i);
+        }, `+${i * 0.4}`);
+      }
+    };
+
+    const stopEno = () => {
+      enoActive = false;
+      enoRepeatIds.forEach(id => {
+        try { Tone.getTransport().clear(id); } catch {}
+      });
+      enoPlayers.forEach(p => {
+        try { p.stop(); } catch {}
+      });
+    };
+
+    const disposeEno = () => {
+      stopEno();
+      enoPlayers.forEach(p => {
+        try { p.dispose(); } catch {}
+      });
+      enoMaster.dispose();
+    };
+
+    // Attach Eno methods to cloud synth
+    cloudSynth.startEno = startEno;
+    cloudSynth.stopEno = stopEno;
+    cloudSynth.enoDispose = disposeEno;
+
+    // Override setVolume to handle Eno master gain
+    const originalSetVolume = cloudSynth.setVolume;
+    cloudSynth.setVolume = (vol: number) => {
+      // Granular volume
+      if (cloudSynth.grainPlayer) {
+        try { cloudSynth.grainPlayer.volume.rampTo(Tone.gainToDb(vol), 0.05); } catch {}
+      }
+      // Eno volume
+      enoMaster.gain.value = vol;
+    };
+
+    // Re-expose setSends (skeleton sends are still connected)
+    cloudSynth.setSends = (delayVal: number, reverbVal: number) => {
+      if (existingDelaySend) existingDelaySend.gain.rampTo(delayVal, 0.05);
+      if (existingReverbSend) existingReverbSend.gain.rampTo(reverbVal, 0.05);
+    };
+
+    // If already playing, start Eno immediately
+    if (isPlaying) {
+      startEno();
+    }
+  }, [isPlaying]);
+
+  const handleCloudModeChange = useCallback((newMode: 'granular' | 'eno') => {
+    setTracks(prev => prev.map(t => t.id === 'cloud' ? { ...t, cloudMode: newMode } : t));
+
+    const cloudTrack = tracksRef.current.find(t => t.id === 'cloud');
+    const cloudSynth = synthsRef.current.cloud;
+
+    if (newMode === 'eno') {
+      // Stop granular
+      if (cloudSynth?.grainPlayer) {
+        try { cloudSynth.grainPlayer.stop(); } catch {}
+      }
+      // Init Eno if buffer is available
+      if (cloudTrack?.samplerBuffer) {
+        initCloudEno(cloudTrack.samplerBuffer);
+      }
+    } else {
+      // Stop Eno
+      if (cloudSynth?.stopEno) {
+        cloudSynth.stopEno();
+      }
+      // Restart granular if playing
+      if (isPlaying && cloudSynth?.grainPlayer) {
+        try { cloudSynth.grainPlayer.start(); } catch {}
+      }
+    }
+  }, [initCloudEno, isPlaying]);
 
   const handleSamplerParamChange = useCallback((trackId: string, param: string, val: any) => {
     setTracks(prev => prev.map(t => {
@@ -4013,6 +4182,12 @@ export const EuclideanSequencer = () => {
               }}
               onAmbientSpeedChange={(val) => {
                 setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, ambientSpeed: val } : t));
+              }}
+              cloudMode={track.cloudMode}
+              enoSpeed={track.enoSpeed}
+              onCloudModeChange={handleCloudModeChange}
+              onEnoSpeedChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'cloud' ? { ...t, enoSpeed: val } : t));
               }}
               toneRecordingState={toneRecordingState}
               onRecordAction={handleArmOrRecord}
