@@ -773,7 +773,7 @@ export const EuclideanSequencer = () => {
           ambientSpeed: config.ambientSpeed ?? t.ambientSpeed,
         } : {}),
         ...(t.id === 'cloud' ? {
-          cloudMode: config.cloudMode ?? t.cloudMode,
+          cloudMode: (config.cloudMode as 'granular' | 'eno') ?? t.cloudMode,
           enoSpeed: config.enoSpeed ?? t.enoSpeed,
         } : {}),
         hits: 0,
