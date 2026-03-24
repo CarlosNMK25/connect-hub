@@ -1176,24 +1176,24 @@ export const EuclideanTrack = React.memo(({
             <span className="text-[7px] font-mono uppercase text-idm-muted w-6">Vol</span>
             <input
               type="range" min="0.1" max="1.0" step="0.05"
-              value={track.ambientVolume ?? 0.6}
-              onChange={(e) => onParamChange?.('ambientVolume', parseFloat(e.target.value))}
+              value={ambientVolume ?? 0.6}
+              onChange={(e) => onAmbientVolumeChange?.(parseFloat(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-8">
-              {((track.ambientVolume ?? 0.6) * 100).toFixed(0)}%
+              {((ambientVolume ?? 0.6) * 100).toFixed(0)}%
             </span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Speed</span>
             <input
               type="range" min="0.5" max="2.0" step="0.1"
-              value={track.ambientSpeed ?? 1.0}
-              onChange={(e) => onParamChange?.('ambientSpeed', parseFloat(e.target.value))}
+              value={ambientSpeed ?? 1.0}
+              onChange={(e) => onAmbientSpeedChange?.(parseFloat(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-8">
-              {(track.ambientSpeed ?? 1.0).toFixed(1)}×
+              {(ambientSpeed ?? 1.0).toFixed(1)}×
             </span>
           </div>
         </div>
