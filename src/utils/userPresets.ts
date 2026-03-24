@@ -25,6 +25,11 @@ export interface UserPresetTrack {
   addBrightness?: number;
   arRate?: number;
   arDepth?: number;
+  padVoices?: number;
+  padDetune?: number;
+  padAttack?: number;
+  droneFeedback?: number;
+  droneFilterFreq?: number;
 }
 
 export interface UserPreset {

@@ -74,6 +74,11 @@ interface TrackState {
   addBrightness?: number; // pendiente espectral (0-1, default 0.5)
   arRate?: number;        // frecuencia del LFO audio-rate (20-2000Hz, default 80)
   arDepth?: number;       // profundidad de modulación en Hz (0-3000, default 0)
+  padVoices?: number;     // voces del pad unísono (3-7, default 5)
+  padDetune?: number;     // spread de detune en cents (0-100, default 30)
+  padAttack?: number;     // tiempo de ataque en segundos (0.01-2.0, default 0.3)
+  droneFeedback?: number;    // feedback del delay loop (0.7-0.98, default 0.88)
+  droneFilterFreq?: number;  // frecuencia del filtro del loop (200-8000Hz, default 2000)
   hits: number;
   misses: number;
 }
@@ -2084,6 +2089,144 @@ export const EuclideanSequencer = () => {
           synthsRef.current.tone.setVolume(track.volume);
           synthsRef.current.tone.setSends(track.delaySend, track.reverbSend);
         }
+      } else if (currentSynthType === 'pad') {
+        // Pad synthesis: N osciladores sawtooth desafinados → chorus natural
+        const toneTrackPad = tracksRef.current.find(t => t.id === 'tone');
+        const voices = toneTrackPad?.padVoices ?? 5;
+        const detuneAmount = toneTrackPad?.padDetune ?? 30;
+        const attackTime = toneTrackPad?.padAttack ?? 0.3;
+
+        const padOscillators: Tone.Oscillator[] = [];
+        const padVoiceGains: Tone.Gain[] = [];
+        const padMasterGain = new Tone.Gain(1 / voices);
+        padMasterGain.connect(toneFilter);
+
+        for (let i = 0; i < voices; i++) {
+          const osc = new Tone.Oscillator({ type: 'sawtooth', frequency: 220, volume: -6 });
+          const g = new Tone.Gain(0);
+          // Spread de detune simétrico
+          const spread = voices > 1 ? (i - (voices - 1) / 2) / ((voices - 1) / 2) : 0;
+          osc.detune.value = spread * detuneAmount; // detuneAmount ya está en cents
+          osc.connect(g);
+          g.connect(padMasterGain);
+          osc.start();
+          padOscillators.push(osc);
+          padVoiceGains.push(g);
+        }
+
+        let currentPadAttack = attackTime;
+
+        synthsRef.current.tone = {
+          triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
+            const freq = Tone.Frequency(note).toFrequency();
+            const dur = typeof duration === 'number' ? duration : Tone.Time(duration).toSeconds();
+            padOscillators.forEach(osc => {
+              osc.frequency.setValueAtTime(freq, time);
+            });
+            padVoiceGains.forEach(g => {
+              g.gain.cancelScheduledValues(time);
+              g.gain.setValueAtTime(0, time);
+              g.gain.linearRampToValueAtTime(velocity, time + currentPadAttack);
+              g.gain.setValueAtTime(velocity, time + Math.max(dur - 0.05, currentPadAttack));
+              g.gain.linearRampToValueAtTime(0, time + dur);
+            });
+            const dynamicCutoff = 600 + velocity * 4000;
+            if (isFinite(dynamicCutoff)) {
+              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+            }
+          },
+          setVolume: (vol: number) => {
+            padMasterGain.gain.rampTo((1 / padOscillators.length) * vol, 0.05);
+          },
+          setSends: (delayVal: number, reverbVal: number) => {
+            toneDelaySend.gain.rampTo(delayVal, 0.05);
+            toneReverbSend.gain.rampTo(reverbVal, 0.05);
+          },
+          updatePadParams: (newVoices: number, newDetune: number, newAttack: number) => {
+            // Update detune spread on existing voices
+            padOscillators.forEach((osc, i) => {
+              const spread = padOscillators.length > 1
+                ? (i - (padOscillators.length - 1) / 2) / ((padOscillators.length - 1) / 2) : 0;
+              osc.detune.rampTo(spread * newDetune, 0.05);
+            });
+            currentPadAttack = newAttack;
+          },
+          dispose: () => {
+            padOscillators.forEach(osc => { try { osc.stop(); osc.dispose(); } catch(e) {} });
+            padVoiceGains.forEach(g => g.dispose());
+            padMasterGain.dispose();
+            toneFilter.dispose();
+            toneDelaySend.dispose();
+            toneReverbSend.dispose();
+          }
+        };
+      } else if (currentSynthType === 'drone') {
+        // Drone synthesis: sine → inject gain → feedback delay → filter → output
+        const toneTrackDrone = tracksRef.current.find(t => t.id === 'tone');
+        const feedbackAmount = toneTrackDrone?.droneFeedback ?? 0.88;
+        const filterFreq = toneTrackDrone?.droneFilterFreq ?? 2000;
+
+        const droneOsc = new Tone.Oscillator({ type: 'sine', frequency: 220, volume: -6 });
+        const injectGain = new Tone.Gain(0);
+        const droneMasterGain = new Tone.Gain(0.7); // nodo separado para setVolume
+        const feedbackDelay = new Tone.FeedbackDelay({
+          delayTime: 0.5,
+          feedback: feedbackAmount,
+          wet: 1
+        });
+        const loopFilter = new Tone.Filter({
+          frequency: filterFreq,
+          type: 'lowpass',
+          rolloff: -12
+        });
+        const droneLimiter = new Tone.Limiter(-3); // protección contra acumulación
+
+        droneOsc.connect(injectGain);
+        injectGain.connect(feedbackDelay);
+        feedbackDelay.connect(loopFilter);
+        loopFilter.connect(droneLimiter);
+        droneLimiter.connect(droneMasterGain);
+        droneMasterGain.connect(toneFilter);
+        droneOsc.start();
+
+        synthsRef.current.tone = {
+          triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
+            const freq = Tone.Frequency(note).toFrequency();
+            droneOsc.frequency.setValueAtTime(freq, time);
+            // Inyectar burst corto de energía en el loop
+            injectGain.gain.cancelScheduledValues(time);
+            injectGain.gain.setValueAtTime(0, time);
+            injectGain.gain.linearRampToValueAtTime(velocity, time + 0.01);
+            injectGain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
+            const dynamicCutoff = 600 + velocity * 4000;
+            if (isFinite(dynamicCutoff)) {
+              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+            }
+          },
+          setVolume: (vol: number) => {
+            droneMasterGain.gain.rampTo(vol * 0.7, 0.05);
+          },
+          setSends: (delayVal: number, reverbVal: number) => {
+            toneDelaySend.gain.rampTo(delayVal, 0.05);
+            toneReverbSend.gain.rampTo(reverbVal, 0.05);
+          },
+          updateDroneParams: (newFeedback: number, newFilterFreq: number) => {
+            feedbackDelay.feedback.rampTo(newFeedback, 0.1);
+            loopFilter.frequency.rampTo(newFilterFreq, 0.1);
+          },
+          dispose: () => {
+            droneOsc.stop();
+            droneOsc.dispose();
+            injectGain.dispose();
+            droneMasterGain.dispose();
+            feedbackDelay.dispose();
+            loopFilter.dispose();
+            droneLimiter.dispose();
+            toneFilter.dispose();
+            toneDelaySend.dispose();
+            toneReverbSend.dispose();
+          }
+        };
       } else if (currentSynthType === 'wf') {
         // West Coast synthesis: oscillator → wavefolder → LPG
         const wfOsc = new Tone.Oscillator({
@@ -3532,6 +3675,46 @@ export const EuclideanSequencer = () => {
                 if (synthsRef.current.tone?.updateArParams) {
                   const tt = tracksRef.current.find(t => t.id === 'tone');
                   synthsRef.current.tone.updateArParams(tt?.arRate ?? 80, val);
+                }
+              }}
+              padVoices={track.padVoices}
+              padDetune={track.padDetune}
+              padAttack={track.padAttack}
+              droneFeedback={track.droneFeedback}
+              droneFilterFreq={track.droneFilterFreq}
+              onPadVoicesChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, padVoices: val } : t));
+                if (synthsRef.current.tone?.updatePadParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updatePadParams(val, tt?.padDetune ?? 30, tt?.padAttack ?? 0.3);
+                }
+              }}
+              onPadDetuneChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, padDetune: val } : t));
+                if (synthsRef.current.tone?.updatePadParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updatePadParams(tt?.padVoices ?? 5, val, tt?.padAttack ?? 0.3);
+                }
+              }}
+              onPadAttackChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, padAttack: val } : t));
+                if (synthsRef.current.tone?.updatePadParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updatePadParams(tt?.padVoices ?? 5, tt?.padDetune ?? 30, val);
+                }
+              }}
+              onDroneFeedbackChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, droneFeedback: val } : t));
+                if (synthsRef.current.tone?.updateDroneParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateDroneParams(val, tt?.droneFilterFreq ?? 2000);
+                }
+              }}
+              onDroneFilterFreqChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, droneFilterFreq: val } : t));
+                if (synthsRef.current.tone?.updateDroneParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateDroneParams(tt?.droneFeedback ?? 0.88, val);
                 }
               }}
               toneRecordingState={toneRecordingState}
