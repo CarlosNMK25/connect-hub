@@ -1095,6 +1095,8 @@ export const EuclideanTrack = React.memo(({
     prevProps.noteIndices === nextProps.noteIndices &&
     prevProps.synthType === nextProps.synthType &&
     prevProps.fmRatio === nextProps.fmRatio &&
-    prevProps.fmIndex === nextProps.fmIndex
+    prevProps.fmIndex === nextProps.fmIndex &&
+    prevProps.wfAmount === nextProps.wfAmount &&
+    prevProps.wfSymmetry === nextProps.wfSymmetry
   );
 });
