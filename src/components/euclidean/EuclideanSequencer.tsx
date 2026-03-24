@@ -3677,6 +3677,46 @@ export const EuclideanSequencer = () => {
                   synthsRef.current.tone.updateArParams(tt?.arRate ?? 80, val);
                 }
               }}
+              padVoices={track.padVoices}
+              padDetune={track.padDetune}
+              padAttack={track.padAttack}
+              droneFeedback={track.droneFeedback}
+              droneFilterFreq={track.droneFilterFreq}
+              onPadVoicesChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, padVoices: val } : t));
+                if (synthsRef.current.tone?.updatePadParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updatePadParams(val, tt?.padDetune ?? 30, tt?.padAttack ?? 0.3);
+                }
+              }}
+              onPadDetuneChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, padDetune: val } : t));
+                if (synthsRef.current.tone?.updatePadParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updatePadParams(tt?.padVoices ?? 5, val, tt?.padAttack ?? 0.3);
+                }
+              }}
+              onPadAttackChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, padAttack: val } : t));
+                if (synthsRef.current.tone?.updatePadParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updatePadParams(tt?.padVoices ?? 5, tt?.padDetune ?? 30, val);
+                }
+              }}
+              onDroneFeedbackChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, droneFeedback: val } : t));
+                if (synthsRef.current.tone?.updateDroneParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateDroneParams(val, tt?.droneFilterFreq ?? 2000);
+                }
+              }}
+              onDroneFilterFreqChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, droneFilterFreq: val } : t));
+                if (synthsRef.current.tone?.updateDroneParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateDroneParams(tt?.droneFeedback ?? 0.88, val);
+                }
+              }}
               toneRecordingState={toneRecordingState}
               onRecordAction={handleArmOrRecord}
               cloudRecordingState={cloudRecordingState}
