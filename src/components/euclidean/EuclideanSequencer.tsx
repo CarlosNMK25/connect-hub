@@ -393,6 +393,7 @@ export const EuclideanSequencer = () => {
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
       isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0,
       isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
+      cloudMode: 'granular' as const, enoSpeed: 1.0,
       hits: 0, misses: 0
     }),
     updateTrackPattern({ 
