@@ -85,6 +85,8 @@ interface TrackState {
   modalDecay?: number;       // multiplicador de decay (0.5-3.0, default 1.0)
   ambientVolume?: number;    // volumen de los loops ambient (0.1-1.0, default 0.6)
   ambientSpeed?: number;     // multiplicador de velocidad de loops (0.5-2.0, default 1.0)
+  cloudMode?: 'granular' | 'eno';  // modo de Cloud, default 'granular'
+  enoSpeed?: number;               // multiplicador de velocidad Eno (0.5-2.0, default 1.0)
   hits: number;
   misses: number;
 }

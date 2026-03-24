@@ -36,6 +36,8 @@ export interface UserPresetTrack {
   modalDecay?: number;
   ambientVolume?: number;
   ambientSpeed?: number;
+  cloudMode?: string;
+  enoSpeed?: number;
 }
 
 export interface UserPreset {
