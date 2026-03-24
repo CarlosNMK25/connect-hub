@@ -2393,6 +2393,102 @@ export const EuclideanSequencer = () => {
             toneReverbSend.dispose();
           }
         };
+      } else if (currentSynthType === 'ambient') {
+        // Ambient synthesis: Eno-style asynchronous sine loops
+        const BASE_DURATIONS = [2.3, 3.7, 5.1, 7.3];
+        const NUM_LOOPS = BASE_DURATIONS.length;
+        const ambientMasterGain = new Tone.Gain(track.ambientVolume ?? 0.6);
+        ambientMasterGain.connect(toneFilter);
+
+        const ambientOscs: Tone.Oscillator[] = [];
+        const ambientGains: Tone.Gain[] = [];
+        const ambientRepeatIds: number[] = [];
+        let ambientStarted = false;
+
+        for (let i = 0; i < NUM_LOOPS; i++) {
+          const osc = new Tone.Oscillator({ type: 'sine' });
+          const g = new Tone.Gain(0);
+          osc.connect(g);
+          g.connect(ambientMasterGain);
+          osc.start();
+          ambientOscs.push(osc);
+          ambientGains.push(g);
+        }
+
+        const assignAmbientFreqs = () => {
+          const currentTrack = tracksRef.current.find(t => t.id === 'tone');
+          if (!currentTrack?.noteIndices?.length) return;
+          const scaleIntervals = SCALES[currentTrack.scaleId] || SCALES.phrygianDominant;
+          for (let i = 0; i < NUM_LOOPS; i++) {
+            const noteIdx = currentTrack.noteIndices[
+              Math.floor(Math.random() * currentTrack.noteIndices.length)
+            ];
+            const midi = noteIndexToMidi(currentTrack.rootNote, scaleIntervals, noteIdx);
+            ambientOscs[i].frequency.value = Tone.Frequency(midi, 'midi').toFrequency();
+          }
+        };
+
+        const scheduleAmbientLoop = (loopIdx: number) => {
+          const currentTrack = tracksRef.current.find(t => t.id === 'tone');
+          const speedMult = currentTrack?.ambientSpeed ?? 1.0;
+          const dur = BASE_DURATIONS[loopIdx] * speedMult;
+
+          const id = Tone.getTransport().scheduleRepeat((time) => {
+            if (!ambientStarted) return;
+            // Fade in
+            ambientGains[loopIdx].gain.cancelScheduledValues(time);
+            ambientGains[loopIdx].gain.setValueAtTime(0, time);
+            ambientGains[loopIdx].gain.linearRampToValueAtTime(0.7, time + 0.15);
+            // Sustain then fade out
+            ambientGains[loopIdx].gain.setValueAtTime(0.7, time + dur - 0.3);
+            ambientGains[loopIdx].gain.linearRampToValueAtTime(0, time + dur);
+          }, dur, Tone.now() + loopIdx * 0.3);
+          ambientRepeatIds.push(id);
+        };
+
+        const stopAmbientLoops = () => {
+          ambientStarted = false;
+          ambientRepeatIds.forEach(id => Tone.getTransport().clear(id));
+          ambientRepeatIds.length = 0;
+          ambientGains.forEach(g => {
+            g.gain.cancelScheduledValues(Tone.now());
+            g.gain.rampTo(0, 0.1);
+          });
+        };
+
+        synthsRef.current.tone = {
+          triggerAttackRelease: (_note: string, _duration: string | number, _time: number, _velocity = 0.8) => {
+            if (!ambientStarted) {
+              ambientStarted = true;
+              assignAmbientFreqs();
+              for (let i = 0; i < NUM_LOOPS; i++) {
+                scheduleAmbientLoop(i);
+              }
+            } else {
+              // Subsequent triggers: modulate notes
+              assignAmbientFreqs();
+            }
+          },
+          setVolume: (db: number) => {
+            ambientMasterGain.gain.rampTo(Tone.dbToGain(db) * 0.6, 0.05);
+          },
+          setSends: (delayVal: number, reverbVal: number) => {
+            toneDelaySend.gain.rampTo(delayVal, 0.05);
+            toneReverbSend.gain.rampTo(reverbVal, 0.05);
+          },
+          stop: () => {
+            stopAmbientLoops();
+          },
+          dispose: () => {
+            stopAmbientLoops();
+            ambientOscs.forEach(osc => { osc.stop(); osc.dispose(); });
+            ambientGains.forEach(g => g.dispose());
+            ambientMasterGain.dispose();
+            toneFilter.dispose();
+            toneDelaySend.dispose();
+            toneReverbSend.dispose();
+          }
+        };
       } else if (currentSynthType === 'wf') {
         // West Coast synthesis: oscillator → wavefolder → LPG
         const wfOsc = new Tone.Oscillator({
