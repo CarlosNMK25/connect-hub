@@ -860,7 +860,7 @@ export const EuclideanTrack = React.memo(({
       {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
       {isTonal && synthType === 'fm' && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('fmRatio', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Ratio</span>
             <input
               type="range"
@@ -875,7 +875,7 @@ export const EuclideanTrack = React.memo(({
               {(fmRatio ?? 2).toFixed(1)}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('fmIndex', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Index</span>
             <input
               type="range"
