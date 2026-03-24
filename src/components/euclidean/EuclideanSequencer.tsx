@@ -1572,7 +1572,11 @@ export const EuclideanSequencer = () => {
         synthObj.setSends(track.delaySend, track.reverbSend);
       }
 
-    } catch (e) {
+      // If Cloud in Eno mode, initialize Eno engine after GrainPlayer setup
+      if (trackId === 'cloud' && track?.cloudMode === 'eno') {
+        initCloudEno(audioBuffer);
+      }
+
       console.error("Error decodificando audio:", e);
       setTracks(prev => prev.map(t => t.id === trackId ? { ...t, samplerStatus: 'IDLE', samplerFilename: null } : t));
       alert("Error al cargar el archivo de audio. Asegúrate de que sea un formato compatible.");
