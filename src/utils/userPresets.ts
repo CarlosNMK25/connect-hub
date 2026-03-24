@@ -30,6 +30,10 @@ export interface UserPresetTrack {
   padAttack?: number;
   droneFeedback?: number;
   droneFilterFreq?: number;
+  ksDecay?: number;
+  ksBrightness?: number;
+  modalBody?: string;
+  modalDecay?: number;
 }
 
 export interface UserPreset {

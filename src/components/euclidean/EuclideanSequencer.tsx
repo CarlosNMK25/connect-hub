@@ -79,6 +79,10 @@ interface TrackState {
   padAttack?: number;     // tiempo de ataque en segundos (0.01-2.0, default 0.3)
   droneFeedback?: number;    // feedback del delay loop (0.7-0.98, default 0.88)
   droneFilterFreq?: number;  // frecuencia del filtro del loop (200-8000Hz, default 2000)
+  ksDecay?: number;          // feedback del loop KS (0.80-0.999, default 0.97)
+  ksBrightness?: number;     // frecuencia del filtro KS (500-8000Hz, default 5000)
+  modalBody?: string;        // 'bell' | 'plate' | 'string', default 'bell'
+  modalDecay?: number;       // multiplicador de decay (0.5-3.0, default 1.0)
   hits: number;
   misses: number;
 }
@@ -681,7 +685,7 @@ export const EuclideanSequencer = () => {
           chaosEnabled: t.chaosEnabled, entropy: t.entropy,
           evolveEnabled: t.evolveEnabled, mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed,
           volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend, ratchet: t.ratchet,
-          ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices], synthType: t.synthType, fmRatio: t.fmRatio, fmIndex: t.fmIndex, wfAmount: t.wfAmount, wfSymmetry: t.wfSymmetry, addPartials: t.addPartials, addBrightness: t.addBrightness, arRate: t.arRate, arDepth: t.arDepth } : {}),
+          ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices], synthType: t.synthType, fmRatio: t.fmRatio, fmIndex: t.fmIndex, wfAmount: t.wfAmount, wfSymmetry: t.wfSymmetry, addPartials: t.addPartials, addBrightness: t.addBrightness, arRate: t.arRate, arDepth: t.arDepth, padVoices: t.padVoices, padDetune: t.padDetune, padAttack: t.padAttack, droneFeedback: t.droneFeedback, droneFilterFreq: t.droneFilterFreq, ksDecay: t.ksDecay, ksBrightness: t.ksBrightness, modalBody: t.modalBody, modalDecay: t.modalDecay } : {}),
         }])
       ),
     };
@@ -750,6 +754,15 @@ export const EuclideanSequencer = () => {
           addBrightness: config.addBrightness ?? t.addBrightness,
           arRate: config.arRate ?? t.arRate,
           arDepth: config.arDepth ?? t.arDepth,
+          padVoices: config.padVoices ?? t.padVoices,
+          padDetune: config.padDetune ?? t.padDetune,
+          padAttack: config.padAttack ?? t.padAttack,
+          droneFeedback: config.droneFeedback ?? t.droneFeedback,
+          droneFilterFreq: config.droneFilterFreq ?? t.droneFilterFreq,
+          ksDecay: config.ksDecay ?? t.ksDecay,
+          ksBrightness: config.ksBrightness ?? t.ksBrightness,
+          modalBody: config.modalBody ?? t.modalBody,
+          modalDecay: config.modalDecay ?? t.modalDecay,
         } : {}),
         hits: 0,
         misses: 0,
@@ -2222,6 +2235,153 @@ export const EuclideanSequencer = () => {
             feedbackDelay.dispose();
             loopFilter.dispose();
             droneLimiter.dispose();
+            toneFilter.dispose();
+            toneDelaySend.dispose();
+            toneReverbSend.dispose();
+          }
+        };
+      } else if (currentSynthType === 'ks') {
+        // Karplus-Strong: noise burst → delay loop → filter
+        const toneTrackKs = tracksRef.current.find(t => t.id === 'tone');
+        const ksDecayAmount = toneTrackKs?.ksDecay ?? 0.97;
+        const ksBrightnessFreq = toneTrackKs?.ksBrightness ?? 5000;
+
+        const ksMasterGain = new Tone.Gain(1);
+        ksMasterGain.connect(toneFilter);
+
+        const ksDelay = new Tone.Delay({ delayTime: 0.01, maxDelay: 0.05 });
+        const ksFilter = new Tone.Filter({ frequency: ksBrightnessFreq, type: 'lowpass', rolloff: -12 });
+        const ksLimiter = new Tone.Limiter(-3);
+        const ksFeedback = new Tone.Gain(ksDecayAmount);
+
+        // Loop: ksDelay → ksFilter → ksLimiter → ksFeedback → ksDelay
+        ksDelay.connect(ksFilter);
+        ksFilter.connect(ksLimiter);
+        ksLimiter.connect(ksFeedback);
+        ksFeedback.connect(ksDelay);
+        // Output from loop
+        ksFilter.connect(ksMasterGain);
+
+        synthsRef.current.tone = {
+          triggerAttackRelease: (note: string, _duration: string | number, time: number, velocity = 0.8) => {
+            const freq = Tone.Frequency(note).toFrequency();
+            const delayTime = 1 / freq;
+            ksDelay.delayTime.setValueAtTime(delayTime, time);
+
+            // Noise burst excitation (~50ms)
+            const rawCtx = Tone.context.rawContext as AudioContext;
+            const bufferSize = Math.ceil(rawCtx.sampleRate * 0.05);
+            const noiseBuffer = rawCtx.createBuffer(1, bufferSize, rawCtx.sampleRate);
+            const data = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+              data[i] = (Math.random() - 0.5) * 2 * velocity;
+            }
+            const noiseSource = rawCtx.createBufferSource();
+            noiseSource.buffer = noiseBuffer;
+            noiseSource.connect((ksDelay as any).input);
+            noiseSource.start(time);
+            noiseSource.stop(time + 0.05);
+
+            // Dynamic filter
+            const dynamicCutoff = 600 + velocity * 4000;
+            if (isFinite(dynamicCutoff)) {
+              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+            }
+          },
+          setVolume: (vol: number) => {
+            ksMasterGain.gain.rampTo(Tone.dbToGain(vol) * 0.8, 0.05);
+          },
+          setSends: (delayVal: number, reverbVal: number) => {
+            toneDelaySend.gain.rampTo(delayVal, 0.05);
+            toneReverbSend.gain.rampTo(reverbVal, 0.05);
+          },
+          updateKsParams: (newDecay: number, newBrightness: number) => {
+            ksFeedback.gain.rampTo(newDecay, 0.1);
+            ksFilter.frequency.rampTo(newBrightness, 0.1);
+          },
+          dispose: () => {
+            ksDelay.dispose();
+            ksFilter.dispose();
+            ksLimiter.dispose();
+            ksFeedback.dispose();
+            ksMasterGain.dispose();
+            toneFilter.dispose();
+            toneDelaySend.dispose();
+            toneReverbSend.dispose();
+          }
+        };
+      } else if (currentSynthType === 'modal') {
+        // Modal synthesis: banco de resonadores
+        const MODAL_BODIES = {
+          bell: [
+            { ratio: 1.000, decay: 3.0, amp: 1.00 },
+            { ratio: 2.756, decay: 2.0, amp: 0.67 },
+            { ratio: 5.404, decay: 1.5, amp: 0.45 },
+            { ratio: 8.933, decay: 1.0, amp: 0.28 },
+          ],
+          plate: [
+            { ratio: 1.000, decay: 2.0, amp: 1.00 },
+            { ratio: 1.414, decay: 1.5, amp: 0.80 },
+            { ratio: 2.000, decay: 1.2, amp: 0.60 },
+            { ratio: 2.449, decay: 0.8, amp: 0.40 },
+            { ratio: 3.000, decay: 0.5, amp: 0.25 },
+          ],
+          string: [
+            { ratio: 1.0, decay: 2.5, amp: 1.00 },
+            { ratio: 2.0, decay: 2.0, amp: 0.50 },
+            { ratio: 3.0, decay: 1.5, amp: 0.33 },
+            { ratio: 4.0, decay: 1.0, amp: 0.25 },
+            { ratio: 5.0, decay: 0.8, amp: 0.20 },
+          ],
+        } as const;
+
+        const modalMasterGain = new Tone.Gain(1);
+        modalMasterGain.connect(toneFilter);
+
+        synthsRef.current.tone = {
+          triggerAttackRelease: (note: string, _duration: string | number, time: number, velocity = 0.8) => {
+            const freq = Tone.Frequency(note).toFrequency();
+            const toneTrackModal = tracksRef.current.find(t => t.id === 'tone');
+            const bodyKey = (toneTrackModal?.modalBody ?? 'bell') as keyof typeof MODAL_BODIES;
+            const body = MODAL_BODIES[bodyKey] || MODAL_BODIES.bell;
+            const decayMult = toneTrackModal?.modalDecay ?? 1.0;
+
+            body.forEach(mode => {
+              const osc = new Tone.Oscillator({ type: 'sine' });
+              const env = new Tone.Gain(0);
+              const totalDecay = mode.decay * decayMult;
+
+              osc.frequency.value = freq * mode.ratio;
+              env.gain.setValueAtTime(mode.amp * velocity, time);
+              env.gain.exponentialRampToValueAtTime(0.0001, time + totalDecay);
+
+              osc.connect(env);
+              env.connect(modalMasterGain);
+              osc.start(time);
+              osc.stop(time + totalDecay + 0.1);
+
+              // Cleanup env after decay to prevent memory leak
+              const cleanupMs = (totalDecay + 0.2) * 1000;
+              setTimeout(() => {
+                try { env.dispose(); } catch {}
+              }, cleanupMs);
+            });
+
+            // Dynamic filter
+            const dynamicCutoff = 600 + velocity * 4000;
+            if (isFinite(dynamicCutoff)) {
+              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+            }
+          },
+          setVolume: (vol: number) => {
+            modalMasterGain.gain.rampTo(Tone.dbToGain(vol) * 0.8, 0.05);
+          },
+          setSends: (delayVal: number, reverbVal: number) => {
+            toneDelaySend.gain.rampTo(delayVal, 0.05);
+            toneReverbSend.gain.rampTo(reverbVal, 0.05);
+          },
+          dispose: () => {
+            modalMasterGain.dispose();
             toneFilter.dispose();
             toneDelaySend.dispose();
             toneReverbSend.dispose();
@@ -3716,6 +3876,30 @@ export const EuclideanSequencer = () => {
                   const tt = tracksRef.current.find(t => t.id === 'tone');
                   synthsRef.current.tone.updateDroneParams(tt?.droneFeedback ?? 0.88, val);
                 }
+              }}
+              ksDecay={track.ksDecay}
+              ksBrightness={track.ksBrightness}
+              modalBody={track.modalBody}
+              modalDecay={track.modalDecay}
+              onKsDecayChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, ksDecay: val } : t));
+                if (synthsRef.current.tone?.updateKsParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateKsParams(val, tt?.ksBrightness ?? 5000);
+                }
+              }}
+              onKsBrightnessChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, ksBrightness: val } : t));
+                if (synthsRef.current.tone?.updateKsParams) {
+                  const tt = tracksRef.current.find(t => t.id === 'tone');
+                  synthsRef.current.tone.updateKsParams(tt?.ksDecay ?? 0.97, val);
+                }
+              }}
+              onModalBodyChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, modalBody: val } : t));
+              }}
+              onModalDecayChange={(val) => {
+                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, modalDecay: val } : t));
               }}
               toneRecordingState={toneRecordingState}
               onRecordAction={handleArmOrRecord}

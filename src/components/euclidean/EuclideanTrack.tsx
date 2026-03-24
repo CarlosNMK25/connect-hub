@@ -105,6 +105,10 @@ interface EuclideanTrackProps {
   padAttack?: number;
   droneFeedback?: number;
   droneFilterFreq?: number;
+  ksDecay?: number;
+  ksBrightness?: number;
+  modalBody?: string;
+  modalDecay?: number;
   onAddPartialsChange?: (val: number) => void;
   onAddBrightnessChange?: (val: number) => void;
   onArRateChange?: (val: number) => void;
@@ -114,6 +118,10 @@ interface EuclideanTrackProps {
   onPadAttackChange?: (val: number) => void;
   onDroneFeedbackChange?: (val: number) => void;
   onDroneFilterFreqChange?: (val: number) => void;
+  onKsDecayChange?: (val: number) => void;
+  onKsBrightnessChange?: (val: number) => void;
+  onModalBodyChange?: (val: string) => void;
+  onModalDecayChange?: (val: number) => void;
   toneRecordingState?: 'idle' | 'armed' | 'recording';
   onRecordAction?: () => void;
   cloudRecordingState?: 'idle' | 'armed' | 'recording';
@@ -269,6 +277,10 @@ export const EuclideanTrack = React.memo(({
   padAttack,
   droneFeedback,
   droneFilterFreq,
+  ksDecay,
+  ksBrightness,
+  modalBody,
+  modalDecay,
   onAddPartialsChange,
   onAddBrightnessChange,
   onArRateChange,
@@ -278,6 +290,10 @@ export const EuclideanTrack = React.memo(({
   onPadAttackChange,
   onDroneFeedbackChange,
   onDroneFilterFreqChange,
+  onKsDecayChange,
+  onKsBrightnessChange,
+  onModalBodyChange,
+  onModalDecayChange,
   toneRecordingState,
   onRecordAction,
   cloudRecordingState,
@@ -874,6 +890,8 @@ export const EuclideanTrack = React.memo(({
                 <option value="add">ADD</option>
                 <option value="pad">PAD</option>
                 <option value="drone">DRN</option>
+                <option value="ks">KS</option>
+                <option value="modal">MOD</option>
               </select>
             </div>
             <div className="space-y-1">
@@ -1080,6 +1098,64 @@ export const EuclideanTrack = React.memo(({
             />
             <span className="text-[8px] font-mono text-system-accent w-12">
               {droneFilterFreq ?? 2000}Hz
+            </span>
+          </div>
+        </div>
+      )}
+      {/* KS controls */}
+      {isTonal && synthType === 'ks' && (
+        <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Decay</span>
+            <input
+              type="range" min="0.80" max="0.999" step="0.001"
+              value={ksDecay ?? 0.97}
+              onChange={(e) => onKsDecayChange?.(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-10">
+              {(ksDecay ?? 0.97).toFixed(3)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Bright</span>
+            <input
+              type="range" min="500" max="8000" step="100"
+              value={ksBrightness ?? 5000}
+              onChange={(e) => onKsBrightnessChange?.(parseInt(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-12">
+              {ksBrightness ?? 5000}Hz
+            </span>
+          </div>
+        </div>
+      )}
+      {/* Modal controls */}
+      {isTonal && synthType === 'modal' && (
+        <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Body</span>
+            <select
+              value={modalBody ?? 'bell'}
+              onChange={(e) => onModalBodyChange?.(e.target.value)}
+              className="block w-14 bg-white border border-black/10 rounded-lg text-[10px] font-mono px-1.5 py-1 text-idm-ink focus:outline-none focus:border-system-accent"
+            >
+              <option value="bell">Bell</option>
+              <option value="plate">Plate</option>
+              <option value="string">String</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Decay</span>
+            <input
+              type="range" min="0.5" max="3.0" step="0.1"
+              value={modalDecay ?? 1.0}
+              onChange={(e) => onModalDecayChange?.(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-8">
+              {(modalDecay ?? 1.0).toFixed(1)}×
             </span>
           </div>
         </div>
