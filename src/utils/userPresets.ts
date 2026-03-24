@@ -19,6 +19,8 @@ export interface UserPresetTrack {
   synthType?: string;
   fmRatio?: number;
   fmIndex?: number;
+  wfAmount?: number;
+  wfSymmetry?: number;
 }
 
 export interface UserPreset {
