@@ -1787,9 +1787,9 @@ export const EuclideanSequencer = () => {
       };
     } else if (trackId === 'tone') {
       // Si hay grabación activa, pararla antes de rebuild
-      if (isRecordingTone && mediaRecorderRef.current?.state === 'recording') {
+      if (toneRecordingState === 'recording' && mediaRecorderRef.current?.state === 'recording') {
         mediaRecorderRef.current.stop();
-        setIsRecordingTone(false);
+        setToneRecordingState('idle');
       }
 
       const toneDelaySend = new Tone.Gain(0.15).connect(master.delayBus);
