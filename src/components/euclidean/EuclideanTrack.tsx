@@ -911,6 +911,7 @@ export const EuclideanTrack = React.memo(({
         </div>
       )}
 
+      {id !== 'cloud' && (
         <div className="flex flex-wrap gap-3 pt-2">
           {pattern.map((active, i) => {
             const scaleIntervals = SCALES[scaleId] || SCALES.phrygianDominant;
