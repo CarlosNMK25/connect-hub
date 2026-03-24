@@ -831,8 +831,42 @@ export const EuclideanTrack = React.memo(({
           </div>
         </div>
       )}
+      {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
+      {isTonal && synthType === 'fm' && (
+        <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Ratio</span>
+            <input
+              type="range"
+              min="0.1"
+              max="10"
+              step="0.1"
+              value={fmRatio ?? 2}
+              onChange={(e) => onFmRatioChange?.(parseFloat(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-6">
+              {(fmRatio ?? 2).toFixed(1)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Index</span>
+            <input
+              type="range"
+              min="0"
+              max="50"
+              step="1"
+              value={fmIndex ?? 10}
+              onChange={(e) => onFmIndexChange?.(parseInt(e.target.value))}
+              className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[8px] font-mono text-system-accent w-6">
+              {fmIndex ?? 10}
+            </span>
+          </div>
+        </div>
+      )}
 
-      {id !== 'cloud' && (
         <div className="flex flex-wrap gap-3 pt-2">
           {pattern.map((active, i) => {
             const scaleIntervals = SCALES[scaleId] || SCALES.phrygianDominant;
