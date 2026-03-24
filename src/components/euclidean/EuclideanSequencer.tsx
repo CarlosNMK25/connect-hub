@@ -83,6 +83,8 @@ interface TrackState {
   ksBrightness?: number;     // frecuencia del filtro KS (500-8000Hz, default 5000)
   modalBody?: string;        // 'bell' | 'plate' | 'string', default 'bell'
   modalDecay?: number;       // multiplicador de decay (0.5-3.0, default 1.0)
+  ambientVolume?: number;    // volumen de los loops ambient (0.1-1.0, default 0.6)
+  ambientSpeed?: number;     // multiplicador de velocidad de loops (0.5-2.0, default 1.0)
   hits: number;
   misses: number;
 }
