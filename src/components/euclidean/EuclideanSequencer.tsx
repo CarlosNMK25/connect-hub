@@ -2113,6 +2113,18 @@ export const EuclideanSequencer = () => {
     }
   };
 
+  // Armed→recording cuando arranca play, auto-stop cuando para
+  useEffect(() => {
+    if (isPlaying && toneRecordingState === 'armed') {
+      startRecordingNow();
+    }
+    if (!isPlaying && toneRecordingState === 'recording') {
+      if (mediaRecorderRef.current?.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
+    }
+  }, [isPlaying]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => { Tone.getTransport().bpm.value = bpm; }, [bpm]);
   
   // Sync Sampler/GrainPlayer parameters with audio nodes
