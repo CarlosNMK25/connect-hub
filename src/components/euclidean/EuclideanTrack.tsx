@@ -104,9 +104,8 @@ interface EuclideanTrackProps {
   onAddBrightnessChange?: (val: number) => void;
   onArRateChange?: (val: number) => void;
   onArDepthChange?: (val: number) => void;
-  isRecordingTone?: boolean;
-  onStartRecording?: () => void;
-  onStopRecording?: () => void;
+  toneRecordingState?: 'idle' | 'armed' | 'recording';
+  onRecordAction?: () => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
   temporalityMode: TemporalityMode;
