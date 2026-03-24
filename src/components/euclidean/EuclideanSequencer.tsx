@@ -772,6 +772,10 @@ export const EuclideanSequencer = () => {
           ambientVolume: config.ambientVolume ?? t.ambientVolume,
           ambientSpeed: config.ambientSpeed ?? t.ambientSpeed,
         } : {}),
+        ...(t.id === 'cloud' ? {
+          cloudMode: config.cloudMode ?? t.cloudMode,
+          enoSpeed: config.enoSpeed ?? t.enoSpeed,
+        } : {}),
         hits: 0,
         misses: 0,
       });
