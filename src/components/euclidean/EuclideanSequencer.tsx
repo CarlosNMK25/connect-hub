@@ -1579,7 +1579,150 @@ export const EuclideanSequencer = () => {
     }
   };
 
-  const handleSamplerParamChange = useCallback((trackId: string, param: string, val: any) => {
+  // === Eno Engine for Cloud ===
+  const initCloudEno = useCallback((audioBuffer: AudioBuffer) => {
+    const cloudSynth = synthsRef.current.cloud;
+    if (!cloudSynth?.ducker) return;
+
+    // Capture skeleton refs before overwriting engine methods
+    const existingDucker = cloudSynth.ducker;
+    const existingDelaySend = cloudSynth.delaySend;
+    const existingReverbSend = cloudSynth.reverbSend;
+
+    // Stop granular if running
+    if (cloudSynth.grainPlayer) {
+      try { cloudSynth.grainPlayer.stop(); } catch {}
+    }
+
+    // Clean up previous Eno if any
+    if (cloudSynth.enoDispose) {
+      try { cloudSynth.enoDispose(); } catch {}
+    }
+
+    const BASE_DURATIONS = [2.3, 3.7, 5.1, 7.3];
+    const NUM_LOOPS = BASE_DURATIONS.length;
+
+    const enoMaster = new Tone.Gain(1);
+    enoMaster.connect(existingDucker);
+
+    const enoPlayers: Tone.Player[] = [];
+    const enoRepeatIds: number[] = [];
+    let enoActive = false;
+
+    const toneBuffer = new Tone.ToneAudioBuffer(audioBuffer);
+
+    for (let i = 0; i < NUM_LOOPS; i++) {
+      const player = new Tone.Player(toneBuffer);
+      player.connect(enoMaster);
+      enoPlayers.push(player);
+    }
+
+    const scheduleEnoLoop = (loopIdx: number) => {
+      const cloudTrack = tracksRef.current.find(t => t.id === 'cloud');
+      const speedMult = cloudTrack?.enoSpeed ?? 1.0;
+      const dur = BASE_DURATIONS[loopIdx] * speedMult;
+      const player = enoPlayers[loopIdx];
+      if (!player.buffer || !player.buffer.loaded || !enoActive) return;
+
+      const bufDur = player.buffer.duration;
+      const maxOffset = Math.max(0, bufDur - dur);
+      const offset = Math.random() * maxOffset;
+
+      try {
+        player.start(Tone.now(), offset, dur);
+      } catch {}
+
+      const nextTime = Tone.now() + dur;
+      const id = Tone.getTransport().scheduleOnce(() => {
+        if (enoActive) scheduleEnoLoop(loopIdx);
+      }, nextTime);
+      enoRepeatIds[loopIdx] = id;
+    };
+
+    const startEno = () => {
+      if (enoActive) return;
+      enoActive = true;
+      for (let i = 0; i < NUM_LOOPS; i++) {
+        Tone.getTransport().scheduleOnce(() => {
+          if (enoActive) scheduleEnoLoop(i);
+        }, `+${i * 0.4}`);
+      }
+    };
+
+    const stopEno = () => {
+      enoActive = false;
+      enoRepeatIds.forEach(id => {
+        try { Tone.getTransport().clear(id); } catch {}
+      });
+      enoPlayers.forEach(p => {
+        try { p.stop(); } catch {}
+      });
+    };
+
+    const disposeEno = () => {
+      stopEno();
+      enoPlayers.forEach(p => {
+        try { p.dispose(); } catch {}
+      });
+      enoMaster.dispose();
+    };
+
+    // Attach Eno methods to cloud synth
+    cloudSynth.startEno = startEno;
+    cloudSynth.stopEno = stopEno;
+    cloudSynth.enoDispose = disposeEno;
+
+    // Override setVolume to handle Eno master gain
+    const originalSetVolume = cloudSynth.setVolume;
+    cloudSynth.setVolume = (vol: number) => {
+      // Granular volume
+      if (cloudSynth.grainPlayer) {
+        try { cloudSynth.grainPlayer.volume.rampTo(Tone.gainToDb(vol), 0.05); } catch {}
+      }
+      // Eno volume
+      enoMaster.gain.value = vol;
+    };
+
+    // Re-expose setSends (skeleton sends are still connected)
+    cloudSynth.setSends = (delayVal: number, reverbVal: number) => {
+      if (existingDelaySend) existingDelaySend.gain.rampTo(delayVal, 0.05);
+      if (existingReverbSend) existingReverbSend.gain.rampTo(reverbVal, 0.05);
+    };
+
+    // If already playing, start Eno immediately
+    if (isPlaying) {
+      startEno();
+    }
+  }, [isPlaying]);
+
+  const handleCloudModeChange = useCallback((newMode: 'granular' | 'eno') => {
+    setTracks(prev => prev.map(t => t.id === 'cloud' ? { ...t, cloudMode: newMode } : t));
+
+    const cloudTrack = tracksRef.current.find(t => t.id === 'cloud');
+    const cloudSynth = synthsRef.current.cloud;
+
+    if (newMode === 'eno') {
+      // Stop granular
+      if (cloudSynth?.grainPlayer) {
+        try { cloudSynth.grainPlayer.stop(); } catch {}
+      }
+      // Init Eno if buffer is available
+      if (cloudTrack?.samplerBuffer) {
+        initCloudEno(cloudTrack.samplerBuffer);
+      }
+    } else {
+      // Stop Eno
+      if (cloudSynth?.stopEno) {
+        cloudSynth.stopEno();
+      }
+      // Restart granular if playing
+      if (isPlaying && cloudSynth?.grainPlayer) {
+        try { cloudSynth.grainPlayer.start(); } catch {}
+      }
+    }
+  }, [initCloudEno, isPlaying]);
+
+
     setTracks(prev => prev.map(t => {
       if (t.id !== trackId) return t;
       return { ...t, [param]: val };
