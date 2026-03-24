@@ -1335,7 +1335,10 @@ export const EuclideanSequencer = () => {
       logChange('■ Stop');
       Tone.getTransport().stop();
       // Stop cloud grain player if it exists
-      if (synthsRef.current.cloud?.grainPlayer) {
+      const cloudTrackStop = tracksRef.current.find(t => t.id === 'cloud');
+      if (cloudTrackStop?.cloudMode === 'eno') {
+        synthsRef.current.cloud?.stopEno?.();
+      } else if (synthsRef.current.cloud?.grainPlayer) {
         synthsRef.current.cloud.grainPlayer.stop();
       }
       // Stop ambient loops if running
