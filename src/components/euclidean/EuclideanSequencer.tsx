@@ -20,6 +20,7 @@ import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/peda
 import { UserPreset, loadUserPresets, saveUserPresets, exportPresetAsJson, importPresetFromFile, userPresetToScenePreset } from '../../utils/userPresets';
 import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../../utils/temporality';
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex } from '../../utils/scales';
+import { buildWavefoldCurve, vactrolfiltFreq } from '../../utils/waveshaping';
 
 interface TrackState {
   id: string;
