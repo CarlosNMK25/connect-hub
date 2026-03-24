@@ -236,6 +236,8 @@ export const EuclideanTrack = React.memo(({
   onSynthTypeChange,
   onFmRatioChange,
   onFmIndexChange,
+  onWfAmountChange,
+  onWfSymmetryChange,
   isStudyMode,
   studyVoice = 'technical',
   temporalityMode,
