@@ -2494,6 +2494,28 @@ export const EuclideanSequencer = () => {
             </button>
           </div>
 
+          <button
+            onClick={handleGlobalArmOrRecord}
+            className={`w-10 h-10 rounded-full border-2 flex items-center 
+              justify-center transition-all duration-300 ${
+              globalRecordingState === 'recording'
+                ? 'bg-red-500 text-white border-red-600 animate-pulse'
+                : globalRecordingState === 'armed'
+                ? 'bg-amber-400 text-white border-amber-500 animate-pulse'
+                : 'bg-white text-red-400 border-red-300 hover:bg-red-50 hover:border-red-400'
+            }`}
+            title={
+              globalRecordingState === 'recording' ? 'Parar grabación del mix'
+              : globalRecordingState === 'armed' ? 'Armado — esperando Play'
+              : 'Grabar mix completo'
+            }
+          >
+            {globalRecordingState === 'recording'
+              ? <Square size={14} fill="currentColor" />
+              : <span className="w-3 h-3 rounded-full bg-red-400 block" />
+            }
+          </button>
+
           <button 
             onClick={togglePlay} 
             className={`w-14 h-14 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${isPlaying ? "bg-system-accent text-white border-system-accent shadow-md" : "bg-white text-system-accent border-system-accent hover:bg-system-accent/5"}`}
