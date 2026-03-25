@@ -231,6 +231,13 @@ const DiagnosisPanel: React.FC<{
       wfSymmetry: t.wfSymmetry,
       addPartials: t.addPartials,
       addBrightness: t.addBrightness,
+      patternMode: t.patternMode,
+      noteMode: t.noteMode,
+      markovStyle: t.markovStyle,
+      markovTemperature: t.markovTemperature,
+      markovAnchor: t.markovAnchor,
+      lsIterations: t.lsIterations,
+      caSpeed: t.caSpeed,
     }));
 
     const mcm = computeMcm(diagTracks);

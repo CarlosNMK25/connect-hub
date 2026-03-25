@@ -173,6 +173,21 @@ export const PEDAGOGY = {
     phaseDrift: "El experimento de Steve Reich hecho botón. Dos patrones idénticos que empiezan juntos y, golpe a golpe, se van separando — como dos relojes que caminan a velocidades casi iguales. Lo que empieza como unísono se convierte en canon, luego en caos armónico, y eventualmente vuelve a encontrarse. Es la paciencia convertida en composición.",
     cloudMode: "El alma de la pista Atmosphere. En modo Granular, el sample se fragmenta en partículas que flotan como polvo en un haz de luz. En modo Eno, el sample se multiplica en cuatro ecos fantasma que viven y mueren a ritmos distintos — como cuatro velas encendidas a la vez, cada una con su propia mecha. Brian Eno soñó con música que se genera sola; aquí, el sample es la semilla.",
     enoSpeed: "La respiración del modo Eno. Lenta y las cuatro capas se estiran como nubes en un cielo de verano, cambiando tan despacio que apenas notas la transformación. Rápida y el sample se fragmenta en un caleidoscopio de ciclos cortos que se atropellan entre sí. El secreto está en las duraciones irracionales: nunca se alinean del todo, y en esa imperfección vive la música.",
+    // Phase 4 — L-System, Cellular Automata, Markov
+    patternMode: "Tres filosofías del tiempo: la justicia matemática de Euclides, la gramática que se devora a sí misma del L-System, y el autómata que decide su propio destino célula a célula.",
+    lsSeed: "El primer fonema antes de que el lenguaje se desplegara. Todo el árbol filogenético del ritmo contenido en una sola sílaba.",
+    lsRuleA: "La ley que transforma. Como el ADN que contiene no un cuerpo sino las instrucciones para construir un cuerpo, esta regla no es el ritmo sino el proceso que lo engendra.",
+    lsIterations: "El tiempo dentro del tiempo. Cuántas veces la regla se aplica a sí misma antes de que el patrón cristalice en el golpe que escuchas.",
+    lsRotation: "El mismo collar de cuentas, otra cuenta de inicio. El patrón no cambia — cambia dónde decides que empiece el mundo.",
+    caRule: "El nombre de una ley del universo. Wolfram numeró 256 posibles cosmos; estos cuatro contienen música.",
+    caSeed: "El Big Bang del patrón. De dónde surge la primera perturbación que, propagándose según la ley, construirá todo lo que vendrá.",
+    caDensity: "El volumen del silencio. La regla genera todo; la densidad decide qué parte de ese todo alcanza el oído.",
+    caSpeed: "El metabolismo del patrón. Con qué frecuencia el autómata decide que ha vivido suficiente en su estado actual y se transforma en otro.",
+    noteMode: "Dos formas de habitar una escala: la mappa mundi que asigna cada territorio a cada paso, o el caminante que decide adónde ir según dónde está.",
+    markovStyle: "El temperamento del músico imaginario que vive en la cadena de Markov. Su forma de moverse por el espacio tonal: con pasos prudentes, con saltos atrevidos, con el instinto flamenco de volver siempre a casa.",
+    markovTemperature: "El calor que desordena los cristales. A temperatura cero, el sistema encuentra su estado de mínima energía y se queda quieto. A temperatura máxima, todo es igualmente posible y nada es probable.",
+    markovAnchor: "La cuerda que ata al explorador a la entrada de la cueva. Sin ella, la melodía puede adentrarse tanto en el laberinto que olvida cómo salir. Con ella, cada cierto tiempo, vuelve a la luz.",
+    markovShowMatrix: "El mapa del pensamiento del algoritmo. Ver la matriz es ver cómo decide, antes de que decida. La diferencia entre escuchar música y entender por qué suena así.",
   } as PedagogyMicro,
 
   meso: {

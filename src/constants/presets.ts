@@ -255,5 +255,43 @@ export const PRESETS: ScenePreset[] = [
     category: 'IDM',
     description: 'Patrón atómico de rejilla pura. (E 16, 16)',
     config: { pulses: 16, steps: 16, offset: 0 }
-  }
+  },
+
+  // --- PHASE 4: GENERATIVE PRESETS ---
+  {
+    id: 'fibonacci-tree',
+    name: 'Árbol de Fibonacci',
+    type: 'master',
+    category: 'Experimental',
+    description: 'L-System + Markov: dos motores generativos en diálogo. Snare y Hat usan L-Systems con reglas distintas; la melodía usa Markov con anclaje.',
+    bpm: 105,
+    jitter: 6,
+    swing: 30,
+    dynamics: 70,
+    temporalityMode: 'dilla',
+    tracks: {
+      kick: { pulses: 3, steps: 8, offset: 0, volume: 0.85, delaySend: 0.05, reverbSend: 0.2 },
+      snare: { pulses: 4, steps: 8, offset: 0, patternMode: 'lsystem', lsSeed: 'XO', lsRuleA: 'XO', lsIterations: 4, volume: 0.7, delaySend: 0.15, reverbSend: 0.3 },
+      hat: { pulses: 5, steps: 8, offset: 0, patternMode: 'lsystem', lsSeed: 'X', lsRuleA: 'XOO', lsIterations: 5, volume: 0.5, delaySend: 0.1, reverbSend: 0.15 },
+      tone: { pulses: 4, steps: 12, offset: 0, noteMode: 'markov', markovStyle: 'scale', markovTemperature: 35, markovAnchor: 8, rootNote: 48, scaleId: 'minor', octaveRange: 2, noteIndices: [0, 2, 4, 1, 3, 5, 2, 4, 0, 3, 1, 5], volume: 0.6, delaySend: 0.2, reverbSend: 0.5 },
+    }
+  },
+  {
+    id: 'markov-flamenca',
+    name: 'Cadena de Markov Flamenca',
+    type: 'master',
+    category: 'Experimental',
+    description: 'Soleá + Markov flamenco: el algoritmo aprende el instinto del cante. Melodía generada por cadena de Markov con gravedad hacia la tónica y el semitono inferior.',
+    bpm: 80,
+    jitter: 3,
+    swing: 15,
+    dynamics: 60,
+    temporalityMode: 'flamenco',
+    tracks: {
+      kick: { pulses: 5, steps: 12, offset: 0, volume: 0.8, delaySend: 0.05, reverbSend: 0.3 },
+      snare: { pulses: 3, steps: 12, offset: 2, volume: 0.65, delaySend: 0.1, reverbSend: 0.35 },
+      hat: { pulses: 2, steps: 12, offset: 6, baseProbability: 0.8, volume: 0.45, delaySend: 0.05, reverbSend: 0.2 },
+      tone: { pulses: 5, steps: 12, offset: 0, noteMode: 'markov', markovStyle: 'flamenco', markovTemperature: 25, markovAnchor: 4, rootNote: 52, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: [0, 1, 4, 3, 0, 5, 2, 4, 1, 0, 3, 2], volume: 0.65, delaySend: 0.2, reverbSend: 0.7 },
+    }
+  },
 ];
