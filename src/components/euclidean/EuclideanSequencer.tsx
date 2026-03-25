@@ -3486,11 +3486,20 @@ export const EuclideanSequencer = () => {
                       )}
                     </div>
                   </div>
+
+                  <div className="flex flex-col gap-2">
+                    <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('jitter'); setHoveredGlobalEl(e.currentTarget); } }}
+                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                      <span>Jitter</span>
+                      <span className="text-system-accent">{jitter}ms</span>
+                    </div>
                     <input 
                       type="range" min="0" max="20" value={jitter} 
                       onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('jitter', 'Jitter', jitter, v, 'ms'); setJitter(v); }} 
                       className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
                     />
+                  </div>
                   </div>
 
                   <div className="flex flex-col gap-2">
