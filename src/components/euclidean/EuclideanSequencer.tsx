@@ -1169,6 +1169,7 @@ export const EuclideanSequencer = () => {
       synthsRef.current.kick.nestedLfoInstance = null;
     };
 
+    const snareSynth = new Tone.NoiseSynth({
       noise: { type: 'white' },
       envelope: { attack: 0.001, decay: 0.2, sustain: 0 },
       volume: -4
