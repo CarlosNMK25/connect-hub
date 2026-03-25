@@ -854,7 +854,7 @@ export const EuclideanTrack = React.memo(({
           {/* L-System Controls */}
           {(patternMode ?? 'euclidean') === 'lsystem' && (
             <div className="flex items-center gap-3 flex-none border-l border-black/5 pl-3">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('lsSeed', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-7">Seed</span>
                 <select value={lsSeed ?? 'X'} onChange={e => onLsParamChange?.('lsSeed', e.target.value)}
                   className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
@@ -864,7 +864,7 @@ export const EuclideanTrack = React.memo(({
                   <option value="XOOX">XOOX</option>
                 </select>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('lsRuleA', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-7">Rule</span>
                 <select value={lsRuleA ?? 'XO'} onChange={e => onLsParamChange?.('lsRuleA', e.target.value)}
                   className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
@@ -874,14 +874,14 @@ export const EuclideanTrack = React.memo(({
                   <option value="XOOX">Complex</option>
                 </select>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('lsIterations', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-6">Iter</span>
                 <input type="range" min={1} max={6} step={1} value={lsIterations ?? 3}
                   onChange={e => onLsParamChange?.('lsIterations', Number(e.target.value))}
                   className="w-14 h-[7px]" style={{ accentColor: color }} />
                 <span className="text-[7px] font-mono text-idm-muted w-3">{lsIterations ?? 3}</span>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('lsRotation', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-6">Rot</span>
                 <input type="range" min={0} max={steps - 1} step={1} value={lsRotation ?? 0}
                   onChange={e => onLsParamChange?.('lsRotation', Number(e.target.value))}
