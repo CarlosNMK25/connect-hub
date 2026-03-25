@@ -915,6 +915,16 @@ export const EuclideanSequencer = () => {
         rrAmount: config.rrAmount ?? 30,
         driftEnabled: config.driftEnabled ?? false,
         driftRate: config.driftRate ?? 0.01,
+        // Pattern mode
+        patternMode: (config as any).patternMode ?? 'euclidean',
+        lsSeed: (config as any).lsSeed ?? 'X',
+        lsRuleA: (config as any).lsRuleA ?? 'XO',
+        lsIterations: (config as any).lsIterations ?? 3,
+        lsRotation: (config as any).lsRotation ?? 0,
+        caRule: (config as any).caRule ?? 30,
+        caSeed: (config as any).caSeed ?? 'center',
+        caDensity: (config as any).caDensity ?? 50,
+        caSpeed: (config as any).caSpeed ?? 1,
         // Layer 2 params (buffer NOT restored from preset)
         layer2Blend: config.layer2Blend ?? 0.8,
         layer2Pitch: config.layer2Pitch ?? 0,
