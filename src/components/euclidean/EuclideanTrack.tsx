@@ -694,7 +694,7 @@ export const EuclideanTrack = React.memo(({
                     </button>
                   </div>
                   {/* BLD */}
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('layer2Blend', e)} onMouseLeave={handleParamLeave}>
                     <span className="text-[7px] font-mono text-idm-muted w-6">BLD</span>
                     <input type="range" min={0} max={1} step={0.01}
                       value={layer2Blend ?? 0.8}
@@ -705,7 +705,7 @@ export const EuclideanTrack = React.memo(({
                     </span>
                   </div>
                   {/* PCH */}
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('layer2Pitch', e)} onMouseLeave={handleParamLeave}>
                     <span className="text-[7px] font-mono text-idm-muted w-6">PCH</span>
                     <input type="range" min={-24} max={24} step={1}
                       value={layer2Pitch ?? 0}
@@ -716,7 +716,7 @@ export const EuclideanTrack = React.memo(({
                     </span>
                   </div>
                   {/* OFF */}
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('layer2Offset', e)} onMouseLeave={handleParamLeave}>
                     <span className="text-[7px] font-mono text-idm-muted w-6">OFF</span>
                     <input type="range" min={0} max={500} step={1}
                       value={layer2Offset ?? 0}
@@ -727,7 +727,7 @@ export const EuclideanTrack = React.memo(({
                     </span>
                   </div>
                   {/* FLT */}
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('layer2Filter', e)} onMouseLeave={handleParamLeave}>
                     <span className="text-[7px] font-mono text-idm-muted w-6">FLT</span>
                     <input type="range" min={200} max={8000} step={50}
                       value={layer2FilterFreq ?? 8000}
