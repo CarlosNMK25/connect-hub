@@ -25,6 +25,14 @@ export interface DiagnosisContext {
     wfSymmetry?: number;
     addPartials?: number;
     addBrightness?: number;
+    // Phase 4 fields
+    patternMode?: string;
+    noteMode?: string;
+    markovStyle?: string;
+    markovTemperature?: number;
+    markovAnchor?: number;
+    lsIterations?: number;
+    caSpeed?: number;
   }>;
   globalState: {
     bpm: number;
