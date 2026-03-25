@@ -2104,7 +2104,7 @@ export const EuclideanSequencer = () => {
         reverbSend.dispose();
       };
 
-      synthObj.triggerAttackRelease = (duration: any, time: number, velocity: number) => {
+      synthObj.triggerAttackRelease = (duration: any, time: number, velocity: number, sliceInfoArg?: { startSec: number; durationSec: number; detuneCents: number; isReverse: boolean }) => {
         const currentTrack = tracksRef.current.find(t => t.id === trackId);
         if (!currentTrack || !grainPlayer.buffer) return;
         
@@ -2114,7 +2114,23 @@ export const EuclideanSequencer = () => {
           return;
         }
 
-        // Apply sampler params
+        // Slicer override: use slice boundaries if available
+        if (sliceInfoArg) {
+          grainPlayer.grainSize = currentTrack.grainSize / 1000;
+          grainPlayer.overlap = currentTrack.overlap;
+          grainPlayer.detune = sliceInfoArg.detuneCents + (velocity - 0.8) * 100;
+          grainPlayer.reverse = sliceInfoArg.isReverse;
+          try {
+            if (grainPlayer.mute) grainPlayer.mute = false;
+            grainPlayer.start(time, sliceInfoArg.startSec, sliceInfoArg.durationSec);
+          } catch (err) {
+            console.warn("GrainPlayer slicer start failed:", err);
+          }
+          return; // slicer path complete
+        }
+
+        // Normal path (no slicer)
+        grainPlayer.reverse = false;
         grainPlayer.grainSize = currentTrack.grainSize / 1000;
         grainPlayer.overlap = currentTrack.overlap;
         grainPlayer.detune = currentTrack.pitch * 100 + (velocity - 0.8) * 100;
@@ -2129,16 +2145,11 @@ export const EuclideanSequencer = () => {
         if (trackId !== 'cloud') {
           try {
             const startOffsetSec = Math.max(0, Math.min(audioBuffer.duration - 0.01, finalOffset));
-            // Fix 1: respect sampleEnd — use min(roiDuration, stepDuration)
             const endOffsetSec = currentTrack.sampleEnd * audioBuffer.duration;
             const roiDuration = Math.max(0.01, endOffsetSec - startOffsetSec);
             const durationSec = Math.max(0.01, Math.min(roiDuration, durSeconds));
             
-            console.log(`[Sampler] Triggering ${trackId} | time: ${time.toFixed(3)} | offset: ${startOffsetSec.toFixed(3)} | dur: ${durationSec.toFixed(3)} | vol: ${grainPlayer.volume.value.toFixed(1)}dB | state: ${Tone.getContext().state}`);
-            
-            // Ensure volume is not muted
             if (grainPlayer.mute) grainPlayer.mute = false;
-            
             grainPlayer.start(time, startOffsetSec, durationSec);
           } catch (err) {
             console.warn("GrainPlayer start failed:", err);
