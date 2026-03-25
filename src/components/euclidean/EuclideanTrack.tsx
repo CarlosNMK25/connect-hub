@@ -8,7 +8,7 @@ import { WaveformDisplay } from './WaveformDisplay';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
 import { calculateTemporalOffset, type TemporalityMode } from '../../utils/temporality';
-import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals } from '../../utils/scales';
+import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals, noteIndexToDisplayName } from '../../utils/scales';
 
 interface EuclideanTrackProps {
   id: string;
@@ -1894,8 +1894,7 @@ export const EuclideanTrack = React.memo(({
           {pattern.map((active, i) => {
             const scaleIntervals = getScaleIntervals(scaleId);
             const noteIdx = noteIndices[i] ?? 0;
-            const midi = noteIndexToMidi(rootNote, scaleIntervals, noteIdx);
-            const noteName = midiToNoteName(midi);
+            const noteName = noteIndexToDisplayName(rootNote, scaleId, noteIdx);
             const maxIdx = getMaxNoteIndex(scaleIntervals, octaveRange);
             return (
               <EuclideanStep 
