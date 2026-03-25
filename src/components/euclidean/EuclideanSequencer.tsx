@@ -22,6 +22,7 @@ import { UserPreset, loadUserPresets, saveUserPresets, exportPresetAsJson, impor
 import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../../utils/temporality';
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex } from '../../utils/scales';
 import { buildWavefoldCurve, vactrolfiltFreq } from '../../utils/waveshaping';
+import { generateMarkovMatrix, markovNextNote, type MarkovStyle } from '../../utils/markovGenerator';
 
 interface TrackState {
   id: string;
