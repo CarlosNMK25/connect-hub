@@ -103,6 +103,13 @@ interface TrackState {
   caSpeed?: number;
   driftEnabled?: boolean;          // Phase Drift estilo Reich, default false
   driftRate?: number;              // -0.05 a 0.05, default 0.01
+  // Markov note mode
+  noteMode?: 'euclidean' | 'markov';  // default 'euclidean'
+  markovStyle?: MarkovStyle;           // default 'scale'
+  markovTemperature?: number;          // 0-100, default 40
+  markovMemory?: 1 | 2;               // TODO: orden 2 requiere tensor n×n×n
+  markovAnchor?: number;              // 0=OFF, 4, 8, 16 notas, default 0
+  markovShowMatrix?: boolean;         // mostrar tabla, default false
   // Layer 2
   layer2Status?: 'empty' | 'loading' | 'ready';
   layer2Filename?: string;
