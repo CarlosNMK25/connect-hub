@@ -67,7 +67,8 @@ export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSy
   // Phase point coordinates for polyline
   const phasePoints = useMemo(() => {
     return tracks.map((track, i) => {
-      const currentStep = (globalStep + track.offset) % track.steps;
+      const drift = driftOffsets?.[track.id] ?? 0;
+      const currentStep = ((globalStep + track.offset + drift) % track.steps + track.steps) % track.steps;
       const angle = (currentStep / track.steps) * 2 * Math.PI - Math.PI / 2;
       const r = (i + 1) * radiusStep;
       return {
