@@ -406,7 +406,34 @@ export const EuclideanSequencer = () => {
   });
   
   // Update Patterns (Atomic inside handlers now)
-  const updateTrackPattern = (t: TrackState) => {
+  const updateTrackPattern = (t: TrackState): TrackState => {
+    const mode = t.patternMode ?? 'euclidean';
+
+    if (mode === 'lsystem') {
+      const pattern = generateLSystem(
+        t.lsSeed ?? 'X',
+        t.lsRuleA ?? 'XO',
+        t.lsIterations ?? 3,
+        t.steps,
+        t.lsRotation ?? 0
+      );
+      return { ...t, pattern };
+    }
+
+    if (mode === 'ca') {
+      const existing = caStateRef.current[t.id];
+      const { pattern, newState } = generateCAPattern(
+        t.caRule ?? 30,
+        t.caSeed ?? 'center',
+        t.steps,
+        t.caDensity ?? 50,
+        existing
+      );
+      caStateRef.current[t.id] = newState;
+      return { ...t, pattern };
+    }
+
+    // default: euclidean
     const p = bjorklund(t.pulses, t.steps);
     // No longer rotating the pattern physically. 
     // The offset will be handled by the playhead (globalStep + offset).
