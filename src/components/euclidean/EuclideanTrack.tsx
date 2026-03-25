@@ -138,6 +138,17 @@ interface EuclideanTrackProps {
   driftRate?: number;
   onDriftEnabledChange?: (val: boolean) => void;
   onDriftRateChange?: (val: number) => void;
+  // Layer 2
+  layer2Status?: 'empty' | 'loading' | 'ready';
+  layer2Filename?: string;
+  layer2Blend?: number;
+  layer2Pitch?: number;
+  layer2Offset?: number;
+  layer2FilterFreq?: number;
+  layer2Reverse?: boolean;
+  onLoadLayer2?: (file: File) => void;
+  onClearLayer2?: () => void;
+  onLayer2ParamChange?: (param: string, value: number | boolean) => void;
   toneRecordingState?: 'idle' | 'armed' | 'recording';
   onRecordAction?: () => void;
   cloudRecordingState?: 'idle' | 'armed' | 'recording';
