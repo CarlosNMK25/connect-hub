@@ -478,6 +478,9 @@ export const EuclideanTrack = React.memo(({
   onSlicePitchChange,
   onSliceRandomize,
   onSliceReset,
+  // Time Stretch
+  stretchEnabled,
+  stretchRate,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
