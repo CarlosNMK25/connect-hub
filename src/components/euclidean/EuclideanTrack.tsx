@@ -5,10 +5,28 @@ import { EuclideanStep } from './EuclideanStep';
 import { bjorklund, rotate } from '../../utils/bjorklund';
 import { ChevronLeft, ChevronRight, Disc, Upload, Trash2, Volume2, Power, Settings2, Activity, Zap, Eye, EyeOff, Sliders, Layers, Target, Atom, Info, HelpCircle, X, ChevronDown, ChevronUp, Music } from 'lucide-react';
 import { WaveformDisplay } from './WaveformDisplay';
+import { SlicerPanel } from './SlicerPanel';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
 import { calculateTemporalOffset, type TemporalityMode } from '../../utils/temporality';
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals, noteIndexToDisplayName } from '../../utils/scales';
+import { calculateSliceBoundaries } from '../../utils/slicerUtils';
+
+// Lightweight overlay for slice boundary lines on the waveform
+const SliceBoundaryOverlay: React.FC<{ buffer: AudioBuffer; sliceCount: number; color: string }> = React.memo(({ buffer, sliceCount, color }) => {
+  const boundaries = React.useMemo(() => calculateSliceBoundaries(buffer, sliceCount), [buffer, sliceCount]);
+  return (
+    <>
+      {boundaries.slice(1).map((slice, i) => (
+        <div
+          key={i}
+          className="absolute top-0 bottom-0 w-px pointer-events-none"
+          style={{ left: `${slice.start * 100}%`, backgroundColor: `${color}80` }}
+        />
+      ))}
+    </>
+  );
+});
 
 interface EuclideanTrackProps {
   id: string;
@@ -197,6 +215,19 @@ interface EuclideanTrackProps {
   onMarkovParamChange?: (param: string, value: string | number | boolean) => void;
   onMarkovRegenerate?: () => void;
   onGetMarkovMatrix?: (trackId: string) => number[][] | undefined;
+  // Slicer props
+  slicerEnabled?: boolean;
+  sliceCount?: number;
+  sliceOrder?: number[];
+  sliceReverse?: boolean[];
+  slicePitch?: number[];
+  onSlicerToggle?: (enabled: boolean) => void;
+  onSliceCountChange?: (count: number) => void;
+  onSliceOrderChange?: (order: number[]) => void;
+  onSliceReverseToggle?: (sliceIdx: number) => void;
+  onSlicePitchChange?: (sliceIdx: number, semitones: number) => void;
+  onSliceRandomize?: () => void;
+  onSliceReset?: () => void;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
@@ -431,6 +462,19 @@ export const EuclideanTrack = React.memo(({
   onMarkovParamChange,
   onMarkovRegenerate,
   onGetMarkovMatrix,
+  // Slicer
+  slicerEnabled,
+  sliceCount,
+  sliceOrder,
+  sliceReverse,
+  slicePitch,
+  onSlicerToggle,
+  onSliceCountChange,
+  onSliceOrderChange,
+  onSliceReverseToggle,
+  onSlicePitchChange,
+  onSliceRandomize,
+  onSliceReset,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
@@ -669,12 +713,28 @@ export const EuclideanTrack = React.memo(({
 
             {samplerStatus === 'READY' && (
               <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => onSlicerToggle?.(!slicerEnabled)}
+                  className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                    slicerEnabled
+                      ? 'bg-system-accent text-white border-system-accent'
+                      : 'bg-background text-foreground/60 border-border hover:border-system-accent/50'
+                  }`}
+                  title="Sample Slicer"
+                >
+                  SLICE
+                </button>
                 <button onClick={onClearSampler}
                   className="p-1 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-md transition-all border border-red-500/20"
                   title="Clear Sample">
                   <Trash2 size={10} />
                 </button>
               </div>
+            )}
+
+            {/* Slice boundary overlay lines */}
+            {slicerEnabled && samplerBuffer && (
+              <SliceBoundaryOverlay buffer={samplerBuffer} sliceCount={sliceCount ?? 16} color={color} />
             )}
 
             <input type="file" ref={fileInputRef} className="hidden" accept="audio/*"
@@ -1138,6 +1198,24 @@ export const EuclideanTrack = React.memo(({
             </div>
           )}
         </div>
+      )}
+
+      {/* Slicer Panel */}
+      {slicerEnabled && samplerStatus === 'READY' && samplerBuffer && (
+        <SlicerPanel
+          samplerBuffer={samplerBuffer}
+          sliceCount={sliceCount ?? 16}
+          sliceOrder={sliceOrder ?? []}
+          sliceReverse={sliceReverse ?? []}
+          slicePitch={slicePitch ?? []}
+          color={color}
+          onSliceCountChange={onSliceCountChange ?? (() => {})}
+          onSliceOrderChange={onSliceOrderChange ?? (() => {})}
+          onSliceReverseToggle={onSliceReverseToggle ?? (() => {})}
+          onSlicePitchChange={onSlicePitchChange ?? (() => {})}
+          onRandomize={onSliceRandomize ?? (() => {})}
+          onReset={onSliceReset ?? (() => {})}
+        />
       )}
 
       {/* Sampler Controls (Level 2) */}

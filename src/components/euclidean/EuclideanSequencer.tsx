@@ -24,6 +24,7 @@ import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, 
 import { buildWavefoldCurve, vactrolfiltFreq } from '../../utils/waveshaping';
 import { generateMarkovMatrix, markovNextNote, type MarkovStyle } from '../../utils/markovGenerator';
 import { LorenzAttractor } from '../../utils/lorenzAttractor';
+import { calculateSliceBoundaries, defaultSliceOrder, defaultSliceReverse, defaultSlicePitch } from '../../utils/slicerUtils';
 
 interface TrackState {
   id: string;
@@ -129,6 +130,12 @@ interface TrackState {
   nestedLfoRate1?: number;
   nestedLfoRate2?: number;
   nestedLfoDepth?: number;
+  // Slicer Engine (Phase 6A)
+  slicerEnabled?: boolean;
+  sliceCount?: number;
+  sliceOrder?: number[];
+  sliceReverse?: boolean[];
+  slicePitch?: number[];
   hits: number;
   misses: number;
 }
@@ -403,7 +410,23 @@ export const EuclideanSequencer = () => {
     setMmHistory([]);
     logChange(`MM Reset → ${targetBpm} BPM`, []);
   }, [logChange]);
+  const sliceBoundariesRef = useRef<Record<string, Array<{ start: number; end: number }>>>({});
 
+  const recalculateSlices = useCallback((track: TrackState) => {
+    if (!track.samplerBuffer || !track.sliceCount) return;
+    sliceBoundariesRef.current[track.id] = calculateSliceBoundaries(
+      track.samplerBuffer,
+      track.sliceCount
+    );
+    setTracks(prev => prev.map(t =>
+      t.id === track.id ? {
+        ...t,
+        sliceOrder: defaultSliceOrder(track.sliceCount!),
+        sliceReverse: defaultSliceReverse(track.sliceCount!),
+        slicePitch: defaultSlicePitch(track.sliceCount!)
+      } : t
+    ));
+  }, []);
 
   useEffect(() => {
     if (!showEngine) return;
@@ -881,6 +904,9 @@ export const EuclideanSequencer = () => {
           nestedLfoRate1: t.nestedLfoRate1,
           nestedLfoRate2: t.nestedLfoRate2,
           nestedLfoDepth: t.nestedLfoDepth,
+          // Slicer
+          slicerEnabled: t.slicerEnabled,
+          sliceCount: t.sliceCount,
         }])
       ),
     };
@@ -1001,6 +1027,9 @@ export const EuclideanSequencer = () => {
         nestedLfoRate1: (config as any).nestedLfoRate1 ?? 0.1,
         nestedLfoRate2: (config as any).nestedLfoRate2 ?? 4.0,
         nestedLfoDepth: (config as any).nestedLfoDepth ?? 800,
+        // Slicer: restore enabled/count only — order/reverse/pitch depend on buffer
+        slicerEnabled: (config as any).slicerEnabled ?? false,
+        sliceCount: (config as any).sliceCount ?? 16,
         hits: 0,
         misses: 0,
       });
@@ -1637,16 +1666,41 @@ export const EuclideanSequencer = () => {
               }
             }
 
+            // Slicer: compute sliceInfo if enabled
+            let sliceInfo: { startSec: number; durationSec: number; detuneCents: number; isReverse: boolean } | undefined;
+            if (track.slicerEnabled &&
+                track.samplerBuffer &&
+                track.sliceCount &&
+                track.sliceOrder) {
+              const boundaries = sliceBoundariesRef.current[track.id];
+              if (boundaries && boundaries.length > 0) {
+                const slicePosition = track.sliceOrder[idx % track.sliceOrder.length];
+                const slice = boundaries[slicePosition % boundaries.length];
+                const bufDur = track.samplerBuffer.duration;
+                const startSec = slice.start * bufDur;
+                const endSec = slice.end * bufDur;
+                const sliceDur = Math.max(0.01, endSec - startSec);
+                const pitchSemitones = track.slicePitch?.[slicePosition] ?? 0;
+                const isReverse = track.sliceReverse?.[slicePosition] ?? false;
+                sliceInfo = {
+                  startSec: isReverse ? endSec - 0.001 : startSec,
+                  durationSec: sliceDur,
+                  detuneCents: pitchSemitones * 100,
+                  isReverse,
+                };
+              }
+            }
+
             if (synth.triggerAttackRelease) {
               const duration = track.mode === 'GATE' ? "16n" : (track.decay / 1000);
               
               if (track.isTonal) {
                 const freq = noteIndexToFreq(track.rootNote, track.scaleId, noteIdx);
-                synth.triggerAttackRelease(freq, duration, scheduledTime, velocity);
+                synth.triggerAttackRelease(freq, duration, scheduledTime, velocity, sliceInfo);
               } else if (track.id === 'kick' && !synth.grainPlayer) {
-                synth.triggerAttackRelease("C1", duration, scheduledTime, velocity);
+                synth.triggerAttackRelease("C1", duration, scheduledTime, velocity, sliceInfo);
               } else {
-                synth.triggerAttackRelease(duration, scheduledTime, velocity);
+                synth.triggerAttackRelease(duration, scheduledTime, velocity, sliceInfo);
               }
             } else if (synth.grainPlayer && track.samplerStatus === 'READY') {
               // Fallback path (cloud granular) — also respects sampleEnd (Fix 1)
@@ -1681,11 +1735,11 @@ export const EuclideanSequencer = () => {
                     const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
                     if (track.isTonal) {
                       const freq = noteIndexToFreq(track.rootNote, track.scaleId, noteIdx);
-                      synth.triggerAttackRelease(freq, dur, ratchetTime, ratchetVelocity);
+                      synth.triggerAttackRelease(freq, dur, ratchetTime, ratchetVelocity, sliceInfo);
                     } else if (track.id === 'kick' && !synth.grainPlayer) {
-                      synth.triggerAttackRelease("C1", dur, ratchetTime, ratchetVelocity);
+                      synth.triggerAttackRelease("C1", dur, ratchetTime, ratchetVelocity, sliceInfo);
                     } else {
-                      synth.triggerAttackRelease(dur, ratchetTime, ratchetVelocity);
+                      synth.triggerAttackRelease(dur, ratchetTime, ratchetVelocity, sliceInfo);
                     }
                   } else if (synth.grainPlayer && track.samplerStatus === 'READY') {
                     // Ratchet fallback (cloud) — same ROI logic as main trigger
@@ -2056,7 +2110,7 @@ export const EuclideanSequencer = () => {
         reverbSend.dispose();
       };
 
-      synthObj.triggerAttackRelease = (duration: any, time: number, velocity: number) => {
+      synthObj.triggerAttackRelease = (duration: any, time: number, velocity: number, sliceInfoArg?: { startSec: number; durationSec: number; detuneCents: number; isReverse: boolean }) => {
         const currentTrack = tracksRef.current.find(t => t.id === trackId);
         if (!currentTrack || !grainPlayer.buffer) return;
         
@@ -2066,7 +2120,23 @@ export const EuclideanSequencer = () => {
           return;
         }
 
-        // Apply sampler params
+        // Slicer override: use slice boundaries if available
+        if (sliceInfoArg) {
+          grainPlayer.grainSize = currentTrack.grainSize / 1000;
+          grainPlayer.overlap = currentTrack.overlap;
+          grainPlayer.detune = sliceInfoArg.detuneCents + (velocity - 0.8) * 100;
+          grainPlayer.reverse = sliceInfoArg.isReverse;
+          try {
+            if (grainPlayer.mute) grainPlayer.mute = false;
+            grainPlayer.start(time, sliceInfoArg.startSec, sliceInfoArg.durationSec);
+          } catch (err) {
+            console.warn("GrainPlayer slicer start failed:", err);
+          }
+          return; // slicer path complete
+        }
+
+        // Normal path (no slicer)
+        grainPlayer.reverse = false;
         grainPlayer.grainSize = currentTrack.grainSize / 1000;
         grainPlayer.overlap = currentTrack.overlap;
         grainPlayer.detune = currentTrack.pitch * 100 + (velocity - 0.8) * 100;
@@ -2081,16 +2151,11 @@ export const EuclideanSequencer = () => {
         if (trackId !== 'cloud') {
           try {
             const startOffsetSec = Math.max(0, Math.min(audioBuffer.duration - 0.01, finalOffset));
-            // Fix 1: respect sampleEnd — use min(roiDuration, stepDuration)
             const endOffsetSec = currentTrack.sampleEnd * audioBuffer.duration;
             const roiDuration = Math.max(0.01, endOffsetSec - startOffsetSec);
             const durationSec = Math.max(0.01, Math.min(roiDuration, durSeconds));
             
-            console.log(`[Sampler] Triggering ${trackId} | time: ${time.toFixed(3)} | offset: ${startOffsetSec.toFixed(3)} | dur: ${durationSec.toFixed(3)} | vol: ${grainPlayer.volume.value.toFixed(1)}dB | state: ${Tone.getContext().state}`);
-            
-            // Ensure volume is not muted
             if (grainPlayer.mute) grainPlayer.mute = false;
-            
             grainPlayer.start(time, startOffsetSec, durationSec);
           } catch (err) {
             console.warn("GrainPlayer start failed:", err);
@@ -5117,6 +5182,71 @@ export const EuclideanSequencer = () => {
                 if (t) updateMarkovMatrix(t);
               }}
               onGetMarkovMatrix={(trackId) => markovMatrixRef.current[trackId]}
+              // Slicer props
+              slicerEnabled={track.slicerEnabled}
+              sliceCount={track.sliceCount}
+              sliceOrder={track.sliceOrder}
+              sliceReverse={track.sliceReverse}
+              slicePitch={track.slicePitch}
+              onSlicerToggle={(enabled) => {
+                const t = tracks.find(tr => tr.id === track.id);
+                if (enabled && t?.samplerBuffer) {
+                  recalculateSlices({ ...t, sliceCount: t.sliceCount ?? 16, slicerEnabled: true });
+                }
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id
+                    ? { ...t, slicerEnabled: enabled, sliceCount: t.sliceCount ?? 16 }
+                    : t
+                ));
+              }}
+              onSliceCountChange={(count) => {
+                const t = tracks.find(tr => tr.id === track.id);
+                if (t?.samplerBuffer) {
+                  recalculateSlices({ ...t, sliceCount: count });
+                }
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? { ...t, sliceCount: count } : t
+                ));
+              }}
+              onSliceOrderChange={(order) => {
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? { ...t, sliceOrder: order } : t
+                ));
+              }}
+              onSliceReverseToggle={(sliceIdx) => {
+                setTracks(prev => prev.map(t => {
+                  if (t.id !== track.id) return t;
+                  const newReverse = [...(t.sliceReverse ?? [])];
+                  newReverse[sliceIdx] = !newReverse[sliceIdx];
+                  return { ...t, sliceReverse: newReverse };
+                }));
+              }}
+              onSlicePitchChange={(sliceIdx, semitones) => {
+                setTracks(prev => prev.map(t => {
+                  if (t.id !== track.id) return t;
+                  const newPitch = [...(t.slicePitch ?? [])];
+                  newPitch[sliceIdx] = semitones;
+                  return { ...t, slicePitch: newPitch };
+                }));
+              }}
+              onSliceRandomize={() => {
+                const count = track.sliceCount ?? 16;
+                const shuffled = defaultSliceOrder(count).sort(() => Math.random() - 0.5);
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? { ...t, sliceOrder: shuffled } : t
+                ));
+              }}
+              onSliceReset={() => {
+                const count = track.sliceCount ?? 16;
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? {
+                    ...t,
+                    sliceOrder: defaultSliceOrder(count),
+                    sliceReverse: defaultSliceReverse(count),
+                    slicePitch: defaultSlicePitch(count)
+                  } : t
+                ));
+              }}
             />
           </div>
         ))}

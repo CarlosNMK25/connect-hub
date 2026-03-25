@@ -75,6 +75,9 @@ export interface UserPresetTrack {
   nestedLfoRate1?: number;
   nestedLfoRate2?: number;
   nestedLfoDepth?: number;
+  // Slicer
+  slicerEnabled?: boolean;
+  sliceCount?: number;
 }
 
 export interface UserPreset {
