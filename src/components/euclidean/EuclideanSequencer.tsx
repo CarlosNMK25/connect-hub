@@ -1364,10 +1364,33 @@ export const EuclideanSequencer = () => {
         toneReverbSend.dispose();
       }
     };
+    // Lorenz + Nested LFO injection for tone
+    synthsRef.current.tone.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
+      if (target === 'filter') {
+        toneFilter.frequency.rampTo(600 + normalizedValue * depth, 0.05);
+      }
+    };
+    synthsRef.current.tone.nestedLfoInstance = null;
+    synthsRef.current.tone.initNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.tone.nestedLfoInstance?.dispose();
+      synthsRef.current.tone.nestedLfoInstance = createNestedLfo(toneFilter, r1, r2, d);
+    };
+    synthsRef.current.tone.updateNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.tone.nestedLfoInstance?.update(r1, r2, d);
+    };
+    synthsRef.current.tone.disposeNestedLfo = () => {
+      synthsRef.current.tone.nestedLfoInstance?.dispose();
+      synthsRef.current.tone.nestedLfoInstance = null;
+    };
 
     synthsRef.current.kickFollower = kickFollower;
 
     return () => {
+      // Dispose nested LFOs before disposing synths
+      ['kick', 'snare', 'hat', 'tone', 'cloud'].forEach(id => {
+        synthsRef.current[id]?.disposeNestedLfo?.();
+      });
+      if (lorenzRafRef.current) cancelAnimationFrame(lorenzRafRef.current);
       Object.values(synthsRef.current).forEach((s: any) => s.dispose());
       loopRef.current?.dispose();
       if (masterBusRef.current) {
