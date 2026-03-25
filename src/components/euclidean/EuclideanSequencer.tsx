@@ -973,7 +973,15 @@ export const EuclideanSequencer = () => {
         misses: 0,
       });
     }));
-  }, [logChange, updateTrackPattern]);
+    // Recalcular matrices Markov para tracks tonales
+    setTimeout(() => {
+      tracksRef.current.forEach(t => {
+        if (t.isTonal && (t.noteMode ?? 'euclidean') === 'markov') {
+          updateMarkovMatrix(t);
+        }
+      });
+    }, 0);
+  }, [logChange, updateTrackPattern, updateMarkovMatrix]);
 
   const handleImportPreset = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     setImportError(null);
