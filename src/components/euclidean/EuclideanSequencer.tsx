@@ -412,6 +412,22 @@ export const EuclideanSequencer = () => {
   }, [logChange]);
   const sliceBoundariesRef = useRef<Record<string, Array<{ start: number; end: number }>>>({});
 
+  const recalculateSlices = useCallback((track: TrackState) => {
+    if (!track.samplerBuffer || !track.sliceCount) return;
+    sliceBoundariesRef.current[track.id] = calculateSliceBoundaries(
+      track.samplerBuffer,
+      track.sliceCount
+    );
+    setTracks(prev => prev.map(t =>
+      t.id === track.id ? {
+        ...t,
+        sliceOrder: defaultSliceOrder(track.sliceCount!),
+        sliceReverse: defaultSliceReverse(track.sliceCount!),
+        slicePitch: defaultSlicePitch(track.sliceCount!)
+      } : t
+    ));
+  }, []);
+
   useEffect(() => {
     if (!showEngine) return;
     const interval = setInterval(() => {
