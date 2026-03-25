@@ -448,6 +448,19 @@ export const EuclideanSequencer = () => {
     return { ...t, pattern: p };
   };
 
+  const updateMarkovMatrix = useCallback((t: TrackState) => {
+    if (!t.isTonal || (t.noteMode ?? 'euclidean') !== 'markov') return;
+    const unique = [...new Set(t.noteIndices)].sort((a, b) => a - b);
+    if (unique.length === 0) return;
+    markovNotesRef.current[t.id] = unique;
+    markovMatrixRef.current[t.id] = generateMarkovMatrix(
+      unique,
+      (t.markovStyle ?? 'scale') as MarkovStyle,
+      t.markovTemperature ?? 40
+    );
+    markovLastNoteRef.current[t.id] = 0;
+    markovAnchorCountRef.current[t.id] = 0;
+  }, []);
   const [tracks, setTracks] = useState<TrackState[]>(() => [
     updateTrackPattern({ 
       id: 'kick', name: 'Kick', color: '#166534', pulses: 4, steps: 16, offset: 0, 
