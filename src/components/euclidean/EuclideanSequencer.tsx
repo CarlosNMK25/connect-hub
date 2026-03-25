@@ -1631,7 +1631,78 @@ export const EuclideanSequencer = () => {
     return () => { loopRef.current?.dispose(); };
   }, []);
 
-  const togglePlay = async () => {
+  // --- Lorenz RAF loop ---
+  const startLorenzRaf = useCallback(() => {
+    if (lorenzRafRef.current) {
+      cancelAnimationFrame(lorenzRafRef.current);
+    }
+    const tick = () => {
+      const currentTracks = tracksRef.current;
+      const anyActive = currentTracks.some(t => t.lorenzEnabled);
+      if (!anyActive) {
+        lorenzRafRef.current = 0;
+        return;
+      }
+      currentTracks.forEach(t => {
+        if (!t.lorenzEnabled) return;
+        if (!lorenzAttractorsRef.current[t.id]) {
+          lorenzAttractorsRef.current[t.id] = new LorenzAttractor();
+        }
+        const attractor = lorenzAttractorsRef.current[t.id];
+        const speedMult = t.lorenzSpeed ?? 1.0;
+        for (let i = 0; i < Math.ceil(speedMult * 2); i++) {
+          attractor.step();
+        }
+        const normalizedValue = attractor.getNormalizedX();
+        const depth = t.lorenzDepth ?? 1000;
+        if (synthsRef.current[t.id]?.updateLorenz) {
+          synthsRef.current[t.id].updateLorenz(
+            normalizedValue,
+            depth,
+            t.lorenzTarget ?? 'filter'
+          );
+        }
+      });
+      lorenzRafRef.current = requestAnimationFrame(tick);
+    };
+    lorenzRafRef.current = requestAnimationFrame(tick);
+  }, []);
+
+  // --- Nested LFO helper ---
+  const createNestedLfo = useCallback((
+    filter: any,
+    rate1: number,
+    rate2: number,
+    depth: number
+  ) => {
+    const lfo1 = new Tone.Oscillator({ type: 'sine', frequency: rate1 });
+    const lfo2 = new Tone.Oscillator({ type: 'sine', frequency: rate2 });
+    const lfo1ModGain = new Tone.Gain(rate2 * 0.5);
+    lfo1.connect(lfo1ModGain);
+    lfo1ModGain.connect(lfo2.frequency);
+    const lfo2DepthGain = new Tone.Gain(depth);
+    lfo2.connect(lfo2DepthGain);
+    if (filter) lfo2DepthGain.connect(filter.frequency);
+    lfo1.start();
+    lfo2.start();
+    return {
+      lfo1, lfo2, lfo1ModGain, lfo2DepthGain,
+      update: (r1: number, r2: number, d: number) => {
+        lfo1.frequency.rampTo(r1, 0.1);
+        lfo2.frequency.rampTo(r2, 0.1);
+        lfo1ModGain.gain.rampTo(r2 * 0.5, 0.1);
+        lfo2DepthGain.gain.rampTo(d, 0.1);
+      },
+      dispose: () => {
+        lfo1.stop(); lfo1.dispose();
+        lfo2.stop(); lfo2.dispose();
+        lfo1ModGain.dispose();
+        lfo2DepthGain.dispose();
+      }
+    };
+  }, []);
+
+
     if (Tone.getContext().state !== 'running') await Tone.start();
     if (isPlaying) {
       logChange('■ Stop');
