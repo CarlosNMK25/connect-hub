@@ -158,6 +158,22 @@ interface EuclideanTrackProps {
   temporalityMode: TemporalityMode;
   bpm: number;
   swing: number;
+  // Pattern mode props
+  patternMode?: 'euclidean' | 'lsystem' | 'ca';
+  lsSeed?: string;
+  lsRuleA?: string;
+  lsIterations?: number;
+  lsRotation?: number;
+  caRule?: number;
+  caSeed?: string;
+  caDensity?: number;
+  caSpeed?: number;
+  onPatternModeChange?: (mode: 'euclidean' | 'lsystem' | 'ca') => void;
+  onLsParamChange?: (param: string, value: string | number) => void;
+  onLsRegenerate?: () => void;
+  onLsReset?: () => void;
+  onCaParamChange?: (param: string, value: string | number) => void;
+  onCaReset?: () => void;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
