@@ -599,7 +599,7 @@ export const EuclideanTrack = React.memo(({
           {/* RR + PHD controls — two rows */}
           <div className="flex flex-col gap-1 flex-none">
             {/* Round Robin */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('roundRobin', e)} onMouseLeave={handleParamLeave}>
               <button
                 onClick={() => onRrEnabledChange?.(!rrEnabled)}
                 className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${

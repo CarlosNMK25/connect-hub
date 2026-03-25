@@ -152,6 +152,8 @@ export const PEDAGOGY = {
     modalDecay: "Cuánto tiempo resuenan los modos después del golpe. Corto es un golpe de madera — toc. Largo es un gong tibetano que canta durante minutos. Los modos agudos siempre mueren antes que los graves — la naturaleza no permite otra cosa.",
     ambientVolume: "El nivel de la niebla sonora que envuelve el ritmo. Sutil y es un aroma que apenas percibes. Dominante y el ritmo emerge desde la textura como una forma que se dibuja en la niebla. Es la distancia entre primer plano y paisaje.",
     ambientSpeed: "La velocidad a la que respira la textura ambiente. Lenta y el tiempo se dilata — cada grano de sonido se estira como un amanecer. Rápida y la textura se acelera, se granula, se convierte en lluvia. El ritmo euclidiano sigue su camino; la textura vive en su propio tiempo.",
+    roundRobin: "La imperfección que da vida. Cada golpe suena ligeramente distinto al anterior — como un percusionista que nunca golpea exactamente igual dos veces. En la pista tonal, las notas rotan como cuentas de un collar: el patrón rítmico es el hilo, las notas son las piedras que cambian de color con cada vuelta.",
+    phaseDrift: "El experimento de Steve Reich hecho botón. Dos patrones idénticos que empiezan juntos y, golpe a golpe, se van separando — como dos relojes que caminan a velocidades casi iguales. Lo que empieza como unísono se convierte en canon, luego en caos armónico, y eventualmente vuelve a encontrarse. Es la paciencia convertida en composición.",
   } as PedagogyMicro,
 
   meso: {
