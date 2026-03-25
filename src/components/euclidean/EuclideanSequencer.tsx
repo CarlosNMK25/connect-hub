@@ -5182,6 +5182,71 @@ export const EuclideanSequencer = () => {
                 if (t) updateMarkovMatrix(t);
               }}
               onGetMarkovMatrix={(trackId) => markovMatrixRef.current[trackId]}
+              // Slicer props
+              slicerEnabled={track.slicerEnabled}
+              sliceCount={track.sliceCount}
+              sliceOrder={track.sliceOrder}
+              sliceReverse={track.sliceReverse}
+              slicePitch={track.slicePitch}
+              onSlicerToggle={(enabled) => {
+                const t = tracks.find(tr => tr.id === track.id);
+                if (enabled && t?.samplerBuffer) {
+                  recalculateSlices({ ...t, sliceCount: t.sliceCount ?? 16, slicerEnabled: true });
+                }
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id
+                    ? { ...t, slicerEnabled: enabled, sliceCount: t.sliceCount ?? 16 }
+                    : t
+                ));
+              }}
+              onSliceCountChange={(count) => {
+                const t = tracks.find(tr => tr.id === track.id);
+                if (t?.samplerBuffer) {
+                  recalculateSlices({ ...t, sliceCount: count });
+                }
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? { ...t, sliceCount: count } : t
+                ));
+              }}
+              onSliceOrderChange={(order) => {
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? { ...t, sliceOrder: order } : t
+                ));
+              }}
+              onSliceReverseToggle={(sliceIdx) => {
+                setTracks(prev => prev.map(t => {
+                  if (t.id !== track.id) return t;
+                  const newReverse = [...(t.sliceReverse ?? [])];
+                  newReverse[sliceIdx] = !newReverse[sliceIdx];
+                  return { ...t, sliceReverse: newReverse };
+                }));
+              }}
+              onSlicePitchChange={(sliceIdx, semitones) => {
+                setTracks(prev => prev.map(t => {
+                  if (t.id !== track.id) return t;
+                  const newPitch = [...(t.slicePitch ?? [])];
+                  newPitch[sliceIdx] = semitones;
+                  return { ...t, slicePitch: newPitch };
+                }));
+              }}
+              onSliceRandomize={() => {
+                const count = track.sliceCount ?? 16;
+                const shuffled = defaultSliceOrder(count).sort(() => Math.random() - 0.5);
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? { ...t, sliceOrder: shuffled } : t
+                ));
+              }}
+              onSliceReset={() => {
+                const count = track.sliceCount ?? 16;
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? {
+                    ...t,
+                    sliceOrder: defaultSliceOrder(count),
+                    sliceReverse: defaultSliceReverse(count),
+                    slicePitch: defaultSlicePitch(count)
+                  } : t
+                ));
+              }}
             />
           </div>
         ))}
