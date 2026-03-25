@@ -599,7 +599,7 @@ export const EuclideanTrack = React.memo(({
           {/* Mode Selector + Formula + Density Badges */}
           <div className="flex items-center gap-3 px-3 py-2 bg-idm-bg rounded-lg border border-black/5 flex-none">
             {/* Mode selector */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('patternMode', e)} onMouseLeave={handleParamLeave}>
               <select
                 value={patternMode ?? 'euclidean'}
                 onChange={e => onPatternModeChange?.(e.target.value as 'euclidean' | 'lsystem' | 'ca')}
