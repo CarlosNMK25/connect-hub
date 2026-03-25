@@ -28,7 +28,7 @@ interface PhaseRadarProps {
   driftOffsets?: Record<string, number>;
 }
 
-export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSync, isDjMode, onDjModeToggle, uiStats = {}, syncImpacts = [], entropyLabel = '', bpm = 120, onAnalysisToggle }) => {
+export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSync, isDjMode, onDjModeToggle, uiStats = {}, syncImpacts = [], entropyLabel = '', bpm = 120, onAnalysisToggle, driftOffsets }) => {
   const [showAnalysis, setShowAnalysis] = useState(false);
   const size = 160;
   const center = size / 2;
