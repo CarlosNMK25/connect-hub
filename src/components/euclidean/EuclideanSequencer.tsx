@@ -1371,7 +1371,28 @@ export const EuclideanSequencer = () => {
           }
         }
 
-        if (isHit) {
+        // CA: evolve pattern at cycle boundary via pendingCARef
+        if (idx === 0 && (track.patternMode ?? 'euclidean') === 'ca') {
+          const speedMod = track.caSpeed ?? 1;
+          caEvolveCycleRef.current[track.id] =
+            (caEvolveCycleRef.current[track.id] ?? 0) + 1;
+          if (caEvolveCycleRef.current[track.id] >= speedMod) {
+            caEvolveCycleRef.current[track.id] = 0;
+            const existing = caStateRef.current[track.id];
+            if (existing) {
+              const { pattern: newPat, newState } = generateCAPattern(
+                track.caRule ?? 30,
+                track.caSeed ?? 'center',
+                track.steps,
+                track.caDensity ?? 50,
+                existing
+              );
+              caStateRef.current[track.id] = newState;
+              pendingCARef.current[track.id] = newPat;
+            }
+          }
+        }
+
           try {
             const synth = synthsRef.current[track.id];
             if (!synth) return;
