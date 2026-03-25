@@ -2123,11 +2123,16 @@ export const EuclideanSequencer = () => {
           return;
         }
 
+        // Time Stretch: compute rate and pitch compensation
+        const stretchRate = currentTrack.stretchEnabled ? (currentTrack.stretchRate ?? 1.0) : 1.0;
+        const stretchCompensation = stretchRate !== 1.0 ? -1200 * Math.log2(stretchRate) : 0;
+        grainPlayer.playbackRate = stretchRate;
+
         // Slicer override: use slice boundaries if available
         if (sliceInfoArg) {
           grainPlayer.grainSize = currentTrack.grainSize / 1000;
           grainPlayer.overlap = currentTrack.overlap;
-          grainPlayer.detune = sliceInfoArg.detuneCents + (velocity - 0.8) * 100;
+          grainPlayer.detune = sliceInfoArg.detuneCents + (velocity - 0.8) * 100 + stretchCompensation;
           grainPlayer.reverse = sliceInfoArg.isReverse;
           try {
             if (grainPlayer.mute) grainPlayer.mute = false;
@@ -2142,7 +2147,7 @@ export const EuclideanSequencer = () => {
         grainPlayer.reverse = false;
         grainPlayer.grainSize = currentTrack.grainSize / 1000;
         grainPlayer.overlap = currentTrack.overlap;
-        grainPlayer.detune = currentTrack.pitch * 100 + (velocity - 0.8) * 100;
+        grainPlayer.detune = currentTrack.pitch * 100 + (velocity - 0.8) * 100 + stretchCompensation;
         
         const sprayAmount = (currentTrack.spray / 1000) * (currentTrack.chaosEnabled ? currentTrack.entropy : 1);
         const startOffset = currentTrack.sampleStart * audioBuffer.duration;
