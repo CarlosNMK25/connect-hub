@@ -872,6 +872,15 @@ export const EuclideanSequencer = () => {
           layer2Offset: t.layer2Offset,
           layer2FilterFreq: t.layer2FilterFreq,
           layer2Reverse: t.layer2Reverse,
+          // Lorenz + Nested LFO
+          lorenzEnabled: t.lorenzEnabled,
+          lorenzDepth: t.lorenzDepth,
+          lorenzTarget: t.lorenzTarget,
+          lorenzSpeed: t.lorenzSpeed,
+          nestedLfoEnabled: t.nestedLfoEnabled,
+          nestedLfoRate1: t.nestedLfoRate1,
+          nestedLfoRate2: t.nestedLfoRate2,
+          nestedLfoDepth: t.nestedLfoDepth,
         }])
       ),
     };
