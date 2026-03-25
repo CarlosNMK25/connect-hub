@@ -1404,6 +1404,7 @@ export const EuclideanTrack = React.memo(({
                 </div>
               )}
             </div>
+          </div>
 
           {/* Metadata & Mode */}
           <div className="space-y-4 border-l border-black/5 pl-8 flex flex-col justify-between">
