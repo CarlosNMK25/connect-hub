@@ -809,6 +809,16 @@ export const EuclideanSequencer = () => {
           rrAmount: t.rrAmount,
           driftEnabled: t.driftEnabled,
           driftRate: t.driftRate,
+          // Pattern mode
+          patternMode: t.patternMode,
+          lsSeed: t.lsSeed,
+          lsRuleA: t.lsRuleA,
+          lsIterations: t.lsIterations,
+          lsRotation: t.lsRotation,
+          caRule: t.caRule,
+          caSeed: t.caSeed,
+          caDensity: t.caDensity,
+          caSpeed: t.caSpeed,
           // Layer 2 (solo parámetros, no buffer)
           layer2Filename: t.layer2Filename,
           layer2Blend: t.layer2Blend,
