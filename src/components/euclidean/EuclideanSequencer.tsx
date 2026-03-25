@@ -1528,7 +1528,7 @@ export const EuclideanSequencer = () => {
                   if (synth.triggerAttackRelease) {
                     const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
                     if (track.isTonal) {
-                      const noteIdx = track.noteIndices[idx] ?? 0;
+                      // P3 fix: reutilizar noteIdx ya calculado arriba
                       const scaleIntervals = SCALES[track.scaleId] || SCALES.phrygianDominant;
                       const midi = noteIndexToMidi(track.rootNote, scaleIntervals, noteIdx);
                       const noteName = midiToNoteName(midi);
