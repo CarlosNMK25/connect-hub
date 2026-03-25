@@ -1269,6 +1269,18 @@ export const EuclideanTrack = React.memo(({
                 <option value="ambient">AMB</option>
               </select>
             </div>
+            {/* Note Mode selector */}
+            <div className="space-y-1">
+              <span className="text-[8px] font-mono uppercase text-idm-muted">Notes</span>
+              <select
+                value={noteMode ?? 'euclidean'}
+                onChange={e => onNoteModeChange?.(e.target.value as 'euclidean' | 'markov')}
+                className="block w-20 bg-background border border-border rounded-lg text-[10px] font-mono px-1.5 py-1 text-foreground focus:outline-none focus:border-system-accent"
+              >
+                <option value="euclidean">Euclidean</option>
+                <option value="markov">Markov</option>
+              </select>
+            </div>
             <div className="space-y-1">
               <span className="text-[8px] font-mono uppercase text-idm-muted">Root</span>
               <select
