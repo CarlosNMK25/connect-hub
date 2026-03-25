@@ -3442,6 +3442,7 @@ export const EuclideanSequencer = () => {
               }))}
               globalStep={globalStep}
               maxSteps={Math.max(...tracks.map(t => t.steps))}
+              driftOffsets={driftOffsets}
             />
 
             {/* Expanded Analysis — Left Column */}
