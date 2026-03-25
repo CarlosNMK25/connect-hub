@@ -1740,6 +1740,11 @@ export const EuclideanSequencer = () => {
       caStateRef.current = {};
       caEvolveCycleRef.current = {};
       pendingCARef.current = {};
+      // Stop Lorenz RAF
+      if (lorenzRafRef.current) {
+        cancelAnimationFrame(lorenzRafRef.current);
+        lorenzRafRef.current = 0;
+      }
     } else {
       // Ensure Markov matrices exist for tonal tracks on Play
       tracks.forEach(t => {
