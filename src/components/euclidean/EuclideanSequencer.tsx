@@ -410,7 +410,7 @@ export const EuclideanSequencer = () => {
     setMmHistory([]);
     logChange(`MM Reset → ${targetBpm} BPM`, []);
   }, [logChange]);
-
+  const sliceBoundariesRef = useRef<Record<string, Array<{ start: number; end: number }>>>({});
 
   useEffect(() => {
     if (!showEngine) return;
