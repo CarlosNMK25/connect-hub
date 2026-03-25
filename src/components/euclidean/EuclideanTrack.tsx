@@ -1388,8 +1388,22 @@ export const EuclideanTrack = React.memo(({
                   className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
                 />
               </div>
+              {/* Time Stretch */}
+              {stretchEnabled && (
+                <div className="space-y-2 relative mt-2">
+                  <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
+                    <span>Rate</span>
+                    <span className="text-idm-ink">{(stretchRate ?? 1.0).toFixed(2)}×</span>
+                  </div>
+                  <input
+                    type="range" min="0.25" max="2.0" step="0.05"
+                    value={stretchRate ?? 1.0}
+                    onChange={(e) => onSamplerParamChange('stretchRate', parseFloat(e.target.value))}
+                    className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent"
+                  />
+                </div>
+              )}
             </div>
-          </div>
 
           {/* Metadata & Mode */}
           <div className="space-y-4 border-l border-black/5 pl-8 flex flex-col justify-between">
