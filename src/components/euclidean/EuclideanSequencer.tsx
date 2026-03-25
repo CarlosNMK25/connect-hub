@@ -1400,6 +1400,7 @@ export const EuclideanSequencer = () => {
           }
         }
 
+        if (isHit) {
           try {
             const synth = synthsRef.current[track.id];
             if (!synth) return;
