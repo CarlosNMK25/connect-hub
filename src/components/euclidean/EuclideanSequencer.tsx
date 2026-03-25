@@ -798,6 +798,8 @@ export const EuclideanSequencer = () => {
         } : {}),
         rrEnabled: config.rrEnabled ?? false,
         rrAmount: config.rrAmount ?? 30,
+        driftEnabled: config.driftEnabled ?? false,
+        driftRate: config.driftRate ?? 0.01,
         hits: 0,
         misses: 0,
       });
