@@ -4245,6 +4245,16 @@ export const EuclideanSequencer = () => {
               driftRate={track.driftRate}
               onDriftEnabledChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, driftEnabled: val } : t))}
               onDriftRateChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, driftRate: val } : t))}
+              layer2Status={track.layer2Status}
+              layer2Filename={track.layer2Filename}
+              layer2Blend={track.layer2Blend}
+              layer2Pitch={track.layer2Pitch}
+              layer2Offset={track.layer2Offset}
+              layer2FilterFreq={track.layer2FilterFreq}
+              layer2Reverse={track.layer2Reverse}
+              onLoadLayer2={(file) => handleLoadLayer2(track.id, file)}
+              onClearLayer2={() => handleClearLayer2(track.id)}
+              onLayer2ParamChange={(param, value) => handleLayer2ParamChange(track.id, param, value)}
               isTonal={track.isTonal}
               rootNote={track.rootNote}
               scaleId={track.scaleId}
