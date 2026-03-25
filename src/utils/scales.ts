@@ -64,7 +64,7 @@ export function getScaleDetune(scaleId: string, degree: number): number {
 export function noteIndexToMidi(rootNote: number, scaleIntervals: number[], noteIndex: number): number {
   const len = scaleIntervals.length;
   const octave = Math.floor(noteIndex / len);
-  const degree = ((noteIndex % len) + len) % len; // handle negatives
+  const degree = ((noteIndex % len) + len) % len;
   return rootNote + scaleIntervals[degree] + 12 * octave;
 }
 
@@ -75,12 +75,57 @@ export function midiAndDetuneToFreq(midi: number, detuneCents: number): number {
   return baseFreq * Math.pow(2, detuneCents / 1200);
 }
 
+/** Check if a scale uses a non-octave period (intervals in cents) */
+export function isNonOctaveScale(scaleId: string): boolean {
+  const scale = SCALES[scaleId];
+  return !!scale?.period && scale.period !== 1200;
+}
+
+/**
+ * Universal note-index → frequency converter.
+ * For standard scales: uses MIDI + detune.
+ * For non-octave scales (period != 1200): intervals are in cents, computed directly.
+ */
+export function noteIndexToFreq(rootNote: number, scaleId: string, noteIndex: number): number {
+  const scale = SCALES[scaleId] || SCALES.phrygianDominant;
+  const len = scale.intervals.length;
+  const period = scale.period || 1200;
+  const degree = ((noteIndex % len) + len) % len;
+  const repetition = Math.floor(noteIndex / len);
+
+  if (period !== 1200) {
+    // Non-octave scale: intervals are in cents
+    const rootHz = Tone.Frequency(rootNote, 'midi').toFrequency();
+    const totalCents = scale.intervals[degree] + period * repetition;
+    return rootHz * Math.pow(2, totalCents / 1200);
+  }
+
+  // Standard 12-TET scale: use MIDI + optional detune
+  const midi = rootNote + scale.intervals[degree] + 12 * repetition;
+  const detuneCents = getScaleDetune(scaleId, degree);
+  return midiAndDetuneToFreq(midi, detuneCents);
+}
+
 export function midiToNoteName(midi: number): string {
   try {
     return Tone.Frequency(midi, "midi").toNote();
   } catch {
     return '?';
   }
+}
+
+/** Get a display name for a note index (works for both standard and non-octave scales) */
+export function noteIndexToDisplayName(rootNote: number, scaleId: string, noteIndex: number): string {
+  if (isNonOctaveScale(scaleId)) {
+    const scale = SCALES[scaleId] || SCALES.phrygianDominant;
+    const len = scale.intervals.length;
+    const degree = ((noteIndex % len) + len) % len;
+    const repetition = Math.floor(noteIndex / len);
+    return `${degree + 1}${repetition > 0 ? `'${repetition}` : ''}`;
+  }
+  const scaleIntervals = getScaleIntervals(scaleId);
+  const midi = noteIndexToMidi(rootNote, scaleIntervals, noteIndex);
+  return midiToNoteName(midi);
 }
 
 export function getMaxNoteIndex(scaleIntervals: number[], octaveRange: number): number {
