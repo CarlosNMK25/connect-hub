@@ -1587,6 +1587,9 @@ export const EuclideanSequencer = () => {
     globalStepRef.current = 0;
     driftAccumulatorRef.current = {};
     setDriftOffsets({});
+    caStateRef.current = {};
+    caEvolveCycleRef.current = {};
+    pendingCARef.current = {};
     
     const resetIndices: { [key: string]: number } = {};
     const resetTimes: { [key: string]: number } = {};
