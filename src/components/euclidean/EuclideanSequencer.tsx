@@ -13,6 +13,7 @@ import { PatternSpace } from './PatternSpace';
 import { CoincidenceRow } from './CoincidenceRow';
 import { PhaseSparkline } from './PhaseSparkline';
 import { bjorklund, rotate } from '../../utils/bjorklund';
+import { generateLSystem, generateCAPattern } from '../../utils/patternGenerators';
 import { lcmArray, calculateLcmImpact } from '../../utils/math';
 import { evaluateDiagnosis, computeMcm, computeEclipseTime, type DiagnosisContext, type DiagnosisInsight } from '../../utils/diagnosis';
 import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
