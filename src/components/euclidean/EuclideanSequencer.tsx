@@ -1247,6 +1247,24 @@ export const EuclideanSequencer = () => {
         hatReverbSend.dispose();
       }
     };
+    // Lorenz + Nested LFO injection for hat
+    synthsRef.current.hat.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
+      if (target === 'filter') {
+        hatFilter.frequency.rampTo(2000 + normalizedValue * depth, 0.05);
+      }
+    };
+    synthsRef.current.hat.nestedLfoInstance = null;
+    synthsRef.current.hat.initNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.hat.nestedLfoInstance?.dispose();
+      synthsRef.current.hat.nestedLfoInstance = createNestedLfo(hatFilter, r1, r2, d);
+    };
+    synthsRef.current.hat.updateNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.hat.nestedLfoInstance?.update(r1, r2, d);
+    };
+    synthsRef.current.hat.disposeNestedLfo = () => {
+      synthsRef.current.hat.nestedLfoInstance?.dispose();
+      synthsRef.current.hat.nestedLfoInstance = null;
+    };
 
     // Cloud Engine Setup
     const cloudDelaySend = new Tone.Gain(0).connect(delayBus);
