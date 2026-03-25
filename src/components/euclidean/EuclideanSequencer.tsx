@@ -559,6 +559,9 @@ export const EuclideanSequencer = () => {
   const markovNotesRef = useRef<Record<string, number[]>>({});
   const driftAccumulatorRef = useRef<Record<string, number>>({});
   const [driftOffsets, setDriftOffsets] = useState<Record<string, number>>({});
+  // Lorenz Attractor refs
+  const lorenzAttractorsRef = useRef<Record<string, LorenzAttractor>>({});
+  const lorenzRafRef = useRef<number>(0);
   // Refs para grabación en tiempo real del track Tone
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingChunksRef = useRef<Blob[]>([]);
