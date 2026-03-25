@@ -4089,6 +4089,10 @@ export const EuclideanSequencer = () => {
               rrAmount={track.rrAmount}
               onRrEnabledChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, rrEnabled: val } : t))}
               onRrAmountChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, rrAmount: val } : t))}
+              driftEnabled={track.driftEnabled}
+              driftRate={track.driftRate}
+              onDriftEnabledChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, driftEnabled: val } : t))}
+              onDriftRateChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, driftRate: val } : t))}
               isTonal={track.isTonal}
               rootNote={track.rootNote}
               scaleId={track.scaleId}
