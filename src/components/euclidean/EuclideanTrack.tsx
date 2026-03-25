@@ -8,7 +8,7 @@ import { WaveformDisplay } from './WaveformDisplay';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
 import { calculateTemporalOffset, type TemporalityMode } from '../../utils/temporality';
-import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex } from '../../utils/scales';
+import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals } from '../../utils/scales';
 
 interface EuclideanTrackProps {
   id: string;
