@@ -14,6 +14,7 @@ interface CoincidenceRowProps {
   tracks: TrackData[];
   globalStep: number;
   maxSteps: number;
+  driftOffsets?: Record<string, number>;
 }
 
 /**
