@@ -1656,6 +1656,12 @@ export const EuclideanSequencer = () => {
       caEvolveCycleRef.current = {};
       pendingCARef.current = {};
     } else {
+      // Ensure Markov matrices exist for tonal tracks on Play
+      tracks.forEach(t => {
+        if (t.isTonal && (t.noteMode ?? 'euclidean') === 'markov') {
+          if (!markovMatrixRef.current[t.id]) updateMarkovMatrix(t);
+        }
+      });
       const activeTracks = tracks.filter(t => !t.isMuted).length;
       logChange('▶ Play', [`BPM ${bpm}`, `${activeTracks} activos`]);
       Tone.getTransport().bpm.value = bpm;
