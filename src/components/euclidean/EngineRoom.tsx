@@ -196,7 +196,10 @@ const DiagnosisPanel: React.FC<{
   jitter: number;
   swing: number;
   hitRate: number | null;
-}> = React.memo(({ tracks, bpm, temporalityMode, jitter, swing, hitRate }) => {
+  mmHistoryLength: number;
+  mmLastRatio?: string;
+  mmOriginalBpm?: number;
+}> = React.memo(({ tracks, bpm, temporalityMode, jitter, swing, hitRate, mmHistoryLength, mmLastRatio, mmOriginalBpm }) => {
   const insights = useMemo(() => {
     const diagTracks: DiagnosisContext['tracks'] = tracks.map(t => ({
       id: t.id,
