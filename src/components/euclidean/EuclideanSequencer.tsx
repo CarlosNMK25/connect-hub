@@ -516,6 +516,15 @@ export const EuclideanSequencer = () => {
       });
       setUiStats(newStats);
 
+      // Sincronizar driftOffsets para visualizadores
+      const newDriftOffsets: Record<string, number> = {};
+      tracksRef.current.forEach(t => {
+        if (t.driftEnabled) {
+          newDriftOffsets[t.id] = Math.floor(driftAccumulatorRef.current[t.id] ?? 0);
+        }
+      });
+      setDriftOffsets(newDriftOffsets);
+
       // Flush pending evolve mutations to React state (max 1 setTracks per 100ms)
       const mutations = pendingMutationsRef.current;
       const mutationKeys = Object.keys(mutations);
