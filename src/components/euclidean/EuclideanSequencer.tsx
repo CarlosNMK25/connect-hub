@@ -1684,10 +1684,17 @@ export const EuclideanSequencer = () => {
                     const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
                     if (track.isTonal) {
                       // P3 fix: reutilizar noteIdx ya calculado arriba
-                      const scaleIntervals = SCALES[track.scaleId] || SCALES.phrygianDominant;
+                      const scaleIntervals = getScaleIntervals(track.scaleId);
                       const midi = noteIndexToMidi(track.rootNote, scaleIntervals, noteIdx);
-                      const noteName = midiToNoteName(midi);
-                      synth.triggerAttackRelease(noteName, dur, ratchetTime, ratchetVelocity);
+                      const degree = ((noteIdx % scaleIntervals.length) + scaleIntervals.length) % scaleIntervals.length;
+                      const detuneCents = getScaleDetune(track.scaleId, degree);
+                      if (detuneCents !== 0) {
+                        const freq = midiAndDetuneToFreq(midi, detuneCents);
+                        synth.triggerAttackRelease(freq, dur, ratchetTime, ratchetVelocity);
+                      } else {
+                        const noteName = midiToNoteName(midi);
+                        synth.triggerAttackRelease(noteName, dur, ratchetTime, ratchetVelocity);
+                      }
                     } else if (track.id === 'kick' && !synth.grainPlayer) {
                       synth.triggerAttackRelease("C1", dur, ratchetTime, ratchetVelocity);
                     } else {
