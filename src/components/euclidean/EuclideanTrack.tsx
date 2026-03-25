@@ -148,6 +148,19 @@ interface EuclideanTrackProps {
   layer2Reverse?: boolean;
   onLoadLayer2?: (file: File) => void;
   onClearLayer2?: () => void;
+  // Lorenz Attractor
+  lorenzEnabled?: boolean;
+  lorenzDepth?: number;
+  lorenzTarget?: string;
+  lorenzSpeed?: number;
+  onLorenzParamChange?: (param: string, value: number | boolean | string) => void;
+  // Nested LFO
+  nestedLfoEnabled?: boolean;
+  nestedLfoRate1?: number;
+  nestedLfoRate2?: number;
+  nestedLfoDepth?: number;
+  onNestedLfoToggle?: (enabled: boolean) => void;
+  onNestedLfoParamChange?: (param: string, value: number) => void;
   onLayer2ParamChange?: (param: string, value: number | boolean) => void;
   toneRecordingState?: 'idle' | 'armed' | 'recording';
   onRecordAction?: () => void;
