@@ -136,6 +136,9 @@ interface TrackState {
   sliceOrder?: number[];
   sliceReverse?: boolean[];
   slicePitch?: number[];
+  // Time Stretch (Phase 6B)
+  stretchEnabled?: boolean;
+  stretchRate?: number; // 0.25-2.0, default 1.0
   hits: number;
   misses: number;
 }
@@ -907,6 +910,9 @@ export const EuclideanSequencer = () => {
           // Slicer
           slicerEnabled: t.slicerEnabled,
           sliceCount: t.sliceCount,
+          // Time Stretch
+          stretchEnabled: t.stretchEnabled,
+          stretchRate: t.stretchRate,
         }])
       ),
     };
@@ -1030,6 +1036,9 @@ export const EuclideanSequencer = () => {
         // Slicer: restore enabled/count only — order/reverse/pitch depend on buffer
         slicerEnabled: (config as any).slicerEnabled ?? false,
         sliceCount: (config as any).sliceCount ?? 16,
+        // Time Stretch
+        stretchEnabled: (config as any).stretchEnabled ?? false,
+        stretchRate: (config as any).stretchRate ?? 1.0,
         hits: 0,
         misses: 0,
       });
@@ -1998,11 +2007,13 @@ export const EuclideanSequencer = () => {
           if (synth.bitCrusher) {
             synth.bitCrusher.bits.value = track.bitCrush;
           }
-          if (synth.grainPlayer) {
-            synth.grainPlayer.grainSize = track.grainSize / 1000;
-            synth.grainPlayer.overlap = track.overlap;
-            synth.grainPlayer.detune = track.pitch * 100;
-          }
+      if (synth.grainPlayer) {
+        synth.grainPlayer.grainSize = track.grainSize / 1000;
+        synth.grainPlayer.overlap = track.overlap;
+        synth.grainPlayer.detune = track.pitch * 100;
+        const stretchRate = track.stretchEnabled ? (track.stretchRate ?? 1.0) : 1.0;
+        synth.grainPlayer.playbackRate = stretchRate;
+      }
         } catch (e) {
           console.warn(`Failed to sync params for track ${track.id}:`, e);
         }
@@ -2120,11 +2131,16 @@ export const EuclideanSequencer = () => {
           return;
         }
 
+        // Time Stretch: compute rate and pitch compensation
+        const stretchRate = currentTrack.stretchEnabled ? (currentTrack.stretchRate ?? 1.0) : 1.0;
+        const stretchCompensation = stretchRate !== 1.0 ? -1200 * Math.log2(stretchRate) : 0;
+        grainPlayer.playbackRate = stretchRate;
+
         // Slicer override: use slice boundaries if available
         if (sliceInfoArg) {
           grainPlayer.grainSize = currentTrack.grainSize / 1000;
           grainPlayer.overlap = currentTrack.overlap;
-          grainPlayer.detune = sliceInfoArg.detuneCents + (velocity - 0.8) * 100;
+          grainPlayer.detune = sliceInfoArg.detuneCents + (velocity - 0.8) * 100 + stretchCompensation;
           grainPlayer.reverse = sliceInfoArg.isReverse;
           try {
             if (grainPlayer.mute) grainPlayer.mute = false;
@@ -2139,7 +2155,7 @@ export const EuclideanSequencer = () => {
         grainPlayer.reverse = false;
         grainPlayer.grainSize = currentTrack.grainSize / 1000;
         grainPlayer.overlap = currentTrack.overlap;
-        grainPlayer.detune = currentTrack.pitch * 100 + (velocity - 0.8) * 100;
+        grainPlayer.detune = currentTrack.pitch * 100 + (velocity - 0.8) * 100 + stretchCompensation;
         
         const sprayAmount = (currentTrack.spray / 1000) * (currentTrack.chaosEnabled ? currentTrack.entropy : 1);
         const startOffset = currentTrack.sampleStart * audioBuffer.duration;
@@ -2353,6 +2369,8 @@ export const EuclideanSequencer = () => {
             // Tone.GrainPlayer doesn't have a direct spray, but we can use detune randomization
             break;
           case 'pitch': synthObj.grainPlayer.detune = val * 100; break;
+          case 'stretchRate': synthObj.grainPlayer.playbackRate = val; break;
+          case 'stretchEnabled': synthObj.grainPlayer.playbackRate = val ? (tracksRef.current.find(t => t.id === trackId)?.stretchRate ?? 1.0) : 1.0; break;
           case 'sampleStart': synthObj.grainPlayer.loopStart = val * synthObj.grainPlayer.buffer.duration; break;
           case 'sampleEnd': synthObj.grainPlayer.loopEnd = val * synthObj.grainPlayer.buffer.duration; break;
           case 'attack': synthObj.grainPlayer.fadeIn = val / 1000; break;
@@ -3623,9 +3641,8 @@ export const EuclideanSequencer = () => {
         synth.grainPlayer.grainSize = track.grainSize / 1000;
         synth.grainPlayer.overlap = track.overlap;
         synth.grainPlayer.detune = track.pitch * 100;
-        // Spray is handled in the trigger logic for rhythmic tracks, 
-        // but for cloud we can apply it to the loop if needed.
-        // Actually Tone.GrainPlayer doesn't have a direct 'spray' property that works like we want in loop mode easily without manual offset jumps.
+        const stretchRate = track.stretchEnabled ? (track.stretchRate ?? 1.0) : 1.0;
+        synth.grainPlayer.playbackRate = stretchRate;
       }
 
       if (synth.bitCrusher) {
@@ -5247,6 +5264,9 @@ export const EuclideanSequencer = () => {
                   } : t
                 ));
               }}
+              // Time Stretch props
+              stretchEnabled={track.stretchEnabled}
+              stretchRate={track.stretchRate}
             />
           </div>
         ))}

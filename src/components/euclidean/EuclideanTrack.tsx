@@ -228,6 +228,9 @@ interface EuclideanTrackProps {
   onSlicePitchChange?: (sliceIdx: number, semitones: number) => void;
   onSliceRandomize?: () => void;
   onSliceReset?: () => void;
+  // Time Stretch props
+  stretchEnabled?: boolean;
+  stretchRate?: number;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
@@ -475,6 +478,9 @@ export const EuclideanTrack = React.memo(({
   onSlicePitchChange,
   onSliceRandomize,
   onSliceReset,
+  // Time Stretch
+  stretchEnabled,
+  stretchRate,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
@@ -713,6 +719,17 @@ export const EuclideanTrack = React.memo(({
 
             {samplerStatus === 'READY' && (
               <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => onSamplerParamChange('stretchEnabled', !stretchEnabled)}
+                  className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                    stretchEnabled
+                      ? 'bg-system-accent text-white border-system-accent'
+                      : 'bg-background text-foreground/60 border-border hover:border-system-accent/50'
+                  }`}
+                  title="Time Stretch — velocidad sin cambio de pitch"
+                >
+                  STR
+                </button>
                 <button
                   onClick={() => onSlicerToggle?.(!slicerEnabled)}
                   className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
@@ -1377,6 +1394,21 @@ export const EuclideanTrack = React.memo(({
                   className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
                 />
               </div>
+              {/* Time Stretch */}
+              {stretchEnabled && (
+                <div className="space-y-2 relative mt-2">
+                  <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
+                    <span>Rate</span>
+                    <span className="text-idm-ink">{(stretchRate ?? 1.0).toFixed(2)}×</span>
+                  </div>
+                  <input
+                    type="range" min="0.25" max="2.0" step="0.05"
+                    value={stretchRate ?? 1.0}
+                    onChange={(e) => onSamplerParamChange('stretchRate', parseFloat(e.target.value))}
+                    className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -2194,6 +2226,8 @@ export const EuclideanTrack = React.memo(({
     prevProps.nestedLfoEnabled === nextProps.nestedLfoEnabled &&
     prevProps.nestedLfoRate1 === nextProps.nestedLfoRate1 &&
     prevProps.nestedLfoRate2 === nextProps.nestedLfoRate2 &&
-    prevProps.nestedLfoDepth === nextProps.nestedLfoDepth
+    prevProps.nestedLfoDepth === nextProps.nestedLfoDepth &&
+    prevProps.stretchEnabled === nextProps.stretchEnabled &&
+    prevProps.stretchRate === nextProps.stretchRate
   );
 });
