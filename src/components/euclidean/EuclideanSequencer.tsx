@@ -1162,7 +1162,18 @@ export const EuclideanSequencer = () => {
         if (track.id === 'cloud') return;
 
         const shouldPlay = anySoloed ? track.isSoloed : !track.isMuted;
-        const idx = (currentGlobalStep + track.offset) % track.steps;
+
+        // Phase Drift: incrementar acumulador fraccionario
+        if (track.driftEnabled) {
+          const prev = driftAccumulatorRef.current[track.id] ?? 0;
+          const next = prev + (track.driftRate ?? 0.01);
+          driftAccumulatorRef.current[track.id] = next % (track.steps * 1000);
+        }
+
+        const driftOffset = track.driftEnabled
+          ? Math.floor(driftAccumulatorRef.current[track.id] ?? 0)
+          : 0;
+        const idx = ((currentGlobalStep + track.offset + driftOffset) % track.steps + track.steps) % track.steps;
         
         Tone.Draw.schedule(() => {
           currentStepsRef.current[track.id] = idx;
