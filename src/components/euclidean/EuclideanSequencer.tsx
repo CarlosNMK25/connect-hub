@@ -2367,6 +2367,8 @@ export const EuclideanSequencer = () => {
             // Tone.GrainPlayer doesn't have a direct spray, but we can use detune randomization
             break;
           case 'pitch': synthObj.grainPlayer.detune = val * 100; break;
+          case 'stretchRate': synthObj.grainPlayer.playbackRate = val; break;
+          case 'stretchEnabled': synthObj.grainPlayer.playbackRate = val ? (tracksRef.current.find(t => t.id === trackId)?.stretchRate ?? 1.0) : 1.0; break;
           case 'sampleStart': synthObj.grainPlayer.loopStart = val * synthObj.grainPlayer.buffer.duration; break;
           case 'sampleEnd': synthObj.grainPlayer.loopEnd = val * synthObj.grainPlayer.buffer.duration; break;
           case 'attack': synthObj.grainPlayer.fadeIn = val / 1000; break;
