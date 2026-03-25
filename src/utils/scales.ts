@@ -45,6 +45,7 @@ export const SCALE_NAMES: Record<string, string> = {
   hijaz24: 'Hijaz 24-TET',
   rast: 'Rast',
   bayati: 'Bayati',
+  bohlenPierce: 'Bohlen-Pierce',
 };
 
 /** Get the semitone intervals array for a scale ID */
