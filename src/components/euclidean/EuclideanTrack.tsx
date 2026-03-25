@@ -1978,6 +1978,11 @@ export const EuclideanTrack = React.memo(({
     prevProps.caRule === nextProps.caRule &&
     prevProps.caSeed === nextProps.caSeed &&
     prevProps.caDensity === nextProps.caDensity &&
-    prevProps.caSpeed === nextProps.caSpeed
+    prevProps.caSpeed === nextProps.caSpeed &&
+    prevProps.noteMode === nextProps.noteMode &&
+    prevProps.markovStyle === nextProps.markovStyle &&
+    prevProps.markovTemperature === nextProps.markovTemperature &&
+    prevProps.markovAnchor === nextProps.markovAnchor &&
+    prevProps.markovShowMatrix === nextProps.markovShowMatrix
   );
 });
