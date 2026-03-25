@@ -197,6 +197,19 @@ interface EuclideanTrackProps {
   onMarkovParamChange?: (param: string, value: string | number | boolean) => void;
   onMarkovRegenerate?: () => void;
   onGetMarkovMatrix?: (trackId: string) => number[][] | undefined;
+  // Slicer props
+  slicerEnabled?: boolean;
+  sliceCount?: number;
+  sliceOrder?: number[];
+  sliceReverse?: boolean[];
+  slicePitch?: number[];
+  onSlicerToggle?: (enabled: boolean) => void;
+  onSliceCountChange?: (count: number) => void;
+  onSliceOrderChange?: (order: number[]) => void;
+  onSliceReverseToggle?: (sliceIdx: number) => void;
+  onSlicePitchChange?: (sliceIdx: number, semitones: number) => void;
+  onSliceRandomize?: () => void;
+  onSliceReset?: () => void;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
