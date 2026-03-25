@@ -4654,6 +4654,52 @@ export const EuclideanSequencer = () => {
               temporalityMode={temporalityMode}
               bpm={bpm}
               swing={swing}
+              onPatternModeChange={(mode) => {
+                if (mode === 'ca') {
+                  delete caStateRef.current[track.id];
+                  caEvolveCycleRef.current[track.id] = 0;
+                }
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id
+                    ? updateTrackPattern({ ...t, patternMode: mode })
+                    : t
+                ));
+              }}
+              onLsParamChange={(param, value) => {
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id
+                    ? updateTrackPattern({ ...t, [param]: value })
+                    : t
+                ));
+              }}
+              onLsRegenerate={() => {
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? updateTrackPattern(t) : t
+                ));
+              }}
+              onLsReset={() => {
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id
+                    ? updateTrackPattern({ ...t, lsSeed: 'X', lsRuleA: 'XO', lsIterations: 3, lsRotation: 0 })
+                    : t
+                ));
+              }}
+              onCaParamChange={(param, value) => {
+                delete caStateRef.current[track.id];
+                caEvolveCycleRef.current[track.id] = 0;
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id
+                    ? updateTrackPattern({ ...t, [param]: value })
+                    : t
+                ));
+              }}
+              onCaReset={() => {
+                delete caStateRef.current[track.id];
+                caEvolveCycleRef.current[track.id] = 0;
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? updateTrackPattern(t) : t
+                ));
+              }}
             />
           </div>
         ))}
