@@ -3463,13 +3463,14 @@ export const EuclideanSequencer = () => {
     }
     // Lorenz + Nested LFO injection for tone rebuild
     if (trackId === 'tone' && synthsRef.current.tone) {
+      const tf = toneFilterRef.current;
       synthsRef.current.tone.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
-        if (target === 'filter') toneFilter.frequency.rampTo(600 + normalizedValue * depth, 0.05);
+        if (target === 'filter' && tf) tf.frequency.rampTo(600 + normalizedValue * depth, 0.05);
       };
       synthsRef.current.tone.nestedLfoInstance = null;
       synthsRef.current.tone.initNestedLfo = (r1: number, r2: number, d: number) => {
         synthsRef.current.tone.nestedLfoInstance?.dispose();
-        synthsRef.current.tone.nestedLfoInstance = createNestedLfo(toneFilter, r1, r2, d);
+        synthsRef.current.tone.nestedLfoInstance = createNestedLfo(tf, r1, r2, d);
       };
       synthsRef.current.tone.updateNestedLfo = (r1: number, r2: number, d: number) => synthsRef.current.tone.nestedLfoInstance?.update(r1, r2, d);
       synthsRef.current.tone.disposeNestedLfo = () => { synthsRef.current.tone.nestedLfoInstance?.dispose(); synthsRef.current.tone.nestedLfoInstance = null; };
