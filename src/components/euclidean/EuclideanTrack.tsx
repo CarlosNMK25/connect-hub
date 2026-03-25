@@ -576,11 +576,24 @@ export const EuclideanTrack = React.memo(({
             </div>
           </div>
 
-          {/* Formula + Density Badges */}
+          {/* Mode Selector + Formula + Density Badges */}
           <div className="flex items-center gap-3 px-3 py-2 bg-idm-bg rounded-lg border border-black/5 flex-none">
-            <div className="flex flex-col">
-              <span className="text-[7px] font-mono text-idm-muted uppercase tracking-widest leading-none">Formula</span>
-              <span className="text-[11px] font-mono font-black leading-tight" style={{ color }}>E({pulses}, {steps})</span>
+            {/* Mode selector */}
+            <div className="flex items-center gap-1">
+              <select
+                value={patternMode ?? 'euclidean'}
+                onChange={e => onPatternModeChange?.(e.target.value as 'euclidean' | 'lsystem' | 'ca')}
+                className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent"
+              >
+                <option value="euclidean">E</option>
+                <option value="lsystem">LS</option>
+                <option value="ca">CA</option>
+              </select>
+              <span className="text-[11px] font-mono font-black leading-tight" style={{ color }}>
+                {(patternMode ?? 'euclidean') === 'euclidean' && `E(${pulses},${steps})`}
+                {patternMode === 'lsystem' && `LS(${lsIterations ?? 3})`}
+                {patternMode === 'ca' && `CA(${caRule ?? 30})`}
+              </span>
             </div>
             <div className="w-px h-6 bg-black/5" />
             <div className="flex flex-col">
