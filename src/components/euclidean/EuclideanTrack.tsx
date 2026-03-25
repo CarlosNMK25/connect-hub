@@ -805,7 +805,7 @@ export const EuclideanTrack = React.memo(({
         <div className="flex items-center gap-4 flex-wrap">
           {/* Compact Sliders */}
           <div className="flex items-center gap-4 flex-none">
-            <div className="space-y-1 w-28 relative" onMouseEnter={(e) => handleParamEnter('pulses', e)} onMouseLeave={handleParamLeave}>
+            <div className={`space-y-1 w-28 relative ${(patternMode ?? 'euclidean') !== 'euclidean' ? 'opacity-30 pointer-events-none' : ''}`} onMouseEnter={(e) => handleParamEnter('pulses', e)} onMouseLeave={handleParamLeave}>
               <div className="flex justify-between text-[8px] font-mono font-bold uppercase text-idm-muted">
                 <span>Pulses</span><span style={{ color }}>{pulses}</span>
               </div>
@@ -830,6 +830,102 @@ export const EuclideanTrack = React.memo(({
                 className="w-full h-1 bg-idm-bg appearance-none cursor-pointer rounded-full" style={{ accentColor: color }} />
             </div>
           </div>
+
+          {/* L-System Controls */}
+          {(patternMode ?? 'euclidean') === 'lsystem' && (
+            <div className="flex items-center gap-3 flex-none border-l border-black/5 pl-3">
+              <div className="flex items-center gap-1">
+                <span className="text-[7px] font-mono text-idm-muted w-7">Seed</span>
+                <select value={lsSeed ?? 'X'} onChange={e => onLsParamChange?.('lsSeed', e.target.value)}
+                  className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
+                  <option value="X">X</option>
+                  <option value="XO">XO</option>
+                  <option value="XOO">XOO</option>
+                  <option value="XOOX">XOOX</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-[7px] font-mono text-idm-muted w-7">Rule</span>
+                <select value={lsRuleA ?? 'XO'} onChange={e => onLsParamChange?.('lsRuleA', e.target.value)}
+                  className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
+                  <option value="XO">Fibonacci</option>
+                  <option value="XX">Double</option>
+                  <option value="XOO">Sparse</option>
+                  <option value="XOOX">Complex</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-[7px] font-mono text-idm-muted w-6">Iter</span>
+                <input type="range" min={1} max={6} step={1} value={lsIterations ?? 3}
+                  onChange={e => onLsParamChange?.('lsIterations', Number(e.target.value))}
+                  className="w-14 h-[7px]" style={{ accentColor: color }} />
+                <span className="text-[7px] font-mono text-idm-muted w-3">{lsIterations ?? 3}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-[7px] font-mono text-idm-muted w-6">Rot</span>
+                <input type="range" min={0} max={steps - 1} step={1} value={lsRotation ?? 0}
+                  onChange={e => onLsParamChange?.('lsRotation', Number(e.target.value))}
+                  className="w-14 h-[7px]" style={{ accentColor: color }} />
+                <span className="text-[7px] font-mono text-idm-muted w-3">{lsRotation ?? 0}</span>
+              </div>
+              <div className="flex gap-1">
+                <button onClick={() => onLsRegenerate?.()}
+                  className="text-[8px] font-mono px-2 py-0.5 rounded border border-system-accent text-system-accent hover:bg-system-accent hover:text-white transition-colors">
+                  REGEN
+                </button>
+                <button onClick={() => onLsReset?.()}
+                  className="text-[8px] font-mono px-2 py-0.5 rounded border border-black/10 text-idm-muted hover:border-system-accent hover:text-system-accent transition-colors">
+                  RESET
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Cellular Automata Controls */}
+          {patternMode === 'ca' && (
+            <div className="flex items-center gap-3 flex-none border-l border-black/5 pl-3">
+              <div className="flex items-center gap-1">
+                <span className="text-[7px] font-mono text-idm-muted w-7">Rule</span>
+                <select value={caRule ?? 30} onChange={e => onCaParamChange?.('caRule', Number(e.target.value))}
+                  className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
+                  <option value={30}>Rule 30</option>
+                  <option value={90}>Rule 90</option>
+                  <option value={110}>Rule 110</option>
+                  <option value={184}>Rule 184</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-[7px] font-mono text-idm-muted w-7">Seed</span>
+                <select value={caSeed ?? 'center'} onChange={e => onCaParamChange?.('caSeed', e.target.value)}
+                  className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
+                  <option value="center">Centro</option>
+                  <option value="edge">Borde</option>
+                  <option value="two">Dos puntos</option>
+                  <option value="random">Aleatorio</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-[7px] font-mono text-idm-muted w-7">Dens</span>
+                <input type="range" min={0} max={100} step={5} value={caDensity ?? 50}
+                  onChange={e => onCaParamChange?.('caDensity', Number(e.target.value))}
+                  className="w-14 h-[7px]" style={{ accentColor: color }} />
+                <span className="text-[7px] font-mono text-idm-muted w-6 text-right">{caDensity ?? 50}%</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-[7px] font-mono text-idm-muted w-6">Spd</span>
+                <select value={caSpeed ?? 1} onChange={e => onCaParamChange?.('caSpeed', Number(e.target.value))}
+                  className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
+                  <option value={1}>×1</option>
+                  <option value={2}>×2</option>
+                  <option value={4}>×4</option>
+                </select>
+              </div>
+              <button onClick={() => onCaReset?.()}
+                className="text-[8px] font-mono px-2 py-0.5 rounded border border-black/10 text-idm-muted hover:border-system-accent hover:text-system-accent transition-colors">
+                RESET
+              </button>
+            </div>
+          )}
         </div>
       {/* DJ Nudge Controls (Full Width, Below Parameters) */}
       {isDjMode && (
