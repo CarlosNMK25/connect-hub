@@ -1649,13 +1649,17 @@ export const EuclideanSequencer = () => {
                 synth.triggerAttackRelease(duration, scheduledTime, velocity);
               }
             } else if (synth.grainPlayer && track.samplerStatus === 'READY') {
-              // Fallback for cloud or if triggerAttackRelease is missing
+              // Fallback path (cloud granular) — also respects sampleEnd (Fix 1)
+              const bufDur = track.samplerBuffer?.duration || 0;
               const sprayAmount = (track.spray / 1000) * (track.chaosEnabled ? track.entropy : 1);
-              const startOffset = track.sampleStart * (track.samplerBuffer?.duration || 0);
+              const startOffset = track.sampleStart * bufDur;
               const randomOffset = (Math.random() - 0.5) * sprayAmount;
-              const finalOffset = Math.max(0, Math.min(track.samplerBuffer?.duration || 0, startOffset + randomOffset));
-              const duration = track.mode === 'GATE' ? "16n" : (track.decay / 1000);
-              synth.grainPlayer.start(scheduledTime, finalOffset, duration);
+              const finalOffset = Math.max(0, Math.min(bufDur, startOffset + randomOffset));
+              const stepDur = track.mode === 'GATE' ? Tone.Time("16n").toSeconds() : (track.decay / 1000);
+              const endOffset = track.sampleEnd * bufDur;
+              const roiDur = Math.max(0.01, endOffset - finalOffset);
+              const dur = Math.max(0.01, Math.min(roiDur, stepDur));
+              synth.grainPlayer.start(scheduledTime, finalOffset, dur);
             }
 
             // Layer 2: disparar si existe y hay buffer cargado
