@@ -23,6 +23,7 @@ import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex } from '../../utils/scales';
 import { buildWavefoldCurve, vactrolfiltFreq } from '../../utils/waveshaping';
 import { generateMarkovMatrix, markovNextNote, type MarkovStyle } from '../../utils/markovGenerator';
+import { LorenzAttractor } from '../../utils/lorenzAttractor';
 
 interface TrackState {
   id: string;
