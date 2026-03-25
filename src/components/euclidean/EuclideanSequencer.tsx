@@ -4250,7 +4250,6 @@ export const EuclideanSequencer = () => {
           mmLastRatio={mmHistory.length > 0 ? mmHistory[0].label : undefined}
           mmOriginalBpm={mmHistory.length > 0 ? mmHistory[mmHistory.length - 1].fromBpm : undefined}
         />
-        />
       )}
 
       {/* Pattern Space */}
