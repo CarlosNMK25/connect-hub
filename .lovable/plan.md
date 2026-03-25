@@ -1,13 +1,16 @@
 
 
-## Plan: Pista Tonal Euclidiana — IMPLEMENTED
+## Plan: Pedagogía — Prioridades Alta y Media — IMPLEMENTED
 
 ### Summary
-Added 5th track "Tone" with MonoSynth (sawtooth), Phrygian Dominant scale [0,1,4,5,7,8,10], per-step note index parameter locking, dynamic velocity→filter (600Hz + velocity*4000Hz), and tonal UI in EuclideanTrack/EuclideanStep.
+Implemented all 4 phases of the pedagogical roadmap:
+- **Fase 1**: 8 micro tooltips (technical + literary) for Ratchet, Metric Modulation, and Layer 2 parameters
+- **Fase 2**: 14 micro tooltips (technical + literary) for advanced synths (PAD, DRONE, KS, MODAL, AMBIENT)
+- **Fase 3**: 4 diagnosis rules for Ratchet (ratchet-alto, ratchet-multi-pista) and Metric Modulation (mm-activa, mm-encadenada), with mmHistory passed through DiagnosisContext
+- **Fase 4**: 3 diagnosis rules for advanced synths (drone-flamenco, ks-ratchet, pad-poliritmia)
 
 ### Files Modified
-1. `src/utils/scales.ts` — NEW: Scale definitions, noteIndexToMidi, midiToNoteName
-2. `src/components/euclidean/EuclideanSequencer.tsx` — TrackState tonal fields, 5th track init, MonoSynth audio chain, tonal trigger in loop + ratchet, initializeOriginalSynth for tone, preset capture/apply with tonal fields, tonal props passed to EuclideanTrack
-3. `src/components/euclidean/EuclideanTrack.tsx` — Tonal props, Root/Scale/Octave selectors, note name + noteIndex passed to EuclideanStep, memo comparator updated
-4. `src/components/euclidean/EuclideanStep.tsx` — Tonal props, note name display, vertical drag changes noteIndex for tonal steps
-5. `src/utils/userPresets.ts` — Optional tonal fields in UserPresetTrack
+1. `src/constants/pedagogy.ts` — 22 new entries in `micro` + 20 new entries in `microLiterary`
+2. `src/utils/diagnosis.ts` — DiagnosisContext extended with mmHistoryLength/mmLastRatio/mmOriginalBpm, 7 new rules added
+3. `src/components/euclidean/EngineRoom.tsx` — Props extended, mmHistory data passed to DiagnosisPanel
+4. `src/components/euclidean/EuclideanSequencer.tsx` — mmHistory passed to EngineRoom and inline DiagnosisContext
