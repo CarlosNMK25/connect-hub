@@ -4794,6 +4794,50 @@ export const EuclideanSequencer = () => {
               driftRate={track.driftRate}
               onDriftEnabledChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, driftEnabled: val } : t))}
               onDriftRateChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, driftRate: val } : t))}
+              lorenzEnabled={track.lorenzEnabled}
+              lorenzDepth={track.lorenzDepth}
+              lorenzTarget={track.lorenzTarget}
+              lorenzSpeed={track.lorenzSpeed}
+              onLorenzParamChange={(param, value) => {
+                setTracks(prev => prev.map(t => {
+                  if (t.id !== track.id) return t;
+                  const updated = { ...t, [param]: value };
+                  // If toggling lorenzEnabled on, start RAF
+                  if (param === 'lorenzEnabled' && value === true) startLorenzRaf();
+                  return updated;
+                }));
+              }}
+              nestedLfoEnabled={track.nestedLfoEnabled}
+              nestedLfoRate1={track.nestedLfoRate1}
+              nestedLfoRate2={track.nestedLfoRate2}
+              nestedLfoDepth={track.nestedLfoDepth}
+              onNestedLfoToggle={(enabled) => {
+                if (enabled) {
+                  const t = tracksRef.current.find(tr => tr.id === track.id);
+                  synthsRef.current[track.id]?.initNestedLfo?.(
+                    t?.nestedLfoRate1 ?? 0.1,
+                    t?.nestedLfoRate2 ?? 4.0,
+                    t?.nestedLfoDepth ?? 800
+                  );
+                } else {
+                  synthsRef.current[track.id]?.disposeNestedLfo?.();
+                }
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? { ...t, nestedLfoEnabled: enabled } : t
+                ));
+              }}
+              onNestedLfoParamChange={(param, value) => {
+                setTracks(prev => prev.map(t => {
+                  if (t.id !== track.id) return t;
+                  const updated = { ...t, [param]: value };
+                  synthsRef.current[track.id]?.updateNestedLfo?.(
+                    updated.nestedLfoRate1 ?? 0.1,
+                    updated.nestedLfoRate2 ?? 4.0,
+                    updated.nestedLfoDepth ?? 800
+                  );
+                  return updated;
+                }));
+              }}
               layer2Status={track.layer2Status}
               layer2Filename={track.layer2Filename}
               layer2Blend={track.layer2Blend}
