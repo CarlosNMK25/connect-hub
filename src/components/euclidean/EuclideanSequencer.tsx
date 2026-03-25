@@ -136,6 +136,9 @@ interface TrackState {
   sliceOrder?: number[];
   sliceReverse?: boolean[];
   slicePitch?: number[];
+  // Time Stretch (Phase 6B)
+  stretchEnabled?: boolean;
+  stretchRate?: number; // 0.25-2.0, default 1.0
   hits: number;
   misses: number;
 }
