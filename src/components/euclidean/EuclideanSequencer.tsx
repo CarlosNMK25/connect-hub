@@ -2749,8 +2749,18 @@ export const EuclideanSequencer = () => {
           hatReverbSend.dispose();
         }
       };
+      // Lorenz + Nested LFO injection for hat rebuild
+      synthsRef.current.hat.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
+        if (target === 'filter') hatFilter.frequency.rampTo(2000 + normalizedValue * depth, 0.05);
+      };
+      synthsRef.current.hat.nestedLfoInstance = null;
+      synthsRef.current.hat.initNestedLfo = (r1: number, r2: number, d: number) => {
+        synthsRef.current.hat.nestedLfoInstance?.dispose();
+        synthsRef.current.hat.nestedLfoInstance = createNestedLfo(hatFilter, r1, r2, d);
+      };
+      synthsRef.current.hat.updateNestedLfo = (r1: number, r2: number, d: number) => synthsRef.current.hat.nestedLfoInstance?.update(r1, r2, d);
+      synthsRef.current.hat.disposeNestedLfo = () => { synthsRef.current.hat.nestedLfoInstance?.dispose(); synthsRef.current.hat.nestedLfoInstance = null; };
     } else if (trackId === 'tone') {
-      // Si hay grabación activa, pararla antes de rebuild
       if (toneRecordingState === 'recording' && mediaRecorderRef.current?.state === 'recording') {
         mediaRecorderRef.current.stop();
         setToneRecordingState('idle');
