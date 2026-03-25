@@ -263,7 +263,7 @@ const DiagnosisPanel: React.FC<{
 
 DiagnosisPanel.displayName = 'DiagnosisPanel';
 
-export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiStats, log, onClearLog, activePresetId, bpm, temporalityMode, jitter, swing, hitRate }) => {
+export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiStats, log, onClearLog, activePresetId, bpm, temporalityMode, jitter, swing, hitRate, mmHistoryLength, mmLastRatio, mmOriginalBpm }) => {
   const rows = useMemo(() => tracks.map(t => {
     const density = t.steps > 0 ? Math.round((t.pulses / t.steps) * 100) : 0;
     const activeProbs = t.probabilities.slice(0, t.steps);
