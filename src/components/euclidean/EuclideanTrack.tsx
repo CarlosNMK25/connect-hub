@@ -228,6 +228,9 @@ interface EuclideanTrackProps {
   onSlicePitchChange?: (sliceIdx: number, semitones: number) => void;
   onSliceRandomize?: () => void;
   onSliceReset?: () => void;
+  // Time Stretch props
+  stretchEnabled?: boolean;
+  stretchRate?: number;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
