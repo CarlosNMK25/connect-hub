@@ -1372,16 +1372,18 @@ export const EuclideanTrack = React.memo(({
             NUEVA MATRIZ
           </button>
           {/* Ver Matriz */}
-          <button
-            onClick={() => onMarkovParamChange?.('markovShowMatrix', !(markovShowMatrix ?? false))}
-            className={`text-[8px] font-mono px-2 py-0.5 rounded border transition-colors ${
-              markovShowMatrix
-                ? 'bg-system-accent text-white border-system-accent'
-                : 'border-border text-muted-foreground hover:border-system-accent'
-            }`}
-          >
-            {markovShowMatrix ? 'OCULTAR' : 'VER MATRIZ'}
-          </button>
+          <div onMouseEnter={(e) => handleParamEnter('markovShowMatrix', e)} onMouseLeave={handleParamLeave}>
+            <button
+              onClick={() => onMarkovParamChange?.('markovShowMatrix', !(markovShowMatrix ?? false))}
+              className={`text-[8px] font-mono px-2 py-0.5 rounded border transition-colors ${
+                markovShowMatrix
+                  ? 'bg-system-accent text-white border-system-accent'
+                  : 'border-border text-muted-foreground hover:border-system-accent'
+              }`}
+            >
+              {markovShowMatrix ? 'OCULTAR' : 'VER MATRIZ'}
+            </button>
+          </div>
           {/* Matrix heatmap */}
           {markovShowMatrix && onGetMarkovMatrix && (
             <div className="w-full mt-1 overflow-x-auto">
