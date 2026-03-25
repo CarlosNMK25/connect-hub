@@ -119,6 +119,16 @@ interface TrackState {
   layer2Offset?: number;     // 0-500ms, default 0
   layer2FilterFreq?: number; // 200-8000Hz, default 8000
   layer2Reverse?: boolean;   // default false
+  // Lorenz Attractor
+  lorenzEnabled?: boolean;
+  lorenzDepth?: number;
+  lorenzTarget?: 'filter' | 'volume';
+  lorenzSpeed?: number;
+  // Nested LFO
+  nestedLfoEnabled?: boolean;
+  nestedLfoRate1?: number;
+  nestedLfoRate2?: number;
+  nestedLfoDepth?: number;
   hits: number;
   misses: number;
 }
