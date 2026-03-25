@@ -3268,13 +3268,15 @@ export const EuclideanSequencer = () => {
         const assignAmbientFreqs = () => {
           const currentTrack = tracksRef.current.find(t => t.id === 'tone');
           if (!currentTrack?.noteIndices?.length) return;
-          const scaleIntervals = SCALES[currentTrack.scaleId] || SCALES.phrygianDominant;
+          const scaleIntervals = getScaleIntervals(currentTrack.scaleId);
           for (let i = 0; i < NUM_LOOPS; i++) {
             const noteIdx = currentTrack.noteIndices[
               Math.floor(Math.random() * currentTrack.noteIndices.length)
             ];
             const midi = noteIndexToMidi(currentTrack.rootNote, scaleIntervals, noteIdx);
-            ambientOscs[i].frequency.value = Tone.Frequency(midi, 'midi').toFrequency();
+            const degree = ((noteIdx % scaleIntervals.length) + scaleIntervals.length) % scaleIntervals.length;
+            const detuneCents = getScaleDetune(currentTrack.scaleId, degree);
+            ambientOscs[i].frequency.value = midiAndDetuneToFreq(midi, detuneCents);
           }
         };
 

@@ -1892,7 +1892,7 @@ export const EuclideanTrack = React.memo(({
       {id !== 'cloud' && (
         <div className="flex flex-wrap gap-3 pt-2">
           {pattern.map((active, i) => {
-            const scaleIntervals = SCALES[scaleId] || SCALES.phrygianDominant;
+            const scaleIntervals = getScaleIntervals(scaleId);
             const noteIdx = noteIndices[i] ?? 0;
             const midi = noteIndexToMidi(rootNote, scaleIntervals, noteIdx);
             const noteName = midiToNoteName(midi);
