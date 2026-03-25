@@ -5264,6 +5264,9 @@ export const EuclideanSequencer = () => {
                   } : t
                 ));
               }}
+              // Time Stretch props
+              stretchEnabled={track.stretchEnabled}
+              stretchRate={track.stretchRate}
             />
           </div>
         ))}
