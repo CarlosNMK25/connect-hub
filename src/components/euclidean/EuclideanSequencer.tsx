@@ -4769,6 +4769,33 @@ export const EuclideanSequencer = () => {
                   t.id === track.id ? updateTrackPattern(t) : t
                 ));
               }}
+              // Markov props
+              noteMode={track.noteMode}
+              markovStyle={track.markovStyle}
+              markovTemperature={track.markovTemperature}
+              markovAnchor={track.markovAnchor}
+              markovShowMatrix={track.markovShowMatrix}
+              onNoteModeChange={(mode) => {
+                const updated = { ...track, noteMode: mode };
+                if (mode === 'markov') updateMarkovMatrix(updated);
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? { ...t, noteMode: mode } : t
+                ));
+              }}
+              onMarkovParamChange={(param, value) => {
+                const updated = { ...track, [param]: value };
+                if (['markovStyle', 'markovTemperature'].includes(param)) {
+                  updateMarkovMatrix(updated);
+                }
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? { ...t, [param]: value } : t
+                ));
+              }}
+              onMarkovRegenerate={() => {
+                const t = tracks.find(tr => tr.id === track.id);
+                if (t) updateMarkovMatrix(t);
+              }}
+              onGetMarkovMatrix={(trackId) => markovMatrixRef.current[trackId]}
             />
           </div>
         ))}
