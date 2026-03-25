@@ -1667,7 +1667,9 @@ export const EuclideanSequencer = () => {
               synth.triggerLayer2(scheduledTime, velocity);
             }
 
-            // Ratchet: schedule additional retrigggers within the sixteenth
+            // Ratchet: schedule additional retriggers within the sixteenth
+            // Fix 2: unified ratchet — reuses triggerAttackRelease (which already
+            // handles sampleEnd via Fix 1) or falls back to cloud path
             const ratchetCount = track.ratchet || 0;
             if (ratchetCount > 0) {
               const subdivDuration = sixteenthDuration / (ratchetCount + 1);
@@ -1686,12 +1688,17 @@ export const EuclideanSequencer = () => {
                       synth.triggerAttackRelease(dur, ratchetTime, ratchetVelocity);
                     }
                   } else if (synth.grainPlayer && track.samplerStatus === 'READY') {
+                    // Ratchet fallback (cloud) — same ROI logic as main trigger
+                    const bufDur = track.samplerBuffer?.duration || 0;
                     const sprayAmount = (track.spray / 1000) * (track.chaosEnabled ? track.entropy : 1);
-                    const startOffset = track.sampleStart * (track.samplerBuffer?.duration || 0);
-                    const randomOffset = (Math.random() - 0.5) * sprayAmount;
-                    const finalOffset = Math.max(0, Math.min(track.samplerBuffer?.duration || 0, startOffset + randomOffset));
-                    const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
-                    synth.grainPlayer.start(ratchetTime, finalOffset, dur);
+                    const startOff = track.sampleStart * bufDur;
+                    const randomOff = (Math.random() - 0.5) * sprayAmount;
+                    const finalOff = Math.max(0, Math.min(bufDur, startOff + randomOff));
+                    const stepDur = track.mode === 'GATE' ? Tone.Time("32n").toSeconds() : (track.decay / 2000);
+                    const endOff = track.sampleEnd * bufDur;
+                    const roiDur = Math.max(0.01, endOff - finalOff);
+                    const dur = Math.max(0.01, Math.min(roiDur, stepDur));
+                    synth.grainPlayer.start(ratchetTime, finalOff, dur);
                   }
                 } catch (e) { /* silent */ }
               }
