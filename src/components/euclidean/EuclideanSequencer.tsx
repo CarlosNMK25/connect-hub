@@ -3641,9 +3641,8 @@ export const EuclideanSequencer = () => {
         synth.grainPlayer.grainSize = track.grainSize / 1000;
         synth.grainPlayer.overlap = track.overlap;
         synth.grainPlayer.detune = track.pitch * 100;
-        // Spray is handled in the trigger logic for rhythmic tracks, 
-        // but for cloud we can apply it to the loop if needed.
-        // Actually Tone.GrainPlayer doesn't have a direct 'spray' property that works like we want in loop mode easily without manual offset jumps.
+        const stretchRate = track.stretchEnabled ? (track.stretchRate ?? 1.0) : 1.0;
+        synth.grainPlayer.playbackRate = stretchRate;
       }
 
       if (synth.bitCrusher) {

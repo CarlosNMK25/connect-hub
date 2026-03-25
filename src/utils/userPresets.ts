@@ -78,6 +78,9 @@ export interface UserPresetTrack {
   // Slicer
   slicerEnabled?: boolean;
   sliceCount?: number;
+  // Time Stretch (Phase 6B)
+  stretchEnabled?: boolean;
+  stretchRate?: number;
 }
 
 export interface UserPreset {
