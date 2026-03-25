@@ -1217,6 +1217,7 @@ export const EuclideanSequencer = () => {
       synthsRef.current.snare.nestedLfoInstance = null;
     };
 
+    const hatSynth = new Tone.NoiseSynth({
       noise: { type: 'white' },
       envelope: { attack: 0.001, decay: 0.05, sustain: 0 },
       volume: -2
