@@ -174,6 +174,16 @@ interface EuclideanTrackProps {
   onLsReset?: () => void;
   onCaParamChange?: (param: string, value: string | number) => void;
   onCaReset?: () => void;
+  // Markov props
+  noteMode?: 'euclidean' | 'markov';
+  markovStyle?: string;
+  markovTemperature?: number;
+  markovAnchor?: number;
+  markovShowMatrix?: boolean;
+  onNoteModeChange?: (mode: 'euclidean' | 'markov') => void;
+  onMarkovParamChange?: (param: string, value: string | number | boolean) => void;
+  onMarkovRegenerate?: () => void;
+  onGetMarkovMatrix?: (trackId: string) => number[][] | undefined;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
@@ -387,6 +397,16 @@ export const EuclideanTrack = React.memo(({
   onLsReset,
   onCaParamChange,
   onCaReset,
+  // Markov
+  noteMode,
+  markovStyle,
+  markovTemperature,
+  markovAnchor,
+  markovShowMatrix,
+  onNoteModeChange,
+  onMarkovParamChange,
+  onMarkovRegenerate,
+  onGetMarkovMatrix,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
@@ -1249,6 +1269,18 @@ export const EuclideanTrack = React.memo(({
                 <option value="ambient">AMB</option>
               </select>
             </div>
+            {/* Note Mode selector */}
+            <div className="space-y-1">
+              <span className="text-[8px] font-mono uppercase text-idm-muted">Notes</span>
+              <select
+                value={noteMode ?? 'euclidean'}
+                onChange={e => onNoteModeChange?.(e.target.value as 'euclidean' | 'markov')}
+                className="block w-20 bg-background border border-border rounded-lg text-[10px] font-mono px-1.5 py-1 text-foreground focus:outline-none focus:border-system-accent"
+              >
+                <option value="euclidean">Euclidean</option>
+                <option value="markov">Markov</option>
+              </select>
+            </div>
             <div className="space-y-1">
               <span className="text-[8px] font-mono uppercase text-idm-muted">Root</span>
               <select
@@ -1286,6 +1318,94 @@ export const EuclideanTrack = React.memo(({
               </select>
             </div>
           </div>
+        </div>
+      )}
+      {/* Markov controls — visible when noteMode === 'markov' */}
+      {isTonal && noteMode === 'markov' && (
+        <div className="flex flex-wrap items-center gap-3 mt-1.5 p-3 bg-background rounded-2xl border border-border">
+          {/* Style */}
+          <div className="flex items-center gap-1">
+            <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Style</span>
+            <select
+              value={markovStyle ?? 'scale'}
+              onChange={e => onMarkovParamChange?.('markovStyle', e.target.value)}
+              className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 text-foreground focus:outline-none focus:border-system-accent"
+            >
+              <option value="scale">Escala</option>
+              <option value="jumps">Saltos</option>
+              <option value="flamenco">Flamenco</option>
+              <option value="idm">IDM</option>
+              <option value="chromatic">Cromático</option>
+            </select>
+          </div>
+          {/* Temperature */}
+          <div className="flex items-center gap-1">
+            <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Temp</span>
+            <input type="range" min={0} max={100} step={5}
+              value={markovTemperature ?? 40}
+              onChange={e => onMarkovParamChange?.('markovTemperature', Number(e.target.value))}
+              className="w-14 h-1 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[7px] font-mono text-muted-foreground w-6 text-right">
+              {markovTemperature ?? 40}
+            </span>
+          </div>
+          {/* Anchor */}
+          <div className="flex items-center gap-1">
+            <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Anchor</span>
+            <select
+              value={markovAnchor ?? 0}
+              onChange={e => onMarkovParamChange?.('markovAnchor', Number(e.target.value))}
+              className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 text-foreground focus:outline-none focus:border-system-accent"
+            >
+              <option value={0}>OFF</option>
+              <option value={4}>Cada 4</option>
+              <option value={8}>Cada 8</option>
+              <option value={16}>Cada 16</option>
+            </select>
+          </div>
+          {/* Nueva Matriz */}
+          <button
+            onClick={() => onMarkovRegenerate?.()}
+            className="text-[8px] font-mono px-2 py-0.5 rounded border border-system-accent text-system-accent hover:bg-system-accent hover:text-white transition-colors"
+          >
+            NUEVA MATRIZ
+          </button>
+          {/* Ver Matriz */}
+          <button
+            onClick={() => onMarkovParamChange?.('markovShowMatrix', !(markovShowMatrix ?? false))}
+            className={`text-[8px] font-mono px-2 py-0.5 rounded border transition-colors ${
+              markovShowMatrix
+                ? 'bg-system-accent text-white border-system-accent'
+                : 'border-border text-muted-foreground hover:border-system-accent'
+            }`}
+          >
+            {markovShowMatrix ? 'OCULTAR' : 'VER MATRIZ'}
+          </button>
+          {/* Matrix heatmap */}
+          {markovShowMatrix && onGetMarkovMatrix && (
+            <div className="w-full mt-1 overflow-x-auto">
+              <table className="text-[6px] font-mono border-collapse">
+                <tbody>
+                  {onGetMarkovMatrix(id)?.map((row, i) => (
+                    <tr key={i}>
+                      {row.map((val, j) => (
+                        <td key={j}
+                          className="px-0.5 py-0.5 text-center border border-border"
+                          style={{
+                            backgroundColor: `hsla(25, 95%, 53%, ${val})`,
+                            color: val > 0.5 ? 'white' : 'inherit'
+                          }}
+                        >
+                          {Math.round(val * 100)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
       {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
@@ -1858,6 +1978,11 @@ export const EuclideanTrack = React.memo(({
     prevProps.caRule === nextProps.caRule &&
     prevProps.caSeed === nextProps.caSeed &&
     prevProps.caDensity === nextProps.caDensity &&
-    prevProps.caSpeed === nextProps.caSpeed
+    prevProps.caSpeed === nextProps.caSpeed &&
+    prevProps.noteMode === nextProps.noteMode &&
+    prevProps.markovStyle === nextProps.markovStyle &&
+    prevProps.markovTemperature === nextProps.markovTemperature &&
+    prevProps.markovAnchor === nextProps.markovAnchor &&
+    prevProps.markovShowMatrix === nextProps.markovShowMatrix
   );
 });

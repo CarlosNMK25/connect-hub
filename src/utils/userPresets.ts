@@ -42,6 +42,12 @@ export interface UserPresetTrack {
   rrAmount?: number;
   driftEnabled?: boolean;
   driftRate?: number;
+  // Markov note mode
+  noteMode?: 'euclidean' | 'markov';
+  markovStyle?: string;
+  markovTemperature?: number;
+  markovMemory?: number;
+  markovAnchor?: number;
   // Pattern mode
   patternMode?: 'euclidean' | 'lsystem' | 'ca';
   lsSeed?: string;

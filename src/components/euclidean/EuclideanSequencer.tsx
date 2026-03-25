@@ -22,6 +22,7 @@ import { UserPreset, loadUserPresets, saveUserPresets, exportPresetAsJson, impor
 import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../../utils/temporality';
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex } from '../../utils/scales';
 import { buildWavefoldCurve, vactrolfiltFreq } from '../../utils/waveshaping';
+import { generateMarkovMatrix, markovNextNote, type MarkovStyle } from '../../utils/markovGenerator';
 
 interface TrackState {
   id: string;
@@ -102,6 +103,13 @@ interface TrackState {
   caSpeed?: number;
   driftEnabled?: boolean;          // Phase Drift estilo Reich, default false
   driftRate?: number;              // -0.05 a 0.05, default 0.01
+  // Markov note mode
+  noteMode?: 'euclidean' | 'markov';  // default 'euclidean'
+  markovStyle?: MarkovStyle;           // default 'scale'
+  markovTemperature?: number;          // 0-100, default 40
+  markovMemory?: 1 | 2;               // TODO: orden 2 requiere tensor n×n×n
+  markovAnchor?: number;              // 0=OFF, 4, 8, 16 notas, default 0
+  markovShowMatrix?: boolean;         // mostrar tabla, default false
   // Layer 2
   layer2Status?: 'empty' | 'loading' | 'ready';
   layer2Filename?: string;
@@ -440,6 +448,19 @@ export const EuclideanSequencer = () => {
     return { ...t, pattern: p };
   };
 
+  const updateMarkovMatrix = useCallback((t: TrackState) => {
+    if (!t.isTonal || (t.noteMode ?? 'euclidean') !== 'markov') return;
+    const unique = [...new Set(t.noteIndices)].sort((a, b) => a - b);
+    if (unique.length === 0) return;
+    markovNotesRef.current[t.id] = unique;
+    markovMatrixRef.current[t.id] = generateMarkovMatrix(
+      unique,
+      (t.markovStyle ?? 'scale') as MarkovStyle,
+      t.markovTemperature ?? 40
+    );
+    markovLastNoteRef.current[t.id] = 0;
+    markovAnchorCountRef.current[t.id] = 0;
+  }, []);
   const [tracks, setTracks] = useState<TrackState[]>(() => [
     updateTrackPattern({ 
       id: 'kick', name: 'Kick', color: '#166534', pulses: 4, steps: 16, offset: 0, 
@@ -520,6 +541,11 @@ export const EuclideanSequencer = () => {
   const caEvolveCycleRef = useRef<Record<string, number>>({});
   const pendingCARef = useRef<Record<string, number[]>>({});
   const rrNoteIndexRef = useRef<Record<string, number>>({});
+  // Markov refs
+  const markovLastNoteRef = useRef<Record<string, number>>({});
+  const markovAnchorCountRef = useRef<Record<string, number>>({});
+  const markovMatrixRef = useRef<Record<string, number[][]>>({});
+  const markovNotesRef = useRef<Record<string, number[]>>({});
   const driftAccumulatorRef = useRef<Record<string, number>>({});
   const [driftOffsets, setDriftOffsets] = useState<Record<string, number>>({});
   // Refs para grabación en tiempo real del track Tone
@@ -809,6 +835,12 @@ export const EuclideanSequencer = () => {
           rrAmount: t.rrAmount,
           driftEnabled: t.driftEnabled,
           driftRate: t.driftRate,
+          // Markov
+          noteMode: t.noteMode,
+          markovStyle: t.markovStyle,
+          markovTemperature: t.markovTemperature,
+          markovMemory: t.markovMemory,
+          markovAnchor: t.markovAnchor,
           // Pattern mode
           patternMode: t.patternMode,
           lsSeed: t.lsSeed,
@@ -915,6 +947,12 @@ export const EuclideanSequencer = () => {
         rrAmount: config.rrAmount ?? 30,
         driftEnabled: config.driftEnabled ?? false,
         driftRate: config.driftRate ?? 0.01,
+        // Markov
+        noteMode: ((config as any).noteMode ?? 'euclidean') as 'euclidean' | 'markov',
+        markovStyle: ((config as any).markovStyle ?? 'scale') as MarkovStyle,
+        markovTemperature: (config as any).markovTemperature ?? 40,
+        markovMemory: (config as any).markovMemory ?? 1,
+        markovAnchor: (config as any).markovAnchor ?? 0,
         // Pattern mode
         patternMode: (config as any).patternMode ?? 'euclidean',
         lsSeed: (config as any).lsSeed ?? 'X',
@@ -935,7 +973,15 @@ export const EuclideanSequencer = () => {
         misses: 0,
       });
     }));
-  }, [logChange, updateTrackPattern]);
+    // Recalcular matrices Markov para tracks tonales
+    setTimeout(() => {
+      tracksRef.current.forEach(t => {
+        if (t.isTonal && (t.noteMode ?? 'euclidean') === 'markov') {
+          updateMarkovMatrix(t);
+        }
+      });
+    }, 0);
+  }, [logChange, updateTrackPattern, updateMarkovMatrix]);
 
   const handleImportPreset = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     setImportError(null);
@@ -1431,21 +1477,42 @@ export const EuclideanSequencer = () => {
             lastScheduledTimesRef.current[track.id] = scheduledTime;
 
             // Unified trigger logic: use triggerAttackRelease if available
+            // Compute noteIdx for tonal track — reused in ratchet (P3 fix)
+            let noteIdx = 0;
+            if (track.isTonal) {
+              if ((track.noteMode ?? 'euclidean') === 'markov') {
+                const uniqueNotes = markovNotesRef.current[track.id];
+                const matrix = markovMatrixRef.current[track.id];
+                if (!uniqueNotes || uniqueNotes.length === 0 || !matrix) {
+                  noteIdx = track.noteIndices[idx] ?? 0;
+                } else {
+                  const anchorEvery = track.markovAnchor ?? 0;
+                  const anchorCount = markovAnchorCountRef.current[track.id] ?? 0;
+                  let notePosition: number;
+                  if (anchorEvery > 0 && anchorCount >= anchorEvery) {
+                    notePosition = 0;
+                    markovAnchorCountRef.current[track.id] = 0;
+                  } else {
+                    const lastPosition = markovLastNoteRef.current[track.id] ?? 0;
+                    notePosition = markovNextNote(lastPosition, matrix);
+                    markovAnchorCountRef.current[track.id] = anchorCount + 1;
+                  }
+                  markovLastNoteRef.current[track.id] = notePosition;
+                  noteIdx = uniqueNotes[notePosition];
+                }
+              } else if (track.rrEnabled && track.noteIndices.length > 1) {
+                const rrIdx = rrNoteIndexRef.current[track.id] ?? 0;
+                noteIdx = track.noteIndices[rrIdx % track.noteIndices.length];
+                rrNoteIndexRef.current[track.id] = (rrIdx + 1) % track.noteIndices.length;
+              } else {
+                noteIdx = track.noteIndices[idx] ?? 0;
+              }
+            }
+
             if (synth.triggerAttackRelease) {
               const duration = track.mode === 'GATE' ? "16n" : (track.decay / 1000);
               
               if (track.isTonal) {
-                // Tonal track: compute note from scale + noteIndex
-                let noteIdx: number;
-                if (track.rrEnabled && track.noteIndices.length > 1) {
-                  // RR activo: rotación secuencial por noteIndices
-                  const rrIdx = rrNoteIndexRef.current[track.id] ?? 0;
-                  noteIdx = track.noteIndices[rrIdx % track.noteIndices.length];
-                  rrNoteIndexRef.current[track.id] = (rrIdx + 1) % track.noteIndices.length;
-                } else {
-                  // Sin RR: comportamiento original — determinista por step
-                  noteIdx = track.noteIndices[idx] ?? 0;
-                }
                 const scaleIntervals = SCALES[track.scaleId] || SCALES.phrygianDominant;
                 const midi = noteIndexToMidi(track.rootNote, scaleIntervals, noteIdx);
                 const noteName = midiToNoteName(midi);
@@ -1481,7 +1548,7 @@ export const EuclideanSequencer = () => {
                   if (synth.triggerAttackRelease) {
                     const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
                     if (track.isTonal) {
-                      const noteIdx = track.noteIndices[idx] ?? 0;
+                      // P3 fix: reutilizar noteIdx ya calculado arriba
                       const scaleIntervals = SCALES[track.scaleId] || SCALES.phrygianDominant;
                       const midi = noteIndexToMidi(track.rootNote, scaleIntervals, noteIdx);
                       const noteName = midiToNoteName(midi);
@@ -1581,12 +1648,20 @@ export const EuclideanSequencer = () => {
       globalStepRef.current = 0;
       setGlobalStep(0);
       rrNoteIndexRef.current = {};
+      markovLastNoteRef.current = {};
+      markovAnchorCountRef.current = {};
       driftAccumulatorRef.current = {};
       setDriftOffsets({});
       caStateRef.current = {};
       caEvolveCycleRef.current = {};
       pendingCARef.current = {};
     } else {
+      // Ensure Markov matrices exist for tonal tracks on Play
+      tracks.forEach(t => {
+        if (t.isTonal && (t.noteMode ?? 'euclidean') === 'markov') {
+          if (!markovMatrixRef.current[t.id]) updateMarkovMatrix(t);
+        }
+      });
       const activeTracks = tracks.filter(t => !t.isMuted).length;
       logChange('▶ Play', [`BPM ${bpm}`, `${activeTracks} activos`]);
       Tone.getTransport().bpm.value = bpm;
@@ -4700,6 +4775,33 @@ export const EuclideanSequencer = () => {
                   t.id === track.id ? updateTrackPattern(t) : t
                 ));
               }}
+              // Markov props
+              noteMode={track.noteMode}
+              markovStyle={track.markovStyle}
+              markovTemperature={track.markovTemperature}
+              markovAnchor={track.markovAnchor}
+              markovShowMatrix={track.markovShowMatrix}
+              onNoteModeChange={(mode) => {
+                const updated = { ...track, noteMode: mode };
+                if (mode === 'markov') updateMarkovMatrix(updated);
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? { ...t, noteMode: mode } : t
+                ));
+              }}
+              onMarkovParamChange={(param, value) => {
+                const updated = { ...track, [param]: value };
+                if (['markovStyle', 'markovTemperature'].includes(param)) {
+                  updateMarkovMatrix(updated);
+                }
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? { ...t, [param]: value } : t
+                ));
+              }}
+              onMarkovRegenerate={() => {
+                const t = tracks.find(tr => tr.id === track.id);
+                if (t) updateMarkovMatrix(t);
+              }}
+              onGetMarkovMatrix={(trackId) => markovMatrixRef.current[trackId]}
             />
           </div>
         ))}
