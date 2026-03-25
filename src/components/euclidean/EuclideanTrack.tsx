@@ -904,7 +904,7 @@ export const EuclideanTrack = React.memo(({
           {/* Cellular Automata Controls */}
           {patternMode === 'ca' && (
             <div className="flex items-center gap-3 flex-none border-l border-black/5 pl-3">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('caRule', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-7">Rule</span>
                 <select value={caRule ?? 30} onChange={e => onCaParamChange?.('caRule', Number(e.target.value))}
                   className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
@@ -914,7 +914,7 @@ export const EuclideanTrack = React.memo(({
                   <option value={184}>Rule 184</option>
                 </select>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('caSeed', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-7">Seed</span>
                 <select value={caSeed ?? 'center'} onChange={e => onCaParamChange?.('caSeed', e.target.value)}
                   className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
@@ -924,14 +924,14 @@ export const EuclideanTrack = React.memo(({
                   <option value="random">Aleatorio</option>
                 </select>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('caDensity', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-7">Dens</span>
                 <input type="range" min={0} max={100} step={5} value={caDensity ?? 50}
                   onChange={e => onCaParamChange?.('caDensity', Number(e.target.value))}
                   className="w-14 h-[7px]" style={{ accentColor: color }} />
                 <span className="text-[7px] font-mono text-idm-muted w-6 text-right">{caDensity ?? 50}%</span>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('caSpeed', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-6">Spd</span>
                 <select value={caSpeed ?? 1} onChange={e => onCaParamChange?.('caSpeed', Number(e.target.value))}
                   className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
