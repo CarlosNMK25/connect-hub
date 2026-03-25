@@ -319,7 +319,8 @@ export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSy
                         ? Math.round(stats.hits / (stats.hits + stats.misses) * 100)
                         : null;
                       const hrColor = hr === null ? 'text-idm-muted' : hr >= 80 ? 'text-green-700' : hr >= 50 ? 'text-system-accent' : 'text-red-500';
-                      const currentStep = (globalStep + track.offset) % track.steps;
+                      const drift = driftOffsets?.[track.id] ?? 0;
+                      const currentStep = ((globalStep + track.offset + drift) % track.steps + track.steps) % track.steps;
                       const phase = Math.round((currentStep / track.steps) * 100);
                       const hasChaos = track.chaosEnabled;
                       const hasEvolve = track.evolveEnabled;
