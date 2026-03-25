@@ -3500,7 +3500,6 @@ export const EuclideanSequencer = () => {
                       className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
                     />
                   </div>
-                  </div>
 
                   <div className="flex flex-col gap-2">
                     <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
