@@ -661,6 +661,100 @@ export const EuclideanTrack = React.memo(({
               )}
             </div>
           </div>
+
+          {/* Layer 2 — segunda capa de sample */}
+          {samplerStatus === 'READY' && (
+            <div className="flex flex-col gap-1 flex-none border-l border-black/5 pl-2 ml-1">
+              {(!layer2Status || layer2Status === 'empty') ? (
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    ref={layer2InputRef}
+                    className="hidden"
+                    onChange={e => e.target.files?.[0] && onLoadLayer2?.(e.target.files[0])}
+                  />
+                  <span className="text-[8px] font-mono px-2 py-0.5 rounded border border-black/10 bg-white text-idm-muted hover:border-system-accent hover:text-system-accent transition-colors flex items-center gap-1 cursor-pointer">
+                    + L2
+                  </span>
+                </label>
+              ) : layer2Status === 'loading' ? (
+                <span className="text-[7px] font-mono text-idm-muted animate-pulse">Loading…</span>
+              ) : (
+                <>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[8px] font-mono text-idm-ink truncate max-w-[60px]" title={layer2Filename}>
+                      {layer2Filename ?? 'L2'}
+                    </span>
+                    <button
+                      onClick={() => onClearLayer2?.()}
+                      className="text-[8px] font-mono text-idm-muted hover:text-red-500 transition-colors"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  {/* BLD */}
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] font-mono text-idm-muted w-6">BLD</span>
+                    <input type="range" min={0} max={1} step={0.01}
+                      value={layer2Blend ?? 0.8}
+                      onChange={e => onLayer2ParamChange?.('layer2Blend', Number(e.target.value))}
+                      className="w-12 h-[7px] accent-system-accent" />
+                    <span className="text-[7px] font-mono text-idm-muted w-5 text-right">
+                      {Math.round((layer2Blend ?? 0.8) * 100)}
+                    </span>
+                  </div>
+                  {/* PCH */}
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] font-mono text-idm-muted w-6">PCH</span>
+                    <input type="range" min={-24} max={24} step={1}
+                      value={layer2Pitch ?? 0}
+                      onChange={e => onLayer2ParamChange?.('layer2Pitch', Number(e.target.value))}
+                      className="w-12 h-[7px] accent-system-accent" />
+                    <span className="text-[7px] font-mono text-idm-muted w-5 text-right">
+                      {(layer2Pitch ?? 0) > 0 ? '+' : ''}{layer2Pitch ?? 0}
+                    </span>
+                  </div>
+                  {/* OFF */}
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] font-mono text-idm-muted w-6">OFF</span>
+                    <input type="range" min={0} max={500} step={1}
+                      value={layer2Offset ?? 0}
+                      onChange={e => onLayer2ParamChange?.('layer2Offset', Number(e.target.value))}
+                      className="w-12 h-[7px] accent-system-accent" />
+                    <span className="text-[7px] font-mono text-idm-muted w-7 text-right">
+                      {layer2Offset ?? 0}ms
+                    </span>
+                  </div>
+                  {/* FLT */}
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] font-mono text-idm-muted w-6">FLT</span>
+                    <input type="range" min={200} max={8000} step={50}
+                      value={layer2FilterFreq ?? 8000}
+                      onChange={e => onLayer2ParamChange?.('layer2FilterFreq', Number(e.target.value))}
+                      className="w-12 h-[7px] accent-system-accent" />
+                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
+                      {layer2FilterFreq ?? 8000}
+                    </span>
+                  </div>
+                  {/* REV */}
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] font-mono text-idm-muted w-6">REV</span>
+                    <button
+                      onClick={() => onLayer2ParamChange?.('layer2Reverse', !(layer2Reverse ?? false))}
+                      className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                        layer2Reverse
+                          ? 'bg-system-accent text-white border-system-accent'
+                          : 'bg-white text-idm-muted border-black/10'
+                      }`}
+                    >
+                      REV
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         {/* === ROW 2: Sliders P/S/O + Steps === */}
