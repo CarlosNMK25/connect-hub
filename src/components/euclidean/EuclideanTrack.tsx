@@ -397,6 +397,16 @@ export const EuclideanTrack = React.memo(({
   onLsReset,
   onCaParamChange,
   onCaReset,
+  // Markov
+  noteMode,
+  markovStyle,
+  markovTemperature,
+  markovAnchor,
+  markovShowMatrix,
+  onNoteModeChange,
+  onMarkovParamChange,
+  onMarkovRegenerate,
+  onGetMarkovMatrix,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
