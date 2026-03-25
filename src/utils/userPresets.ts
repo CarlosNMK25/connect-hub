@@ -42,6 +42,13 @@ export interface UserPresetTrack {
   rrAmount?: number;
   driftEnabled?: boolean;
   driftRate?: number;
+  // Layer 2
+  layer2Filename?: string;
+  layer2Blend?: number;
+  layer2Pitch?: number;
+  layer2Offset?: number;
+  layer2FilterFreq?: number;
+  layer2Reverse?: boolean;
 }
 
 export interface UserPreset {

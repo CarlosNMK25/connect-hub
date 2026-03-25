@@ -91,6 +91,14 @@ interface TrackState {
   rrAmount?: number;               // intensidad RR 0-100, default 30
   driftEnabled?: boolean;          // Phase Drift estilo Reich, default false
   driftRate?: number;              // -0.05 a 0.05, default 0.01
+  // Layer 2
+  layer2Status?: 'empty' | 'loading' | 'ready';
+  layer2Filename?: string;
+  layer2Blend?: number;      // 0-1, default 0.8
+  layer2Pitch?: number;      // -24 a +24 semitonos, default 0
+  layer2Offset?: number;     // 0-500ms, default 0
+  layer2FilterFreq?: number; // 200-8000Hz, default 8000
+  layer2Reverse?: boolean;   // default false
   hits: number;
   misses: number;
 }
