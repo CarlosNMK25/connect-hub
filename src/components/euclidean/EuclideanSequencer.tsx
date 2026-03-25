@@ -2702,6 +2702,17 @@ export const EuclideanSequencer = () => {
           snareReverbSend.dispose();
         }
       };
+      // Lorenz + Nested LFO injection for snare rebuild
+      synthsRef.current.snare.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
+        if (target === 'filter') snareFilter.frequency.rampTo(1500 + normalizedValue * depth, 0.05);
+      };
+      synthsRef.current.snare.nestedLfoInstance = null;
+      synthsRef.current.snare.initNestedLfo = (r1: number, r2: number, d: number) => {
+        synthsRef.current.snare.nestedLfoInstance?.dispose();
+        synthsRef.current.snare.nestedLfoInstance = createNestedLfo(snareFilter, r1, r2, d);
+      };
+      synthsRef.current.snare.updateNestedLfo = (r1: number, r2: number, d: number) => synthsRef.current.snare.nestedLfoInstance?.update(r1, r2, d);
+      synthsRef.current.snare.disposeNestedLfo = () => { synthsRef.current.snare.nestedLfoInstance?.dispose(); synthsRef.current.snare.nestedLfoInstance = null; };
     } else if (trackId === 'hat') {
       const hatDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const hatReverbSend = new Tone.Gain(0).connect(master.reverbBus);
