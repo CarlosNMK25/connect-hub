@@ -1628,6 +1628,8 @@ export const EuclideanSequencer = () => {
       globalStepRef.current = 0;
       setGlobalStep(0);
       rrNoteIndexRef.current = {};
+      markovLastNoteRef.current = {};
+      markovAnchorCountRef.current = {};
       driftAccumulatorRef.current = {};
       setDriftOffsets({});
       caStateRef.current = {};
