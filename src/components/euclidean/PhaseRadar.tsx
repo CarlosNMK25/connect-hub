@@ -25,9 +25,10 @@ interface PhaseRadarProps {
   entropyLabel?: string;
   bpm?: number;
   onAnalysisToggle?: (open: boolean) => void;
+  driftOffsets?: Record<string, number>;
 }
 
-export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSync, isDjMode, onDjModeToggle, uiStats = {}, syncImpacts = [], entropyLabel = '', bpm = 120, onAnalysisToggle }) => {
+export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSync, isDjMode, onDjModeToggle, uiStats = {}, syncImpacts = [], entropyLabel = '', bpm = 120, onAnalysisToggle, driftOffsets }) => {
   const [showAnalysis, setShowAnalysis] = useState(false);
   const size = 160;
   const center = size / 2;
@@ -66,7 +67,8 @@ export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSy
   // Phase point coordinates for polyline
   const phasePoints = useMemo(() => {
     return tracks.map((track, i) => {
-      const currentStep = (globalStep + track.offset) % track.steps;
+      const drift = driftOffsets?.[track.id] ?? 0;
+      const currentStep = ((globalStep + track.offset + drift) % track.steps + track.steps) % track.steps;
       const angle = (currentStep / track.steps) * 2 * Math.PI - Math.PI / 2;
       const r = (i + 1) * radiusStep;
       return {
@@ -176,7 +178,8 @@ export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSy
         {/* Moving Phase Points */}
         <svg width={size} height={size} className="absolute inset-0 overflow-visible">
           {tracks.map((track, i) => {
-            const currentStep = (globalStep + track.offset) % track.steps;
+            const drift = driftOffsets?.[track.id] ?? 0;
+            const currentStep = ((globalStep + track.offset + drift) % track.steps + track.steps) % track.steps;
             const angle = (currentStep / track.steps) * 2 * Math.PI - Math.PI / 2;
             const r = (i + 1) * radiusStep;
             const x = center + r * Math.cos(angle);
@@ -316,7 +319,8 @@ export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSy
                         ? Math.round(stats.hits / (stats.hits + stats.misses) * 100)
                         : null;
                       const hrColor = hr === null ? 'text-idm-muted' : hr >= 80 ? 'text-green-700' : hr >= 50 ? 'text-system-accent' : 'text-red-500';
-                      const currentStep = (globalStep + track.offset) % track.steps;
+                      const drift = driftOffsets?.[track.id] ?? 0;
+                      const currentStep = ((globalStep + track.offset + drift) % track.steps + track.steps) % track.steps;
                       const phase = Math.round((currentStep / track.steps) * 100);
                       const hasChaos = track.chaosEnabled;
                       const hasEvolve = track.evolveEnabled;

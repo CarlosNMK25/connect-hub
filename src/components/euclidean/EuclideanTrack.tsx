@@ -134,6 +134,10 @@ interface EuclideanTrackProps {
   rrAmount?: number;
   onRrEnabledChange?: (val: boolean) => void;
   onRrAmountChange?: (val: number) => void;
+  driftEnabled?: boolean;
+  driftRate?: number;
+  onDriftEnabledChange?: (val: boolean) => void;
+  onDriftRateChange?: (val: number) => void;
   toneRecordingState?: 'idle' | 'armed' | 'recording';
   onRecordAction?: () => void;
   cloudRecordingState?: 'idle' | 'armed' | 'recording';
@@ -318,6 +322,10 @@ export const EuclideanTrack = React.memo(({
   rrAmount,
   onRrEnabledChange,
   onRrAmountChange,
+  driftEnabled,
+  driftRate,
+  onDriftEnabledChange,
+  onDriftRateChange,
   toneRecordingState,
   onRecordAction,
   cloudRecordingState,
@@ -522,6 +530,37 @@ export const EuclideanTrack = React.memo(({
                   />
                   <span className="text-[7px] font-mono text-idm-muted">
                     {rrAmount ?? 30}
+                  </span>
+                </div>
+              )}
+            </div>
+            {/* Phase Drift toggle + rate */}
+            <div className="flex flex-col gap-1">
+              <button
+                onClick={() => onDriftEnabledChange?.(!driftEnabled)}
+                className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                  driftEnabled
+                    ? 'bg-system-accent text-white border-system-accent'
+                    : 'bg-white text-idm-muted border-black/10'
+                }`}
+                title="Phase Drift — desfase progresivo estilo Reich"
+              >
+                PHD
+              </button>
+              {driftEnabled && (
+                <div className="flex items-center gap-1">
+                  <input
+                    type="range"
+                    min={-0.05}
+                    max={0.05}
+                    step={0.001}
+                    value={driftRate ?? 0.01}
+                    onChange={e => onDriftRateChange?.(Number(e.target.value))}
+                    className="w-12 h-[7px] accent-system-accent"
+                    title={`Drift Rate: ${(driftRate ?? 0.01).toFixed(3)}`}
+                  />
+                  <span className="text-[7px] font-mono text-idm-muted">
+                    {(driftRate ?? 0.01) > 0 ? '+' : ''}{(driftRate ?? 0.01).toFixed(3)}
                   </span>
                 </div>
               )}
@@ -1548,6 +1587,8 @@ export const EuclideanTrack = React.memo(({
     prevProps.cloudMode === nextProps.cloudMode &&
     prevProps.enoSpeed === nextProps.enoSpeed &&
     prevProps.rrEnabled === nextProps.rrEnabled &&
-    prevProps.rrAmount === nextProps.rrAmount
+    prevProps.rrAmount === nextProps.rrAmount &&
+    prevProps.driftEnabled === nextProps.driftEnabled &&
+    prevProps.driftRate === nextProps.driftRate
   );
 });

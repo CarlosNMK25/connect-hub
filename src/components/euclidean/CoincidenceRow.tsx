@@ -14,6 +14,7 @@ interface CoincidenceRowProps {
   tracks: TrackData[];
   globalStep: number;
   maxSteps: number;
+  driftOffsets?: Record<string, number>;
 }
 
 /**
@@ -21,7 +22,7 @@ interface CoincidenceRowProps {
  * A cell lights up when 2+ tracks have a pulse on the same step position.
  * Intensity scales with number of overlapping tracks.
  */
-export const CoincidenceRow: React.FC<CoincidenceRowProps> = React.memo(({ tracks, globalStep, maxSteps }) => {
+export const CoincidenceRow: React.FC<CoincidenceRowProps> = React.memo(({ tracks, globalStep, maxSteps, driftOffsets }) => {
   const activeTracks = useMemo(() => tracks.filter(t => !t.isMuted), [tracks]);
 
   // For each step position (0..maxSteps-1), count how many active tracks have a pulse
@@ -32,7 +33,8 @@ export const CoincidenceRow: React.FC<CoincidenceRowProps> = React.memo(({ track
     for (const track of activeTracks) {
       for (let i = 0; i < maxSteps; i++) {
         // Map global step position to this track's local position considering offset
-        const localStep = ((i - track.offset) % track.steps + track.steps) % track.steps;
+        const drift = driftOffsets?.[track.id] ?? 0;
+        const localStep = ((i - track.offset - drift) % track.steps + track.steps) % track.steps;
         if (track.pattern[localStep] === 1) {
           counts[i]++;
           colors[i].push(track.color);

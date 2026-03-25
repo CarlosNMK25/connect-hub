@@ -89,6 +89,8 @@ interface TrackState {
   enoSpeed?: number;               // multiplicador de velocidad Eno (0.5-2.0, default 1.0)
   rrEnabled?: boolean;             // Round Robin micro-variación por hit, default false
   rrAmount?: number;               // intensidad RR 0-100, default 30
+  driftEnabled?: boolean;          // Phase Drift estilo Reich, default false
+  driftRate?: number;              // -0.05 a 0.05, default 0.01
   hits: number;
   misses: number;
 }
@@ -429,6 +431,8 @@ export const EuclideanSequencer = () => {
   const stepIndicesRef = useRef<{ [key: string]: number }>({});
   const pendingMutationsRef = useRef<{ [trackId: string]: number[] }>({});
   const rrNoteIndexRef = useRef<Record<string, number>>({});
+  const driftAccumulatorRef = useRef<Record<string, number>>({});
+  const [driftOffsets, setDriftOffsets] = useState<Record<string, number>>({});
   // Refs para grabación en tiempo real del track Tone
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingChunksRef = useRef<Blob[]>([]);
@@ -511,6 +515,15 @@ export const EuclideanSequencer = () => {
         newStats[id] = { hits: stats.hits, misses: stats.misses, cycleCount: stats.cycleCount };
       });
       setUiStats(newStats);
+
+      // Sincronizar driftOffsets para visualizadores
+      const newDriftOffsets: Record<string, number> = {};
+      tracksRef.current.forEach(t => {
+        if (t.driftEnabled) {
+          newDriftOffsets[t.id] = Math.floor(driftAccumulatorRef.current[t.id] ?? 0);
+        }
+      });
+      setDriftOffsets(newDriftOffsets);
 
       // Flush pending evolve mutations to React state (max 1 setTracks per 100ms)
       const mutations = pendingMutationsRef.current;
@@ -697,6 +710,8 @@ export const EuclideanSequencer = () => {
           ...(t.id === 'cloud' ? { cloudMode: t.cloudMode, enoSpeed: t.enoSpeed } : {}),
           rrEnabled: t.rrEnabled,
           rrAmount: t.rrAmount,
+          driftEnabled: t.driftEnabled,
+          driftRate: t.driftRate,
         }])
       ),
     };
@@ -783,6 +798,8 @@ export const EuclideanSequencer = () => {
         } : {}),
         rrEnabled: config.rrEnabled ?? false,
         rrAmount: config.rrAmount ?? 30,
+        driftEnabled: config.driftEnabled ?? false,
+        driftRate: config.driftRate ?? 0.01,
         hits: 0,
         misses: 0,
       });
@@ -1158,7 +1175,18 @@ export const EuclideanSequencer = () => {
         if (track.id === 'cloud') return;
 
         const shouldPlay = anySoloed ? track.isSoloed : !track.isMuted;
-        const idx = (currentGlobalStep + track.offset) % track.steps;
+
+        // Phase Drift: incrementar acumulador fraccionario
+        if (track.driftEnabled) {
+          const prev = driftAccumulatorRef.current[track.id] ?? 0;
+          const next = prev + (track.driftRate ?? 0.01);
+          driftAccumulatorRef.current[track.id] = next % (track.steps * 1000);
+        }
+
+        const driftOffset = track.driftEnabled
+          ? Math.floor(driftAccumulatorRef.current[track.id] ?? 0)
+          : 0;
+        const idx = ((currentGlobalStep + track.offset + driftOffset) % track.steps + track.steps) % track.steps;
         
         Tone.Draw.schedule(() => {
           currentStepsRef.current[track.id] = idx;
@@ -1333,7 +1361,10 @@ export const EuclideanSequencer = () => {
         // Record phase dispersion for sparkline
         const ct = tracksRef.current.filter(t => t.id !== 'cloud' && !t.isMuted);
         if (ct.length >= 2) {
-          const phases = ct.map(t => ((currentGlobalStep + t.offset) % t.steps) / t.steps);
+        const phases = ct.map(t => {
+          const drift = Math.floor(driftAccumulatorRef.current[t.id] ?? 0);
+          return (((currentGlobalStep + t.offset + drift) % t.steps) + t.steps) % t.steps / t.steps;
+        });
           // Mean pairwise distance (circular)
           let sum = 0, count = 0;
           for (let a = 0; a < phases.length; a++) {
@@ -1392,6 +1423,8 @@ export const EuclideanSequencer = () => {
       globalStepRef.current = 0;
       setGlobalStep(0);
       rrNoteIndexRef.current = {};
+      driftAccumulatorRef.current = {};
+      setDriftOffsets({});
     } else {
       const activeTracks = tracks.filter(t => !t.isMuted).length;
       logChange('▶ Play', [`BPM ${bpm}`, `${activeTracks} activos`]);
@@ -1411,6 +1444,8 @@ export const EuclideanSequencer = () => {
   const handlePhaseSync = () => {
     setGlobalStep(0);
     globalStepRef.current = 0;
+    driftAccumulatorRef.current = {};
+    setDriftOffsets({});
     
     const resetIndices: { [key: string]: number } = {};
     const resetTimes: { [key: string]: number } = {};
@@ -3407,6 +3442,7 @@ export const EuclideanSequencer = () => {
               }))}
               globalStep={globalStep}
               maxSteps={Math.max(...tracks.map(t => t.steps))}
+              driftOffsets={driftOffsets}
             />
 
             {/* Expanded Analysis — Left Column */}
@@ -3629,6 +3665,7 @@ export const EuclideanSequencer = () => {
               entropyLabel={entropy.label}
               bpm={bpm}
               onAnalysisToggle={(open) => setSyncAnalysisOpen(open)}
+              driftOffsets={driftOffsets}
             />
           </div>
 
@@ -4054,6 +4091,10 @@ export const EuclideanSequencer = () => {
               rrAmount={track.rrAmount}
               onRrEnabledChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, rrEnabled: val } : t))}
               onRrAmountChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, rrAmount: val } : t))}
+              driftEnabled={track.driftEnabled}
+              driftRate={track.driftRate}
+              onDriftEnabledChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, driftEnabled: val } : t))}
+              onDriftRateChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, driftRate: val } : t))}
               isTonal={track.isTonal}
               rootNote={track.rootNote}
               scaleId={track.scaleId}
