@@ -1729,11 +1729,11 @@ export const EuclideanSequencer = () => {
                     const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
                     if (track.isTonal) {
                       const freq = noteIndexToFreq(track.rootNote, track.scaleId, noteIdx);
-                      synth.triggerAttackRelease(freq, dur, ratchetTime, ratchetVelocity);
+                      synth.triggerAttackRelease(freq, dur, ratchetTime, ratchetVelocity, sliceInfo);
                     } else if (track.id === 'kick' && !synth.grainPlayer) {
-                      synth.triggerAttackRelease("C1", dur, ratchetTime, ratchetVelocity);
+                      synth.triggerAttackRelease("C1", dur, ratchetTime, ratchetVelocity, sliceInfo);
                     } else {
-                      synth.triggerAttackRelease(dur, ratchetTime, ratchetVelocity);
+                      synth.triggerAttackRelease(dur, ratchetTime, ratchetVelocity, sliceInfo);
                     }
                   } else if (synth.grainPlayer && track.samplerStatus === 'READY') {
                     // Ratchet fallback (cloud) — same ROI logic as main trigger
