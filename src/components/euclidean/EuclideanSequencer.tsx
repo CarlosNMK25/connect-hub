@@ -91,6 +91,14 @@ interface TrackState {
   rrAmount?: number;               // intensidad RR 0-100, default 30
   driftEnabled?: boolean;          // Phase Drift estilo Reich, default false
   driftRate?: number;              // -0.05 a 0.05, default 0.01
+  // Layer 2
+  layer2Status?: 'empty' | 'loading' | 'ready';
+  layer2Filename?: string;
+  layer2Blend?: number;      // 0-1, default 0.8
+  layer2Pitch?: number;      // -24 a +24 semitonos, default 0
+  layer2Offset?: number;     // 0-500ms, default 0
+  layer2FilterFreq?: number; // 200-8000Hz, default 8000
+  layer2Reverse?: boolean;   // default false
   hits: number;
   misses: number;
 }
@@ -712,6 +720,13 @@ export const EuclideanSequencer = () => {
           rrAmount: t.rrAmount,
           driftEnabled: t.driftEnabled,
           driftRate: t.driftRate,
+          // Layer 2 (solo parámetros, no buffer)
+          layer2Filename: t.layer2Filename,
+          layer2Blend: t.layer2Blend,
+          layer2Pitch: t.layer2Pitch,
+          layer2Offset: t.layer2Offset,
+          layer2FilterFreq: t.layer2FilterFreq,
+          layer2Reverse: t.layer2Reverse,
         }])
       ),
     };
@@ -800,6 +815,12 @@ export const EuclideanSequencer = () => {
         rrAmount: config.rrAmount ?? 30,
         driftEnabled: config.driftEnabled ?? false,
         driftRate: config.driftRate ?? 0.01,
+        // Layer 2 params (buffer NOT restored from preset)
+        layer2Blend: config.layer2Blend ?? 0.8,
+        layer2Pitch: config.layer2Pitch ?? 0,
+        layer2Offset: config.layer2Offset ?? 0,
+        layer2FilterFreq: config.layer2FilterFreq ?? 8000,
+        layer2Reverse: config.layer2Reverse ?? false,
         hits: 0,
         misses: 0,
       });
@@ -1310,6 +1331,11 @@ export const EuclideanSequencer = () => {
               const finalOffset = Math.max(0, Math.min(track.samplerBuffer?.duration || 0, startOffset + randomOffset));
               const duration = track.mode === 'GATE' ? "16n" : (track.decay / 1000);
               synth.grainPlayer.start(scheduledTime, finalOffset, duration);
+            }
+
+            // Layer 2: disparar si existe y hay buffer cargado
+            if (synth.triggerLayer2 && synth.layer2Buffer) {
+              synth.triggerLayer2(scheduledTime, velocity);
             }
 
             // Ratchet: schedule additional retrigggers within the sixteenth
@@ -2038,6 +2064,10 @@ export const EuclideanSequencer = () => {
   }, [toneRecordingState, isPlaying, logChange, startRecordingNow]);
 
   const handleClearSampler = (trackId: string) => {
+    // Also clear layer2 if present
+    if (synthsRef.current[trackId]?.disposeLayer2) {
+      synthsRef.current[trackId].disposeLayer2();
+    }
     if (synthsRef.current[trackId]?.dispose) {
       synthsRef.current[trackId].dispose();
     }
@@ -2051,9 +2081,129 @@ export const EuclideanSequencer = () => {
       ...t, 
       samplerStatus: 'IDLE', 
       samplerBuffer: null, 
-      samplerFilename: null 
+      samplerFilename: null,
+      layer2Status: 'empty',
+      layer2Filename: undefined,
     } : t));
   };
+
+  const handleLoadLayer2 = async (trackId: string, file: File) => {
+    if (file.size > 10 * 1024 * 1024) {
+      alert("El archivo excede el límite de seguridad (10MB).");
+      return;
+    }
+
+    await Tone.start();
+    if (Tone.getContext().state !== 'running') {
+      await Tone.getContext().resume();
+    }
+
+    setTracks(prev => prev.map(t => t.id === trackId ? { ...t, layer2Status: 'loading' } : t));
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const audioBuffer = await Tone.getContext().decodeAudioData(arrayBuffer);
+      if (!audioBuffer || audioBuffer.length === 0) throw new Error("Failed to decode layer2 audio");
+
+      if (audioBuffer.duration > 10.1) {
+        alert("El audio excede los 10 segundos permitidos.");
+        setTracks(prev => prev.map(t => t.id === trackId ? { ...t, layer2Status: 'empty' } : t));
+        return;
+      }
+
+      // Dispose previous layer2
+      if (synthsRef.current[trackId]?.disposeLayer2) {
+        synthsRef.current[trackId].disposeLayer2();
+      }
+
+      const currentTrack = tracksRef.current.find(t => t.id === trackId);
+
+      // Create layer2 audio chain: GrainPlayer → Filter → Gain → existing BitCrusher
+      const layer2Player = new Tone.GrainPlayer(audioBuffer);
+      layer2Player.loop = false;
+
+      const layer2Gain = new Tone.Gain(currentTrack?.layer2Blend ?? 0.8);
+
+      const layer2Filter = new Tone.Filter({
+        frequency: currentTrack?.layer2FilterFreq ?? 8000,
+        type: 'lowpass',
+        rolloff: -12
+      });
+
+      layer2Player.connect(layer2Filter);
+      layer2Filter.connect(layer2Gain);
+      layer2Gain.connect(synthsRef.current[trackId].bitCrusher);
+
+      const synthObj = synthsRef.current[trackId];
+      synthObj.layer2Player = layer2Player;
+      synthObj.layer2Gain = layer2Gain;
+      synthObj.layer2Filter = layer2Filter;
+      synthObj.layer2Buffer = audioBuffer;
+
+      synthObj.triggerLayer2 = (time: number, velocity: number) => {
+        const ct = tracksRef.current.find(t => t.id === trackId);
+        if (!ct || !layer2Player.buffer) return;
+        layer2Player.detune = (ct.layer2Pitch ?? 0) * 100;
+        layer2Player.reverse = ct.layer2Reverse ?? false;
+        const offsetSec = (ct.layer2Offset ?? 0) / 1000;
+        const triggerTime = time + offsetSec;
+        try {
+          layer2Player.start(triggerTime, 0);
+        } catch (err) {
+          console.warn("Layer2 start failed:", err);
+        }
+      };
+
+      synthObj.disposeLayer2 = () => {
+        layer2Player.dispose();
+        layer2Gain.dispose();
+        layer2Filter.dispose();
+        synthObj.layer2Player = undefined;
+        synthObj.layer2Gain = undefined;
+        synthObj.layer2Filter = undefined;
+        synthObj.layer2Buffer = undefined;
+        synthObj.triggerLayer2 = undefined;
+        synthObj.disposeLayer2 = undefined;
+      };
+
+      setTracks(prev => prev.map(t =>
+        t.id === trackId
+          ? { ...t, layer2Status: 'ready' as const, layer2Filename: file.name }
+          : t
+      ));
+
+      logChange(`Layer 2 cargado en ${trackId}: ${file.name}`);
+    } catch (err) {
+      console.error("[Layer2] Error loading:", err);
+      setTracks(prev => prev.map(t => t.id === trackId ? { ...t, layer2Status: 'empty' } : t));
+      alert("Error al cargar Layer 2.");
+    }
+  };
+
+  const handleClearLayer2 = (trackId: string) => {
+    if (synthsRef.current[trackId]?.disposeLayer2) {
+      synthsRef.current[trackId].disposeLayer2();
+    }
+    setTracks(prev => prev.map(t =>
+      t.id === trackId
+        ? { ...t, layer2Status: 'empty' as const, layer2Filename: undefined }
+        : t
+    ));
+    logChange(`Layer 2 eliminado de ${trackId}`);
+  };
+
+  const handleLayer2ParamChange = useCallback((trackId: string, param: string, value: number | boolean) => {
+    setTracks(prev => prev.map(t => t.id === trackId ? { ...t, [param]: value } : t));
+
+    const synthObj = synthsRef.current[trackId];
+    if (!synthObj) return;
+    if (param === 'layer2Blend' && synthObj.layer2Gain) {
+      synthObj.layer2Gain.gain.rampTo(value as number, 0.05);
+    }
+    if (param === 'layer2FilterFreq' && synthObj.layer2Filter) {
+      synthObj.layer2Filter.frequency.rampTo(value as number, 0.05);
+    }
+  }, []);
 
   const initializeOriginalSynth = (trackId: string, overrideSynthType?: string) => {
     const master = masterBusRef.current!;
@@ -4095,6 +4245,16 @@ export const EuclideanSequencer = () => {
               driftRate={track.driftRate}
               onDriftEnabledChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, driftEnabled: val } : t))}
               onDriftRateChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, driftRate: val } : t))}
+              layer2Status={track.layer2Status}
+              layer2Filename={track.layer2Filename}
+              layer2Blend={track.layer2Blend}
+              layer2Pitch={track.layer2Pitch}
+              layer2Offset={track.layer2Offset}
+              layer2FilterFreq={track.layer2FilterFreq}
+              layer2Reverse={track.layer2Reverse}
+              onLoadLayer2={(file) => handleLoadLayer2(track.id, file)}
+              onClearLayer2={() => handleClearLayer2(track.id)}
+              onLayer2ParamChange={(param, value) => handleLayer2ParamChange(track.id, param, value)}
               isTonal={track.isTonal}
               rootNote={track.rootNote}
               scaleId={track.scaleId}
