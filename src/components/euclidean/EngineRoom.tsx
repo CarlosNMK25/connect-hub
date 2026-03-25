@@ -46,6 +46,9 @@ interface EngineRoomProps {
   jitter: number;
   swing: number;
   hitRate: number | null;
+  mmHistoryLength: number;
+  mmLastRatio?: string;
+  mmOriginalBpm?: number;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -193,7 +196,10 @@ const DiagnosisPanel: React.FC<{
   jitter: number;
   swing: number;
   hitRate: number | null;
-}> = React.memo(({ tracks, bpm, temporalityMode, jitter, swing, hitRate }) => {
+  mmHistoryLength: number;
+  mmLastRatio?: string;
+  mmOriginalBpm?: number;
+}> = React.memo(({ tracks, bpm, temporalityMode, jitter, swing, hitRate, mmHistoryLength, mmLastRatio, mmOriginalBpm }) => {
   const insights = useMemo(() => {
     const diagTracks: DiagnosisContext['tracks'] = tracks.map(t => ({
       id: t.id,
@@ -224,7 +230,7 @@ const DiagnosisPanel: React.FC<{
 
     const ctx: DiagnosisContext = {
       tracks: diagTracks,
-      globalState: { bpm, temporalityMode, jitter, swing },
+      globalState: { bpm, temporalityMode, jitter, swing, mmHistoryLength, mmLastRatio, mmOriginalBpm },
       computed: { mcm, eclipseTime, hitRate },
     };
 
@@ -257,7 +263,7 @@ const DiagnosisPanel: React.FC<{
 
 DiagnosisPanel.displayName = 'DiagnosisPanel';
 
-export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiStats, log, onClearLog, activePresetId, bpm, temporalityMode, jitter, swing, hitRate }) => {
+export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiStats, log, onClearLog, activePresetId, bpm, temporalityMode, jitter, swing, hitRate, mmHistoryLength, mmLastRatio, mmOriginalBpm }) => {
   const rows = useMemo(() => tracks.map(t => {
     const density = t.steps > 0 ? Math.round((t.pulses / t.steps) * 100) : 0;
     const activeProbs = t.probabilities.slice(0, t.steps);
@@ -363,6 +369,9 @@ export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiSta
         jitter={jitter}
         swing={swing}
         hitRate={hitRate}
+        mmHistoryLength={mmHistoryLength}
+        mmLastRatio={mmLastRatio}
+        mmOriginalBpm={mmOriginalBpm}
       />
 
       {/* Diagnostic Section */}

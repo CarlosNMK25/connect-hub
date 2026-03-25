@@ -31,6 +31,9 @@ export interface DiagnosisContext {
     temporalityMode: string;
     jitter: number;
     swing: number;
+    mmHistoryLength: number;
+    mmLastRatio?: string;
+    mmOriginalBpm?: number;
   };
   computed: {
     mcm: number;
@@ -406,6 +409,99 @@ const RULES: DiagnosisRule[] = [
       return `Síntesis aditiva con ${tone.addPartials ?? 4} parciales — número primo. Los parciales primos no comparten subarmónicos entre sí, lo que genera un timbre sin periodicidad regular. El oído percibe riqueza sin poder identificar el patrón. Es el mismo principio que usas en el motor rítmico: números primos = máxima no-repetición.`;
     },
     suggestion: () => 'Compara 4 parciales (no primo) con 5 (primo). La diferencia es sutil pero el timbre de 5 tiene una irregularidad característica que el de 4 no tiene.',
+  },
+  // ═══ RATCHET (2) ═══
+  {
+    id: 'ratchet-alto',
+    category: 'combinacion',
+    icon: '⚡',
+    priority: 55,
+    condition: (ctx) => getActiveTracks(ctx).some(t => t.ratchet >= 3),
+    insight: (ctx) => {
+      const t = getActiveTracks(ctx).find(t => t.ratchet >= 3)!;
+      return `${t.name} con ratchet ×${t.ratchet + 1}: ráfaga de ${t.ratchet + 1} disparos por step. A ${ctx.globalState.bpm} BPM cada retrigger dura ~${Math.round(60000 / (ctx.globalState.bpm * 4) / (t.ratchet + 1))}ms. En el flamenco, esto es redoble de cajón — la ráfaga que precede al golpe seco. En el trap, es el hi-hat de 32nds que define el género.`;
+    },
+    suggestion: () => 'Compara ratchet ×2 (tripleta interna) con ×4 (ráfaga). El ×2 es musical; el ×4 es textural — el step se convierte en un roll.',
+  },
+  {
+    id: 'ratchet-multi-pista',
+    category: 'combinacion',
+    icon: '⚡⚡',
+    priority: 60,
+    condition: (ctx) => getActiveTracks(ctx).filter(t => t.ratchet > 0).length >= 2,
+    insight: (ctx) => {
+      const ratcheted = getActiveTracks(ctx).filter(t => t.ratchet > 0);
+      return `${ratcheted.length} pistas con ratchet activo (${ratcheted.map(t => `${t.name} ×${t.ratchet + 1}`).join(', ')}). Los retriggers de distintas pistas crean una microrritmia interna al step — subdivisiones que compiten entre sí. Es densidad extrema: cada beat contiene su propia poliritmia.`;
+    },
+    suggestion: () => 'Prueba ratchets con valores distintos entre pistas (ej: kick ×2, hat ×3). Las subdivisiones desiguales crean interferencia dentro del step — como un compás dentro del compás.',
+  },
+  // ═══ METRIC MODULATION (2) ═══
+  {
+    id: 'mm-activa',
+    category: 'temporalidad',
+    icon: '⇋',
+    priority: 50,
+    condition: (ctx) => ctx.globalState.mmHistoryLength > 0 && ctx.globalState.mmHistoryLength < 3,
+    insight: (ctx) => {
+      const ratio = ctx.globalState.mmLastRatio || '?';
+      return `Modulación métrica activa (ratio ${ratio}). Lo que antes era una subdivisión ahora es el beat principal — el tempo percibido cambió pero la estructura interna de los patrones euclidianos sigue intacta. Stravinsky usaba esta técnica para desorientar al oyente sin cambiar las notas.`;
+    },
+    suggestion: () => 'Escucha cómo los patrones suenan "iguales pero distintos". La geometría no cambió — cambió la velocidad a la que la recorres. Es como caminar vs correr por el mismo sendero.',
+  },
+  {
+    id: 'mm-encadenada',
+    category: 'temporalidad',
+    icon: '⇋⇋',
+    priority: 65,
+    condition: (ctx) => ctx.globalState.mmHistoryLength >= 3,
+    insight: (ctx) => {
+      const original = ctx.globalState.mmOriginalBpm ?? ctx.globalState.bpm;
+      return `Modulación métrica encadenada (${ctx.globalState.mmHistoryLength} modulaciones). BPM original: ${original} → actual: ${ctx.globalState.bpm}. Cada modulación multiplica el tempo por un ratio — las sucesivas crean una deriva exponencial. Nancarrow componía así: capas de tempo que divergen hasta que la relación original es irreconocible.`;
+    },
+    suggestion: () => 'Pulsa Reset para volver al BPM original y escuchar el contraste. La distancia entre el tempo original y el actual es la medida de cuánto has modulado la percepción.',
+  },
+  // ═══ SYNTHS AVANZADOS (3) ═══
+  {
+    id: 'drone-flamenco',
+    category: 'combinacion',
+    icon: '🎻',
+    priority: 65,
+    condition: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal);
+      return !!tone && tone.synthType === 'drone' && ctx.globalState.temporalityMode === 'flamenco' && tone.scaleId === 'phrygianDominant';
+    },
+    insight: () => 'Drone sobre modo Flamenco con escala Frigia Dominante: bordón flamenco digital. En la guitarra flamenca, la sexta cuerda al aire es el bordón que sostiene todo el edificio armónico. Este drone cumple la misma función — una nota sostenida que ancla la gravedad tonal mientras los patrones euclidianos dibujan el ritmo por encima.',
+    suggestion: () => 'Baja droneFilterFreq a 500-800Hz para un bordón oscuro tipo guitarra. Sube a 4000Hz+ para un bordón brillante tipo sitar. El color del bordón define el espacio emocional.',
+  },
+  {
+    id: 'ks-ratchet',
+    category: 'combinacion',
+    icon: '🎸',
+    priority: 55,
+    condition: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal);
+      return !!tone && tone.synthType === 'ks' && tone.ratchet >= 1;
+    },
+    insight: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal)!;
+      return `Karplus-Strong con ratchet ×${tone.ratchet + 1}: cuerda pulsada con retrigger. Es el rasgueado digital — cada retrigger es una pasada rápida de los dedos sobre la cuerda virtual. El decay de KS hace que cada repulse suene ligeramente diferente al anterior, como las cuerdas de una guitarra que vibran con distinta intensidad en cada golpe.`;
+    },
+    suggestion: () => 'Ajusta ksDecay a 0.95+ para que las cuerdas resuenen entre retriggers. Con decay bajo, cada golpe es seco — pizzicato rasgueado. Con decay alto, las notas se superponen — rasgueado sostenido.',
+  },
+  {
+    id: 'pad-poliritmia',
+    category: 'combinacion',
+    icon: '☁',
+    priority: 50,
+    condition: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal);
+      return !!tone && tone.synthType === 'pad' && isPrime(tone.steps);
+    },
+    insight: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal)!;
+      return `PAD en ciclo primo de ${tone.steps} steps. Los acordes sostenidos del pad cambian en momentos que nunca coinciden limpiamente con las pistas rítmicas. Es una nube armónica que flota sobre un suelo rítmico inestable — cada repetición del ciclo suena en un contexto rítmico distinto.`;
+    },
+    suggestion: () => 'Sube padAttack a >1s. El pad dejará de marcar el ritmo y se convertirá en una textura que emerge y desaparece independiente del patrón — atmósfera pura sobre poliritmia.',
   },
 ];
 
