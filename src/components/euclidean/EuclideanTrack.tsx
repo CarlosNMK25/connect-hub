@@ -10,6 +10,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
 import { calculateTemporalOffset, type TemporalityMode } from '../../utils/temporality';
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals, noteIndexToDisplayName } from '../../utils/scales';
+import { calculateSliceBoundaries } from '../../utils/slicerUtils';
+
+// Lightweight overlay for slice boundary lines on the waveform
+const SliceBoundaryOverlay: React.FC<{ buffer: AudioBuffer; sliceCount: number; color: string }> = React.memo(({ buffer, sliceCount, color }) => {
+  const boundaries = React.useMemo(() => calculateSliceBoundaries(buffer, sliceCount), [buffer, sliceCount]);
+  return (
+    <>
+      {boundaries.slice(1).map((slice, i) => (
+        <div
+          key={i}
+          className="absolute top-0 bottom-0 w-px pointer-events-none"
+          style={{ left: `${slice.start * 100}%`, backgroundColor: `${color}80` }}
+        />
+      ))}
+    </>
+  );
+});
 
 interface EuclideanTrackProps {
   id: string;
