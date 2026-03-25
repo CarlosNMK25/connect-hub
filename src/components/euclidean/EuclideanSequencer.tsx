@@ -3665,6 +3665,7 @@ export const EuclideanSequencer = () => {
               entropyLabel={entropy.label}
               bpm={bpm}
               onAnalysisToggle={(open) => setSyncAnalysisOpen(open)}
+              driftOffsets={driftOffsets}
             />
           </div>
 
