@@ -630,6 +630,7 @@ export const EuclideanSequencer = () => {
       logChange(`Preset: ${preset.name}`, deltas);
 
       if (preset.bpm) setBpm(preset.bpm);
+      setMmHistory([]);
       
       // Macro Interpolation (50ms ramp)
       if (preset.jitter !== undefined) setJitter(preset.jitter);
