@@ -23,6 +23,7 @@ import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex } from '../../utils/scales';
 import { buildWavefoldCurve, vactrolfiltFreq } from '../../utils/waveshaping';
 import { generateMarkovMatrix, markovNextNote, type MarkovStyle } from '../../utils/markovGenerator';
+import { LorenzAttractor } from '../../utils/lorenzAttractor';
 
 interface TrackState {
   id: string;
@@ -118,6 +119,16 @@ interface TrackState {
   layer2Offset?: number;     // 0-500ms, default 0
   layer2FilterFreq?: number; // 200-8000Hz, default 8000
   layer2Reverse?: boolean;   // default false
+  // Lorenz Attractor
+  lorenzEnabled?: boolean;
+  lorenzDepth?: number;
+  lorenzTarget?: 'filter' | 'volume';
+  lorenzSpeed?: number;
+  // Nested LFO
+  nestedLfoEnabled?: boolean;
+  nestedLfoRate1?: number;
+  nestedLfoRate2?: number;
+  nestedLfoDepth?: number;
   hits: number;
   misses: number;
 }
@@ -548,6 +559,9 @@ export const EuclideanSequencer = () => {
   const markovNotesRef = useRef<Record<string, number[]>>({});
   const driftAccumulatorRef = useRef<Record<string, number>>({});
   const [driftOffsets, setDriftOffsets] = useState<Record<string, number>>({});
+  // Lorenz Attractor refs
+  const lorenzAttractorsRef = useRef<Record<string, LorenzAttractor>>({});
+  const lorenzRafRef = useRef<number>(0);
   // Refs para grabación en tiempo real del track Tone
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingChunksRef = useRef<Blob[]>([]);
@@ -858,6 +872,15 @@ export const EuclideanSequencer = () => {
           layer2Offset: t.layer2Offset,
           layer2FilterFreq: t.layer2FilterFreq,
           layer2Reverse: t.layer2Reverse,
+          // Lorenz + Nested LFO
+          lorenzEnabled: t.lorenzEnabled,
+          lorenzDepth: t.lorenzDepth,
+          lorenzTarget: t.lorenzTarget,
+          lorenzSpeed: t.lorenzSpeed,
+          nestedLfoEnabled: t.nestedLfoEnabled,
+          nestedLfoRate1: t.nestedLfoRate1,
+          nestedLfoRate2: t.nestedLfoRate2,
+          nestedLfoDepth: t.nestedLfoDepth,
         }])
       ),
     };
@@ -969,6 +992,15 @@ export const EuclideanSequencer = () => {
         layer2Offset: config.layer2Offset ?? 0,
         layer2FilterFreq: config.layer2FilterFreq ?? 8000,
         layer2Reverse: config.layer2Reverse ?? false,
+        // Lorenz + Nested LFO
+        lorenzEnabled: (config as any).lorenzEnabled ?? false,
+        lorenzDepth: (config as any).lorenzDepth ?? 1000,
+        lorenzTarget: (config as any).lorenzTarget ?? 'filter',
+        lorenzSpeed: (config as any).lorenzSpeed ?? 1.0,
+        nestedLfoEnabled: (config as any).nestedLfoEnabled ?? false,
+        nestedLfoRate1: (config as any).nestedLfoRate1 ?? 0.1,
+        nestedLfoRate2: (config as any).nestedLfoRate2 ?? 4.0,
+        nestedLfoDepth: (config as any).nestedLfoDepth ?? 800,
         hits: 0,
         misses: 0,
       });
@@ -1135,6 +1167,25 @@ export const EuclideanSequencer = () => {
         kickReverbSend.dispose();
       }
     };
+    // Lorenz + Nested LFO injection for kick
+    synthsRef.current.kick.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
+      if (target === 'filter') {
+        const base = 800;
+        kickFilter.frequency.rampTo(base + normalizedValue * depth, 0.05);
+      }
+    };
+    synthsRef.current.kick.nestedLfoInstance = null;
+    synthsRef.current.kick.initNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.kick.nestedLfoInstance?.dispose();
+      synthsRef.current.kick.nestedLfoInstance = createNestedLfo(kickFilter, r1, r2, d);
+    };
+    synthsRef.current.kick.updateNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.kick.nestedLfoInstance?.update(r1, r2, d);
+    };
+    synthsRef.current.kick.disposeNestedLfo = () => {
+      synthsRef.current.kick.nestedLfoInstance?.dispose();
+      synthsRef.current.kick.nestedLfoInstance = null;
+    };
 
     const snareSynth = new Tone.NoiseSynth({
       noise: { type: 'white' },
@@ -1164,6 +1215,24 @@ export const EuclideanSequencer = () => {
         snareDelaySend.dispose();
         snareReverbSend.dispose();
       }
+    };
+    // Lorenz + Nested LFO injection for snare
+    synthsRef.current.snare.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
+      if (target === 'filter') {
+        snareFilter.frequency.rampTo(1500 + normalizedValue * depth, 0.05);
+      }
+    };
+    synthsRef.current.snare.nestedLfoInstance = null;
+    synthsRef.current.snare.initNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.snare.nestedLfoInstance?.dispose();
+      synthsRef.current.snare.nestedLfoInstance = createNestedLfo(snareFilter, r1, r2, d);
+    };
+    synthsRef.current.snare.updateNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.snare.nestedLfoInstance?.update(r1, r2, d);
+    };
+    synthsRef.current.snare.disposeNestedLfo = () => {
+      synthsRef.current.snare.nestedLfoInstance?.dispose();
+      synthsRef.current.snare.nestedLfoInstance = null;
     };
 
     const hatSynth = new Tone.NoiseSynth({
@@ -1195,6 +1264,24 @@ export const EuclideanSequencer = () => {
         hatDelaySend.dispose();
         hatReverbSend.dispose();
       }
+    };
+    // Lorenz + Nested LFO injection for hat
+    synthsRef.current.hat.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
+      if (target === 'filter') {
+        hatFilter.frequency.rampTo(2000 + normalizedValue * depth, 0.05);
+      }
+    };
+    synthsRef.current.hat.nestedLfoInstance = null;
+    synthsRef.current.hat.initNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.hat.nestedLfoInstance?.dispose();
+      synthsRef.current.hat.nestedLfoInstance = createNestedLfo(hatFilter, r1, r2, d);
+    };
+    synthsRef.current.hat.updateNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.hat.nestedLfoInstance?.update(r1, r2, d);
+    };
+    synthsRef.current.hat.disposeNestedLfo = () => {
+      synthsRef.current.hat.nestedLfoInstance?.dispose();
+      synthsRef.current.hat.nestedLfoInstance = null;
     };
 
     // Cloud Engine Setup
@@ -1232,6 +1319,24 @@ export const EuclideanSequencer = () => {
         cloudDelaySend.dispose();
         cloudReverbSend.dispose();
       }
+    };
+    // Lorenz + Nested LFO injection for cloud
+    synthsRef.current.cloud.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
+      if (target === 'filter') {
+        cloudFilter.frequency.rampTo(200 + normalizedValue * depth, 0.05);
+      }
+    };
+    synthsRef.current.cloud.nestedLfoInstance = null;
+    synthsRef.current.cloud.initNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.cloud.nestedLfoInstance?.dispose();
+      synthsRef.current.cloud.nestedLfoInstance = createNestedLfo(cloudFilter, r1, r2, d);
+    };
+    synthsRef.current.cloud.updateNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.cloud.nestedLfoInstance?.update(r1, r2, d);
+    };
+    synthsRef.current.cloud.disposeNestedLfo = () => {
+      synthsRef.current.cloud.nestedLfoInstance?.dispose();
+      synthsRef.current.cloud.nestedLfoInstance = null;
     };
 
     // Connect sidechain math to ducker gain
@@ -1277,10 +1382,33 @@ export const EuclideanSequencer = () => {
         toneReverbSend.dispose();
       }
     };
+    // Lorenz + Nested LFO injection for tone
+    synthsRef.current.tone.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
+      if (target === 'filter') {
+        toneFilter.frequency.rampTo(600 + normalizedValue * depth, 0.05);
+      }
+    };
+    synthsRef.current.tone.nestedLfoInstance = null;
+    synthsRef.current.tone.initNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.tone.nestedLfoInstance?.dispose();
+      synthsRef.current.tone.nestedLfoInstance = createNestedLfo(toneFilter, r1, r2, d);
+    };
+    synthsRef.current.tone.updateNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.tone.nestedLfoInstance?.update(r1, r2, d);
+    };
+    synthsRef.current.tone.disposeNestedLfo = () => {
+      synthsRef.current.tone.nestedLfoInstance?.dispose();
+      synthsRef.current.tone.nestedLfoInstance = null;
+    };
 
     synthsRef.current.kickFollower = kickFollower;
 
     return () => {
+      // Dispose nested LFOs before disposing synths
+      ['kick', 'snare', 'hat', 'tone', 'cloud'].forEach(id => {
+        synthsRef.current[id]?.disposeNestedLfo?.();
+      });
+      if (lorenzRafRef.current) cancelAnimationFrame(lorenzRafRef.current);
       Object.values(synthsRef.current).forEach((s: any) => s.dispose());
       loopRef.current?.dispose();
       if (masterBusRef.current) {
@@ -1617,6 +1745,77 @@ export const EuclideanSequencer = () => {
     return () => { loopRef.current?.dispose(); };
   }, []);
 
+  // --- Lorenz RAF loop ---
+  const startLorenzRaf = useCallback(() => {
+    if (lorenzRafRef.current) {
+      cancelAnimationFrame(lorenzRafRef.current);
+    }
+    const tick = () => {
+      const currentTracks = tracksRef.current;
+      const anyActive = currentTracks.some(t => t.lorenzEnabled);
+      if (!anyActive) {
+        lorenzRafRef.current = 0;
+        return;
+      }
+      currentTracks.forEach(t => {
+        if (!t.lorenzEnabled) return;
+        if (!lorenzAttractorsRef.current[t.id]) {
+          lorenzAttractorsRef.current[t.id] = new LorenzAttractor();
+        }
+        const attractor = lorenzAttractorsRef.current[t.id];
+        const speedMult = t.lorenzSpeed ?? 1.0;
+        for (let i = 0; i < Math.ceil(speedMult * 2); i++) {
+          attractor.step();
+        }
+        const normalizedValue = attractor.getNormalizedX();
+        const depth = t.lorenzDepth ?? 1000;
+        if (synthsRef.current[t.id]?.updateLorenz) {
+          synthsRef.current[t.id].updateLorenz(
+            normalizedValue,
+            depth,
+            t.lorenzTarget ?? 'filter'
+          );
+        }
+      });
+      lorenzRafRef.current = requestAnimationFrame(tick);
+    };
+    lorenzRafRef.current = requestAnimationFrame(tick);
+  }, []);
+
+  // --- Nested LFO helper ---
+  const createNestedLfo = useCallback((
+    filter: any,
+    rate1: number,
+    rate2: number,
+    depth: number
+  ) => {
+    const lfo1 = new Tone.Oscillator({ type: 'sine', frequency: rate1 });
+    const lfo2 = new Tone.Oscillator({ type: 'sine', frequency: rate2 });
+    const lfo1ModGain = new Tone.Gain(rate2 * 0.5);
+    lfo1.connect(lfo1ModGain);
+    lfo1ModGain.connect(lfo2.frequency);
+    const lfo2DepthGain = new Tone.Gain(depth);
+    lfo2.connect(lfo2DepthGain);
+    if (filter) lfo2DepthGain.connect(filter.frequency);
+    lfo1.start();
+    lfo2.start();
+    return {
+      lfo1, lfo2, lfo1ModGain, lfo2DepthGain,
+      update: (r1: number, r2: number, d: number) => {
+        lfo1.frequency.rampTo(r1, 0.1);
+        lfo2.frequency.rampTo(r2, 0.1);
+        lfo1ModGain.gain.rampTo(r2 * 0.5, 0.1);
+        lfo2DepthGain.gain.rampTo(d, 0.1);
+      },
+      dispose: () => {
+        lfo1.stop(); lfo1.dispose();
+        lfo2.stop(); lfo2.dispose();
+        lfo1ModGain.dispose();
+        lfo2DepthGain.dispose();
+      }
+    };
+  }, []);
+
   const togglePlay = async () => {
     if (Tone.getContext().state !== 'running') await Tone.start();
     if (isPlaying) {
@@ -1655,6 +1854,11 @@ export const EuclideanSequencer = () => {
       caStateRef.current = {};
       caEvolveCycleRef.current = {};
       pendingCARef.current = {};
+      // Stop Lorenz RAF
+      if (lorenzRafRef.current) {
+        cancelAnimationFrame(lorenzRafRef.current);
+        lorenzRafRef.current = 0;
+      }
     } else {
       // Ensure Markov matrices exist for tonal tracks on Play
       tracks.forEach(t => {
@@ -1673,6 +1877,8 @@ export const EuclideanSequencer = () => {
       } else if (synthsRef.current.cloud?.grainPlayer) {
         synthsRef.current.cloud.grainPlayer.start();
       }
+      // Start Lorenz RAF if any track has it enabled
+      startLorenzRaf();
     }
     setIsPlaying(!isPlaying);
   };
@@ -2467,6 +2673,17 @@ export const EuclideanSequencer = () => {
           kickReverbSend.dispose();
         }
       };
+      // Lorenz + Nested LFO injection for kick rebuild
+      synthsRef.current.kick.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
+        if (target === 'filter') kickFilter.frequency.rampTo(800 + normalizedValue * depth, 0.05);
+      };
+      synthsRef.current.kick.nestedLfoInstance = null;
+      synthsRef.current.kick.initNestedLfo = (r1: number, r2: number, d: number) => {
+        synthsRef.current.kick.nestedLfoInstance?.dispose();
+        synthsRef.current.kick.nestedLfoInstance = createNestedLfo(kickFilter, r1, r2, d);
+      };
+      synthsRef.current.kick.updateNestedLfo = (r1: number, r2: number, d: number) => synthsRef.current.kick.nestedLfoInstance?.update(r1, r2, d);
+      synthsRef.current.kick.disposeNestedLfo = () => { synthsRef.current.kick.nestedLfoInstance?.dispose(); synthsRef.current.kick.nestedLfoInstance = null; };
     } else if (trackId === 'snare') {
       const snareDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const snareReverbSend = new Tone.Gain(0).connect(master.reverbBus);
@@ -2503,6 +2720,17 @@ export const EuclideanSequencer = () => {
           snareReverbSend.dispose();
         }
       };
+      // Lorenz + Nested LFO injection for snare rebuild
+      synthsRef.current.snare.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
+        if (target === 'filter') snareFilter.frequency.rampTo(1500 + normalizedValue * depth, 0.05);
+      };
+      synthsRef.current.snare.nestedLfoInstance = null;
+      synthsRef.current.snare.initNestedLfo = (r1: number, r2: number, d: number) => {
+        synthsRef.current.snare.nestedLfoInstance?.dispose();
+        synthsRef.current.snare.nestedLfoInstance = createNestedLfo(snareFilter, r1, r2, d);
+      };
+      synthsRef.current.snare.updateNestedLfo = (r1: number, r2: number, d: number) => synthsRef.current.snare.nestedLfoInstance?.update(r1, r2, d);
+      synthsRef.current.snare.disposeNestedLfo = () => { synthsRef.current.snare.nestedLfoInstance?.dispose(); synthsRef.current.snare.nestedLfoInstance = null; };
     } else if (trackId === 'hat') {
       const hatDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const hatReverbSend = new Tone.Gain(0).connect(master.reverbBus);
@@ -2539,8 +2767,18 @@ export const EuclideanSequencer = () => {
           hatReverbSend.dispose();
         }
       };
+      // Lorenz + Nested LFO injection for hat rebuild
+      synthsRef.current.hat.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
+        if (target === 'filter') hatFilter.frequency.rampTo(2000 + normalizedValue * depth, 0.05);
+      };
+      synthsRef.current.hat.nestedLfoInstance = null;
+      synthsRef.current.hat.initNestedLfo = (r1: number, r2: number, d: number) => {
+        synthsRef.current.hat.nestedLfoInstance?.dispose();
+        synthsRef.current.hat.nestedLfoInstance = createNestedLfo(hatFilter, r1, r2, d);
+      };
+      synthsRef.current.hat.updateNestedLfo = (r1: number, r2: number, d: number) => synthsRef.current.hat.nestedLfoInstance?.update(r1, r2, d);
+      synthsRef.current.hat.disposeNestedLfo = () => { synthsRef.current.hat.nestedLfoInstance?.dispose(); synthsRef.current.hat.nestedLfoInstance = null; };
     } else if (trackId === 'tone') {
-      // Si hay grabación activa, pararla antes de rebuild
       if (toneRecordingState === 'recording' && mediaRecorderRef.current?.state === 'recording') {
         mediaRecorderRef.current.stop();
         setToneRecordingState('idle');
@@ -3240,6 +3478,20 @@ export const EuclideanSequencer = () => {
         arGain.dispose();
         existingDispose();
       };
+    }
+    // Lorenz + Nested LFO injection for tone rebuild
+    if (trackId === 'tone' && synthsRef.current.tone) {
+      const tf = toneFilterRef.current;
+      synthsRef.current.tone.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
+        if (target === 'filter' && tf) tf.frequency.rampTo(600 + normalizedValue * depth, 0.05);
+      };
+      synthsRef.current.tone.nestedLfoInstance = null;
+      synthsRef.current.tone.initNestedLfo = (r1: number, r2: number, d: number) => {
+        synthsRef.current.tone.nestedLfoInstance?.dispose();
+        synthsRef.current.tone.nestedLfoInstance = createNestedLfo(tf, r1, r2, d);
+      };
+      synthsRef.current.tone.updateNestedLfo = (r1: number, r2: number, d: number) => synthsRef.current.tone.nestedLfoInstance?.update(r1, r2, d);
+      synthsRef.current.tone.disposeNestedLfo = () => { synthsRef.current.tone.nestedLfoInstance?.dispose(); synthsRef.current.tone.nestedLfoInstance = null; };
     }
     // Apply current volume and sends
     const track = tracksRef.current.find(t => t.id === trackId);
@@ -4542,6 +4794,50 @@ export const EuclideanSequencer = () => {
               driftRate={track.driftRate}
               onDriftEnabledChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, driftEnabled: val } : t))}
               onDriftRateChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, driftRate: val } : t))}
+              lorenzEnabled={track.lorenzEnabled}
+              lorenzDepth={track.lorenzDepth}
+              lorenzTarget={track.lorenzTarget}
+              lorenzSpeed={track.lorenzSpeed}
+              onLorenzParamChange={(param, value) => {
+                setTracks(prev => prev.map(t => {
+                  if (t.id !== track.id) return t;
+                  const updated = { ...t, [param]: value };
+                  // If toggling lorenzEnabled on, start RAF
+                  if (param === 'lorenzEnabled' && value === true) startLorenzRaf();
+                  return updated;
+                }));
+              }}
+              nestedLfoEnabled={track.nestedLfoEnabled}
+              nestedLfoRate1={track.nestedLfoRate1}
+              nestedLfoRate2={track.nestedLfoRate2}
+              nestedLfoDepth={track.nestedLfoDepth}
+              onNestedLfoToggle={(enabled) => {
+                if (enabled) {
+                  const t = tracksRef.current.find(tr => tr.id === track.id);
+                  synthsRef.current[track.id]?.initNestedLfo?.(
+                    t?.nestedLfoRate1 ?? 0.1,
+                    t?.nestedLfoRate2 ?? 4.0,
+                    t?.nestedLfoDepth ?? 800
+                  );
+                } else {
+                  synthsRef.current[track.id]?.disposeNestedLfo?.();
+                }
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? { ...t, nestedLfoEnabled: enabled } : t
+                ));
+              }}
+              onNestedLfoParamChange={(param, value) => {
+                setTracks(prev => prev.map(t => {
+                  if (t.id !== track.id) return t;
+                  const updated = { ...t, [param]: value };
+                  synthsRef.current[track.id]?.updateNestedLfo?.(
+                    updated.nestedLfoRate1 ?? 0.1,
+                    updated.nestedLfoRate2 ?? 4.0,
+                    updated.nestedLfoDepth ?? 800
+                  );
+                  return updated;
+                }));
+              }}
               layer2Status={track.layer2Status}
               layer2Filename={track.layer2Filename}
               layer2Blend={track.layer2Blend}
