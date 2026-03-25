@@ -23,6 +23,15 @@ export interface TrackPreset {
   scaleId?: string;       // 'phrygianDominant', 'minor', etc.
   octaveRange?: number;   // 1-3
   noteIndices?: number[]; // per-step pitch index
+  // Phase 4 — Pattern generators & Markov
+  patternMode?: 'euclidean' | 'lsystem' | 'ca';
+  lsSeed?: string;
+  lsRuleA?: string;
+  lsIterations?: number;
+  noteMode?: 'euclidean' | 'markov';
+  markovStyle?: string;
+  markovTemperature?: number;
+  markovAnchor?: number;
 }
 
 export interface ScenePreset {
