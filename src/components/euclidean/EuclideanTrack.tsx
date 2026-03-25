@@ -1472,7 +1472,7 @@ export const EuclideanTrack = React.memo(({
       {/* Cloud Mode Selector */}
       {id === 'cloud' && (
         <div className="flex items-center gap-4 mb-2">
-          <div className="space-y-0.5">
+          <div className="space-y-0.5" onMouseEnter={(e) => handleParamEnter('cloudMode', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted">Mode</span>
             <select
               value={cloudMode ?? 'granular'}
@@ -1484,7 +1484,7 @@ export const EuclideanTrack = React.memo(({
             </select>
           </div>
           {cloudMode === 'eno' && (
-            <div className="space-y-0.5">
+            <div className="space-y-0.5" onMouseEnter={(e) => handleParamEnter('enoSpeed', e)} onMouseLeave={handleParamLeave}>
               <span className="text-[7px] font-mono uppercase text-idm-muted">Speed</span>
               <input
                 type="range" min={0.5} max={2.0} step={0.1}
