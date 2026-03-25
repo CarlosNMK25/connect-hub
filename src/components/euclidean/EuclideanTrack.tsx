@@ -337,6 +337,16 @@ export const EuclideanTrack = React.memo(({
   driftRate,
   onDriftEnabledChange,
   onDriftRateChange,
+  layer2Status,
+  layer2Filename,
+  layer2Blend,
+  layer2Pitch,
+  layer2Offset,
+  layer2FilterFreq,
+  layer2Reverse,
+  onLoadLayer2,
+  onClearLayer2,
+  onLayer2ParamChange,
   toneRecordingState,
   onRecordAction,
   cloudRecordingState,
@@ -347,6 +357,7 @@ export const EuclideanTrack = React.memo(({
   bpm,
   swing
 }: EuclideanTrackProps) => {
+  const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
 
   const temporalOffsets = React.useMemo(() => {
