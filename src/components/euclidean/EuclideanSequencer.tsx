@@ -528,6 +528,11 @@ export const EuclideanSequencer = () => {
   const caEvolveCycleRef = useRef<Record<string, number>>({});
   const pendingCARef = useRef<Record<string, number[]>>({});
   const rrNoteIndexRef = useRef<Record<string, number>>({});
+  // Markov refs
+  const markovLastNoteRef = useRef<Record<string, number>>({});
+  const markovAnchorCountRef = useRef<Record<string, number>>({});
+  const markovMatrixRef = useRef<Record<string, number[][]>>({});
+  const markovNotesRef = useRef<Record<string, number[]>>({});
   const driftAccumulatorRef = useRef<Record<string, number>>({});
   const [driftOffsets, setDriftOffsets] = useState<Record<string, number>>({});
   // Refs para grabación en tiempo real del track Tone
