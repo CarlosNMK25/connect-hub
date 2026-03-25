@@ -1587,6 +1587,8 @@ export const EuclideanTrack = React.memo(({
     prevProps.cloudMode === nextProps.cloudMode &&
     prevProps.enoSpeed === nextProps.enoSpeed &&
     prevProps.rrEnabled === nextProps.rrEnabled &&
-    prevProps.rrAmount === nextProps.rrAmount
+    prevProps.rrAmount === nextProps.rrAmount &&
+    prevProps.driftEnabled === nextProps.driftEnabled &&
+    prevProps.driftRate === nextProps.driftRate
   );
 });
