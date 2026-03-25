@@ -3404,15 +3404,88 @@ export const EuclideanSequencer = () => {
                       onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('bpm', 'BPM', bpm, v, '', (o, n) => { const oldEclipse = mcm * 60 / o / 4; const newEclipse = mcm * 60 / n / 4; return [`Eclipse ${formatEclipseTime(oldEclipse, false)} → ${formatEclipseTime(newEclipse, false)}`]; }); setBpm(v); }} 
                       className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
                     />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                      onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('jitter'); setHoveredGlobalEl(e.currentTarget); } }}
-                      onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                      <span>Jitter</span>
-                      <span className="text-system-accent">{jitter}ms</span>
+                    {/* Metric Modulation toggle */}
+                    <div className="flex flex-col gap-1">
+                      <button
+                        onClick={() => setShowMM(prev => !prev)}
+                        className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors self-start ${
+                          showMM
+                            ? 'bg-system-accent text-white border-system-accent'
+                            : 'bg-white text-idm-muted border-black/10 hover:border-system-accent'
+                        }`}
+                        title="Metric Modulation — cambio de subdivisión percibida"
+                      >
+                        MM
+                      </button>
+                      {showMM && (
+                        <div className="flex flex-col gap-2 p-2 bg-white/80 border border-black/10 rounded-lg min-w-[200px]">
+                          <span className="text-[8px] font-mono uppercase text-idm-muted">
+                            Metric Modulation
+                          </span>
+                          <div className="text-[10px] font-mono text-idm-ink">
+                            {bpm} BPM
+                          </div>
+                          <div className="grid grid-cols-3 gap-1">
+                            {METRIC_MODULATION_RATIOS.map(({ ratio, label, description }) => {
+                              const resultBpm = Math.round(Math.max(40, Math.min(240, bpm * ratio)));
+                              const clamped = resultBpm !== Math.round(bpm * ratio);
+                              return (
+                                <button
+                                  key={label}
+                                  onClick={() => handleMetricModulation(ratio, label, description)}
+                                  disabled={clamped}
+                                  className={`flex flex-col items-center px-1 py-1.5 rounded border text-center transition-colors ${
+                                    clamped
+                                      ? 'opacity-30 cursor-not-allowed border-black/5 bg-white'
+                                      : 'border-black/10 bg-white hover:border-system-accent hover:text-system-accent'
+                                  }`}
+                                  title={`${description} → ${resultBpm} BPM${clamped ? ' (fuera de rango)' : ''}`}
+                                >
+                                  <span className="text-[10px] font-mono font-bold text-idm-ink">
+                                    {label}
+                                  </span>
+                                  <span className="text-[7px] font-mono text-idm-muted">
+                                    {resultBpm}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {mmHistory.length > 0 && (
+                            <div className="flex flex-col gap-0.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[7px] font-mono uppercase text-idm-muted">
+                                  Historial
+                                </span>
+                                <button
+                                  onClick={() => handleMetricModulationReset(
+                                    mmHistory[mmHistory.length - 1].fromBpm
+                                  )}
+                                  className="text-[7px] font-mono text-idm-muted hover:text-system-accent transition-colors"
+                                  title="Volver al BPM original"
+                                >
+                                  Reset
+                                </button>
+                              </div>
+                              {mmHistory.map((entry, i) => (
+                                <div key={i} className="flex items-center justify-between gap-1">
+                                  <span className="text-[7px] font-mono text-idm-muted">
+                                    {entry.timestamp}
+                                  </span>
+                                  <span className="text-[7px] font-mono text-idm-ink">
+                                    {entry.fromBpm}→{entry.toBpm}
+                                  </span>
+                                  <span className="text-[7px] font-mono text-system-accent">
+                                    {entry.ratio}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
+                  </div>
                     <input 
                       type="range" min="0" max="20" value={jitter} 
                       onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('jitter', 'Jitter', jitter, v, 'ms'); setJitter(v); }} 
