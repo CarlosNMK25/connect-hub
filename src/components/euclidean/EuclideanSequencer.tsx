@@ -1302,6 +1302,24 @@ export const EuclideanSequencer = () => {
         cloudReverbSend.dispose();
       }
     };
+    // Lorenz + Nested LFO injection for cloud
+    synthsRef.current.cloud.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
+      if (target === 'filter') {
+        cloudFilter.frequency.rampTo(200 + normalizedValue * depth, 0.05);
+      }
+    };
+    synthsRef.current.cloud.nestedLfoInstance = null;
+    synthsRef.current.cloud.initNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.cloud.nestedLfoInstance?.dispose();
+      synthsRef.current.cloud.nestedLfoInstance = createNestedLfo(cloudFilter, r1, r2, d);
+    };
+    synthsRef.current.cloud.updateNestedLfo = (r1: number, r2: number, d: number) => {
+      synthsRef.current.cloud.nestedLfoInstance?.update(r1, r2, d);
+    };
+    synthsRef.current.cloud.disposeNestedLfo = () => {
+      synthsRef.current.cloud.nestedLfoInstance?.dispose();
+      synthsRef.current.cloud.nestedLfoInstance = null;
+    };
 
     // Connect sidechain math to ducker gain
     sidechainInverter.connect(cloudDucker.gain);
