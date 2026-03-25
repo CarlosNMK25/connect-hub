@@ -1894,8 +1894,7 @@ export const EuclideanTrack = React.memo(({
           {pattern.map((active, i) => {
             const scaleIntervals = getScaleIntervals(scaleId);
             const noteIdx = noteIndices[i] ?? 0;
-            const midi = noteIndexToMidi(rootNote, scaleIntervals, noteIdx);
-            const noteName = midiToNoteName(midi);
+            const noteName = noteIndexToDisplayName(rootNote, scaleId, noteIdx);
             const maxIdx = getMaxNoteIndex(scaleIntervals, octaveRange);
             return (
               <EuclideanStep 

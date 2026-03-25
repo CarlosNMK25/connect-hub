@@ -3254,10 +3254,7 @@ export const EuclideanSequencer = () => {
             const noteIdx = currentTrack.noteIndices[
               Math.floor(Math.random() * currentTrack.noteIndices.length)
             ];
-            const midi = noteIndexToMidi(currentTrack.rootNote, scaleIntervals, noteIdx);
-            const degree = ((noteIdx % scaleIntervals.length) + scaleIntervals.length) % scaleIntervals.length;
-            const detuneCents = getScaleDetune(currentTrack.scaleId, degree);
-            ambientOscs[i].frequency.value = midiAndDetuneToFreq(midi, detuneCents);
+            ambientOscs[i].frequency.value = noteIndexToFreq(currentTrack.rootNote, currentTrack.scaleId, noteIdx);
           }
         };
 
