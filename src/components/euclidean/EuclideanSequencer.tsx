@@ -1027,6 +1027,9 @@ export const EuclideanSequencer = () => {
         nestedLfoRate1: (config as any).nestedLfoRate1 ?? 0.1,
         nestedLfoRate2: (config as any).nestedLfoRate2 ?? 4.0,
         nestedLfoDepth: (config as any).nestedLfoDepth ?? 800,
+        // Slicer: restore enabled/count only — order/reverse/pitch depend on buffer
+        slicerEnabled: (config as any).slicerEnabled ?? false,
+        sliceCount: (config as any).sliceCount ?? 16,
         hits: 0,
         misses: 0,
       });
