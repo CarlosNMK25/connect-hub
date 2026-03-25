@@ -4869,6 +4869,8 @@ export const EuclideanSequencer = () => {
               fmIndex={track.fmIndex}
               onSynthTypeChange={(val) => {
                 setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, synthType: val } : t));
+                // Dispose nestedLfo before synth to prevent orphaned oscillators
+                synthsRef.current.tone?.disposeNestedLfo?.();
                 if (synthsRef.current.tone?.dispose) {
                   synthsRef.current.tone.dispose();
                 }
