@@ -599,7 +599,7 @@ export const EuclideanTrack = React.memo(({
           {/* Mode Selector + Formula + Density Badges */}
           <div className="flex items-center gap-3 px-3 py-2 bg-idm-bg rounded-lg border border-black/5 flex-none">
             {/* Mode selector */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('patternMode', e)} onMouseLeave={handleParamLeave}>
               <select
                 value={patternMode ?? 'euclidean'}
                 onChange={e => onPatternModeChange?.(e.target.value as 'euclidean' | 'lsystem' | 'ca')}
@@ -854,7 +854,7 @@ export const EuclideanTrack = React.memo(({
           {/* L-System Controls */}
           {(patternMode ?? 'euclidean') === 'lsystem' && (
             <div className="flex items-center gap-3 flex-none border-l border-black/5 pl-3">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('lsSeed', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-7">Seed</span>
                 <select value={lsSeed ?? 'X'} onChange={e => onLsParamChange?.('lsSeed', e.target.value)}
                   className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
@@ -864,7 +864,7 @@ export const EuclideanTrack = React.memo(({
                   <option value="XOOX">XOOX</option>
                 </select>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('lsRuleA', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-7">Rule</span>
                 <select value={lsRuleA ?? 'XO'} onChange={e => onLsParamChange?.('lsRuleA', e.target.value)}
                   className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
@@ -874,14 +874,14 @@ export const EuclideanTrack = React.memo(({
                   <option value="XOOX">Complex</option>
                 </select>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('lsIterations', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-6">Iter</span>
                 <input type="range" min={1} max={6} step={1} value={lsIterations ?? 3}
                   onChange={e => onLsParamChange?.('lsIterations', Number(e.target.value))}
                   className="w-14 h-[7px]" style={{ accentColor: color }} />
                 <span className="text-[7px] font-mono text-idm-muted w-3">{lsIterations ?? 3}</span>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('lsRotation', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-6">Rot</span>
                 <input type="range" min={0} max={steps - 1} step={1} value={lsRotation ?? 0}
                   onChange={e => onLsParamChange?.('lsRotation', Number(e.target.value))}
@@ -904,7 +904,7 @@ export const EuclideanTrack = React.memo(({
           {/* Cellular Automata Controls */}
           {patternMode === 'ca' && (
             <div className="flex items-center gap-3 flex-none border-l border-black/5 pl-3">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('caRule', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-7">Rule</span>
                 <select value={caRule ?? 30} onChange={e => onCaParamChange?.('caRule', Number(e.target.value))}
                   className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
@@ -914,7 +914,7 @@ export const EuclideanTrack = React.memo(({
                   <option value={184}>Rule 184</option>
                 </select>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('caSeed', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-7">Seed</span>
                 <select value={caSeed ?? 'center'} onChange={e => onCaParamChange?.('caSeed', e.target.value)}
                   className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
@@ -924,14 +924,14 @@ export const EuclideanTrack = React.memo(({
                   <option value="random">Aleatorio</option>
                 </select>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('caDensity', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-7">Dens</span>
                 <input type="range" min={0} max={100} step={5} value={caDensity ?? 50}
                   onChange={e => onCaParamChange?.('caDensity', Number(e.target.value))}
                   className="w-14 h-[7px]" style={{ accentColor: color }} />
                 <span className="text-[7px] font-mono text-idm-muted w-6 text-right">{caDensity ?? 50}%</span>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('caSpeed', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-6">Spd</span>
                 <select value={caSpeed ?? 1} onChange={e => onCaParamChange?.('caSpeed', Number(e.target.value))}
                   className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
@@ -1270,7 +1270,7 @@ export const EuclideanTrack = React.memo(({
               </select>
             </div>
             {/* Note Mode selector */}
-            <div className="space-y-1">
+            <div className="space-y-1" onMouseEnter={(e) => handleParamEnter('noteMode', e)} onMouseLeave={handleParamLeave}>
               <span className="text-[8px] font-mono uppercase text-idm-muted">Notes</span>
               <select
                 value={noteMode ?? 'euclidean'}
@@ -1324,7 +1324,7 @@ export const EuclideanTrack = React.memo(({
       {isTonal && noteMode === 'markov' && (
         <div className="flex flex-wrap items-center gap-3 mt-1.5 p-3 bg-background rounded-2xl border border-border">
           {/* Style */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('markovStyle', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Style</span>
             <select
               value={markovStyle ?? 'scale'}
@@ -1339,7 +1339,7 @@ export const EuclideanTrack = React.memo(({
             </select>
           </div>
           {/* Temperature */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('markovTemperature', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Temp</span>
             <input type="range" min={0} max={100} step={5}
               value={markovTemperature ?? 40}
@@ -1351,7 +1351,7 @@ export const EuclideanTrack = React.memo(({
             </span>
           </div>
           {/* Anchor */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('markovAnchor', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Anchor</span>
             <select
               value={markovAnchor ?? 0}
@@ -1372,16 +1372,18 @@ export const EuclideanTrack = React.memo(({
             NUEVA MATRIZ
           </button>
           {/* Ver Matriz */}
-          <button
-            onClick={() => onMarkovParamChange?.('markovShowMatrix', !(markovShowMatrix ?? false))}
-            className={`text-[8px] font-mono px-2 py-0.5 rounded border transition-colors ${
-              markovShowMatrix
-                ? 'bg-system-accent text-white border-system-accent'
-                : 'border-border text-muted-foreground hover:border-system-accent'
-            }`}
-          >
-            {markovShowMatrix ? 'OCULTAR' : 'VER MATRIZ'}
-          </button>
+          <div onMouseEnter={(e) => handleParamEnter('markovShowMatrix', e)} onMouseLeave={handleParamLeave}>
+            <button
+              onClick={() => onMarkovParamChange?.('markovShowMatrix', !(markovShowMatrix ?? false))}
+              className={`text-[8px] font-mono px-2 py-0.5 rounded border transition-colors ${
+                markovShowMatrix
+                  ? 'bg-system-accent text-white border-system-accent'
+                  : 'border-border text-muted-foreground hover:border-system-accent'
+              }`}
+            >
+              {markovShowMatrix ? 'OCULTAR' : 'VER MATRIZ'}
+            </button>
+          </div>
           {/* Matrix heatmap */}
           {markovShowMatrix && onGetMarkovMatrix && (
             <div className="w-full mt-1 overflow-x-auto">
