@@ -22,7 +22,7 @@ interface CoincidenceRowProps {
  * A cell lights up when 2+ tracks have a pulse on the same step position.
  * Intensity scales with number of overlapping tracks.
  */
-export const CoincidenceRow: React.FC<CoincidenceRowProps> = React.memo(({ tracks, globalStep, maxSteps }) => {
+export const CoincidenceRow: React.FC<CoincidenceRowProps> = React.memo(({ tracks, globalStep, maxSteps, driftOffsets }) => {
   const activeTracks = useMemo(() => tracks.filter(t => !t.isMuted), [tracks]);
 
   // For each step position (0..maxSteps-1), count how many active tracks have a pulse
