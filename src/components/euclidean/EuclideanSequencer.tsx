@@ -1440,6 +1440,8 @@ export const EuclideanSequencer = () => {
   const handlePhaseSync = () => {
     setGlobalStep(0);
     globalStepRef.current = 0;
+    driftAccumulatorRef.current = {};
+    setDriftOffsets({});
     
     const resetIndices: { [key: string]: number } = {};
     const resetTimes: { [key: string]: number } = {};
