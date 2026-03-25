@@ -1270,7 +1270,7 @@ export const EuclideanTrack = React.memo(({
               </select>
             </div>
             {/* Note Mode selector */}
-            <div className="space-y-1">
+            <div className="space-y-1" onMouseEnter={(e) => handleParamEnter('noteMode', e)} onMouseLeave={handleParamLeave}>
               <span className="text-[8px] font-mono uppercase text-idm-muted">Notes</span>
               <select
                 value={noteMode ?? 'euclidean'}
