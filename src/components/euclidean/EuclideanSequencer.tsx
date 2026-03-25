@@ -720,6 +720,13 @@ export const EuclideanSequencer = () => {
           rrAmount: t.rrAmount,
           driftEnabled: t.driftEnabled,
           driftRate: t.driftRate,
+          // Layer 2 (solo parámetros, no buffer)
+          layer2Filename: t.layer2Filename,
+          layer2Blend: t.layer2Blend,
+          layer2Pitch: t.layer2Pitch,
+          layer2Offset: t.layer2Offset,
+          layer2FilterFreq: t.layer2FilterFreq,
+          layer2Reverse: t.layer2Reverse,
         }])
       ),
     };
