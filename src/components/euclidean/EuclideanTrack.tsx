@@ -630,7 +630,7 @@ export const EuclideanTrack = React.memo(({
               )}
             </div>
             {/* Phase Drift */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('phaseDrift', e)} onMouseLeave={handleParamLeave}>
               <button
                 onClick={() => onDriftEnabledChange?.(!driftEnabled)}
                 className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
