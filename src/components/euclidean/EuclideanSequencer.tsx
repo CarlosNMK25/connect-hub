@@ -1660,16 +1660,41 @@ export const EuclideanSequencer = () => {
               }
             }
 
+            // Slicer: compute sliceInfo if enabled
+            let sliceInfo: { startSec: number; durationSec: number; detuneCents: number; isReverse: boolean } | undefined;
+            if (track.slicerEnabled &&
+                track.samplerBuffer &&
+                track.sliceCount &&
+                track.sliceOrder) {
+              const boundaries = sliceBoundariesRef.current[track.id];
+              if (boundaries && boundaries.length > 0) {
+                const slicePosition = track.sliceOrder[idx % track.sliceOrder.length];
+                const slice = boundaries[slicePosition % boundaries.length];
+                const bufDur = track.samplerBuffer.duration;
+                const startSec = slice.start * bufDur;
+                const endSec = slice.end * bufDur;
+                const sliceDur = Math.max(0.01, endSec - startSec);
+                const pitchSemitones = track.slicePitch?.[slicePosition] ?? 0;
+                const isReverse = track.sliceReverse?.[slicePosition] ?? false;
+                sliceInfo = {
+                  startSec: isReverse ? endSec - 0.001 : startSec,
+                  durationSec: sliceDur,
+                  detuneCents: pitchSemitones * 100,
+                  isReverse,
+                };
+              }
+            }
+
             if (synth.triggerAttackRelease) {
               const duration = track.mode === 'GATE' ? "16n" : (track.decay / 1000);
               
               if (track.isTonal) {
                 const freq = noteIndexToFreq(track.rootNote, track.scaleId, noteIdx);
-                synth.triggerAttackRelease(freq, duration, scheduledTime, velocity);
+                synth.triggerAttackRelease(freq, duration, scheduledTime, velocity, sliceInfo);
               } else if (track.id === 'kick' && !synth.grainPlayer) {
-                synth.triggerAttackRelease("C1", duration, scheduledTime, velocity);
+                synth.triggerAttackRelease("C1", duration, scheduledTime, velocity, sliceInfo);
               } else {
-                synth.triggerAttackRelease(duration, scheduledTime, velocity);
+                synth.triggerAttackRelease(duration, scheduledTime, velocity, sliceInfo);
               }
             } else if (synth.grainPlayer && track.samplerStatus === 'READY') {
               // Fallback path (cloud granular) — also respects sampleEnd (Fix 1)
