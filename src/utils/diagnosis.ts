@@ -31,6 +31,9 @@ export interface DiagnosisContext {
     temporalityMode: string;
     jitter: number;
     swing: number;
+    mmHistoryLength: number;
+    mmLastRatio?: string;
+    mmOriginalBpm?: number;
   };
   computed: {
     mcm: number;
