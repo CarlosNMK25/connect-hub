@@ -710,6 +710,8 @@ export const EuclideanSequencer = () => {
           ...(t.id === 'cloud' ? { cloudMode: t.cloudMode, enoSpeed: t.enoSpeed } : {}),
           rrEnabled: t.rrEnabled,
           rrAmount: t.rrAmount,
+          driftEnabled: t.driftEnabled,
+          driftRate: t.driftRate,
         }])
       ),
     };
