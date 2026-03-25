@@ -1351,7 +1351,7 @@ export const EuclideanTrack = React.memo(({
             </span>
           </div>
           {/* Anchor */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('markovAnchor', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Anchor</span>
             <select
               value={markovAnchor ?? 0}
