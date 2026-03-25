@@ -33,6 +33,14 @@ interface TrackSnapshot {
   wfSymmetry?: number;
   addPartials?: number;
   addBrightness?: number;
+  // Phase 4 fields
+  patternMode?: string;
+  noteMode?: string;
+  markovStyle?: string;
+  markovTemperature?: number;
+  markovAnchor?: number;
+  lsIterations?: number;
+  caSpeed?: number;
 }
 
 interface EngineRoomProps {
@@ -223,6 +231,13 @@ const DiagnosisPanel: React.FC<{
       wfSymmetry: t.wfSymmetry,
       addPartials: t.addPartials,
       addBrightness: t.addBrightness,
+      patternMode: t.patternMode,
+      noteMode: t.noteMode,
+      markovStyle: t.markovStyle,
+      markovTemperature: t.markovTemperature,
+      markovAnchor: t.markovAnchor,
+      lsIterations: t.lsIterations,
+      caSpeed: t.caSpeed,
     }));
 
     const mcm = computeMcm(diagTracks);

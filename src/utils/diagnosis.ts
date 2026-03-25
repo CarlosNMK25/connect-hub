@@ -25,6 +25,14 @@ export interface DiagnosisContext {
     wfSymmetry?: number;
     addPartials?: number;
     addBrightness?: number;
+    // Phase 4 fields
+    patternMode?: string;
+    noteMode?: string;
+    markovStyle?: string;
+    markovTemperature?: number;
+    markovAnchor?: number;
+    lsIterations?: number;
+    caSpeed?: number;
   }>;
   globalState: {
     bpm: number;
@@ -502,6 +510,94 @@ const RULES: DiagnosisRule[] = [
       return `PAD en ciclo primo de ${tone.steps} steps. Los acordes sostenidos del pad cambian en momentos que nunca coinciden limpiamente con las pistas rítmicas. Es una nube armónica que flota sobre un suelo rítmico inestable — cada repetición del ciclo suena en un contexto rítmico distinto.`;
     },
     suggestion: () => 'Sube padAttack a >1s. El pad dejará de marcar el ritmo y se convertirá en una textura que emerge y desaparece independiente del patrón — atmósfera pura sobre poliritmia.',
+  },
+  // ═══ PHASE 4: L-SYSTEM, CA, MARKOV (7) ═══
+  {
+    id: 'ls-con-euclidean',
+    category: 'combinacion',
+    icon: '🌿',
+    priority: 45,
+    condition: (ctx) => {
+      const active = getActiveTracks(ctx);
+      return active.some(t => (t.patternMode ?? 'euclidean') === 'lsystem') &&
+        active.some(t => (t.patternMode ?? 'euclidean') === 'euclidean');
+    },
+    insight: () => 'Diálogo entre dos geometrías del tiempo: el L-System genera patrones desde reglas lingüísticas recursivas, mientras Euclides distribuye pulsos por justicia matemática. Son formas distintas de imponer orden sobre el silencio.',
+    suggestion: () => 'Escucha cómo el patrón L-System, más irregular e impredecible, crea tensión contra el patrón euclidiano. Prueba a aumentar las iteraciones del L-System para alejarte más de la regularidad.',
+  },
+  {
+    id: 'ca-evolucionando',
+    category: 'combinacion',
+    icon: '🔲',
+    priority: 55,
+    condition: (ctx) => getActiveTracks(ctx).some(t => (t.patternMode ?? 'euclidean') === 'ca' && (t.caSpeed ?? 1) === 1),
+    insight: () => 'El autómata celular está mutando en cada ciclo completo. Cada vuelta del patrón es un nuevo estado generado por las reglas de vecindad — nunca exactamente el mismo ritmo dos veces. Estás escuchando un proceso, no una composición.',
+    suggestion: () => 'Cambia la Regla para observar distintos comportamientos evolutivos. Rule 30 es impredecible; Rule 90 genera simetrías fractales; Rule 110 puede sostener estructuras complejas estables.',
+  },
+  {
+    id: 'markov-flamenco',
+    category: 'tonal',
+    icon: '🔴',
+    priority: 70,
+    condition: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal);
+      return !!tone && (tone.noteMode ?? 'euclidean') === 'markov' && tone.markovStyle === 'flamenco' && tone.scaleId === 'phrygianDominant';
+    },
+    insight: () => 'Convergencia máxima: la cadena de Markov con estilo flamenco gravita hacia la tónica y el semitono inferior del modo frigio dominante — exactamente como lo haría un cantaor eligiendo su siguiente nota en el jondeo. El algoritmo ha aprendido el instinto del cante.',
+    suggestion: () => 'Esta combinación es el núcleo de la tesis del proyecto. Ajusta el Anclaje a \'Cada 4\' para reforzar la sensación de frase flamenca. La cadena de Markov, el modo frigio y el compás euclidiano juntos generan IDM con alma jonda.',
+  },
+  {
+    id: 'entropia-generativa-maxima',
+    category: 'combinacion',
+    icon: '∞',
+    priority: 60,
+    condition: (ctx) => {
+      const active = getActiveTracks(ctx);
+      const tone = active.find(t => t.isTonal);
+      return active.some(t => (t.patternMode ?? 'euclidean') === 'ca') &&
+        active.some(t => (t.patternMode ?? 'euclidean') === 'lsystem') &&
+        !!tone && (tone.noteMode ?? 'euclidean') === 'markov' && (tone.markovTemperature ?? 50) > 70;
+    },
+    insight: () => 'Tres motores generativos simultáneos en máxima entropía: el autómata celular evoluciona el ritmo, el L-System genera otro patrón desde reglas lingüísticas, y Markov a temperatura alta elige notas casi al azar. La música surge de la interacción de procesos, no de la intención del compositor.',
+    suggestion: () => 'Reduce la temperatura de Markov a 30-40 para recuperar coherencia melódica mientras mantienes el caos rítmico. La tensión entre melodía controlada y ritmo caótico es uno de los sellos del IDM más avanzado.',
+  },
+  {
+    id: 'ls-iteraciones-altas',
+    category: 'estructura',
+    icon: '🌳',
+    priority: 40,
+    condition: (ctx) => getActiveTracks(ctx).some(t => (t.patternMode ?? 'euclidean') === 'lsystem' && (t.lsIterations ?? 1) >= 5),
+    insight: (ctx) => {
+      const t = getActiveTracks(ctx).find(t => (t.patternMode ?? 'euclidean') === 'lsystem' && (t.lsIterations ?? 1) >= 5)!;
+      return `${t.name} con L-System a ${t.lsIterations ?? 1} iteraciones. A este nivel de recursión, el patrón resultante tiene una densidad fractal que lo aleja completamente de la semilla original. Es auto-similaridad a múltiples escalas: el mismo proceso de reescritura aplicado 5+ veces crea estructura dentro de la estructura.`;
+    },
+    suggestion: () => 'Baja las iteraciones a 2 y escucha la diferencia. Luego sube de 2 a 6 paso a paso. Cada iteración añade una capa de complejidad — como hacer zoom en un fractal.',
+  },
+  {
+    id: 'markov-anclaje-flamenco',
+    category: 'tonal',
+    icon: '⚓',
+    priority: 65,
+    condition: (ctx) => {
+      const tone = getActiveTracks(ctx).find(t => t.isTonal);
+      return !!tone && (tone.noteMode ?? 'euclidean') === 'markov' && (tone.markovAnchor ?? 0) > 0 &&
+        (tone.scaleId === 'phrygianDominant' || tone.scaleId === 'minor');
+    },
+    insight: () => 'El anclaje periódico a la tónica introduce estructura de frase en la cadena de Markov. Con escalas menores o frigio dominante, cada retorno a la tónica reproduce la resolución al reposo que define la estructura del cante flamenco: el alejamiento y el regreso, la tensión y la liberación.',
+    suggestion: () => 'Sincroniza el anclaje con la estructura rítmica: Cada 4 notas en un patrón de 4/4, Cada 12 en una Soleá. Cuando el retorno a la tónica coincide con el tiempo fuerte del compás, la sensación de \'cerrar a tierra\' es inmediata.',
+  },
+  {
+    id: 'tres-motores-patron',
+    category: 'combinacion',
+    icon: '⚙⚙⚙',
+    priority: 50,
+    condition: (ctx) => {
+      const active = getActiveTracks(ctx);
+      const modes = new Set(active.map(t => t.patternMode ?? 'euclidean'));
+      return modes.has('euclidean') && modes.has('lsystem') && modes.has('ca');
+    },
+    insight: () => 'Tres filosofías del ritmo coexisten: Euclides distribuye por justicia, el L-System crece por gramática, el autómata evoluciona por vecindad. Ninguna pista \'sabe\' lo que hacen las otras — y sin embargo, producen música juntas. Como tres músicos de tradiciones distintas improvisando sin lingua franca.',
+    suggestion: () => 'Observa el PhaseRadar: los tres patrones tienen longitudes distintas y nunca se alinean igual. El MCM de tres números primos entre sí puede superar los 1000 steps — escucharás el mismo ciclo durante minutos.',
   },
 ];
 

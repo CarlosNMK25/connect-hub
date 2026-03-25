@@ -297,10 +297,10 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
     ],
     listeningGuide: {
       order: 5,
-      idmRefs: ['§3.1 Dilla mode', '§3.2 Micro-Timing', '§2.2 Métricas Asimétricas (19 pasos primos)'],
-      whatToHear: 'En Dilla mode, cada pista tiene un multiplicador de jitter distinto: el kick ×0.1 (muy tight), el snare ×1.2 (suelto), el hat ×1.5 (muy suelto). Escucha primero el kick solo, luego el hat solo. Son el mismo BPM pero tienen diferente «humanidad» — el kick suena más mecánico, el hat más orgánico. Eso es exactamente lo que hace una batería acústica real: lo grave ancla, lo agudo flota.',
-      experiment: 'Cambia el modo de temporalidad de Dilla a Grid. Escucha qué le pasa a esa jerarquía de humanidad. En Grid todos los instrumentos tienen el mismo timing perfecto — desaparece la diferencia entre kick y hat. Luego vuelve a Dilla. La jerarquía de micro-timing no es un efecto decorativo: es la diferencia entre una máquina que imita a un batería y una máquina que entiende cómo funciona la percusión.',
-      insight: 'J Dilla descubrió empíricamente con el MPC que si retrasas el kick y adelantas el hat, el groove parece más humano. Lo que Dilla hizo por intuición, Autechre en Confield (2001) lo sistematizó: jitter selectivo por pista como arquitectura deliberada del tiempo. La app implementa exactamente ese sistema en `temporality.ts` con multiplicadores por instrumento. No es homenaje — es la misma solución técnica redescubierta.',
+      idmRefs: ['§3.1 Dilla mode', '§3.2 Micro-Timing', '§2.2 Métricas Asimétricas (19 pasos primos)', '§5.1C Cellular Automata', '§5.3 Self-Similarity'],
+      whatToHear: 'En Dilla mode, cada pista tiene un multiplicador de jitter distinto: el kick ×0.1 (muy tight), el snare ×1.2 (suelto), el hat ×1.5 (muy suelto). Escucha primero el kick solo, luego el hat solo. Son el mismo BPM pero tienen diferente «humanidad» — el kick suena más mecánico, el hat más orgánico. El hi-hat ya no sigue un patrón fijo — evoluciona solo. Escucha cómo en cada vuelta del ciclo el hi-hat es ligeramente distinto. Kick y Snare mantienen su patrón euclidiano estable, pero el Hat muta.',
+      experiment: 'Cambia el modo de temporalidad de Dilla a Grid. Escucha qué le pasa a esa jerarquía de humanidad. Luego cambia la pista Hat de modo Euclidean a CA, Rule 30, Semilla Centro, Densidad 50, Velocidad "Cada 2". Cambia la Regla del CA entre 30, 90 y 110. Rule 30 es caótica e impredecible. Rule 90 genera simetrías que suenan casi melódicas. Rule 110 puede mantener estructuras estables durante muchos ciclos.',
+      insight: 'Autechre construye sus piezas más avanzadas con exactamente este principio: un sustrato estable (kick, snare) sobre el que un elemento evoluciona según reglas autónomas. El resultado parece improvisado pero es completamente determinista. No hay azar — hay complejidad emergente. J Dilla descubrió empíricamente con el MPC que si retrasas el kick y adelantas el hat, el groove parece más humano. La app implementa exactamente ese sistema con multiplicadores por instrumento.',
     },
   },
 
@@ -325,6 +325,55 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
       whatToHear: 'El kick tiene ratchet activo — cada golpe se dobla sobre sí mismo en un intervalo muy corto, con la segunda repetición a menor velocidad (decay 0.65). Es el flam electrónico: el gesto del zapateado que redobla antes de resolver. Y la pista tonal usa exactamente el mismo patrón E(5,12) que el kick pero con voz propia en Phrygian Dominant. Dos instancias del mismo algoritmo en capas distintas de la música.',
       experiment: 'Sube el ratchet del kick de 1 a 2, luego a 3. Escucha cómo un golpe simple se convierte en un redoble y luego en un grupeto. Ahora activa Evolve en la pista tonal con tasa baja. El patrón melódico empieza a mutar dentro del compás de soleá. Estás viendo simultáneamente §3.4 (Ratchet), §3.1 (Flamenco mode), §10.2 (escalas no-occidentales) y §1.5 (Evolve) del documento IDM. Este preset es el laboratorio completo.',
       insight: 'El Ratchet del documento IDM (§3.4), el redoble del zapateado flamenco y el «step repeat» de Autechre son el mismo gesto rítmico nombrado por tres tradiciones distintas: la computación musical académica, la tradición corporal gitana-andaluza y la producción electrónica experimental. La convergencia no es forzada — los tres llegaron independientemente a que un golpe que se niega a ser solo uno tiene más carga expresiva que uno que se resigna a serlo.',
+    },
+  },
+
+  // --- PHASE 4: GENERATIVE PRESETS ---
+  'fibonacci-tree': {
+    listening: 'IDM orgánico: dos L-Systems generan los patrones de Snare y Hat desde reglas lingüísticas distintas, mientras la melodía usa una cadena de Markov con anclaje que varía en cada ciclo pero regresa periódicamente a la tónica. El Kick euclidiano E(3,8) ancla todo. Modo Dilla: el kick tight, el hat suelto.',
+    structure: 'Kick E(3,8) — tresillo cubano euclidiano, el ancla. Snare en L-System con semilla XO, regla Fibonacci (X→XO, O→X), 4 iteraciones — patrón con proporción áurea. Hat en L-System con semilla X, regla Sparse (X→XOO), 5 iteraciones — patrón rareificado. Tone E(4,12) con Markov estilo Escala, temperatura 35, anclaje cada 8 notas — melodía en Minor que varía pero regresa. MCM de 8 y 12 = 24, ciclo corto pero con variación generativa infinita.',
+    origin: 'Los L-Systems fueron propuestos por el biólogo Aristid Lindenmayer en 1968 para modelar el crecimiento de plantas. La regla Fibonacci (X→XO, O→X) genera secuencias donde la proporción entre golpes y silencios converge a la razón áurea φ ≈ 1.618. Los ritmos que escuchas siguen la misma lógica que la ramificación de un árbol: cada paso aplica la misma regla al resultado del paso anterior.',
+    experiments: [
+      'Sube las iteraciones del Snare de 4 a 6. Escucha cómo el patrón se vuelve más denso e impredecible.',
+      'Pulsa REGEN en el Hat para regenerar su patrón con los mismos parámetros — el resultado es diferente pero con el mismo \'carácter\'.',
+      'Cambia el estilo de Markov del Tone de Escala a IDM. La melodía pierde coherencia melódica y gana imprevisibilidad.',
+      'Cambia el modo de temporalidad de Dilla a Grid. Escucha cómo se pierde la jerarquía de humanización.',
+    ],
+    connections: [
+      'Async Ecosystem: Poliritmia prima sin motores generativos. El antecesor IDM.',
+      'Confield: Más abstracto, con Chaos y Evolve. La evolución por mutación.',
+      'Markov Flamenca: Markov con identidad cultural en vez de abstracción.',
+    ],
+    listeningGuide: {
+      order: 11,
+      idmRefs: ['§5.1A Markov', '§5.1B L-Systems', '§3.2 Microtiming'],
+      whatToHear: 'Snare y Hat están generados por L-Systems con distintas reglas — escucha cómo sus patrones tienen estructura interna pero son irregulares. La pista Tone usa Markov con anclaje: sigue una melodía que varía en cada ciclo pero regresa periódicamente a la tónica. Todo junto suena como IDM orgánico — complejo pero con coherencia.',
+      experiment: 'Sube las iteraciones del Snare de 4 a 6. Escucha cómo el patrón se vuelve más denso e impredecible. Luego pulsa REGEN en el Hat para regenerar su patrón con los mismos parámetros — el resultado es diferente pero con el mismo \'carácter\'. Esto es lo que distingue el L-System del azar: mismo proceso, resultados distintos pero relacionados.',
+      insight: 'Los L-Systems fueron propuestos por el biólogo Lindenmayer para modelar el crecimiento de plantas. Los ritmos que escuchas siguen la misma lógica que la ramificación de un árbol: cada paso aplica la misma regla al resultado del paso anterior. La complejidad que percibes no fue diseñada — emergió de la repetición de algo simple.',
+    },
+  },
+
+  'markov-flamenca': {
+    listening: 'Soleá con alma algorítmica. El Kick marca E(5,12) — la estructura madre del flamenco. El Snare responde con 3 golpes desplazados, el Hat puntúa con solo 2. La melodía es generada por una cadena de Markov entrenada con el instinto flamenco: gravita hacia la tónica y el semitono inferior del modo frigio. Cada vuelta la melodía es diferente, pero siempre suena flamenca.',
+    structure: 'Kick E(5,12) — Soleá canónica. Snare E(3,12)+2 — respuesta mínima. Hat E(2,12)+6 con probabilidad 80% — puntuación esparsa. Tone E(5,12) con Markov flamenco, temperatura 25, anclaje cada 4 notas, Phrygian Dominant desde E3. La temperatura baja (25) mantiene coherencia — las transiciones favorecen grados conjuntos y gravedad hacia la tónica. El anclaje cada 4 crea frases que respiran.',
+    origin: 'La cadena de Markov no \'entiende\' el flamenco — solo maximiza ciertas transiciones sobre otras. Pero el resultado es culturalmente reconocible. El estilo \'flamenco\' de la matriz de transición refuerza la tónica y el semitono inferior (IIb), que son exactamente los pilares armónicos del jondeo. Esto plantea una pregunta que la app te deja responder con los oídos: ¿es el estilo musical una propiedad de la música, o de las probabilidades de transición entre sus notas?',
+    experiments: [
+      'Activa VER MATRIZ para ver las probabilidades de transición. Fíjate en la primera columna (tónica) y la última (sensible): tienen los valores más altos.',
+      'Cambia el Estilo Markov a IDM — observa cómo la matriz se aplana, todas las probabilidades se igualan. Vuelve a Flamenco.',
+      'Sube la temperatura de 25 a 80. La melodía se libera de la gravedad flamenca y empieza a saltar sin rumbo.',
+      'Cambia el anclaje de \'Cada 4\' a OFF. Sin anclaje, la melodía puede alejarse indefinidamente de la tónica.',
+    ],
+    connections: [
+      'Soleá Completa: La base rítmica sin Markov — melodía determinista o ausente.',
+      'Tercer Cielo: Melodía tonal con Evolve en vez de Markov. Dos formas de variación.',
+      'Fibonacci Tree: Markov abstracto (estilo Escala) vs Markov cultural (estilo Flamenco).',
+    ],
+    listeningGuide: {
+      order: 12,
+      idmRefs: ['§5.1A Markov Chains', '§10.2 Phrygian Dominant', '§3.1 Flamenco mode'],
+      whatToHear: 'La melodía de la pista Tone es generada por una cadena de Markov entrenada con el instinto flamenco: gravita hacia la tónica y el semitono inferior del modo frigio — exactamente el movimiento característico del jondeo. Cada vuelta del ciclo la melodía es diferente, pero siempre suena flamenca. Escucha cómo el algoritmo ha capturado el temperamento del cante sin haber escuchado una sola grabación.',
+      experiment: 'Activa VER MATRIZ para ver las probabilidades de transición. Fíjate en la primera columna (tónica) y la última (sensible): tienen los valores más altos. Ahora cambia el Estilo a IDM — observa cómo la matriz se aplana, todas las probabilidades se igualan. Vuelve a Flamenco. Ese cambio en los números es la diferencia entre el instinto cultural y la indiferencia algorítmica.',
+      insight: 'La cadena de Markov no \'entiende\' el flamenco — solo maximiza ciertas transiciones sobre otras. Pero el resultado es culturalmente reconocible. Esto plantea una pregunta que la app te deja responder con los oídos: ¿es el estilo musical una propiedad de la música, o de las probabilidades de transición entre sus notas?',
     },
   },
 };
