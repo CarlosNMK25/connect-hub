@@ -269,6 +269,14 @@ export const EuclideanSequencer = () => {
     setAudioContextState(Tone.getContext().state);
   };
   const [bpm, setBpm] = useState(120);
+  const [showMM, setShowMM] = useState(false);
+  const [mmHistory, setMmHistory] = useState<Array<{
+    fromBpm: number;
+    toBpm: number;
+    ratio: string;
+    label: string;
+    timestamp: string;
+  }>>([]);
   const [jitter, setJitter] = useState(0);
   const [swing, setSwing] = useState(0);
   const [dynamics, setDynamics] = useState(50);
@@ -334,7 +342,39 @@ export const EuclideanSequencer = () => {
     }, 500);
   }, [logChange]);
 
-  // Sync engine log to state when panel is open
+  const METRIC_MODULATION_RATIOS = useMemo(() => [
+    { ratio: 3/2,  label: '3:2',  description: 'tresillos → beat  ×1.5' },
+    { ratio: 4/3,  label: '4:3',  description: 'semicorcheas → tresillos  ×1.33' },
+    { ratio: 5/4,  label: '5:4',  description: 'quintillos → beat  ×1.25' },
+    { ratio: 2/3,  label: '2:3',  description: 'beat → tresillos  ×0.67' },
+    { ratio: 3/4,  label: '3:4',  description: 'tresillos → semicorcheas  ×0.75' },
+    { ratio: 4/5,  label: '4:5',  description: 'beat → quintillos  ×0.80' },
+  ], []);
+
+  const handleMetricModulation = useCallback((ratio: number, label: string, description: string) => {
+    const fromBpm = bpm;
+    const rawBpm = fromBpm * ratio;
+    const toBpm = Math.round(Math.max(40, Math.min(240, rawBpm)));
+    setBpm(toBpm);
+    const now = new Date();
+    const timestamp = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+    setMmHistory(prev => [{
+      fromBpm,
+      toBpm,
+      ratio: label,
+      label: description,
+      timestamp
+    }, ...prev].slice(0, 5));
+    logChange(`MM ${label}: ${fromBpm} → ${toBpm} BPM`, [description]);
+  }, [bpm, logChange]);
+
+  const handleMetricModulationReset = useCallback((targetBpm: number) => {
+    setBpm(targetBpm);
+    setMmHistory([]);
+    logChange(`MM Reset → ${targetBpm} BPM`, []);
+  }, [logChange]);
+
+
   useEffect(() => {
     if (!showEngine) return;
     const interval = setInterval(() => {
@@ -622,6 +662,7 @@ export const EuclideanSequencer = () => {
       logChange(`Preset: ${preset.name}`, deltas);
 
       if (preset.bpm) setBpm(preset.bpm);
+      setMmHistory([]);
       
       // Macro Interpolation (50ms ramp)
       if (preset.jitter !== undefined) setJitter(preset.jitter);
@@ -757,6 +798,7 @@ export const EuclideanSequencer = () => {
   const applyUserPreset = useCallback((up: UserPreset) => {
     setActivePresetId(up.id);
     setBpm(up.bpm);
+    setMmHistory([]);
     setJitter(up.jitter);
     setSwing(up.swing);
     setDynamics(up.dynamics);
@@ -3362,6 +3404,87 @@ export const EuclideanSequencer = () => {
                       onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('bpm', 'BPM', bpm, v, '', (o, n) => { const oldEclipse = mcm * 60 / o / 4; const newEclipse = mcm * 60 / n / 4; return [`Eclipse ${formatEclipseTime(oldEclipse, false)} → ${formatEclipseTime(newEclipse, false)}`]; }); setBpm(v); }} 
                       className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" 
                     />
+                    {/* Metric Modulation toggle */}
+                    <div className="flex flex-col gap-1">
+                      <button
+                        onClick={() => setShowMM(prev => !prev)}
+                        className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors self-start ${
+                          showMM
+                            ? 'bg-system-accent text-white border-system-accent'
+                            : 'bg-white text-idm-muted border-black/10 hover:border-system-accent'
+                        }`}
+                        title="Metric Modulation — cambio de subdivisión percibida"
+                      >
+                        MM
+                      </button>
+                      {showMM && (
+                        <div className="flex flex-col gap-2 p-2 bg-white/80 border border-black/10 rounded-lg min-w-[200px]">
+                          <span className="text-[8px] font-mono uppercase text-idm-muted">
+                            Metric Modulation
+                          </span>
+                          <div className="text-[10px] font-mono text-idm-ink">
+                            {bpm} BPM
+                          </div>
+                          <div className="grid grid-cols-3 gap-1">
+                            {METRIC_MODULATION_RATIOS.map(({ ratio, label, description }) => {
+                              const resultBpm = Math.round(Math.max(40, Math.min(240, bpm * ratio)));
+                              const clamped = resultBpm !== Math.round(bpm * ratio);
+                              return (
+                                <button
+                                  key={label}
+                                  onClick={() => handleMetricModulation(ratio, label, description)}
+                                  disabled={clamped}
+                                  className={`flex flex-col items-center px-1 py-1.5 rounded border text-center transition-colors ${
+                                    clamped
+                                      ? 'opacity-30 cursor-not-allowed border-black/5 bg-white'
+                                      : 'border-black/10 bg-white hover:border-system-accent hover:text-system-accent'
+                                  }`}
+                                  title={`${description} → ${resultBpm} BPM${clamped ? ' (fuera de rango)' : ''}`}
+                                >
+                                  <span className="text-[10px] font-mono font-bold text-idm-ink">
+                                    {label}
+                                  </span>
+                                  <span className="text-[7px] font-mono text-idm-muted">
+                                    {resultBpm}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {mmHistory.length > 0 && (
+                            <div className="flex flex-col gap-0.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[7px] font-mono uppercase text-idm-muted">
+                                  Historial
+                                </span>
+                                <button
+                                  onClick={() => handleMetricModulationReset(
+                                    mmHistory[mmHistory.length - 1].fromBpm
+                                  )}
+                                  className="text-[7px] font-mono text-idm-muted hover:text-system-accent transition-colors"
+                                  title="Volver al BPM original"
+                                >
+                                  Reset
+                                </button>
+                              </div>
+                              {mmHistory.map((entry, i) => (
+                                <div key={i} className="flex items-center justify-between gap-1">
+                                  <span className="text-[7px] font-mono text-idm-muted">
+                                    {entry.timestamp}
+                                  </span>
+                                  <span className="text-[7px] font-mono text-idm-ink">
+                                    {entry.fromBpm}→{entry.toBpm}
+                                  </span>
+                                  <span className="text-[7px] font-mono text-system-accent">
+                                    {entry.ratio}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-2">
