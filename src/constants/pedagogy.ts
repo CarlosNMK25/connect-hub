@@ -86,6 +86,9 @@ export const PEDAGOGY = {
     modalDecay: "Multiplicador de decay de los modos resonantes. Rango: [0.5, 3.0]. A 0.5 los modos se extinguen rápido (golpe seco). A 3.0 resuenan prolongadamente (gong). Los modos agudos decaen más rápido que los graves (decay_n = base_decay / n), emulando la física real de cuerpos vibrantes.",
     ambientVolume: "Volumen de los loops ambient generativos. Rango: [0.1, 1.0]. Controla el nivel de la textura atmosférica respecto al patrón rítmico. A 0.1 → apenas perceptible (subliminal); a 1.0 → dominante (el ritmo emerge desde la textura). Define la relación figura-fondo sonora.",
     ambientSpeed: "Multiplicador de velocidad de los loops ambient. Rango: [0.5, 2.0]. A 0.5 → tiempo dilatado, texturas glaciales; a 1.0 → velocidad nominal; a 2.0 → granulado acelerado. Altera la densidad temporal de la textura sin afectar el pitch (timestretch implícito).",
+    // Round Robin & Phase Drift
+    roundRobin: "Micro-variación estocástica por hit (Round Robin). Aplica fluctuación gaussiana 𝒩(0, σ²) sobre la velocity de cada disparo, donde σ = amount × 0.15 × v_max. Rango amount: [0, 100%]. Elimina el 'machine gun effect' de la repetición idéntica. En pistas tonales, rota secuencialmente los noteIndices del array, creando melodías cíclicas desde un patrón rítmico fijo. En samplers, la variación se restringe a velocity/filtro (no pitch) por limitaciones del GrainPlayer.",
+    phaseDrift: "Desfase progresivo estilo Steve Reich: acumula un offset temporal Δt por ciclo. Rate: [-0.05, +0.05] seg/ciclo. Rate positivo → la pista se retrasa gradualmente; negativo → se adelanta. A rate=0.01, tras 100 ciclos el desfase es de 1 segundo completo. Genera phasing — el proceso donde dos patrones idénticos divergen lentamente hasta crear interferencias rítmicas complejas antes de re-sincronizarse (o no). Técnica central de 'Piano Phase' (Reich, 1967).",
   } as PedagogyMicro,
 
   microLiterary: {
