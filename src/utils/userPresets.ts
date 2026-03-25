@@ -65,6 +65,16 @@ export interface UserPresetTrack {
   layer2Offset?: number;
   layer2FilterFreq?: number;
   layer2Reverse?: boolean;
+  // Lorenz Attractor
+  lorenzEnabled?: boolean;
+  lorenzDepth?: number;
+  lorenzTarget?: string;
+  lorenzSpeed?: number;
+  // Nested LFO
+  nestedLfoEnabled?: boolean;
+  nestedLfoRate1?: number;
+  nestedLfoRate2?: number;
+  nestedLfoDepth?: number;
 }
 
 export interface UserPreset {
