@@ -616,14 +616,21 @@ export const EuclideanSequencer = () => {
 
       // Flush pending evolve mutations to React state (max 1 setTracks per 100ms)
       const mutations = pendingMutationsRef.current;
+      const caPatterns = pendingCARef.current;
       const mutationKeys = Object.keys(mutations);
-      if (mutationKeys.length > 0) {
+      const caKeys = Object.keys(caPatterns);
+      if (mutationKeys.length > 0 || caKeys.length > 0) {
         pendingMutationsRef.current = {};
+        pendingCARef.current = {};
         setTracks(prev => prev.map(t => {
+          let updated = t;
           if (mutations[t.id]) {
-            return { ...t, probabilities: mutations[t.id] };
+            updated = { ...updated, probabilities: mutations[t.id] };
           }
-          return t;
+          if (caPatterns[t.id]) {
+            updated = { ...updated, pattern: caPatterns[t.id] };
+          }
+          return updated;
         }));
       }
     }, 100);
