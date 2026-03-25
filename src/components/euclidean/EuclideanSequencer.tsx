@@ -89,6 +89,8 @@ interface TrackState {
   enoSpeed?: number;               // multiplicador de velocidad Eno (0.5-2.0, default 1.0)
   rrEnabled?: boolean;             // Round Robin micro-variación por hit, default false
   rrAmount?: number;               // intensidad RR 0-100, default 30
+  driftEnabled?: boolean;          // Phase Drift estilo Reich, default false
+  driftRate?: number;              // -0.05 a 0.05, default 0.01
   hits: number;
   misses: number;
 }
