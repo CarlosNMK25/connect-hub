@@ -1357,7 +1357,10 @@ export const EuclideanSequencer = () => {
         // Record phase dispersion for sparkline
         const ct = tracksRef.current.filter(t => t.id !== 'cloud' && !t.isMuted);
         if (ct.length >= 2) {
-          const phases = ct.map(t => ((currentGlobalStep + t.offset) % t.steps) / t.steps);
+        const phases = ct.map(t => {
+          const drift = Math.floor(driftAccumulatorRef.current[t.id] ?? 0);
+          return (((currentGlobalStep + t.offset + drift) % t.steps) + t.steps) % t.steps / t.steps;
+        });
           // Mean pairwise distance (circular)
           let sum = 0, count = 0;
           for (let a = 0; a < phases.length; a++) {
