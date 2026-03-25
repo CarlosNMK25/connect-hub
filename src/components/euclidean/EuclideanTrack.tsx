@@ -714,6 +714,17 @@ export const EuclideanTrack = React.memo(({
             {samplerStatus === 'READY' && (
               <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
+                  onClick={() => onSamplerParamChange('stretchEnabled', !stretchEnabled)}
+                  className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                    stretchEnabled
+                      ? 'bg-system-accent text-white border-system-accent'
+                      : 'bg-background text-foreground/60 border-border hover:border-system-accent/50'
+                  }`}
+                  title="Time Stretch — velocidad sin cambio de pitch"
+                >
+                  STR
+                </button>
+                <button
                   onClick={() => onSlicerToggle?.(!slicerEnabled)}
                   className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
                     slicerEnabled
