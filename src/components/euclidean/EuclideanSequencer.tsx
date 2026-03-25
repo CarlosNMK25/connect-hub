@@ -2007,11 +2007,13 @@ export const EuclideanSequencer = () => {
           if (synth.bitCrusher) {
             synth.bitCrusher.bits.value = track.bitCrush;
           }
-          if (synth.grainPlayer) {
-            synth.grainPlayer.grainSize = track.grainSize / 1000;
-            synth.grainPlayer.overlap = track.overlap;
-            synth.grainPlayer.detune = track.pitch * 100;
-          }
+      if (synth.grainPlayer) {
+        synth.grainPlayer.grainSize = track.grainSize / 1000;
+        synth.grainPlayer.overlap = track.overlap;
+        synth.grainPlayer.detune = track.pitch * 100;
+        const stretchRate = track.stretchEnabled ? (track.stretchRate ?? 1.0) : 1.0;
+        synth.grainPlayer.playbackRate = stretchRate;
+      }
         } catch (e) {
           console.warn(`Failed to sync params for track ${track.id}:`, e);
         }
