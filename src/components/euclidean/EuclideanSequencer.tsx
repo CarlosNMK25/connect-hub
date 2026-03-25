@@ -2655,6 +2655,17 @@ export const EuclideanSequencer = () => {
           kickReverbSend.dispose();
         }
       };
+      // Lorenz + Nested LFO injection for kick rebuild
+      synthsRef.current.kick.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
+        if (target === 'filter') kickFilter.frequency.rampTo(800 + normalizedValue * depth, 0.05);
+      };
+      synthsRef.current.kick.nestedLfoInstance = null;
+      synthsRef.current.kick.initNestedLfo = (r1: number, r2: number, d: number) => {
+        synthsRef.current.kick.nestedLfoInstance?.dispose();
+        synthsRef.current.kick.nestedLfoInstance = createNestedLfo(kickFilter, r1, r2, d);
+      };
+      synthsRef.current.kick.updateNestedLfo = (r1: number, r2: number, d: number) => synthsRef.current.kick.nestedLfoInstance?.update(r1, r2, d);
+      synthsRef.current.kick.disposeNestedLfo = () => { synthsRef.current.kick.nestedLfoInstance?.dispose(); synthsRef.current.kick.nestedLfoInstance = null; };
     } else if (trackId === 'snare') {
       const snareDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const snareReverbSend = new Tone.Gain(0).connect(master.reverbBus);
