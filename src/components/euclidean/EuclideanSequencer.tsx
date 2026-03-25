@@ -342,7 +342,39 @@ export const EuclideanSequencer = () => {
     }, 500);
   }, [logChange]);
 
-  // Sync engine log to state when panel is open
+  const METRIC_MODULATION_RATIOS = useMemo(() => [
+    { ratio: 3/2,  label: '3:2',  description: 'tresillos → beat  ×1.5' },
+    { ratio: 4/3,  label: '4:3',  description: 'semicorcheas → tresillos  ×1.33' },
+    { ratio: 5/4,  label: '5:4',  description: 'quintillos → beat  ×1.25' },
+    { ratio: 2/3,  label: '2:3',  description: 'beat → tresillos  ×0.67' },
+    { ratio: 3/4,  label: '3:4',  description: 'tresillos → semicorcheas  ×0.75' },
+    { ratio: 4/5,  label: '4:5',  description: 'beat → quintillos  ×0.80' },
+  ], []);
+
+  const handleMetricModulation = useCallback((ratio: number, label: string, description: string) => {
+    const fromBpm = bpm;
+    const rawBpm = fromBpm * ratio;
+    const toBpm = Math.round(Math.max(40, Math.min(240, rawBpm)));
+    setBpm(toBpm);
+    const now = new Date();
+    const timestamp = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+    setMmHistory(prev => [{
+      fromBpm,
+      toBpm,
+      ratio: label,
+      label: description,
+      timestamp
+    }, ...prev].slice(0, 5));
+    logChange(`MM ${label}: ${fromBpm} → ${toBpm} BPM`, [description]);
+  }, [bpm, logChange]);
+
+  const handleMetricModulationReset = useCallback((targetBpm: number) => {
+    setBpm(targetBpm);
+    setMmHistory([]);
+    logChange(`MM Reset → ${targetBpm} BPM`, []);
+  }, [logChange]);
+
+
   useEffect(() => {
     if (!showEngine) return;
     const interval = setInterval(() => {
