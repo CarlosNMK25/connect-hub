@@ -1036,6 +1036,9 @@ export const EuclideanSequencer = () => {
         // Slicer: restore enabled/count only — order/reverse/pitch depend on buffer
         slicerEnabled: (config as any).slicerEnabled ?? false,
         sliceCount: (config as any).sliceCount ?? 16,
+        // Time Stretch
+        stretchEnabled: (config as any).stretchEnabled ?? false,
+        stretchRate: (config as any).stretchRate ?? 1.0,
         hits: 0,
         misses: 0,
       });
