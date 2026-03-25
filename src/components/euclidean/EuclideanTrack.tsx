@@ -134,6 +134,10 @@ interface EuclideanTrackProps {
   rrAmount?: number;
   onRrEnabledChange?: (val: boolean) => void;
   onRrAmountChange?: (val: number) => void;
+  driftEnabled?: boolean;
+  driftRate?: number;
+  onDriftEnabledChange?: (val: boolean) => void;
+  onDriftRateChange?: (val: number) => void;
   toneRecordingState?: 'idle' | 'armed' | 'recording';
   onRecordAction?: () => void;
   cloudRecordingState?: 'idle' | 'armed' | 'recording';
