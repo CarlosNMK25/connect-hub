@@ -40,6 +40,8 @@ export interface UserPresetTrack {
   enoSpeed?: number;
   rrEnabled?: boolean;
   rrAmount?: number;
+  driftEnabled?: boolean;
+  driftRate?: number;
 }
 
 export interface UserPreset {

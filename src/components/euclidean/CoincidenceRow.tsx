@@ -33,7 +33,8 @@ export const CoincidenceRow: React.FC<CoincidenceRowProps> = React.memo(({ track
     for (const track of activeTracks) {
       for (let i = 0; i < maxSteps; i++) {
         // Map global step position to this track's local position considering offset
-        const localStep = ((i - track.offset) % track.steps + track.steps) % track.steps;
+        const drift = driftOffsets?.[track.id] ?? 0;
+        const localStep = ((i - track.offset - drift) % track.steps + track.steps) % track.steps;
         if (track.pattern[localStep] === 1) {
           counts[i]++;
           colors[i].push(track.color);
