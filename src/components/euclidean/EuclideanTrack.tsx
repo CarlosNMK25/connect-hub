@@ -1320,6 +1320,94 @@ export const EuclideanTrack = React.memo(({
           </div>
         </div>
       )}
+      {/* Markov controls — visible when noteMode === 'markov' */}
+      {isTonal && noteMode === 'markov' && (
+        <div className="flex flex-wrap items-center gap-3 mt-1.5 p-3 bg-background rounded-2xl border border-border">
+          {/* Style */}
+          <div className="flex items-center gap-1">
+            <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Style</span>
+            <select
+              value={markovStyle ?? 'scale'}
+              onChange={e => onMarkovParamChange?.('markovStyle', e.target.value)}
+              className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 text-foreground focus:outline-none focus:border-system-accent"
+            >
+              <option value="scale">Escala</option>
+              <option value="jumps">Saltos</option>
+              <option value="flamenco">Flamenco</option>
+              <option value="idm">IDM</option>
+              <option value="chromatic">Cromático</option>
+            </select>
+          </div>
+          {/* Temperature */}
+          <div className="flex items-center gap-1">
+            <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Temp</span>
+            <input type="range" min={0} max={100} step={5}
+              value={markovTemperature ?? 40}
+              onChange={e => onMarkovParamChange?.('markovTemperature', Number(e.target.value))}
+              className="w-14 h-1 appearance-none cursor-pointer accent-system-accent"
+            />
+            <span className="text-[7px] font-mono text-muted-foreground w-6 text-right">
+              {markovTemperature ?? 40}
+            </span>
+          </div>
+          {/* Anchor */}
+          <div className="flex items-center gap-1">
+            <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Anchor</span>
+            <select
+              value={markovAnchor ?? 0}
+              onChange={e => onMarkovParamChange?.('markovAnchor', Number(e.target.value))}
+              className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 text-foreground focus:outline-none focus:border-system-accent"
+            >
+              <option value={0}>OFF</option>
+              <option value={4}>Cada 4</option>
+              <option value={8}>Cada 8</option>
+              <option value={16}>Cada 16</option>
+            </select>
+          </div>
+          {/* Nueva Matriz */}
+          <button
+            onClick={() => onMarkovRegenerate?.()}
+            className="text-[8px] font-mono px-2 py-0.5 rounded border border-system-accent text-system-accent hover:bg-system-accent hover:text-white transition-colors"
+          >
+            NUEVA MATRIZ
+          </button>
+          {/* Ver Matriz */}
+          <button
+            onClick={() => onMarkovParamChange?.('markovShowMatrix', !(markovShowMatrix ?? false))}
+            className={`text-[8px] font-mono px-2 py-0.5 rounded border transition-colors ${
+              markovShowMatrix
+                ? 'bg-system-accent text-white border-system-accent'
+                : 'border-border text-muted-foreground hover:border-system-accent'
+            }`}
+          >
+            {markovShowMatrix ? 'OCULTAR' : 'VER MATRIZ'}
+          </button>
+          {/* Matrix heatmap */}
+          {markovShowMatrix && onGetMarkovMatrix && (
+            <div className="w-full mt-1 overflow-x-auto">
+              <table className="text-[6px] font-mono border-collapse">
+                <tbody>
+                  {onGetMarkovMatrix(id)?.map((row, i) => (
+                    <tr key={i}>
+                      {row.map((val, j) => (
+                        <td key={j}
+                          className="px-0.5 py-0.5 text-center border border-border"
+                          style={{
+                            backgroundColor: `hsla(25, 95%, 53%, ${val})`,
+                            color: val > 0.5 ? 'white' : 'inherit'
+                          }}
+                        >
+                          {Math.round(val * 100)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
       {/* Controles ultra-compactos intencionales — no migrar a shadcn */}
       {isTonal && synthType === 'fm' && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
