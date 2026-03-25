@@ -3,6 +3,7 @@ import * as Tone from 'tone';
 export interface ScaleDef {
   intervals: number[];
   detune?: number[];   // cents per degree (optional, for microtonal scales)
+  period?: number;     // repeat interval in cents (default 1200 = octave; 1902 for Bohlen-Pierce tritave)
 }
 
 export const SCALES: Record<string, ScaleDef> = {
