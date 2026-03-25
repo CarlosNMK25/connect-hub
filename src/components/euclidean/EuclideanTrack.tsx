@@ -174,6 +174,16 @@ interface EuclideanTrackProps {
   onLsReset?: () => void;
   onCaParamChange?: (param: string, value: string | number) => void;
   onCaReset?: () => void;
+  // Markov props
+  noteMode?: 'euclidean' | 'markov';
+  markovStyle?: string;
+  markovTemperature?: number;
+  markovAnchor?: number;
+  markovShowMatrix?: boolean;
+  onNoteModeChange?: (mode: 'euclidean' | 'markov') => void;
+  onMarkovParamChange?: (param: string, value: string | number | boolean) => void;
+  onMarkovRegenerate?: () => void;
+  onGetMarkovMatrix?: (trackId: string) => number[][] | undefined;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
