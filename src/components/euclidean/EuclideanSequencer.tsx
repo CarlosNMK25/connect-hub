@@ -130,6 +130,12 @@ interface TrackState {
   nestedLfoRate1?: number;
   nestedLfoRate2?: number;
   nestedLfoDepth?: number;
+  // Slicer Engine (Phase 6A)
+  slicerEnabled?: boolean;
+  sliceCount?: number;
+  sliceOrder?: number[];
+  sliceReverse?: boolean[];
+  slicePitch?: number[];
   hits: number;
   misses: number;
 }
