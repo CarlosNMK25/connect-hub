@@ -1463,13 +1463,34 @@ export const EuclideanSequencer = () => {
               if (track.isTonal) {
                 // Tonal track: compute note from scale + noteIndex
                 let noteIdx: number;
-                if (track.rrEnabled && track.noteIndices.length > 1) {
+                if ((track.noteMode ?? 'euclidean') === 'markov') {
+                  // MARKOV: elegir nota por transición probabilística
+                  const uniqueNotes = markovNotesRef.current[track.id];
+                  const matrix = markovMatrixRef.current[track.id];
+                  if (!uniqueNotes || uniqueNotes.length === 0 || !matrix) {
+                    noteIdx = track.noteIndices[idx] ?? 0;
+                  } else {
+                    const anchorEvery = track.markovAnchor ?? 0;
+                    const anchorCount = markovAnchorCountRef.current[track.id] ?? 0;
+                    let notePosition: number;
+                    if (anchorEvery > 0 && anchorCount >= anchorEvery) {
+                      notePosition = 0;
+                      markovAnchorCountRef.current[track.id] = 0;
+                    } else {
+                      const lastPosition = markovLastNoteRef.current[track.id] ?? 0;
+                      notePosition = markovNextNote(lastPosition, matrix);
+                      markovAnchorCountRef.current[track.id] = anchorCount + 1;
+                    }
+                    markovLastNoteRef.current[track.id] = notePosition;
+                    noteIdx = uniqueNotes[notePosition];
+                  }
+                } else if (track.rrEnabled && track.noteIndices.length > 1) {
                   // RR activo: rotación secuencial por noteIndices
                   const rrIdx = rrNoteIndexRef.current[track.id] ?? 0;
                   noteIdx = track.noteIndices[rrIdx % track.noteIndices.length];
                   rrNoteIndexRef.current[track.id] = (rrIdx + 1) % track.noteIndices.length;
                 } else {
-                  // Sin RR: comportamiento original — determinista por step
+                  // Euclidean: determinista por step
                   noteIdx = track.noteIndices[idx] ?? 0;
                 }
                 const scaleIntervals = SCALES[track.scaleId] || SCALES.phrygianDominant;
