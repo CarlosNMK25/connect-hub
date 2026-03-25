@@ -371,7 +371,22 @@ export const EuclideanTrack = React.memo(({
   studyVoice = 'technical',
   temporalityMode,
   bpm,
-  swing
+  swing,
+  patternMode,
+  lsSeed,
+  lsRuleA,
+  lsIterations,
+  lsRotation,
+  caRule,
+  caSeed,
+  caDensity,
+  caSpeed,
+  onPatternModeChange,
+  onLsParamChange,
+  onLsRegenerate,
+  onLsReset,
+  onCaParamChange,
+  onCaReset,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
