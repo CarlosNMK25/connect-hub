@@ -2112,6 +2112,14 @@ export const EuclideanTrack = React.memo(({
     prevProps.markovStyle === nextProps.markovStyle &&
     prevProps.markovTemperature === nextProps.markovTemperature &&
     prevProps.markovAnchor === nextProps.markovAnchor &&
-    prevProps.markovShowMatrix === nextProps.markovShowMatrix
+    prevProps.markovShowMatrix === nextProps.markovShowMatrix &&
+    prevProps.lorenzEnabled === nextProps.lorenzEnabled &&
+    prevProps.lorenzDepth === nextProps.lorenzDepth &&
+    prevProps.lorenzTarget === nextProps.lorenzTarget &&
+    prevProps.lorenzSpeed === nextProps.lorenzSpeed &&
+    prevProps.nestedLfoEnabled === nextProps.nestedLfoEnabled &&
+    prevProps.nestedLfoRate1 === nextProps.nestedLfoRate1 &&
+    prevProps.nestedLfoRate2 === nextProps.nestedLfoRate2 &&
+    prevProps.nestedLfoDepth === nextProps.nestedLfoDepth
   );
 });
