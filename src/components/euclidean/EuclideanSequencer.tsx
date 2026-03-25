@@ -1708,6 +1708,16 @@ export const EuclideanSequencer = () => {
 
             Tone.Draw.schedule(() => {
               setLastHit({ offset, color: track.color, velocity, id: Math.random() });
+              // Fix 3: trigger waveform playhead animation via DOM class
+              if (synth.grainPlayer && track.samplerStatus === 'READY') {
+                const wfEl = document.querySelector(`.waveform-container[data-track-id="${track.id}"]`);
+                if (wfEl) {
+                  wfEl.classList.remove('waveform-triggered');
+                  void (wfEl as HTMLElement).offsetWidth; // force reflow to restart animation
+                  wfEl.classList.add('waveform-triggered');
+                  setTimeout(() => wfEl.classList.remove('waveform-triggered'), 150);
+                }
+              }
             }, scheduledTime);
           } catch (e) {
             console.warn(`Trigger failed for ${track.id}:`, e);

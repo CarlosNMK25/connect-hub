@@ -5,9 +5,6 @@ interface WaveformDisplayProps {
   color: string;
   start: number;
   end: number;
-  currentStepProgress: number; // 0-1 within the current step
-  isPlaying: boolean;
-  isTriggered: boolean;
 }
 
 export const WaveformDisplay: React.FC<WaveformDisplayProps> = ({
@@ -15,9 +12,6 @@ export const WaveformDisplay: React.FC<WaveformDisplayProps> = ({
   color,
   start,
   end,
-  currentStepProgress,
-  isPlaying,
-  isTriggered
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -118,36 +112,21 @@ export const WaveformDisplay: React.FC<WaveformDisplayProps> = ({
       ctx.globalAlpha = 0.1;
       ctx.fillRect(startX, 0, endX - startX, rect.height);
       ctx.globalAlpha = 1;
-
-      // Draw Playhead Fantasma if triggered
-      if (isTriggered && isPlaying) {
-        const playheadX = startX + (endX - startX) * currentStepProgress;
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(playheadX, 0);
-        ctx.lineTo(playheadX, rect.height);
-        ctx.stroke();
-        
-        // Glow effect
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = '#ffffff';
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-      }
     };
 
     draw();
     return () => resizeObserver.disconnect();
-  }, [buffer, color, start, end, currentStepProgress, isPlaying, isTriggered]);
+  }, [buffer, color, start, end]);
 
   return (
-    <div ref={containerRef} className="w-full h-full">
+    <div ref={containerRef} className="w-full h-full relative">
       <canvas 
         ref={canvasRef} 
         className="w-full h-full bg-black/40 rounded-md border border-white/5 cursor-crosshair"
         style={{ imageRendering: 'pixelated' }}
       />
+      {/* CSS-driven playhead — animated via .waveform-triggered class on parent */}
+      <div className="waveform-playhead" />
     </div>
   );
 };
