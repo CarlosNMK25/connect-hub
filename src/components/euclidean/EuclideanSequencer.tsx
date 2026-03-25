@@ -910,6 +910,9 @@ export const EuclideanSequencer = () => {
           // Slicer
           slicerEnabled: t.slicerEnabled,
           sliceCount: t.sliceCount,
+          // Time Stretch
+          stretchEnabled: t.stretchEnabled,
+          stretchRate: t.stretchRate,
         }])
       ),
     };
