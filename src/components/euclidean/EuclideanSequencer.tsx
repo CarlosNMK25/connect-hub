@@ -489,6 +489,9 @@ export const EuclideanSequencer = () => {
   const lastScheduledTimesRef = useRef<{ [key: string]: number }>({});
   const stepIndicesRef = useRef<{ [key: string]: number }>({});
   const pendingMutationsRef = useRef<{ [trackId: string]: number[] }>({});
+  const caStateRef = useRef<Record<string, number[]>>({});
+  const caEvolveCycleRef = useRef<Record<string, number>>({});
+  const pendingCARef = useRef<Record<string, number[]>>({});
   const rrNoteIndexRef = useRef<Record<string, number>>({});
   const driftAccumulatorRef = useRef<Record<string, number>>({});
   const [driftOffsets, setDriftOffsets] = useState<Record<string, number>>({});
