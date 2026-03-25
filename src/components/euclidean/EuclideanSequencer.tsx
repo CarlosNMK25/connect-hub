@@ -835,6 +835,12 @@ export const EuclideanSequencer = () => {
           rrAmount: t.rrAmount,
           driftEnabled: t.driftEnabled,
           driftRate: t.driftRate,
+          // Markov
+          noteMode: t.noteMode,
+          markovStyle: t.markovStyle,
+          markovTemperature: t.markovTemperature,
+          markovMemory: t.markovMemory,
+          markovAnchor: t.markovAnchor,
           // Pattern mode
           patternMode: t.patternMode,
           lsSeed: t.lsSeed,
