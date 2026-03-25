@@ -1324,7 +1324,7 @@ export const EuclideanTrack = React.memo(({
       {isTonal && noteMode === 'markov' && (
         <div className="flex flex-wrap items-center gap-3 mt-1.5 p-3 bg-background rounded-2xl border border-border">
           {/* Style */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('markovStyle', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Style</span>
             <select
               value={markovStyle ?? 'scale'}
