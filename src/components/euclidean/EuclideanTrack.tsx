@@ -696,12 +696,28 @@ export const EuclideanTrack = React.memo(({
 
             {samplerStatus === 'READY' && (
               <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => onSlicerToggle?.(!slicerEnabled)}
+                  className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                    slicerEnabled
+                      ? 'bg-system-accent text-white border-system-accent'
+                      : 'bg-background text-foreground/60 border-border hover:border-system-accent/50'
+                  }`}
+                  title="Sample Slicer"
+                >
+                  SLICE
+                </button>
                 <button onClick={onClearSampler}
                   className="p-1 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-md transition-all border border-red-500/20"
                   title="Clear Sample">
                   <Trash2 size={10} />
                 </button>
               </div>
+            )}
+
+            {/* Slice boundary overlay lines */}
+            {slicerEnabled && samplerBuffer && (
+              <SliceBoundaryOverlay buffer={samplerBuffer} sliceCount={sliceCount ?? 16} color={color} />
             )}
 
             <input type="file" ref={fileInputRef} className="hidden" accept="audio/*"
