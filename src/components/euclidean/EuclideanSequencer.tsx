@@ -1563,6 +1563,9 @@ export const EuclideanSequencer = () => {
       rrNoteIndexRef.current = {};
       driftAccumulatorRef.current = {};
       setDriftOffsets({});
+      caStateRef.current = {};
+      caEvolveCycleRef.current = {};
+      pendingCARef.current = {};
     } else {
       const activeTracks = tracks.filter(t => !t.isMuted).length;
       logChange('▶ Play', [`BPM ${bpm}`, `${activeTracks} activos`]);
