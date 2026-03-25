@@ -815,6 +815,12 @@ export const EuclideanSequencer = () => {
         rrAmount: config.rrAmount ?? 30,
         driftEnabled: config.driftEnabled ?? false,
         driftRate: config.driftRate ?? 0.01,
+        // Layer 2 params (buffer NOT restored from preset)
+        layer2Blend: config.layer2Blend ?? 0.8,
+        layer2Pitch: config.layer2Pitch ?? 0,
+        layer2Offset: config.layer2Offset ?? 0,
+        layer2FilterFreq: config.layer2FilterFreq ?? 8000,
+        layer2Reverse: config.layer2Reverse ?? false,
         hits: 0,
         misses: 0,
       });
