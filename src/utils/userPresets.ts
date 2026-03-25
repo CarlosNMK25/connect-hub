@@ -42,6 +42,16 @@ export interface UserPresetTrack {
   rrAmount?: number;
   driftEnabled?: boolean;
   driftRate?: number;
+  // Pattern mode
+  patternMode?: 'euclidean' | 'lsystem' | 'ca';
+  lsSeed?: string;
+  lsRuleA?: string;
+  lsIterations?: number;
+  lsRotation?: number;
+  caRule?: number;
+  caSeed?: string;
+  caDensity?: number;
+  caSpeed?: number;
   // Layer 2
   layer2Filename?: string;
   layer2Blend?: number;

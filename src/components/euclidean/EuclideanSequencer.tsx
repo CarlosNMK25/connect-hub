@@ -13,6 +13,7 @@ import { PatternSpace } from './PatternSpace';
 import { CoincidenceRow } from './CoincidenceRow';
 import { PhaseSparkline } from './PhaseSparkline';
 import { bjorklund, rotate } from '../../utils/bjorklund';
+import { generateLSystem, generateCAPattern } from '../../utils/patternGenerators';
 import { lcmArray, calculateLcmImpact } from '../../utils/math';
 import { evaluateDiagnosis, computeMcm, computeEclipseTime, type DiagnosisContext, type DiagnosisInsight } from '../../utils/diagnosis';
 import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
@@ -89,6 +90,16 @@ interface TrackState {
   enoSpeed?: number;               // multiplicador de velocidad Eno (0.5-2.0, default 1.0)
   rrEnabled?: boolean;             // Round Robin micro-variación por hit, default false
   rrAmount?: number;               // intensidad RR 0-100, default 30
+  // Pattern Mode (L-System / Cellular Automata)
+  patternMode?: 'euclidean' | 'lsystem' | 'ca';
+  lsSeed?: string;
+  lsRuleA?: string;
+  lsIterations?: number;
+  lsRotation?: number;
+  caRule?: number;
+  caSeed?: string;
+  caDensity?: number;
+  caSpeed?: number;
   driftEnabled?: boolean;          // Phase Drift estilo Reich, default false
   driftRate?: number;              // -0.05 a 0.05, default 0.01
   // Layer 2
@@ -395,7 +406,34 @@ export const EuclideanSequencer = () => {
   });
   
   // Update Patterns (Atomic inside handlers now)
-  const updateTrackPattern = (t: TrackState) => {
+  const updateTrackPattern = (t: TrackState): TrackState => {
+    const mode = t.patternMode ?? 'euclidean';
+
+    if (mode === 'lsystem') {
+      const pattern = generateLSystem(
+        t.lsSeed ?? 'X',
+        t.lsRuleA ?? 'XO',
+        t.lsIterations ?? 3,
+        t.steps,
+        t.lsRotation ?? 0
+      );
+      return { ...t, pattern };
+    }
+
+    if (mode === 'ca') {
+      const existing = caStateRef.current[t.id];
+      const { pattern, newState } = generateCAPattern(
+        t.caRule ?? 30,
+        t.caSeed ?? 'center',
+        t.steps,
+        t.caDensity ?? 50,
+        existing
+      );
+      caStateRef.current[t.id] = newState;
+      return { ...t, pattern };
+    }
+
+    // default: euclidean
     const p = bjorklund(t.pulses, t.steps);
     // No longer rotating the pattern physically. 
     // The offset will be handled by the playhead (globalStep + offset).
@@ -478,6 +516,9 @@ export const EuclideanSequencer = () => {
   const lastScheduledTimesRef = useRef<{ [key: string]: number }>({});
   const stepIndicesRef = useRef<{ [key: string]: number }>({});
   const pendingMutationsRef = useRef<{ [trackId: string]: number[] }>({});
+  const caStateRef = useRef<Record<string, number[]>>({});
+  const caEvolveCycleRef = useRef<Record<string, number>>({});
+  const pendingCARef = useRef<Record<string, number[]>>({});
   const rrNoteIndexRef = useRef<Record<string, number>>({});
   const driftAccumulatorRef = useRef<Record<string, number>>({});
   const [driftOffsets, setDriftOffsets] = useState<Record<string, number>>({});
@@ -575,14 +616,21 @@ export const EuclideanSequencer = () => {
 
       // Flush pending evolve mutations to React state (max 1 setTracks per 100ms)
       const mutations = pendingMutationsRef.current;
+      const caPatterns = pendingCARef.current;
       const mutationKeys = Object.keys(mutations);
-      if (mutationKeys.length > 0) {
+      const caKeys = Object.keys(caPatterns);
+      if (mutationKeys.length > 0 || caKeys.length > 0) {
         pendingMutationsRef.current = {};
+        pendingCARef.current = {};
         setTracks(prev => prev.map(t => {
+          let updated = t;
           if (mutations[t.id]) {
-            return { ...t, probabilities: mutations[t.id] };
+            updated = { ...updated, probabilities: mutations[t.id] };
           }
-          return t;
+          if (caPatterns[t.id]) {
+            updated = { ...updated, pattern: caPatterns[t.id] };
+          }
+          return updated;
         }));
       }
     }, 100);
@@ -761,6 +809,16 @@ export const EuclideanSequencer = () => {
           rrAmount: t.rrAmount,
           driftEnabled: t.driftEnabled,
           driftRate: t.driftRate,
+          // Pattern mode
+          patternMode: t.patternMode,
+          lsSeed: t.lsSeed,
+          lsRuleA: t.lsRuleA,
+          lsIterations: t.lsIterations,
+          lsRotation: t.lsRotation,
+          caRule: t.caRule,
+          caSeed: t.caSeed,
+          caDensity: t.caDensity,
+          caSpeed: t.caSpeed,
           // Layer 2 (solo parámetros, no buffer)
           layer2Filename: t.layer2Filename,
           layer2Blend: t.layer2Blend,
@@ -857,6 +915,16 @@ export const EuclideanSequencer = () => {
         rrAmount: config.rrAmount ?? 30,
         driftEnabled: config.driftEnabled ?? false,
         driftRate: config.driftRate ?? 0.01,
+        // Pattern mode
+        patternMode: (config as any).patternMode ?? 'euclidean',
+        lsSeed: (config as any).lsSeed ?? 'X',
+        lsRuleA: (config as any).lsRuleA ?? 'XO',
+        lsIterations: (config as any).lsIterations ?? 3,
+        lsRotation: (config as any).lsRotation ?? 0,
+        caRule: (config as any).caRule ?? 30,
+        caSeed: (config as any).caSeed ?? 'center',
+        caDensity: (config as any).caDensity ?? 50,
+        caSpeed: (config as any).caSpeed ?? 1,
         // Layer 2 params (buffer NOT restored from preset)
         layer2Blend: config.layer2Blend ?? 0.8,
         layer2Pitch: config.layer2Pitch ?? 0,
@@ -1330,6 +1398,28 @@ export const EuclideanSequencer = () => {
           }
         }
 
+        // CA: evolve pattern at cycle boundary via pendingCARef
+        if (idx === 0 && (track.patternMode ?? 'euclidean') === 'ca') {
+          const speedMod = track.caSpeed ?? 1;
+          caEvolveCycleRef.current[track.id] =
+            (caEvolveCycleRef.current[track.id] ?? 0) + 1;
+          if (caEvolveCycleRef.current[track.id] >= speedMod) {
+            caEvolveCycleRef.current[track.id] = 0;
+            const existing = caStateRef.current[track.id];
+            if (existing) {
+              const { pattern: newPat, newState } = generateCAPattern(
+                track.caRule ?? 30,
+                track.caSeed ?? 'center',
+                track.steps,
+                track.caDensity ?? 50,
+                existing
+              );
+              caStateRef.current[track.id] = newState;
+              pendingCARef.current[track.id] = newPat;
+            }
+          }
+        }
+
         if (isHit) {
           try {
             const synth = synthsRef.current[track.id];
@@ -1493,6 +1583,9 @@ export const EuclideanSequencer = () => {
       rrNoteIndexRef.current = {};
       driftAccumulatorRef.current = {};
       setDriftOffsets({});
+      caStateRef.current = {};
+      caEvolveCycleRef.current = {};
+      pendingCARef.current = {};
     } else {
       const activeTracks = tracks.filter(t => !t.isMuted).length;
       logChange('▶ Play', [`BPM ${bpm}`, `${activeTracks} activos`]);
@@ -1514,6 +1607,9 @@ export const EuclideanSequencer = () => {
     globalStepRef.current = 0;
     driftAccumulatorRef.current = {};
     setDriftOffsets({});
+    caStateRef.current = {};
+    caEvolveCycleRef.current = {};
+    pendingCARef.current = {};
     
     const resetIndices: { [key: string]: number } = {};
     const resetTimes: { [key: string]: number } = {};
@@ -4558,6 +4654,52 @@ export const EuclideanSequencer = () => {
               temporalityMode={temporalityMode}
               bpm={bpm}
               swing={swing}
+              onPatternModeChange={(mode) => {
+                if (mode === 'ca') {
+                  delete caStateRef.current[track.id];
+                  caEvolveCycleRef.current[track.id] = 0;
+                }
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id
+                    ? updateTrackPattern({ ...t, patternMode: mode })
+                    : t
+                ));
+              }}
+              onLsParamChange={(param, value) => {
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id
+                    ? updateTrackPattern({ ...t, [param]: value })
+                    : t
+                ));
+              }}
+              onLsRegenerate={() => {
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? updateTrackPattern(t) : t
+                ));
+              }}
+              onLsReset={() => {
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id
+                    ? updateTrackPattern({ ...t, lsSeed: 'X', lsRuleA: 'XO', lsIterations: 3, lsRotation: 0 })
+                    : t
+                ));
+              }}
+              onCaParamChange={(param, value) => {
+                delete caStateRef.current[track.id];
+                caEvolveCycleRef.current[track.id] = 0;
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id
+                    ? updateTrackPattern({ ...t, [param]: value })
+                    : t
+                ));
+              }}
+              onCaReset={() => {
+                delete caStateRef.current[track.id];
+                caEvolveCycleRef.current[track.id] = 0;
+                setTracks(prev => prev.map(t =>
+                  t.id === track.id ? updateTrackPattern(t) : t
+                ));
+              }}
             />
           </div>
         ))}
