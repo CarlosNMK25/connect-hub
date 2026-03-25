@@ -46,6 +46,9 @@ interface EngineRoomProps {
   jitter: number;
   swing: number;
   hitRate: number | null;
+  mmHistoryLength: number;
+  mmLastRatio?: string;
+  mmOriginalBpm?: number;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
