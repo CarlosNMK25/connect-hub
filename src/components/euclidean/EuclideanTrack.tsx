@@ -748,9 +748,112 @@ export const EuclideanTrack = React.memo(({
                 </>
               )}
             </div>
+
+            {/* Lorenz Attractor */}
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => onLorenzParamChange?.('lorenzEnabled', !lorenzEnabled)}
+                className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+                  lorenzEnabled
+                    ? 'bg-system-accent text-white border-system-accent'
+                    : 'bg-background text-idm-muted border-border'
+                }`}
+                title="Lorenz Attractor — modulación caótica del filtro"
+              >
+                LRZ
+              </button>
+              {lorenzEnabled && (
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] font-mono text-idm-muted w-6">Dep</span>
+                    <input type="range" min={0} max={5000} step={100}
+                      value={lorenzDepth ?? 1000}
+                      onChange={e => onLorenzParamChange?.('lorenzDepth', Number(e.target.value))}
+                      className="w-12 h-[7px] accent-system-accent"
+                    />
+                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
+                      {lorenzDepth ?? 1000}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] font-mono text-idm-muted w-6">Spd</span>
+                    <input type="range" min={0.5} max={3.0} step={0.1}
+                      value={lorenzSpeed ?? 1.0}
+                      onChange={e => onLorenzParamChange?.('lorenzSpeed', Number(e.target.value))}
+                      className="w-12 h-[7px] accent-system-accent"
+                    />
+                    <span className="text-[7px] font-mono text-idm-muted w-6 text-right">
+                      {(lorenzSpeed ?? 1.0).toFixed(1)}×
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] font-mono text-idm-muted w-6">Tgt</span>
+                    <select
+                      value={lorenzTarget ?? 'filter'}
+                      onChange={e => onLorenzParamChange?.('lorenzTarget', e.target.value)}
+                      className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5 text-foreground focus:outline-none focus:border-system-accent"
+                    >
+                      <option value="filter">Filter</option>
+                      <option value="volume">Volume</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Nested LFO */}
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => onNestedLfoToggle?.(!nestedLfoEnabled)}
+                className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+                  nestedLfoEnabled
+                    ? 'bg-system-accent text-white border-system-accent'
+                    : 'bg-background text-idm-muted border-border'
+                }`}
+                title="Nested LFO — modulación de la modulación"
+              >
+                NLF
+              </button>
+              {nestedLfoEnabled && (
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] font-mono text-idm-muted w-6">R1</span>
+                    <input type="range" min={0.01} max={2.0} step={0.01}
+                      value={nestedLfoRate1 ?? 0.1}
+                      onChange={e => onNestedLfoParamChange?.('nestedLfoRate1', Number(e.target.value))}
+                      className="w-12 h-[7px] accent-system-accent"
+                    />
+                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
+                      {(nestedLfoRate1 ?? 0.1).toFixed(2)}Hz
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] font-mono text-idm-muted w-6">R2</span>
+                    <input type="range" min={0.5} max={20.0} step={0.5}
+                      value={nestedLfoRate2 ?? 4.0}
+                      onChange={e => onNestedLfoParamChange?.('nestedLfoRate2', Number(e.target.value))}
+                      className="w-12 h-[7px] accent-system-accent"
+                    />
+                    <span className="text-[7px] font-mono text-idm-muted w-6 text-right">
+                      {(nestedLfoRate2 ?? 4.0).toFixed(1)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] font-mono text-idm-muted w-6">Dep</span>
+                    <input type="range" min={0} max={5000} step={100}
+                      value={nestedLfoDepth ?? 800}
+                      onChange={e => onNestedLfoParamChange?.('nestedLfoDepth', Number(e.target.value))}
+                      className="w-12 h-[7px] accent-system-accent"
+                    />
+                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
+                      {nestedLfoDepth ?? 800}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Layer 2 — segunda capa de sample */}
           {samplerStatus === 'READY' && (
             <div className="flex flex-col gap-1 flex-none border-l border-black/5 pl-2 ml-1">
               {(!layer2Status || layer2Status === 'empty') ? (
