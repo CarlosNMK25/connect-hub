@@ -904,6 +904,9 @@ export const EuclideanSequencer = () => {
           nestedLfoRate1: t.nestedLfoRate1,
           nestedLfoRate2: t.nestedLfoRate2,
           nestedLfoDepth: t.nestedLfoDepth,
+          // Slicer
+          slicerEnabled: t.slicerEnabled,
+          sliceCount: t.sliceCount,
         }])
       ),
     };
