@@ -766,6 +766,7 @@ export const EuclideanSequencer = () => {
   const applyUserPreset = useCallback((up: UserPreset) => {
     setActivePresetId(up.id);
     setBpm(up.bpm);
+    setMmHistory([]);
     setJitter(up.jitter);
     setSwing(up.swing);
     setDynamics(up.dynamics);
