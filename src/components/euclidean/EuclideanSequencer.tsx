@@ -1702,7 +1702,7 @@ export const EuclideanSequencer = () => {
     };
   }, []);
 
-
+  const togglePlay = async () => {
     if (Tone.getContext().state !== 'running') await Tone.start();
     if (isPlaying) {
       logChange('■ Stop');
