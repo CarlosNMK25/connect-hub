@@ -444,6 +444,19 @@ export const EuclideanTrack = React.memo(({
   onMarkovParamChange,
   onMarkovRegenerate,
   onGetMarkovMatrix,
+  // Slicer
+  slicerEnabled,
+  sliceCount,
+  sliceOrder,
+  sliceReverse,
+  slicePitch,
+  onSlicerToggle,
+  onSliceCountChange,
+  onSliceOrderChange,
+  onSliceReverseToggle,
+  onSlicePitchChange,
+  onSliceRandomize,
+  onSliceReset,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
