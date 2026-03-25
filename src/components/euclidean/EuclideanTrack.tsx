@@ -1250,7 +1250,7 @@ export const EuclideanTrack = React.memo(({
       {/* Pad controls */}
       {isTonal && synthType === 'pad' && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('padVoices', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Voices</span>
             <input
               type="range" min="3" max="7" step="1"
@@ -1262,7 +1262,7 @@ export const EuclideanTrack = React.memo(({
               {padVoices ?? 5}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('padDetune', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Detune</span>
             <input
               type="range" min="0" max="100" step="1"
@@ -1274,7 +1274,7 @@ export const EuclideanTrack = React.memo(({
               {padDetune ?? 30}¢
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('padAttack', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Attack</span>
             <input
               type="range" min="0.01" max="2.0" step="0.01"
