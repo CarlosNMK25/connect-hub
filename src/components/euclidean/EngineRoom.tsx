@@ -230,7 +230,7 @@ const DiagnosisPanel: React.FC<{
 
     const ctx: DiagnosisContext = {
       tracks: diagTracks,
-      globalState: { bpm, temporalityMode, jitter, swing },
+      globalState: { bpm, temporalityMode, jitter, swing, mmHistoryLength, mmLastRatio, mmOriginalBpm },
       computed: { mcm, eclipseTime, hitRate },
     };
 
