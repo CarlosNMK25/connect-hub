@@ -1320,6 +1320,11 @@ export const EuclideanSequencer = () => {
               synth.grainPlayer.start(scheduledTime, finalOffset, duration);
             }
 
+            // Layer 2: disparar si existe y hay buffer cargado
+            if (synth.triggerLayer2 && synth.layer2Buffer) {
+              synth.triggerLayer2(scheduledTime, velocity);
+            }
+
             // Ratchet: schedule additional retrigggers within the sixteenth
             const ratchetCount = track.ratchet || 0;
             if (ratchetCount > 0) {
