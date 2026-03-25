@@ -431,6 +431,8 @@ export const EuclideanSequencer = () => {
   const stepIndicesRef = useRef<{ [key: string]: number }>({});
   const pendingMutationsRef = useRef<{ [trackId: string]: number[] }>({});
   const rrNoteIndexRef = useRef<Record<string, number>>({});
+  const driftAccumulatorRef = useRef<Record<string, number>>({});
+  const [driftOffsets, setDriftOffsets] = useState<Record<string, number>>({});
   // Refs para grabación en tiempo real del track Tone
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingChunksRef = useRef<Blob[]>([]);
