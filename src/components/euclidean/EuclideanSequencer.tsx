@@ -1763,6 +1763,8 @@ export const EuclideanSequencer = () => {
       } else if (synthsRef.current.cloud?.grainPlayer) {
         synthsRef.current.cloud.grainPlayer.start();
       }
+      // Start Lorenz RAF if any track has it enabled
+      startLorenzRaf();
     }
     setIsPlaying(!isPlaying);
   };
