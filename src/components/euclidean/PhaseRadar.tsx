@@ -178,7 +178,8 @@ export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSy
         {/* Moving Phase Points */}
         <svg width={size} height={size} className="absolute inset-0 overflow-visible">
           {tracks.map((track, i) => {
-            const currentStep = (globalStep + track.offset) % track.steps;
+            const drift = driftOffsets?.[track.id] ?? 0;
+            const currentStep = ((globalStep + track.offset + drift) % track.steps + track.steps) % track.steps;
             const angle = (currentStep / track.steps) * 2 * Math.PI - Math.PI / 2;
             const r = (i + 1) * radiusStep;
             const x = center + r * Math.cos(angle);
