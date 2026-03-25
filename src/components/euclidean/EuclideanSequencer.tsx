@@ -269,6 +269,14 @@ export const EuclideanSequencer = () => {
     setAudioContextState(Tone.getContext().state);
   };
   const [bpm, setBpm] = useState(120);
+  const [showMM, setShowMM] = useState(false);
+  const [mmHistory, setMmHistory] = useState<Array<{
+    fromBpm: number;
+    toBpm: number;
+    ratio: string;
+    label: string;
+    timestamp: string;
+  }>>([]);
   const [jitter, setJitter] = useState(0);
   const [swing, setSwing] = useState(0);
   const [dynamics, setDynamics] = useState(50);
