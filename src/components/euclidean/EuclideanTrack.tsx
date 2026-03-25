@@ -1291,7 +1291,7 @@ export const EuclideanTrack = React.memo(({
       {/* Drone controls */}
       {isTonal && synthType === 'drone' && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('droneFeedback', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-12">Feedback</span>
             <input
               type="range" min="0.70" max="0.98" step="0.01"
@@ -1303,7 +1303,7 @@ export const EuclideanTrack = React.memo(({
               {((droneFeedback ?? 0.88) * 100).toFixed(0)}%
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('droneFilterFreq', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Filter</span>
             <input
               type="range" min="200" max="8000" step="50"
