@@ -24,6 +24,8 @@ export const SCALES: Record<string, ScaleDef> = {
   hijaz24:          { intervals: [0, 1, 4, 5, 7, 8, 10], detune: [0, 50, 0, 0, 0, 50, 0] },
   rast:             { intervals: [0, 2, 3, 5, 7, 9, 10], detune: [0, 0, 50, 0, 0, 0, 50] },
   bayati:           { intervals: [0, 2, 3, 5, 7, 8, 10], detune: [0, 0, -50, 0, 0, 0, -50] },
+  // Non-octave scales (intervals in cents, period != 1200)
+  bohlenPierce:     { intervals: [0, 146, 293, 439, 585, 732, 878, 1024, 1170, 1317, 1463, 1609, 1756], period: 1902 },
 };
 
 export const SCALE_NAMES: Record<string, string> = {
