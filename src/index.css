@@ -142,3 +142,31 @@ All colors MUST be HSL.
 .step-box {
   transition: transform 0.1s ease-out, background-color 0.1s ease-out, box-shadow 0.1s ease-out, border-color 0.1s ease-out;
 }
+
+/* Fix 3: Waveform playhead sweep animation */
+.waveform-playhead {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+.waveform-triggered .waveform-playhead {
+  animation: waveform-sweep 150ms ease-out forwards;
+}
+
+@keyframes waveform-sweep {
+  0% {
+    opacity: 0.9;
+    left: 0%;
+  }
+  100% {
+    opacity: 0;
+    left: 100%;
+  }
+}
