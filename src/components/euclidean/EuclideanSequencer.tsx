@@ -20,7 +20,7 @@ import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
 import { UserPreset, loadUserPresets, saveUserPresets, exportPresetAsJson, importPresetFromFile, userPresetToScenePreset } from '../../utils/userPresets';
 import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../../utils/temporality';
-import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex } from '../../utils/scales';
+import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals, getScaleDetune, midiAndDetuneToFreq } from '../../utils/scales';
 import { buildWavefoldCurve, vactrolfiltFreq } from '../../utils/waveshaping';
 import { generateMarkovMatrix, markovNextNote, type MarkovStyle } from '../../utils/markovGenerator';
 import { LorenzAttractor } from '../../utils/lorenzAttractor';
@@ -1641,10 +1641,17 @@ export const EuclideanSequencer = () => {
               const duration = track.mode === 'GATE' ? "16n" : (track.decay / 1000);
               
               if (track.isTonal) {
-                const scaleIntervals = SCALES[track.scaleId] || SCALES.phrygianDominant;
+                const scaleIntervals = getScaleIntervals(track.scaleId);
                 const midi = noteIndexToMidi(track.rootNote, scaleIntervals, noteIdx);
-                const noteName = midiToNoteName(midi);
-                synth.triggerAttackRelease(noteName, duration, scheduledTime, velocity);
+                const degree = ((noteIdx % scaleIntervals.length) + scaleIntervals.length) % scaleIntervals.length;
+                const detuneCents = getScaleDetune(track.scaleId, degree);
+                if (detuneCents !== 0) {
+                  const freq = midiAndDetuneToFreq(midi, detuneCents);
+                  synth.triggerAttackRelease(freq, duration, scheduledTime, velocity);
+                } else {
+                  const noteName = midiToNoteName(midi);
+                  synth.triggerAttackRelease(noteName, duration, scheduledTime, velocity);
+                }
               } else if (track.id === 'kick' && !synth.grainPlayer) {
                 synth.triggerAttackRelease("C1", duration, scheduledTime, velocity);
               } else {
@@ -1677,10 +1684,17 @@ export const EuclideanSequencer = () => {
                     const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
                     if (track.isTonal) {
                       // P3 fix: reutilizar noteIdx ya calculado arriba
-                      const scaleIntervals = SCALES[track.scaleId] || SCALES.phrygianDominant;
+                      const scaleIntervals = getScaleIntervals(track.scaleId);
                       const midi = noteIndexToMidi(track.rootNote, scaleIntervals, noteIdx);
-                      const noteName = midiToNoteName(midi);
-                      synth.triggerAttackRelease(noteName, dur, ratchetTime, ratchetVelocity);
+                      const degree = ((noteIdx % scaleIntervals.length) + scaleIntervals.length) % scaleIntervals.length;
+                      const detuneCents = getScaleDetune(track.scaleId, degree);
+                      if (detuneCents !== 0) {
+                        const freq = midiAndDetuneToFreq(midi, detuneCents);
+                        synth.triggerAttackRelease(freq, dur, ratchetTime, ratchetVelocity);
+                      } else {
+                        const noteName = midiToNoteName(midi);
+                        synth.triggerAttackRelease(noteName, dur, ratchetTime, ratchetVelocity);
+                      }
                     } else if (track.id === 'kick' && !synth.grainPlayer) {
                       synth.triggerAttackRelease("C1", dur, ratchetTime, ratchetVelocity);
                     } else {
@@ -3254,13 +3268,15 @@ export const EuclideanSequencer = () => {
         const assignAmbientFreqs = () => {
           const currentTrack = tracksRef.current.find(t => t.id === 'tone');
           if (!currentTrack?.noteIndices?.length) return;
-          const scaleIntervals = SCALES[currentTrack.scaleId] || SCALES.phrygianDominant;
+          const scaleIntervals = getScaleIntervals(currentTrack.scaleId);
           for (let i = 0; i < NUM_LOOPS; i++) {
             const noteIdx = currentTrack.noteIndices[
               Math.floor(Math.random() * currentTrack.noteIndices.length)
             ];
             const midi = noteIndexToMidi(currentTrack.rootNote, scaleIntervals, noteIdx);
-            ambientOscs[i].frequency.value = Tone.Frequency(midi, 'midi').toFrequency();
+            const degree = ((noteIdx % scaleIntervals.length) + scaleIntervals.length) % scaleIntervals.length;
+            const detuneCents = getScaleDetune(currentTrack.scaleId, degree);
+            ambientOscs[i].frequency.value = midiAndDetuneToFreq(midi, detuneCents);
           }
         };
 
