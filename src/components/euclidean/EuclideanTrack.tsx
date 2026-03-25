@@ -1378,7 +1378,7 @@ export const EuclideanTrack = React.memo(({
       {/* Ambient controls */}
       {isTonal && synthType === 'ambient' && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('ambientVolume', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-6">Vol</span>
             <input
               type="range" min="0.1" max="1.0" step="0.05"
@@ -1390,7 +1390,7 @@ export const EuclideanTrack = React.memo(({
               {((ambientVolume ?? 0.6) * 100).toFixed(0)}%
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('ambientSpeed', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Speed</span>
             <input
               type="range" min="0.5" max="2.0" step="0.1"
