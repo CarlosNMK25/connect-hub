@@ -369,6 +369,9 @@ export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiSta
         jitter={jitter}
         swing={swing}
         hitRate={hitRate}
+        mmHistoryLength={mmHistoryLength}
+        mmLastRatio={mmLastRatio}
+        mmOriginalBpm={mmOriginalBpm}
       />
 
       {/* Diagnostic Section */}

@@ -4246,6 +4246,10 @@ export const EuclideanSequencer = () => {
             const total = totalHits + totalMisses;
             return total > 0 ? Math.round((totalHits / total) * 100) : null;
           })()}
+          mmHistoryLength={mmHistory.length}
+          mmLastRatio={mmHistory.length > 0 ? mmHistory[0].label : undefined}
+          mmOriginalBpm={mmHistory.length > 0 ? mmHistory[mmHistory.length - 1].fromBpm : undefined}
+        />
         />
       )}
 
