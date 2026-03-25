@@ -1320,7 +1320,7 @@ export const EuclideanTrack = React.memo(({
       {/* KS controls */}
       {isTonal && synthType === 'ks' && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('ksDecay', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Decay</span>
             <input
               type="range" min="0.80" max="0.999" step="0.001"
@@ -1332,7 +1332,7 @@ export const EuclideanTrack = React.memo(({
               {(ksDecay ?? 0.97).toFixed(3)}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('ksBrightness', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Bright</span>
             <input
               type="range" min="500" max="8000" step="100"
