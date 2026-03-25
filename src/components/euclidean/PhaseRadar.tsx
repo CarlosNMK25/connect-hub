@@ -25,6 +25,7 @@ interface PhaseRadarProps {
   entropyLabel?: string;
   bpm?: number;
   onAnalysisToggle?: (open: boolean) => void;
+  driftOffsets?: Record<string, number>;
 }
 
 export const PhaseRadar: React.FC<PhaseRadarProps> = ({ tracks, globalStep, onSync, isDjMode, onDjModeToggle, uiStats = {}, syncImpacts = [], entropyLabel = '', bpm = 120, onAnalysisToggle }) => {
