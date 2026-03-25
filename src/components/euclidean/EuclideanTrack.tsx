@@ -1200,6 +1200,24 @@ export const EuclideanTrack = React.memo(({
         </div>
       )}
 
+      {/* Slicer Panel */}
+      {slicerEnabled && samplerStatus === 'READY' && samplerBuffer && (
+        <SlicerPanel
+          samplerBuffer={samplerBuffer}
+          sliceCount={sliceCount ?? 16}
+          sliceOrder={sliceOrder ?? []}
+          sliceReverse={sliceReverse ?? []}
+          slicePitch={slicePitch ?? []}
+          color={color}
+          onSliceCountChange={onSliceCountChange ?? (() => {})}
+          onSliceOrderChange={onSliceOrderChange ?? (() => {})}
+          onSliceReverseToggle={onSliceReverseToggle ?? (() => {})}
+          onSlicePitchChange={onSlicePitchChange ?? (() => {})}
+          onRandomize={onSliceRandomize ?? (() => {})}
+          onReset={onSliceReset ?? (() => {})}
+        />
+      )}
+
       {/* Sampler Controls (Level 2) */}
       {samplerStatus === 'READY' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 p-6 bg-white rounded-xl border border-black/5 animate-in fade-in slide-in-from-top-2 duration-500 shadow-sm">
