@@ -647,15 +647,12 @@ export const EuclideanTrack = React.memo(({
           </div>
 
           {/* Waveform Display (fills remaining space) */}
-          <div className="flex-1 min-w-[120px] h-14 relative group bg-idm-bg rounded-xl border border-black/5 overflow-hidden">
+          <div className="flex-1 min-w-[120px] h-14 relative group bg-idm-bg rounded-xl border border-black/5 overflow-hidden waveform-container" data-track-id={id}>
             <WaveformDisplay 
               buffer={samplerBuffer}
               color={color}
               start={sampleStart}
               end={sampleEnd}
-              currentStepProgress={0}
-              isPlaying={false}
-              isTriggered={false}
             />
             
             {samplerStatus === 'IDLE' && (

@@ -1649,13 +1649,17 @@ export const EuclideanSequencer = () => {
                 synth.triggerAttackRelease(duration, scheduledTime, velocity);
               }
             } else if (synth.grainPlayer && track.samplerStatus === 'READY') {
-              // Fallback for cloud or if triggerAttackRelease is missing
+              // Fallback path (cloud granular) — also respects sampleEnd (Fix 1)
+              const bufDur = track.samplerBuffer?.duration || 0;
               const sprayAmount = (track.spray / 1000) * (track.chaosEnabled ? track.entropy : 1);
-              const startOffset = track.sampleStart * (track.samplerBuffer?.duration || 0);
+              const startOffset = track.sampleStart * bufDur;
               const randomOffset = (Math.random() - 0.5) * sprayAmount;
-              const finalOffset = Math.max(0, Math.min(track.samplerBuffer?.duration || 0, startOffset + randomOffset));
-              const duration = track.mode === 'GATE' ? "16n" : (track.decay / 1000);
-              synth.grainPlayer.start(scheduledTime, finalOffset, duration);
+              const finalOffset = Math.max(0, Math.min(bufDur, startOffset + randomOffset));
+              const stepDur = track.mode === 'GATE' ? Tone.Time("16n").toSeconds() : (track.decay / 1000);
+              const endOffset = track.sampleEnd * bufDur;
+              const roiDur = Math.max(0.01, endOffset - finalOffset);
+              const dur = Math.max(0.01, Math.min(roiDur, stepDur));
+              synth.grainPlayer.start(scheduledTime, finalOffset, dur);
             }
 
             // Layer 2: disparar si existe y hay buffer cargado
@@ -1663,7 +1667,9 @@ export const EuclideanSequencer = () => {
               synth.triggerLayer2(scheduledTime, velocity);
             }
 
-            // Ratchet: schedule additional retrigggers within the sixteenth
+            // Ratchet: schedule additional retriggers within the sixteenth
+            // Fix 2: unified ratchet — reuses triggerAttackRelease (which already
+            // handles sampleEnd via Fix 1) or falls back to cloud path
             const ratchetCount = track.ratchet || 0;
             if (ratchetCount > 0) {
               const subdivDuration = sixteenthDuration / (ratchetCount + 1);
@@ -1682,12 +1688,17 @@ export const EuclideanSequencer = () => {
                       synth.triggerAttackRelease(dur, ratchetTime, ratchetVelocity);
                     }
                   } else if (synth.grainPlayer && track.samplerStatus === 'READY') {
+                    // Ratchet fallback (cloud) — same ROI logic as main trigger
+                    const bufDur = track.samplerBuffer?.duration || 0;
                     const sprayAmount = (track.spray / 1000) * (track.chaosEnabled ? track.entropy : 1);
-                    const startOffset = track.sampleStart * (track.samplerBuffer?.duration || 0);
-                    const randomOffset = (Math.random() - 0.5) * sprayAmount;
-                    const finalOffset = Math.max(0, Math.min(track.samplerBuffer?.duration || 0, startOffset + randomOffset));
-                    const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
-                    synth.grainPlayer.start(ratchetTime, finalOffset, dur);
+                    const startOff = track.sampleStart * bufDur;
+                    const randomOff = (Math.random() - 0.5) * sprayAmount;
+                    const finalOff = Math.max(0, Math.min(bufDur, startOff + randomOff));
+                    const stepDur = track.mode === 'GATE' ? Tone.Time("32n").toSeconds() : (track.decay / 2000);
+                    const endOff = track.sampleEnd * bufDur;
+                    const roiDur = Math.max(0.01, endOff - finalOff);
+                    const dur = Math.max(0.01, Math.min(roiDur, stepDur));
+                    synth.grainPlayer.start(ratchetTime, finalOff, dur);
                   }
                 } catch (e) { /* silent */ }
               }
@@ -1697,6 +1708,16 @@ export const EuclideanSequencer = () => {
 
             Tone.Draw.schedule(() => {
               setLastHit({ offset, color: track.color, velocity, id: Math.random() });
+              // Fix 3: trigger waveform playhead animation via DOM class
+              if (synth.grainPlayer && track.samplerStatus === 'READY') {
+                const wfEl = document.querySelector(`.waveform-container[data-track-id="${track.id}"]`);
+                if (wfEl) {
+                  wfEl.classList.remove('waveform-triggered');
+                  void (wfEl as HTMLElement).offsetWidth; // force reflow to restart animation
+                  wfEl.classList.add('waveform-triggered');
+                  setTimeout(() => wfEl.classList.remove('waveform-triggered'), 150);
+                }
+              }
             }, scheduledTime);
           } catch (e) {
             console.warn(`Trigger failed for ${track.id}:`, e);
@@ -2060,8 +2081,10 @@ export const EuclideanSequencer = () => {
         if (trackId !== 'cloud') {
           try {
             const startOffsetSec = Math.max(0, Math.min(audioBuffer.duration - 0.01, finalOffset));
-            // If duration is too short, use a minimum or just play until end
-            const durationSec = Math.max(0.1, durSeconds);
+            // Fix 1: respect sampleEnd — use min(roiDuration, stepDuration)
+            const endOffsetSec = currentTrack.sampleEnd * audioBuffer.duration;
+            const roiDuration = Math.max(0.01, endOffsetSec - startOffsetSec);
+            const durationSec = Math.max(0.01, Math.min(roiDuration, durSeconds));
             
             console.log(`[Sampler] Triggering ${trackId} | time: ${time.toFixed(3)} | offset: ${startOffsetSec.toFixed(3)} | dur: ${durationSec.toFixed(3)} | vol: ${grainPlayer.volume.value.toFixed(1)}dB | state: ${Tone.getContext().state}`);
             
