@@ -1349,7 +1349,7 @@ export const EuclideanTrack = React.memo(({
       {/* Modal controls */}
       {isTonal && synthType === 'modal' && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('modalBody', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Body</span>
             <select
               value={modalBody ?? 'bell'}
@@ -1361,7 +1361,7 @@ export const EuclideanTrack = React.memo(({
               <option value="string">String</option>
             </select>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('modalDecay', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Decay</span>
             <input
               type="range" min="0.5" max="3.0" step="0.1"
