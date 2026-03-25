@@ -112,6 +112,30 @@ export const PEDAGOGY = {
     addBrightness: "El brillo es cuánto poder cedes a los armónicos agudos. A 0 el fundamental manda. A 1 es una democracia espectral — todos los armónicos votan igual.",
     arRate: "Cuando el modulador supera 20Hz deja de ser movimiento y se convierte en sonido. El LFO ya no balancea la nota — la infecta con nuevas frecuencias.",
     arDepth: "La profundidad AR decide qué tan lejos viaja la infección. A 0 no hay enfermedad. A 3000Hz el sonido ya no recuerda de dónde vino.",
+    // Ratchet
+    ratchet: "Retrigger por step: subdivide la duración del step en n+1 disparos equidistantes con curva de decay exponencial v(r) = v₀·0.65ʳ. Rango: [0, 4]. Ratchet=0 → disparo único; ratchet=2 → tripleta interna (3 disparos). Emula el redoble de cajón flamenco o el hi-hat trap de 32nds. A BPMs altos, ratchet ≥3 comprime los retriggers al límite de resolución temporal (~8ms).",
+    metricModulation: "Modulación métrica: BPM' = BPM × (a/b) donde a/b ∈ {3/2, 4/3, 5/4, 2/3, 3/4, 4/5}. Rango resultante: [40, 240]. Convierte una subdivisión percibida en el nuevo beat. Ej: 120 × 3/2 = 180 — el tresillo se convierte en negra. Técnica de Stravinsky (Rite of Spring) y Nancarrow (Studies for Player Piano). Modulaciones encadenadas crean derivas de tempo exponenciales.",
+    // Layer 2
+    layer2Blend: "Mezcla entre sample principal (Layer 1) y capa secundaria (Layer 2). Rango: [0, 1]. A 0 solo suena Layer 1; a 1 suena exclusivamente Layer 2. La crossfade es lineal en amplitud. Permite crear timbres híbridos: kick con capa de textura, hat con capa de ruido granular.",
+    layer2Pitch: "Transposición independiente de Layer 2 por resampling. Rango: [-24, +24] st. Independiente del pitch de Layer 1. f₂' = f₂ · 2^(st/12). Permite detuning entre capas (ej: +7st = quinta) para crear intervalos fijos o texturas inarmónicas cuando se combinan capas de timbre diferente.",
+    layer2Offset: "Desplazamiento temporal de Layer 2 respecto al onset principal. Rango: [0, 500ms]. A 0ms ambas capas disparan simultáneamente. A 50-100ms crea un efecto de 'flam' (doble ataque). A >200ms Layer 2 actúa como cola o eco seco. Define la micro-estructura temporal dentro de un solo step.",
+    layer2Filter: "Filtro paso-bajo (LPF) aplicado exclusivamente a Layer 2. Rango: [200, 8000Hz], pendiente 12dB/oct. Permite oscurecer la capa secundaria para que actúe como cuerpo/resonancia sin competir con el ataque de Layer 1. A 200Hz solo pasan sub-graves; a 8000Hz el filtro es transparente.",
+    // Advanced Synths — PAD
+    padVoices: "Número de osciladores en unísono del sintetizador PAD. Rango: [3, 7]. Cada voz se detuna ligeramente respecto a la fundamental según padDetune. 3 voces → acorde tríada implícito; 7 voces → densidad coral tipo Juno-60 con batimiento (beating) complejo entre armónicos cercanos.",
+    padDetune: "Spread de detuning en cents entre las voces del PAD. Rango: [0, 100 cents]. 0 → unísono perfecto (sin batimiento); 15-30 → chorus clásico; 50-100 → cluster microtonalmente denso. El batimiento resultante f_beat = |f₁-f₂| crea una modulación de amplitud periódica que el oído percibe como 'anchura'.",
+    padAttack: "Tiempo de ataque de la envolvente del PAD en segundos. Rango: [0.01, 2.0]. 0.01s → ataque percusivo (click + pad); 0.3s → entrada suave estándar; 2.0s → swell glacial donde el acorde emerge como niebla. Define si el PAD marca el ritmo euclidiano o lo disuelve.",
+    // Advanced Synths — DRONE
+    droneFeedback: "Coeficiente de feedback del delay loop que sostiene el drone. Rango: [0.70, 0.98]. A 0.70 el drone decae en ~1s (burst). A 0.98 el drone se sostiene >30s (bordón infinito). Valores >0.95 crean acumulación armónica por superposición de ciclos. Es el equivalente digital de la cuerda de bordón de la guitarra flamenca.",
+    droneFilterFreq: "Frecuencia del LPF en el loop de feedback del drone. Rango: [200, 8000Hz]. Controla el brillo del tono sostenido. A 200Hz solo sobrevive la fundamental (bordón oscuro); a 8000Hz los armónicos superiores se preservan (drone brillante). Emula la resonancia de una cuerda metálica vs una de nylon.",
+    // Advanced Synths — KS (Karplus-Strong)
+    ksDecay: "Feedback del loop de Karplus-Strong — controla el sustain de la cuerda virtual. Rango: [0.80, 0.999]. A 0.80 la cuerda se apaga en <100ms (pizzicato seco). A 0.999 vibra >5s (cuerda de sitar). El algoritmo KS es síntesis física: un pulso de ruido filtrado en un delay loop = cuerda pulsada. Inventado por Karplus y Strong en 1983.",
+    ksBrightness: "Frecuencia del LPF en el loop KS. Rango: [500, 8000Hz]. Simula el material de la cuerda: 500Hz → cuerda de gut (guitarra barroca); 3000Hz → nylon clásico; 8000Hz → acero brillante. Cada ciclo del loop pierde los armónicos por encima del corte, emulando la disipación natural de energía en una cuerda real.",
+    // Advanced Synths — MODAL
+    modalBody: "Tipo de resonador modal: 'bell' (campana — frecuencias inarmónicas espaciadas por ×2.09, ×3.43), 'plate' (placa — modos densos y cercanos), 'string' (cuerda — serie armónica natural 1:2:3:4). Define la estructura de parciales del resonador. La síntesis modal descompone un cuerpo vibrante en sus frecuencias propias.",
+    modalDecay: "Multiplicador de decay de los modos resonantes. Rango: [0.5, 3.0]. A 0.5 los modos se extinguen rápido (golpe seco). A 3.0 resuenan prolongadamente (gong). Los modos agudos decaen más rápido que los graves (decay_n = base_decay / n), emulando la física real de cuerpos vibrantes.",
+    // Advanced Synths — AMBIENT
+    ambientVolume: "Volumen de los loops ambient generativos. Rango: [0.1, 1.0]. Controla el nivel de la textura atmosférica respecto al patrón rítmico. A 0.1 → apenas perceptible (subliminal); a 1.0 → dominante (el ritmo emerge desde la textura). Define la relación figura-fondo sonora.",
+    ambientSpeed: "Multiplicador de velocidad de los loops ambient. Rango: [0.5, 2.0]. A 0.5 → tiempo dilatado, texturas glaciales; a 1.0 → velocidad nominal; a 2.0 → granulado acelerado. Altera la densidad temporal de la textura sin afectar el pitch (timestretch implícito).",
   } as PedagogyMicro,
 
   meso: {
