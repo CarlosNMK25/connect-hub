@@ -6462,6 +6462,137 @@ export const EuclideanSequencer = () => {
         />
       )}
 
+      {/* ═══ TRACKS ═══ */}
+      <div className="space-y-6 relative z-10">
+        <MesoInsightMonitor tracks={tracks} isStudyMode={isStudyMode} />
+        {tracks.map((track, i) => (
+          <div key={track.id} className="transition-all duration-500 opacity-100">
+            <EuclideanTrack
+              {...track}
+              trackId={track.id}
+              stats={uiStats[track.id] || { hits: 0, misses: 0, cycleCount: 0 }}
+              synth={synthsRef.current[track.id]}
+              jitter={jitter}
+              globalStep={globalStep}
+              mcm={mcm}
+              syncImpact={syncImpacts[i]}
+              lastHit={lastHit?.color === track.color ? lastHit : null}
+              isDjMode={isDjMode}
+              previewPattern={previewPatterns?.[track.id]}
+              onParamChange={handleParamChange}
+              onSequencerAction={handleSequencerAction}
+              onTonalAction={handleTonalAction}
+              onSlicerAction={handleSlicerAction}
+              onFileUpload={handleFileUploadCb}
+              onSamplerParamChange={handleSamplerParamChange}
+              onClearSampler={handleClearSamplerCb}
+              onLoadLayer2={handleLoadLayer2Cb}
+              onClearLayer2={handleClearLayer2Cb}
+              onLayer2ParamChange={handleLayer2ParamChange}
+              onPercSynthParamChange={handlePercSynthParamChange}
+              toneRecordingState={toneRecordingState}
+              onRecordAction={handleArmOrRecord}
+              cloudRecordingState={cloudRecordingState}
+              onCloudRecordAction={handleCloudArmOrRecord}
+              isStudyMode={isStudyMode}
+              studyVoice={studyVoice}
+              anySoloed={tracks.some(t => t.isSoloed)}
+              temporalityMode={temporalityMode}
+              bpm={bpm}
+              swing={swing}
+              onGetMarkovMatrix={handleGetMarkovMatrix}
+              isExpanded={expandedTrack === track.id}
+              onToggleExpand={() => handleToggleTrack(track.id)}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* ═══ SONG MODE CHAIN PANEL ═══ */}
+      {songModeEnabled && (
+        <div className="border border-border rounded-lg bg-background overflow-hidden">
+          <div className="flex items-center gap-2 px-3 py-2 bg-system-accent/5 border-b border-border">
+            <span className="text-xs font-medium text-system-accent">Song Mode</span>
+            <button
+              onClick={() => setSongModeView('performance')}
+              className={`text-[9px] px-2 py-0.5 rounded-full border transition-all ${
+                songModeView === 'performance'
+                  ? 'bg-system-accent text-white border-system-accent'
+                  : 'bg-background text-muted-foreground border-border'
+              }`}
+            >
+              Performance
+            </button>
+            <button
+              onClick={() => setSongModeView('chain')}
+              className={`text-[9px] px-2 py-0.5 rounded-full border transition-all ${
+                songModeView === 'chain'
+                  ? 'bg-system-accent text-white border-system-accent'
+                  : 'bg-background text-muted-foreground border-border'
+              }`}
+            >
+              Auto Chain
+            </button>
+            <div className="flex-1" />
+            <button
+              onClick={() => setSyncAllScenes(prev => !prev)}
+              className={`text-[9px] px-2 py-0.5 rounded-full border transition-all ${
+                syncAllScenes
+                  ? 'bg-green-800 text-white border-green-800'
+                  : 'bg-background text-muted-foreground border-border'
+              }`}
+            >
+              SYNC ALL{syncAllScenes ? ' ✓' : ''}
+            </button>
+          </div>
+          <div className="px-3 py-2 flex items-center gap-2 flex-wrap">
+            {chain.map((step, i) => (
+              <React.Fragment key={i}>
+                <div
+                  className={`flex items-center gap-1 px-2 py-1 rounded border cursor-pointer transition-all ${
+                    i === chainPosition
+                      ? 'bg-system-accent/10 border-system-accent/30'
+                      : 'bg-background border-border'
+                  }`}
+                  onClick={() => setChainPosition(i)}
+                >
+                  <span className={`text-xs font-medium ${i === chainPosition ? 'text-system-accent' : 'text-muted-foreground'}`}>
+                    {step.scene}
+                  </span>
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: step.cycles }, (_, j) => (
+                      <span
+                        key={j}
+                        className={`w-1.5 h-1.5 rounded-sm inline-block ${
+                          i === chainPosition ? 'bg-system-accent' : 'bg-muted-foreground/20'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                {i < chain.length - 1
+                  ? <span className="text-muted-foreground text-xs">›</span>
+                  : <span className="text-system-accent text-xs">↺</span>
+                }
+              </React.Fragment>
+            ))}
+            <button
+              onClick={() => setChain(prev => [...prev, { scene: 1, cycles: 2 }])}
+              className="text-[9px] text-muted-foreground hover:text-foreground cursor-pointer"
+            >
+              + añadir
+            </button>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 border-t border-border text-[9px] text-muted-foreground">
+            <div className="w-1.5 h-1.5 rounded-full bg-system-accent flex-shrink-0" />
+            <span>Escena {chain[chainPosition]?.scene} · Ciclo 1/{chain[chainPosition]?.cycles}</span>
+            <div className="flex-1" />
+            <span className="text-[8px]">Lógica de reproducción → fase posterior</span>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ FX GLOBALES — después de pistas ═══ */}
       {/* Spectral Delay Global Panel (Phase 7C) */}
       <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
         <button
@@ -6640,51 +6771,7 @@ export const EuclideanSequencer = () => {
         )}
       </div>
 
-
-      <div className="space-y-6 relative z-10">
-        <MesoInsightMonitor tracks={tracks} isStudyMode={isStudyMode} />
-        {tracks.map((track, i) => (
-          <div key={track.id} className="transition-all duration-500 opacity-100">
-            <EuclideanTrack
-              {...track}
-              trackId={track.id}
-              stats={uiStats[track.id] || { hits: 0, misses: 0, cycleCount: 0 }}
-              synth={synthsRef.current[track.id]}
-              jitter={jitter}
-              globalStep={globalStep}
-              mcm={mcm}
-              syncImpact={syncImpacts[i]}
-              lastHit={lastHit?.color === track.color ? lastHit : null}
-              isDjMode={isDjMode}
-              previewPattern={previewPatterns?.[track.id]}
-              onParamChange={handleParamChange}
-              onSequencerAction={handleSequencerAction}
-              onTonalAction={handleTonalAction}
-              onSlicerAction={handleSlicerAction}
-              onFileUpload={handleFileUploadCb}
-              onSamplerParamChange={handleSamplerParamChange}
-              onClearSampler={handleClearSamplerCb}
-              onLoadLayer2={handleLoadLayer2Cb}
-              onClearLayer2={handleClearLayer2Cb}
-              onLayer2ParamChange={handleLayer2ParamChange}
-              onPercSynthParamChange={handlePercSynthParamChange}
-              toneRecordingState={toneRecordingState}
-              onRecordAction={handleArmOrRecord}
-              cloudRecordingState={cloudRecordingState}
-              onCloudRecordAction={handleCloudArmOrRecord}
-              isStudyMode={isStudyMode}
-              studyVoice={studyVoice}
-              anySoloed={tracks.some(t => t.isSoloed)}
-              temporalityMode={temporalityMode}
-              bpm={bpm}
-              swing={swing}
-              onGetMarkovMatrix={handleGetMarkovMatrix}
-            />
-          </div>
-        ))}
-
-      </div>
-
+      {/* ═══ FOOTER ═══ */}
       <div className="mt-8 pt-4 border-t border-idm-muted/30 flex justify-between items-center text-[10px] font-mono text-idm-ink/40 uppercase tracking-widest">
         <div className="flex gap-4">
           <span>KICK: Membrane</span>
