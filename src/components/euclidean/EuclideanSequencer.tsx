@@ -5192,6 +5192,50 @@ export const EuclideanSequencer = () => {
         />
       )}
 
+      {/* Spectral Delay Global Panel (Phase 7C) */}
+      <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
+        <button
+          onClick={() => setSpectralDelayEnabled(!spectralDelayEnabled)}
+          className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+            spectralDelayEnabled
+              ? 'bg-system-accent text-white border-system-accent'
+              : 'bg-background text-idm-muted border-border'
+          }`}
+        >SDLY</button>
+        <span className="text-[8px] font-mono text-idm-muted">Spectral Delay</span>
+        {spectralDelayEnabled && (
+          <div className="flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-1">
+              <span className="text-[7px] font-mono text-idm-muted">Wet</span>
+              <input type="range" min={0} max={1} step={0.05} value={spectralDelayWet}
+                onChange={e => setSpectralDelayWet(Number(e.target.value))}
+                className="w-12 h-[7px] accent-system-accent" />
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[7px] font-mono text-idm-muted">Lo</span>
+              <input type="range" min={0} max={500} step={10} value={spectralDelayLowTime}
+                onChange={e => setSpectralDelayLowTime(Number(e.target.value))}
+                className="w-10 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted">{spectralDelayLowTime}ms</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[7px] font-mono text-idm-muted">Mid</span>
+              <input type="range" min={0} max={500} step={10} value={spectralDelayMidTime}
+                onChange={e => setSpectralDelayMidTime(Number(e.target.value))}
+                className="w-10 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted">{spectralDelayMidTime}ms</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[7px] font-mono text-idm-muted">Hi</span>
+              <input type="range" min={0} max={500} step={10} value={spectralDelayHighTime}
+                onChange={e => setSpectralDelayHighTime(Number(e.target.value))}
+                className="w-10 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted">{spectralDelayHighTime}ms</span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Tracks Container with z-index to ensure interactivity */}
       <div className="space-y-6 relative z-10">
         <MesoInsightMonitor tracks={tracks} isStudyMode={isStudyMode} />
