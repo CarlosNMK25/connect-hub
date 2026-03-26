@@ -3837,10 +3837,14 @@ export const EuclideanSequencer = () => {
         };
       }
       // Pan + FreqShifter injection for tone rebuild
-      synthsRef.current.tone.setPan = (value: number) => { tonePanner.pan.rampTo(value, 0.05); };
-      synthsRef.current.tone.setFreqShift = (hz: number) => { toneFreqShifter.frequency.rampTo(hz, 0.05); };
-      synthsRef.current.tone.panner = tonePanner;
-      synthsRef.current.tone.freqShifter = toneFreqShifter;
+      if (_pannerRef && _freqShifterRef) {
+        const pRef = _pannerRef;
+        const fsRef = _freqShifterRef;
+        synthsRef.current.tone.setPan = (value: number) => { pRef.pan.rampTo(value, 0.05); };
+        synthsRef.current.tone.setFreqShift = (hz: number) => { fsRef.frequency.rampTo(hz, 0.05); };
+        synthsRef.current.tone.panner = pRef;
+        synthsRef.current.tone.freqShifter = fsRef;
+      }
     }
     // Apply current volume, sends, EQ, pan, and freqShift
     const track = tracksRef.current.find(t => t.id === trackId);
