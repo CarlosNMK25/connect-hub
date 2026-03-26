@@ -671,6 +671,15 @@ export const EuclideanSequencer = () => {
   const [freezeFilterFreq, setFreezeFilterFreq] = useState(6000);
   const freezeRef = useRef<{ bus: Tone.Gain; delay: Tone.Delay; filter: Tone.Filter; feedbackGain: Tone.Gain; out: Tone.Gain } | null>(null);
 
+  // Reverse Reverb global state (Phase 9)
+  const [reverseEnabled, setReverseEnabled] = useState(false);
+  const [reverseDecay, setReverseDecay] = useState(2.5);
+  const reverseRef = useRef<{
+    bus: Tone.Gain;
+    convolver: Tone.Convolver;
+    out: Tone.Gain;
+  } | null>(null);
+
   // Gated Reverb global state (Phase 9)
   const [gatedEnabled, setGatedEnabled] = useState(false);
   const [gatedThreshold, setGatedThreshold] = useState(-40);
