@@ -3110,11 +3110,15 @@ export const EuclideanSequencer = () => {
       const toneReverbSend = new Tone.Gain(0.2).connect(master.reverbBus);
       const toneEqHpf = new Tone.Filter(20, "highpass");
       const toneEqLpf = new Tone.Filter(20000, "lowpass");
+      const tonePanner = new Tone.Panner(0);
+      const toneFreqShifter = new Tone.FrequencyShifter(0);
       const toneFilter = new Tone.Filter(2000, "lowpass").connect(toneEqHpf);
       toneEqHpf.connect(toneEqLpf);
-      toneEqLpf.connect(master.compressor);
-      toneEqLpf.connect(toneDelaySend);
-      toneEqLpf.connect(toneReverbSend);
+      toneEqLpf.connect(tonePanner);
+      tonePanner.connect(toneFreqShifter);
+      toneFreqShifter.connect(master.compressor);
+      toneFreqShifter.connect(toneDelaySend);
+      toneFreqShifter.connect(toneReverbSend);
       toneFilterRef.current = toneFilter;
       _eqHpfRef = toneEqHpf;
       _eqLpfRef = toneEqLpf;
