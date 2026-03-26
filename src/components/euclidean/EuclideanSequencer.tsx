@@ -3414,6 +3414,16 @@ export const EuclideanSequencer = () => {
 
   // ────── Universal Param Change (simple setTracks + optional logging) ──────
   const handleParamChange = useCallback((trackId: string, param: string, value: any) => {
+    // ── Change 5/6: activeScene with SYNC ALL support ──
+    if (param === 'activeScene') {
+      // TODO: aplicar SceneData al track cuando se implemente en refactoring
+      if (syncAllScenes) {
+        setTracks(prev => prev.map(t => ({ ...t, activeScene: value as number })));
+      } else {
+        setTracks(prev => prev.map(t => t.id === trackId ? { ...t, activeScene: value as number } : t));
+      }
+      return;
+    }
     const track = tracksRef.current.find(t => t.id === trackId);
     if (track) {
       switch (param) {
