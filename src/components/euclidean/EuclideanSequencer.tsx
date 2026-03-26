@@ -5557,6 +5557,9 @@ export const EuclideanSequencer = () => {
               eqEnabled={track.eqEnabled}
               eqHpfFreq={track.eqHpfFreq}
               eqLpfFreq={track.eqLpfFreq}
+              pan={track.pan}
+              freqShiftEnabled={track.freqShiftEnabled}
+              freqShift={track.freqShift}
             />
           </div>
         ))}

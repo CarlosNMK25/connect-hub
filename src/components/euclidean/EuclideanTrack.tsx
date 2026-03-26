@@ -497,6 +497,10 @@ export const EuclideanTrack = React.memo(({
   eqEnabled,
   eqHpfFreq,
   eqLpfFreq,
+  // Pan + FreqShifter
+  pan,
+  freqShiftEnabled,
+  freqShift,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
