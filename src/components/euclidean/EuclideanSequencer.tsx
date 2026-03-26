@@ -6394,6 +6394,60 @@ export const EuclideanSequencer = () => {
               binauralEnabled={track.binauralEnabled}
               binauralAzimuth={track.binauralAzimuth}
               binauralDistance={track.binauralDistance}
+              kickPitchDecay={track.kickPitchDecay}
+              kickOctaves={track.kickOctaves}
+              kickDecay={track.kickDecay}
+              kickClickType={track.kickClickType}
+              hatMode={track.hatMode}
+              hatHarmonicity={track.hatHarmonicity}
+              hatModIndex={track.hatModIndex}
+              hatResonance={track.hatResonance}
+              hatDecay={track.hatDecay}
+              hatNoiseType={track.hatNoiseType}
+              snareDecay={track.snareDecay}
+              snareNoiseType={track.snareNoiseType}
+              snareBodyEnabled={track.snareBodyEnabled}
+              snareBodyPitch={track.snareBodyPitch}
+              snareBodyDecay={track.snareBodyDecay}
+              onPercSynthParamChange={(param, value) => {
+                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, [param]: value } : t));
+                // Sync to audio engine
+                setTimeout(() => {
+                  const tr = tracksRef.current.find(t => t.id === track.id);
+                  if (!tr) return;
+                  if (track.id === 'kick') {
+                    synthsRef.current.kick?.setKickParams?.(
+                      param === 'kickPitchDecay' ? value as number : (tr.kickPitchDecay ?? 0.05),
+                      param === 'kickOctaves' ? value as number : (tr.kickOctaves ?? 10),
+                      param === 'kickDecay' ? value as number : (tr.kickDecay ?? 0.4),
+                      param === 'kickClickType' ? value as string : (tr.kickClickType ?? 'pink')
+                    );
+                  } else if (track.id === 'snare') {
+                    if (param === 'snareDecay' || param === 'snareNoiseType') {
+                      synthsRef.current.snare?.setSnareParams?.(
+                        param === 'snareDecay' ? value as number : (tr.snareDecay ?? 0.2),
+                        param === 'snareNoiseType' ? value as string : (tr.snareNoiseType ?? 'white')
+                      );
+                    }
+                    if (param === 'snareBodyEnabled' || param === 'snareBodyPitch' || param === 'snareBodyDecay') {
+                      synthsRef.current.snare?.setSnareBody?.(
+                        param === 'snareBodyEnabled' ? value as boolean : (tr.snareBodyEnabled ?? false),
+                        param === 'snareBodyPitch' ? value as number : (tr.snareBodyPitch ?? 180),
+                        param === 'snareBodyDecay' ? value as number : (tr.snareBodyDecay ?? 0.1)
+                      );
+                    }
+                  } else if (track.id === 'hat') {
+                    synthsRef.current.hat?.setHatMode?.(
+                      param === 'hatMode' ? value as string : (tr.hatMode ?? 'noise'),
+                      param === 'hatHarmonicity' ? value as number : (tr.hatHarmonicity ?? 5.1),
+                      param === 'hatModIndex' ? value as number : (tr.hatModIndex ?? 32),
+                      param === 'hatResonance' ? value as number : (tr.hatResonance ?? 4000),
+                      param === 'hatDecay' ? value as number : (tr.hatDecay ?? 0.05),
+                      param === 'hatNoiseType' ? value as string : (tr.hatNoiseType ?? 'white')
+                    );
+                  }
+                }, 0);
+              }}
             />
           </div>
         ))}
