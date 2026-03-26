@@ -4314,8 +4314,16 @@ export const EuclideanSequencer = () => {
       if (_pannerRef && _freqShifterRef) {
         const pRef = _pannerRef;
         const fsRef = _freqShifterRef;
+        const bpRef = _fsBypassGainRef;
+        const drRef = _fsDirectGainRef;
         synthsRef.current.tone.setPan = (value: number) => { pRef.pan.rampTo(value, 0.05); };
-        synthsRef.current.tone.setFreqShift = (hz: number) => { fsRef.frequency.rampTo(hz, 0.05); };
+        synthsRef.current.tone.setFreqShift = (hz: number, enabled?: boolean) => {
+          fsRef.frequency.rampTo(hz, 0.05);
+          if (enabled !== undefined && bpRef && drRef) {
+            bpRef.gain.rampTo(enabled ? 1 : 0, 0.02);
+            drRef.gain.rampTo(enabled ? 0 : 1, 0.02);
+          }
+        };
         synthsRef.current.tone.panner = pRef;
         synthsRef.current.tone.freqShifter = fsRef;
       }
