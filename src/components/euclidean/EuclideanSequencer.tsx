@@ -1536,6 +1536,8 @@ export const EuclideanSequencer = () => {
         snarePannerGain.dispose();
         snarePanner3DGain.dispose();
         snareFreqShifter.dispose();
+        snareFsBypassGain.dispose();
+        snareFsDirectGain.dispose();
         snareDelaySend.dispose();
         snareReverbSend.dispose();
         snareSpectralSend.dispose();
@@ -1546,7 +1548,13 @@ export const EuclideanSequencer = () => {
       snareEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     synthsRef.current.snare.setPan = (value: number) => { snarePanner.pan.rampTo(value, 0.05); };
-    synthsRef.current.snare.setFreqShift = (hz: number) => { snareFreqShifter.frequency.rampTo(hz, 0.05); };
+    synthsRef.current.snare.setFreqShift = (hz: number, enabled?: boolean) => {
+      snareFreqShifter.frequency.rampTo(hz, 0.05);
+      if (enabled !== undefined) {
+        snareFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
+        snareFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
+      }
+    };
     synthsRef.current.snare.panner = snarePanner;
     synthsRef.current.snare.freqShifter = snareFreqShifter;
     synthsRef.current.snare.setSpectralSend = (value: number) => { snareSpectralSend.gain.rampTo(value, 0.05); };
