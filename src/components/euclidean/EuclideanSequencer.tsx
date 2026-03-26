@@ -1203,6 +1203,7 @@ export const EuclideanSequencer = () => {
               (config as any).hatNoiseType ?? 'white'
             );
           }
+        }
         // Recalcular matrices Markov para tracks tonales
         if (t.isTonal && (t.noteMode ?? 'euclidean') === 'markov') {
           updateMarkovMatrix(t);
