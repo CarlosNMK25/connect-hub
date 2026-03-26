@@ -1136,6 +1136,28 @@ export const EuclideanSequencer = () => {
         binauralEnabled: (config as any).binauralEnabled ?? false,
         binauralAzimuth: (config as any).binauralAzimuth ?? 0,
         binauralDistance: (config as any).binauralDistance ?? 3,
+        // Phase 8 — Percussive Synthesis
+        ...(t.id === 'kick' ? {
+          kickPitchDecay: (config as any).kickPitchDecay ?? 0.05,
+          kickOctaves: (config as any).kickOctaves ?? 10,
+          kickDecay: (config as any).kickDecay ?? 0.4,
+          kickClickType: (config as any).kickClickType ?? 'pink',
+        } : {}),
+        ...(t.id === 'hat' ? {
+          hatMode: (config as any).hatMode ?? 'noise',
+          hatHarmonicity: (config as any).hatHarmonicity ?? 5.1,
+          hatModIndex: (config as any).hatModIndex ?? 32,
+          hatResonance: (config as any).hatResonance ?? 4000,
+          hatDecay: (config as any).hatDecay ?? 0.05,
+          hatNoiseType: (config as any).hatNoiseType ?? 'white',
+        } : {}),
+        ...(t.id === 'snare' ? {
+          snareDecay: (config as any).snareDecay ?? 0.2,
+          snareNoiseType: (config as any).snareNoiseType ?? 'white',
+          snareBodyEnabled: (config as any).snareBodyEnabled ?? false,
+          snareBodyPitch: (config as any).snareBodyPitch ?? 180,
+          snareBodyDecay: (config as any).snareBodyDecay ?? 0.1,
+        } : {}),
         hits: 0,
         misses: 0,
       });
