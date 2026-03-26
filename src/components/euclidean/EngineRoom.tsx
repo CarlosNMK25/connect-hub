@@ -55,6 +55,11 @@ interface TrackSnapshot {
   kickPitchDecay?: number;
   kickOctaves?: number;
   samplerStatus?: string;
+  // Phase 9/10 fields
+  freezeSend?: number;
+  extremeLoopEnabled?: boolean;
+  extremeLoopSize?: number;
+  mode?: string;
 }
 
 interface EngineRoomProps {
@@ -267,6 +272,11 @@ const DiagnosisPanel: React.FC<{
       kickPitchDecay: t.kickPitchDecay,
       kickOctaves: t.kickOctaves,
       samplerStatus: t.samplerStatus,
+      freezeSend: t.freezeSend,
+      extremeLoopEnabled: t.extremeLoopEnabled,
+      extremeLoopSize: t.extremeLoopSize,
+      mode: t.mode,
+      pulseCount: t.pulses,
     }));
 
     const mcm = computeMcm(diagTracks);

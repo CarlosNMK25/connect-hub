@@ -1676,6 +1676,7 @@ export const EuclideanTrack = React.memo(({
             <div className="space-y-2">
               <div className="flex gap-2">
                 <button 
+                  onMouseEnter={(e) => handleParamEnter('oneShotMode', e)} onMouseLeave={handleParamLeave}
                   onClick={() => {
                     const hasSample = samplerStatus === 'READY';
                     const cycle = hasSample
@@ -1704,6 +1705,7 @@ export const EuclideanTrack = React.memo(({
       {samplerStatus === 'READY' && id !== 'cloud' && (
         <div className="flex items-center gap-3 mt-2 p-3 bg-idm-bg rounded-2xl border border-border">
           <button
+            onMouseEnter={(e) => handleParamEnter('extremeLoopEnabled', e)} onMouseLeave={handleParamLeave}
             onClick={() => onSamplerParamChange('extremeLoopEnabled', !extremeLoopEnabled)}
             className={`text-[8px] font-mono font-bold px-2 py-1 rounded border transition-colors ${
               extremeLoopEnabled
@@ -1716,7 +1718,7 @@ export const EuclideanTrack = React.memo(({
           </button>
           {extremeLoopEnabled && (
             <>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('extremeLoopSize', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted">Size</span>
                 <input
                   type="range" min={1} max={50} step={1}
@@ -1726,7 +1728,7 @@ export const EuclideanTrack = React.memo(({
                 />
                 <span className="text-[7px] font-mono text-idm-muted w-8">{extremeLoopSize ?? 10}ms</span>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('extremeLoopPoint', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted">Point</span>
                 <input
                   type="range" min={0} max={1} step={0.01}
