@@ -1166,6 +1166,7 @@ export const EuclideanSequencer = () => {
         freqShiftEnabled: (config as any).freqShiftEnabled ?? false,
         freqShift: (config as any).freqShift ?? 0,
         spectralDelaySend: (config as any).spectralDelaySend ?? 0,
+        freezeSend: (config as any).freezeSend ?? 0,
         binauralEnabled: (config as any).binauralEnabled ?? false,
         binauralAzimuth: (config as any).binauralAzimuth ?? 0,
         binauralDistance: (config as any).binauralDistance ?? 3,
