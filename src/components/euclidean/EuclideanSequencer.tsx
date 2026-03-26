@@ -1037,6 +1037,8 @@ export const EuclideanSequencer = () => {
         layer2Offset: config.layer2Offset ?? 0,
         layer2FilterFreq: config.layer2FilterFreq ?? 8000,
         layer2Reverse: config.layer2Reverse ?? false,
+        layer2StretchEnabled: (config as any).layer2StretchEnabled ?? false,
+        layer2StretchRate: (config as any).layer2StretchRate ?? 1.0,
         // Lorenz + Nested LFO
         lorenzEnabled: (config as any).lorenzEnabled ?? false,
         lorenzDepth: (config as any).lorenzDepth ?? 1000,
