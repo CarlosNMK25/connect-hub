@@ -620,7 +620,7 @@ export const EuclideanSequencer = () => {
       isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0,
       isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
       cloudMode: 'granular' as const, enoSpeed: 1.0,
-      hits: 0, misses: 0
+      hits: 0, misses: 0, activeScene: 0, scenes: new Array(8).fill(null), activeAdvancedPanel: null
     }),
     updateTrackPattern({ 
       id: 'tone', name: 'Tone', color: '#B45309', pulses: 3, steps: 8, offset: 0, 
