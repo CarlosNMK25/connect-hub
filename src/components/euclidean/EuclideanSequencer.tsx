@@ -1197,21 +1197,29 @@ export const EuclideanSequencer = () => {
     const snareReverbSend = new Tone.Gain(0).connect(reverbBus);
     const snareEqHpf = new Tone.Filter(20, "highpass");
     const snareEqLpf = new Tone.Filter(20000, "lowpass");
+    const snarePanner = new Tone.Panner(0);
+    const snareFreqShifter = new Tone.FrequencyShifter(0);
     const snareFilter = new Tone.Filter(5000, "lowpass").connect(snareEqHpf);
     snareEqHpf.connect(snareEqLpf);
-    snareEqLpf.connect(compressor);
-    snareEqLpf.connect(snareDelaySend);
-    snareEqLpf.connect(snareReverbSend);
+    snareEqLpf.connect(snarePanner);
+    snarePanner.connect(snareFreqShifter);
+    snareFreqShifter.connect(compressor);
+    snareFreqShifter.connect(snareDelaySend);
+    snareFreqShifter.connect(snareReverbSend);
 
     const hatDelaySend = new Tone.Gain(0).connect(delayBus);
     const hatReverbSend = new Tone.Gain(0).connect(reverbBus);
     const hatEqHpf = new Tone.Filter(20, "highpass");
     const hatEqLpf = new Tone.Filter(20000, "lowpass");
+    const hatPanner = new Tone.Panner(0);
+    const hatFreqShifter = new Tone.FrequencyShifter(0);
     const hatFilter = new Tone.Filter(5000, "highpass").connect(hatEqHpf);
     hatEqHpf.connect(hatEqLpf);
-    hatEqLpf.connect(compressor);
-    hatEqLpf.connect(hatDelaySend);
-    hatEqLpf.connect(hatReverbSend);
+    hatEqLpf.connect(hatPanner);
+    hatPanner.connect(hatFreqShifter);
+    hatFreqShifter.connect(compressor);
+    hatFreqShifter.connect(hatDelaySend);
+    hatFreqShifter.connect(hatReverbSend);
 
     // Layered Kick
     const kickBody = new Tone.MembraneSynth({
