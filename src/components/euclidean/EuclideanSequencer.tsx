@@ -3078,6 +3078,9 @@ export const EuclideanSequencer = () => {
       synthObj.setFreezeSend = (value: number) => {
         freezeSendNode.gain.rampTo(value, 0.05);
       };
+      synthObj.setReverseSend = (value: number) => {
+        reverseSendNode.gain.rampTo(value, 0.05);
+      };
       
       // Update initial sends and volume
       const track = tracksRef.current.find(t => t.id === trackId);
