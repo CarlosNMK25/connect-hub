@@ -3160,6 +3160,43 @@ export const EuclideanSequencer = () => {
           case 'sampleEnd': synthObj.grainPlayer.loopEnd = val * synthObj.grainPlayer.buffer.duration; break;
           case 'attack': synthObj.grainPlayer.fadeIn = val / 1000; break;
           case 'decay': synthObj.grainPlayer.fadeOut = val / 1000; break;
+          case 'extremeLoopEnabled': {
+            const currentTrack = tracksRef.current.find(t => t.id === trackId);
+            if (val && currentTrack?.samplerBuffer) {
+              synthObj.grainPlayer.loop = true;
+              const loopPt = (currentTrack.extremeLoopPoint ?? 0.5) * currentTrack.samplerBuffer.duration;
+              const loopSz = (currentTrack.extremeLoopSize ?? 10) / 1000;
+              synthObj.grainPlayer.loopStart = loopPt;
+              synthObj.grainPlayer.loopEnd = loopPt + loopSz;
+              synthObj.grainPlayer.grainSize = loopSz;
+              if (isPlaying) try { synthObj.grainPlayer.start(); } catch {}
+            } else {
+              synthObj.grainPlayer.loop = trackId === 'cloud';
+              try { if (trackId !== 'cloud') synthObj.grainPlayer.stop(); } catch {}
+            }
+            break;
+          }
+          case 'extremeLoopSize': {
+            const ct = tracksRef.current.find(t => t.id === trackId);
+            if (ct?.extremeLoopEnabled && ct.samplerBuffer) {
+              const loopSz = val / 1000;
+              const loopPt = (ct.extremeLoopPoint ?? 0.5) * ct.samplerBuffer.duration;
+              synthObj.grainPlayer.loopStart = loopPt;
+              synthObj.grainPlayer.loopEnd = loopPt + loopSz;
+              synthObj.grainPlayer.grainSize = loopSz;
+            }
+            break;
+          }
+          case 'extremeLoopPoint': {
+            const ct2 = tracksRef.current.find(t => t.id === trackId);
+            if (ct2?.extremeLoopEnabled && ct2.samplerBuffer) {
+              const loopPt = val * ct2.samplerBuffer.duration;
+              const loopSz = (ct2.extremeLoopSize ?? 10) / 1000;
+              synthObj.grainPlayer.loopStart = loopPt;
+              synthObj.grainPlayer.loopEnd = loopPt + loopSz;
+            }
+            break;
+          }
         }
       }
       if (synthObj.bitCrusher && param === 'bitCrush') {
