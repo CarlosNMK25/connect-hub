@@ -6024,6 +6024,73 @@ export const EuclideanSequencer = () => {
         )}
       </div>
 
+      {/* Freeze Reverb Panel (Phase 9) */}
+      <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
+        <button
+          onClick={() => setFreezeEnabled(!freezeEnabled)}
+          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('freezeEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
+          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
+          className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+            freezeEnabled
+              ? 'bg-system-accent text-white border-system-accent'
+              : 'bg-background text-idm-muted border-border'
+          } ${isStudyMode ? 'cursor-help' : ''}`}
+          title="Freeze — campo sonoro que no decae"
+        >FRZ</button>
+        <span className="text-[8px] font-mono text-idm-muted">Freeze</span>
+        {freezeEnabled && (
+          <div className="flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-1"
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('freezeFeedback'); setHoveredGlobalEl(e.currentTarget); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>FB</span>
+              <input type="range" min={0.5} max={0.99} step={0.01} value={freezeFeedback}
+                onChange={e => setFreezeFeedback(Number(e.target.value))}
+                className="w-12 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted w-8">{freezeFeedback.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center gap-1"
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('freezeFilterFreq'); setHoveredGlobalEl(e.currentTarget); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>LP</span>
+              <input type="range" min={500} max={12000} step={500} value={freezeFilterFreq}
+                onChange={e => setFreezeFilterFreq(Number(e.target.value))}
+                className="w-12 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted w-10">{(freezeFilterFreq/1000).toFixed(1)}k</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Gated Reverb Panel (Phase 9) */}
+      <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
+        <button
+          onClick={() => setGatedEnabled(!gatedEnabled)}
+          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('gatedEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
+          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
+          className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+            gatedEnabled
+              ? 'bg-system-accent text-white border-system-accent'
+              : 'bg-background text-idm-muted border-border'
+          } ${isStudyMode ? 'cursor-help' : ''}`}
+          title="Gated Reverb — reverb cortado abruptamente"
+        >GRV</button>
+        <span className="text-[8px] font-mono text-idm-muted">Gated Reverb</span>
+        {gatedEnabled && (
+          <div className="flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-1"
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('gatedThreshold'); setHoveredGlobalEl(e.currentTarget); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>Thr</span>
+              <input type="range" min={-60} max={-10} step={1} value={gatedThreshold}
+                onChange={e => setGatedThreshold(Number(e.target.value))}
+                className="w-12 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted w-10">{gatedThreshold}dB</span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Tracks Container with z-index to ensure interactivity */}
       <div className="space-y-6 relative z-10">
         <MesoInsightMonitor tracks={tracks} isStudyMode={isStudyMode} />
