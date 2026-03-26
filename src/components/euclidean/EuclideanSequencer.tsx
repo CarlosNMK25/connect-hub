@@ -974,6 +974,9 @@ export const EuclideanSequencer = () => {
           freqShiftEnabled: t.freqShiftEnabled,
           freqShift: t.freqShift,
           spectralDelaySend: t.spectralDelaySend,
+          binauralEnabled: t.binauralEnabled,
+          binauralAzimuth: t.binauralAzimuth,
+          binauralDistance: t.binauralDistance,
         }])
       ),
     };
