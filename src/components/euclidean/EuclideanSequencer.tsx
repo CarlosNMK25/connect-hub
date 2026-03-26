@@ -3634,6 +3634,7 @@ export const EuclideanSequencer = () => {
       synthsRef.current.kick.panner = kickPanner;
       synthsRef.current.kick.freqShifter = kickFreqShifter;
       synthsRef.current.kick.setSpectralSend = (value: number) => { kickSpectralSend.gain.rampTo(value, 0.05); };
+      synthsRef.current.kick.setFreezeSend = (value: number) => { kickFreezeSend.gain.rampTo(value, 0.05); };
       synthsRef.current.kick.switchBinaural = (binaural: boolean) => {
         kickPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
         kickPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
