@@ -157,6 +157,22 @@ interface TrackState {
   binauralEnabled?: boolean;
   binauralAzimuth?: number; // 0-360 degrees, default 0
   binauralDistance?: number; // 1-10, default 3
+  // Phase 8 — Percussive Synthesis
+  kickPitchDecay?: number;    // 0.01-0.5, default 0.05
+  kickOctaves?: number;       // 1-10, default 10
+  kickDecay?: number;         // 0.1-1.0, default 0.4
+  kickClickType?: string;     // 'white'|'pink'|'brown', default 'pink'
+  hatMode?: string;           // 'noise'|'metal', default 'noise'
+  hatHarmonicity?: number;    // 0.1-10, default 5.1
+  hatModIndex?: number;       // 1-100, default 32
+  hatResonance?: number;      // 100-8000, default 4000
+  hatDecay?: number;          // 0.01-0.5, default 0.05
+  hatNoiseType?: string;      // 'white'|'pink'|'brown', default 'white'
+  snareDecay?: number;        // 0.05-0.5, default 0.2
+  snareNoiseType?: string;    // 'white'|'pink'|'brown', default 'white'
+  snareBodyEnabled?: boolean; // default false
+  snareBodyPitch?: number;    // 100-400, default 180
+  snareBodyDecay?: number;    // 0.05-0.3, default 0.1
   hits: number;
   misses: number;
 }
@@ -880,6 +896,23 @@ export const EuclideanSequencer = () => {
         if (config.octaveRange !== undefined) newTrack.octaveRange = config.octaveRange;
         if (config.noteIndices !== undefined) newTrack.noteIndices = [...config.noteIndices];
         
+        // Phase 8 — Percussive Synthesis fields
+        if (config.kickPitchDecay !== undefined) newTrack.kickPitchDecay = config.kickPitchDecay;
+        if (config.kickOctaves !== undefined) newTrack.kickOctaves = config.kickOctaves;
+        if (config.kickDecay !== undefined) newTrack.kickDecay = config.kickDecay;
+        if (config.kickClickType !== undefined) newTrack.kickClickType = config.kickClickType;
+        if (config.hatMode !== undefined) newTrack.hatMode = config.hatMode;
+        if (config.hatHarmonicity !== undefined) newTrack.hatHarmonicity = config.hatHarmonicity;
+        if (config.hatModIndex !== undefined) newTrack.hatModIndex = config.hatModIndex;
+        if (config.hatResonance !== undefined) newTrack.hatResonance = config.hatResonance;
+        if (config.hatDecay !== undefined) newTrack.hatDecay = config.hatDecay;
+        if (config.hatNoiseType !== undefined) newTrack.hatNoiseType = config.hatNoiseType;
+        if (config.snareDecay !== undefined) newTrack.snareDecay = config.snareDecay;
+        if (config.snareNoiseType !== undefined) newTrack.snareNoiseType = config.snareNoiseType;
+        if (config.snareBodyEnabled !== undefined) newTrack.snareBodyEnabled = config.snareBodyEnabled;
+        if (config.snareBodyPitch !== undefined) newTrack.snareBodyPitch = config.snareBodyPitch;
+        if (config.snareBodyDecay !== undefined) newTrack.snareBodyDecay = config.snareBodyDecay;
+
         // Reset counters for fresh start
         newTrack.hits = 0;
         newTrack.misses = 0;
@@ -977,6 +1010,10 @@ export const EuclideanSequencer = () => {
           binauralEnabled: t.binauralEnabled,
           binauralAzimuth: t.binauralAzimuth,
           binauralDistance: t.binauralDistance,
+          // Phase 8 — Percussive Synthesis
+          ...(t.id === 'kick' ? { kickPitchDecay: t.kickPitchDecay, kickOctaves: t.kickOctaves, kickDecay: t.kickDecay, kickClickType: t.kickClickType } : {}),
+          ...(t.id === 'hat' ? { hatMode: t.hatMode, hatHarmonicity: t.hatHarmonicity, hatModIndex: t.hatModIndex, hatResonance: t.hatResonance, hatDecay: t.hatDecay, hatNoiseType: t.hatNoiseType } : {}),
+          ...(t.id === 'snare' ? { snareDecay: t.snareDecay, snareNoiseType: t.snareNoiseType, snareBodyEnabled: t.snareBodyEnabled, snareBodyPitch: t.snareBodyPitch, snareBodyDecay: t.snareBodyDecay } : {}),
         }])
       ),
     };
@@ -1116,6 +1153,28 @@ export const EuclideanSequencer = () => {
         binauralEnabled: (config as any).binauralEnabled ?? false,
         binauralAzimuth: (config as any).binauralAzimuth ?? 0,
         binauralDistance: (config as any).binauralDistance ?? 3,
+        // Phase 8 — Percussive Synthesis
+        ...(t.id === 'kick' ? {
+          kickPitchDecay: (config as any).kickPitchDecay ?? 0.05,
+          kickOctaves: (config as any).kickOctaves ?? 10,
+          kickDecay: (config as any).kickDecay ?? 0.4,
+          kickClickType: (config as any).kickClickType ?? 'pink',
+        } : {}),
+        ...(t.id === 'hat' ? {
+          hatMode: (config as any).hatMode ?? 'noise',
+          hatHarmonicity: (config as any).hatHarmonicity ?? 5.1,
+          hatModIndex: (config as any).hatModIndex ?? 32,
+          hatResonance: (config as any).hatResonance ?? 4000,
+          hatDecay: (config as any).hatDecay ?? 0.05,
+          hatNoiseType: (config as any).hatNoiseType ?? 'white',
+        } : {}),
+        ...(t.id === 'snare' ? {
+          snareDecay: (config as any).snareDecay ?? 0.2,
+          snareNoiseType: (config as any).snareNoiseType ?? 'white',
+          snareBodyEnabled: (config as any).snareBodyEnabled ?? false,
+          snareBodyPitch: (config as any).snareBodyPitch ?? 180,
+          snareBodyDecay: (config as any).snareBodyDecay ?? 0.1,
+        } : {}),
         hits: 0,
         misses: 0,
       });
@@ -1137,6 +1196,29 @@ export const EuclideanSequencer = () => {
           synthsRef.current[t.id]?.switchBinaural?.((config as any).binauralEnabled ?? false);
           if ((config as any).binauralEnabled) {
             synthsRef.current[t.id]?.updateBinaural?.((config as any).binauralAzimuth ?? 0, (config as any).binauralDistance ?? 3);
+          }
+          // Phase 8 — Restore percussive synth params
+          if (t.id === 'kick') {
+            synthsRef.current.kick?.setKickParams?.(
+              (config as any).kickPitchDecay ?? 0.05,
+              (config as any).kickOctaves ?? 10,
+              (config as any).kickDecay ?? 0.4,
+              (config as any).kickClickType ?? 'pink'
+            );
+          }
+          if (t.id === 'snare') {
+            synthsRef.current.snare?.setSnareParams?.((config as any).snareDecay ?? 0.2, (config as any).snareNoiseType ?? 'white');
+            synthsRef.current.snare?.setSnareBody?.((config as any).snareBodyEnabled ?? false, (config as any).snareBodyPitch ?? 180, (config as any).snareBodyDecay ?? 0.1);
+          }
+          if (t.id === 'hat') {
+            synthsRef.current.hat?.setHatMode?.(
+              (config as any).hatMode ?? 'noise',
+              (config as any).hatHarmonicity ?? 5.1,
+              (config as any).hatModIndex ?? 32,
+              (config as any).hatResonance ?? 4000,
+              (config as any).hatDecay ?? 0.05,
+              (config as any).hatNoiseType ?? 'white'
+            );
           }
         }
         // Recalcular matrices Markov para tracks tonales
@@ -1405,14 +1487,14 @@ export const EuclideanSequencer = () => {
     hatFsDirectGain.connect(hatSpectralSend);
 
     // Layered Kick
-    const kickBody = new Tone.MembraneSynth({
+    let kickBody = new Tone.MembraneSynth({
       pitchDecay: 0.05, octaves: 10, oscillator: { type: 'sine' },
       envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 },
       volume: -2
     }).connect(kickFilter);
 
-    const kickClick = new Tone.NoiseSynth({
-      noise: { type: 'pink' },
+    let kickClick = new Tone.NoiseSynth({
+      noise: { type: 'pink' as any },
       envelope: { attack: 0.001, decay: 0.01, sustain: 0 },
       volume: -10
     }).connect(kickFilter);
@@ -1452,6 +1534,20 @@ export const EuclideanSequencer = () => {
         kickDelaySend.dispose();
         kickReverbSend.dispose();
         kickSpectralSend.dispose();
+      }
+    };
+    // Phase 8 — Kick synth params setter
+    synthsRef.current.kick.setKickParams = (pitchDecay: number, octaves: number, decay: number, clickType: string) => {
+      kickBody.set({ pitchDecay, octaves, envelope: { decay } });
+      // NoiseSynth noise type can't be changed in-place; recreate if type changed
+      const currentType = (kickClick as any).noise?.type || 'pink';
+      if (clickType !== currentType) {
+        kickClick.dispose();
+        kickClick = new Tone.NoiseSynth({
+          noise: { type: clickType as any },
+          envelope: { attack: 0.001, decay: 0.01, sustain: 0 },
+          volume: -10
+        }).connect(kickFilter);
       }
     };
     // EQ injection for kick
@@ -1504,15 +1600,19 @@ export const EuclideanSequencer = () => {
       synthsRef.current.kick.nestedLfoInstance = null;
     };
 
-    const snareSynth = new Tone.NoiseSynth({
-      noise: { type: 'white' },
+    let snareSynth = new Tone.NoiseSynth({
+      noise: { type: 'white' as any },
       envelope: { attack: 0.001, decay: 0.2, sustain: 0 },
       volume: -4
     }).connect(snareFilter);
+    let snareBody: Tone.MembraneSynth | null = null;
 
     synthsRef.current.snare = {
       triggerAttackRelease: (duration: string, time: number, velocity: number) => {
         snareSynth.triggerAttackRelease(duration, time, velocity);
+        if (snareBody) {
+          try { snareBody.triggerAttackRelease("C2", duration, time, velocity * 0.6); } catch(e) {}
+        }
         const baseCutoff = 1500;
         const dynamicCutoff = baseCutoff + (velocity * 5000);
         if (isFinite(dynamicCutoff)) {
@@ -1521,6 +1621,7 @@ export const EuclideanSequencer = () => {
       },
       setVolume: (vol: number) => {
         snareSynth.volume.rampTo(Tone.gainToDb(vol) - 4, 0.05);
+        if (snareBody) snareBody.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
       },
       setSends: (delayVal: number, reverbVal: number) => {
         snareDelaySend.gain.rampTo(delayVal, 0.05);
@@ -1528,6 +1629,7 @@ export const EuclideanSequencer = () => {
       },
       dispose: () => {
         snareSynth.dispose();
+        snareBody?.dispose();
         snareFilter.dispose();
         snareEqHpf.dispose();
         snareEqLpf.dispose();
@@ -1541,6 +1643,36 @@ export const EuclideanSequencer = () => {
         snareDelaySend.dispose();
         snareReverbSend.dispose();
         snareSpectralSend.dispose();
+      }
+    };
+    // Phase 8 — Snare synth params setter
+    synthsRef.current.snare.setSnareParams = (decay: number, noiseType: string) => {
+      snareSynth.envelope.decay = decay;
+      const currentType = (snareSynth as any).noise?.type || 'white';
+      if (noiseType !== currentType) {
+        snareSynth.dispose();
+        snareSynth = new Tone.NoiseSynth({
+          noise: { type: noiseType as any },
+          envelope: { attack: 0.001, decay, sustain: 0 },
+          volume: -4
+        }).connect(snareFilter);
+      }
+    };
+    // Phase 8 — Snare body (layered MembraneSynth)
+    synthsRef.current.snare.setSnareBody = (enabled: boolean, pitch: number, bodyDecay: number) => {
+      if (enabled && !snareBody) {
+        snareBody = new Tone.MembraneSynth({
+          pitchDecay: 0.08, octaves: 4, oscillator: { type: 'sine' },
+          envelope: { attack: 0.001, decay: bodyDecay, sustain: 0.01, release: 0.5 },
+          volume: -6
+        }).connect(snareFilter);
+        snareBody.frequency.value = pitch;
+      } else if (!enabled && snareBody) {
+        snareBody.dispose();
+        snareBody = null;
+      } else if (enabled && snareBody) {
+        snareBody.frequency.value = pitch;
+        snareBody.set({ envelope: { decay: bodyDecay } });
       }
     };
     synthsRef.current.snare.updateEq = (hpfFreq: number, lpfFreq: number) => {
@@ -1588,16 +1720,23 @@ export const EuclideanSequencer = () => {
       synthsRef.current.snare.nestedLfoInstance = null;
     };
 
-    const hatSynth = new Tone.NoiseSynth({
-      noise: { type: 'white' },
+    let hatSynth: Tone.NoiseSynth | null = new Tone.NoiseSynth({
+      noise: { type: 'white' as any },
       envelope: { attack: 0.001, decay: 0.05, sustain: 0 },
       volume: -2
     }).connect(hatFilter);
+    let hatMetalSynth: Tone.MetalSynth | null = null;
+    let currentHatMode = 'noise';
 
     synthsRef.current.hat = {
       triggerAttackRelease: (duration: string, time: number, velocity: number) => {
-        hatSynth.triggerAttackRelease(duration, time, velocity);
-        // Dynamic Timbre: Brighter = Higher Highpass Cutoff
+        if (currentHatMode === 'metal' && hatMetalSynth) {
+          const trackState = tracksRef.current.find(t => t.id === 'hat');
+          const decay = trackState?.hatDecay ?? 0.05;
+          hatMetalSynth.triggerAttackRelease(200, decay, time, velocity);
+        } else if (hatSynth) {
+          hatSynth.triggerAttackRelease(duration, time, velocity);
+        }
         const baseCutoff = 2000;
         const dynamicCutoff = baseCutoff + (velocity * 8000);
         if (isFinite(dynamicCutoff)) {
@@ -1605,14 +1744,17 @@ export const EuclideanSequencer = () => {
         }
       },
       setVolume: (vol: number) => {
-        hatSynth.volume.rampTo(Tone.gainToDb(vol) - 2, 0.05);
+        const db = Tone.gainToDb(vol) - 2;
+        if (hatSynth) hatSynth.volume.rampTo(db, 0.05);
+        if (hatMetalSynth) hatMetalSynth.volume.rampTo(db, 0.05);
       },
       setSends: (delayVal: number, reverbVal: number) => {
         hatDelaySend.gain.rampTo(delayVal, 0.05);
         hatReverbSend.gain.rampTo(reverbVal, 0.05);
       },
       dispose: () => {
-        hatSynth.dispose();
+        hatSynth?.dispose();
+        hatMetalSynth?.dispose();
         hatFilter.dispose();
         hatEqHpf.dispose();
         hatEqLpf.dispose();
@@ -1626,6 +1768,41 @@ export const EuclideanSequencer = () => {
         hatDelaySend.dispose();
         hatReverbSend.dispose();
         hatSpectralSend.dispose();
+      }
+    };
+    // Phase 8 — Hat mode switcher + params
+    synthsRef.current.hat.setHatMode = (mode: string, harmonicity: number, modIndex: number, resonance: number, decay: number, noiseType: string) => {
+      if (mode === 'metal' && currentHatMode !== 'metal') {
+        hatSynth?.dispose();
+        hatSynth = null;
+        hatMetalSynth = new Tone.MetalSynth({
+          harmonicity, modulationIndex: modIndex, resonance,
+          envelope: { attack: 0.001, decay, release: 0.1 },
+          volume: -2
+        }).connect(hatFilter);
+        currentHatMode = 'metal';
+      } else if (mode === 'noise' && currentHatMode !== 'noise') {
+        hatMetalSynth?.dispose();
+        hatMetalSynth = null;
+        hatSynth = new Tone.NoiseSynth({
+          noise: { type: noiseType as any },
+          envelope: { attack: 0.001, decay, sustain: 0 },
+          volume: -2
+        }).connect(hatFilter);
+        currentHatMode = 'noise';
+      } else if (mode === 'metal' && hatMetalSynth) {
+        hatMetalSynth.set({ harmonicity, modulationIndex: modIndex, resonance, envelope: { decay } });
+      } else if (mode === 'noise' && hatSynth) {
+        hatSynth.envelope.decay = decay;
+        const curType = (hatSynth as any).noise?.type || 'white';
+        if (noiseType !== curType) {
+          hatSynth.dispose();
+          hatSynth = new Tone.NoiseSynth({
+            noise: { type: noiseType as any },
+            envelope: { attack: 0.001, decay, sustain: 0 },
+            volume: -2
+          }).connect(hatFilter);
+        }
       }
     };
     synthsRef.current.hat.updateEq = (hpfFreq: number, lpfFreq: number) => {
@@ -3318,14 +3495,14 @@ export const EuclideanSequencer = () => {
       kickFsDirectGain.connect(kickReverbSend);
       kickFsDirectGain.connect(kickSpectralSend);
 
-      const kickBody = new Tone.MembraneSynth({
+      let kickBody = new Tone.MembraneSynth({
         pitchDecay: 0.05, octaves: 10, oscillator: { type: 'sine' },
         envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 },
         volume: -2
       }).connect(kickFilter);
 
-      const kickClick = new Tone.NoiseSynth({
-        noise: { type: 'pink' },
+      let kickClick = new Tone.NoiseSynth({
+        noise: { type: 'pink' as any },
         envelope: { attack: 0.001, decay: 0.01, sustain: 0 },
         volume: -10
       }).connect(kickFilter);
@@ -3355,6 +3532,19 @@ export const EuclideanSequencer = () => {
           kickPanner.dispose(); kickPanner3D.dispose(); kickPannerGain.dispose(); kickPanner3DGain.dispose();
           kickFreqShifter.dispose(); kickFsBypassGain.dispose(); kickFsDirectGain.dispose();
           kickDelaySend.dispose(); kickReverbSend.dispose(); kickSpectralSend.dispose();
+        }
+      };
+      // Phase 8 — Kick synth params setter (rebuild)
+      synthsRef.current.kick.setKickParams = (pitchDecay: number, octaves: number, decay: number, clickType: string) => {
+        kickBody.set({ pitchDecay, octaves, envelope: { decay } });
+        const currentType = (kickClick as any).noise?.type || 'pink';
+        if (clickType !== currentType) {
+          kickClick.dispose();
+          kickClick = new Tone.NoiseSynth({
+            noise: { type: clickType as any },
+            envelope: { attack: 0.001, decay: 0.01, sustain: 0 },
+            volume: -10
+          }).connect(kickFilter);
         }
       };
       synthsRef.current.kick.updateEq = (hpfFreq: number, lpfFreq: number) => {
@@ -3427,29 +3617,65 @@ export const EuclideanSequencer = () => {
       snareFsDirectGain.connect(snareReverbSend);
       snareFsDirectGain.connect(snareSpectralSend);
 
-      const snareSynth = new Tone.NoiseSynth({
-        noise: { type: 'white' },
+      let snareSynth = new Tone.NoiseSynth({
+        noise: { type: 'white' as any },
         envelope: { attack: 0.001, decay: 0.2, sustain: 0 },
         volume: -4
       }).connect(snareFilter);
+      let snareBody: Tone.MembraneSynth | null = null;
 
       synthsRef.current.snare = {
         triggerAttackRelease: (duration: any, time: number, velocity: number) => {
           snareSynth.triggerAttackRelease(duration, time, velocity);
+          if (snareBody) {
+            try { snareBody.triggerAttackRelease("C2", duration, time, velocity * 0.6); } catch(e) {}
+          }
           const baseCutoff = 1500;
           const dynamicCutoff = baseCutoff + (velocity * 5000);
           if (isFinite(dynamicCutoff)) { snareFilter.frequency.rampTo(dynamicCutoff, 0.02, time); }
         },
-        setVolume: (vol: number) => { snareSynth.volume.rampTo(Tone.gainToDb(vol) - 4, 0.05); },
+        setVolume: (vol: number) => {
+          snareSynth.volume.rampTo(Tone.gainToDb(vol) - 4, 0.05);
+          if (snareBody) snareBody.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
+        },
         setSends: (delayVal: number, reverbVal: number) => {
           snareDelaySend.gain.rampTo(delayVal, 0.05);
           snareReverbSend.gain.rampTo(reverbVal, 0.05);
         },
         dispose: () => {
-          snareSynth.dispose(); snareFilter.dispose(); snareEqHpf.dispose(); snareEqLpf.dispose();
+          snareSynth.dispose(); snareBody?.dispose(); snareFilter.dispose(); snareEqHpf.dispose(); snareEqLpf.dispose();
           snarePanner.dispose(); snarePanner3D.dispose(); snarePannerGain.dispose(); snarePanner3DGain.dispose();
           snareFreqShifter.dispose(); snareFsBypassGain.dispose(); snareFsDirectGain.dispose();
           snareDelaySend.dispose(); snareReverbSend.dispose(); snareSpectralSend.dispose();
+        }
+      };
+      // Phase 8 — Snare synth params setter (rebuild)
+      synthsRef.current.snare.setSnareParams = (decay: number, noiseType: string) => {
+        snareSynth.envelope.decay = decay;
+        const currentType = (snareSynth as any).noise?.type || 'white';
+        if (noiseType !== currentType) {
+          snareSynth.dispose();
+          snareSynth = new Tone.NoiseSynth({
+            noise: { type: noiseType as any },
+            envelope: { attack: 0.001, decay, sustain: 0 },
+            volume: -4
+          }).connect(snareFilter);
+        }
+      };
+      synthsRef.current.snare.setSnareBody = (enabled: boolean, pitch: number, bodyDecay: number) => {
+        if (enabled && !snareBody) {
+          snareBody = new Tone.MembraneSynth({
+            pitchDecay: 0.08, octaves: 4, oscillator: { type: 'sine' },
+            envelope: { attack: 0.001, decay: bodyDecay, sustain: 0.01, release: 0.5 },
+            volume: -6
+          }).connect(snareFilter);
+          snareBody.frequency.value = pitch;
+        } else if (!enabled && snareBody) {
+          snareBody.dispose();
+          snareBody = null;
+        } else if (enabled && snareBody) {
+          snareBody.frequency.value = pitch;
+          snareBody.set({ envelope: { decay: bodyDecay } });
         }
       };
       synthsRef.current.snare.updateEq = (hpfFreq: number, lpfFreq: number) => { snareEqHpf.frequency.rampTo(hpfFreq, 0.05); snareEqLpf.frequency.rampTo(lpfFreq, 0.05); };
@@ -3510,20 +3736,56 @@ export const EuclideanSequencer = () => {
       hatFsDirectGain.connect(hatReverbSend);
       hatFsDirectGain.connect(hatSpectralSend);
 
-      const hatSynth = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.001, decay: 0.05, sustain: 0 }, volume: -2 }).connect(hatFilter);
+      let hatSynth: Tone.NoiseSynth | null = new Tone.NoiseSynth({ noise: { type: 'white' as any }, envelope: { attack: 0.001, decay: 0.05, sustain: 0 }, volume: -2 }).connect(hatFilter);
+      let hatMetalSynth: Tone.MetalSynth | null = null;
+      let currentHatMode = 'noise';
       synthsRef.current.hat = {
         triggerAttackRelease: (duration: any, time: number, velocity: number) => {
-          hatSynth.triggerAttackRelease(duration, time, velocity);
+          if (currentHatMode === 'metal' && hatMetalSynth) {
+            const trackState = tracksRef.current.find(t => t.id === 'hat');
+            const decay = trackState?.hatDecay ?? 0.05;
+            hatMetalSynth.triggerAttackRelease(200, decay, time, velocity);
+          } else if (hatSynth) {
+            hatSynth.triggerAttackRelease(duration, time, velocity);
+          }
           const dynamicCutoff = 2000 + (velocity * 8000);
           if (isFinite(dynamicCutoff)) hatFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
         },
-        setVolume: (vol: number) => { hatSynth.volume.rampTo(Tone.gainToDb(vol) - 2, 0.05); },
+        setVolume: (vol: number) => {
+          const db = Tone.gainToDb(vol) - 2;
+          if (hatSynth) hatSynth.volume.rampTo(db, 0.05);
+          if (hatMetalSynth) hatMetalSynth.volume.rampTo(db, 0.05);
+        },
         setSends: (delayVal: number, reverbVal: number) => { hatDelaySend.gain.rampTo(delayVal, 0.05); hatReverbSend.gain.rampTo(reverbVal, 0.05); },
         dispose: () => {
-          hatSynth.dispose(); hatFilter.dispose(); hatEqHpf.dispose(); hatEqLpf.dispose();
+          hatSynth?.dispose(); hatMetalSynth?.dispose(); hatFilter.dispose(); hatEqHpf.dispose(); hatEqLpf.dispose();
           hatPanner.dispose(); hatPanner3D.dispose(); hatPannerGain.dispose(); hatPanner3DGain.dispose();
           hatFreqShifter.dispose(); hatFsBypassGain.dispose(); hatFsDirectGain.dispose();
           hatDelaySend.dispose(); hatReverbSend.dispose(); hatSpectralSend.dispose();
+        }
+      };
+      // Phase 8 — Hat mode switcher (rebuild)
+      synthsRef.current.hat.setHatMode = (mode: string, harmonicity: number, modIndex: number, resonance: number, decay: number, noiseType: string) => {
+        if (mode === 'metal' && currentHatMode !== 'metal') {
+          hatSynth?.dispose(); hatSynth = null;
+          hatMetalSynth = new Tone.MetalSynth({
+            harmonicity, modulationIndex: modIndex, resonance,
+            envelope: { attack: 0.001, decay, release: 0.1 }, volume: -2
+          }).connect(hatFilter);
+          currentHatMode = 'metal';
+        } else if (mode === 'noise' && currentHatMode !== 'noise') {
+          hatMetalSynth?.dispose(); hatMetalSynth = null;
+          hatSynth = new Tone.NoiseSynth({ noise: { type: noiseType as any }, envelope: { attack: 0.001, decay, sustain: 0 }, volume: -2 }).connect(hatFilter);
+          currentHatMode = 'noise';
+        } else if (mode === 'metal' && hatMetalSynth) {
+          hatMetalSynth.set({ harmonicity, modulationIndex: modIndex, resonance, envelope: { decay } });
+        } else if (mode === 'noise' && hatSynth) {
+          hatSynth.envelope.decay = decay;
+          const curType = (hatSynth as any).noise?.type || 'white';
+          if (noiseType !== curType) {
+            hatSynth.dispose();
+            hatSynth = new Tone.NoiseSynth({ noise: { type: noiseType as any }, envelope: { attack: 0.001, decay, sustain: 0 }, volume: -2 }).connect(hatFilter);
+          }
         }
       };
       synthsRef.current.hat.updateEq = (hpfFreq: number, lpfFreq: number) => { hatEqHpf.frequency.rampTo(hpfFreq, 0.05); hatEqLpf.frequency.rampTo(lpfFreq, 0.05); };
@@ -6132,6 +6394,60 @@ export const EuclideanSequencer = () => {
               binauralEnabled={track.binauralEnabled}
               binauralAzimuth={track.binauralAzimuth}
               binauralDistance={track.binauralDistance}
+              kickPitchDecay={track.kickPitchDecay}
+              kickOctaves={track.kickOctaves}
+              kickDecay={track.kickDecay}
+              kickClickType={track.kickClickType}
+              hatMode={track.hatMode}
+              hatHarmonicity={track.hatHarmonicity}
+              hatModIndex={track.hatModIndex}
+              hatResonance={track.hatResonance}
+              hatDecay={track.hatDecay}
+              hatNoiseType={track.hatNoiseType}
+              snareDecay={track.snareDecay}
+              snareNoiseType={track.snareNoiseType}
+              snareBodyEnabled={track.snareBodyEnabled}
+              snareBodyPitch={track.snareBodyPitch}
+              snareBodyDecay={track.snareBodyDecay}
+              onPercSynthParamChange={(param, value) => {
+                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, [param]: value } : t));
+                // Sync to audio engine
+                setTimeout(() => {
+                  const tr = tracksRef.current.find(t => t.id === track.id);
+                  if (!tr) return;
+                  if (track.id === 'kick') {
+                    synthsRef.current.kick?.setKickParams?.(
+                      param === 'kickPitchDecay' ? value as number : (tr.kickPitchDecay ?? 0.05),
+                      param === 'kickOctaves' ? value as number : (tr.kickOctaves ?? 10),
+                      param === 'kickDecay' ? value as number : (tr.kickDecay ?? 0.4),
+                      param === 'kickClickType' ? value as string : (tr.kickClickType ?? 'pink')
+                    );
+                  } else if (track.id === 'snare') {
+                    if (param === 'snareDecay' || param === 'snareNoiseType') {
+                      synthsRef.current.snare?.setSnareParams?.(
+                        param === 'snareDecay' ? value as number : (tr.snareDecay ?? 0.2),
+                        param === 'snareNoiseType' ? value as string : (tr.snareNoiseType ?? 'white')
+                      );
+                    }
+                    if (param === 'snareBodyEnabled' || param === 'snareBodyPitch' || param === 'snareBodyDecay') {
+                      synthsRef.current.snare?.setSnareBody?.(
+                        param === 'snareBodyEnabled' ? value as boolean : (tr.snareBodyEnabled ?? false),
+                        param === 'snareBodyPitch' ? value as number : (tr.snareBodyPitch ?? 180),
+                        param === 'snareBodyDecay' ? value as number : (tr.snareBodyDecay ?? 0.1)
+                      );
+                    }
+                  } else if (track.id === 'hat') {
+                    synthsRef.current.hat?.setHatMode?.(
+                      param === 'hatMode' ? value as string : (tr.hatMode ?? 'noise'),
+                      param === 'hatHarmonicity' ? value as number : (tr.hatHarmonicity ?? 5.1),
+                      param === 'hatModIndex' ? value as number : (tr.hatModIndex ?? 32),
+                      param === 'hatResonance' ? value as number : (tr.hatResonance ?? 4000),
+                      param === 'hatDecay' ? value as number : (tr.hatDecay ?? 0.05),
+                      param === 'hatNoiseType' ? value as string : (tr.hatNoiseType ?? 'white')
+                    );
+                  }
+                }, 0);
+              }}
             />
           </div>
         ))}
