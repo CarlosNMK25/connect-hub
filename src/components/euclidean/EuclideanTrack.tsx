@@ -1718,7 +1718,7 @@ export const EuclideanTrack = React.memo(({
           </button>
           {extremeLoopEnabled && (
             <>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('extremeLoopSize', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted">Size</span>
                 <input
                   type="range" min={1} max={50} step={1}
