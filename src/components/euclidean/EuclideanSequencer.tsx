@@ -1621,6 +1621,8 @@ export const EuclideanSequencer = () => {
         hatPannerGain.dispose();
         hatPanner3DGain.dispose();
         hatFreqShifter.dispose();
+        hatFsBypassGain.dispose();
+        hatFsDirectGain.dispose();
         hatDelaySend.dispose();
         hatReverbSend.dispose();
         hatSpectralSend.dispose();
@@ -1631,7 +1633,13 @@ export const EuclideanSequencer = () => {
       hatEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     synthsRef.current.hat.setPan = (value: number) => { hatPanner.pan.rampTo(value, 0.05); };
-    synthsRef.current.hat.setFreqShift = (hz: number) => { hatFreqShifter.frequency.rampTo(hz, 0.05); };
+    synthsRef.current.hat.setFreqShift = (hz: number, enabled?: boolean) => {
+      hatFreqShifter.frequency.rampTo(hz, 0.05);
+      if (enabled !== undefined) {
+        hatFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
+        hatFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
+      }
+    };
     synthsRef.current.hat.panner = hatPanner;
     synthsRef.current.hat.freqShifter = hatFreqShifter;
     synthsRef.current.hat.setSpectralSend = (value: number) => { hatSpectralSend.gain.rampTo(value, 0.05); };
