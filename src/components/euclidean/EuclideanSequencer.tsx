@@ -1292,16 +1292,24 @@ export const EuclideanSequencer = () => {
     const kickDelaySend = new Tone.Gain(0).connect(delayBus);
     const kickReverbSend = new Tone.Gain(0).connect(reverbBus);
     const kickSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
-    // EQ filters in series: filter → eqHpf → eqLpf → panner → freqShifter → [compressor, sends]
+    // EQ filters in series: filter → eqHpf → eqLpf → [pannerGain→panner, panner3DGain→panner3D] → freqShifter → [compressor, sends]
     const kickEqHpf = new Tone.Filter(20, "highpass");
     const kickEqLpf = new Tone.Filter(20000, "lowpass");
     const kickPanner = new Tone.Panner(0);
+    const kickPanner3D = new Tone.Panner3D({ panningModel: 'HRTF', distanceModel: 'inverse' });
+    kickPanner3D.positionY.value = 0;
+    const kickPannerGain = new Tone.Gain(1);
+    const kickPanner3DGain = new Tone.Gain(0);
     const kickFreqShifter = new Tone.FrequencyShifter(0);
     const kickFilter = new Tone.Filter(2000, "lowpass").connect(kickEqHpf);
     kickEqHpf.connect(kickEqLpf);
-    kickEqLpf.connect(kickPanner);
+    kickEqLpf.connect(kickPannerGain);
+    kickEqLpf.connect(kickPanner3DGain);
     kickEqLpf.connect(kickFollower); // Follower pre-pan for sidechain independence
+    kickPannerGain.connect(kickPanner);
+    kickPanner3DGain.connect(kickPanner3D);
     kickPanner.connect(kickFreqShifter);
+    kickPanner3D.connect(kickFreqShifter);
     kickFreqShifter.connect(compressor);
     kickFreqShifter.connect(kickDelaySend);
     kickFreqShifter.connect(kickReverbSend);
