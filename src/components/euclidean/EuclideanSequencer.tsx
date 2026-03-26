@@ -153,6 +153,8 @@ interface TrackState {
   freqShift?: number; // -500 to +500 Hz, default 0
   // Spectral Delay Send (Phase 7C)
   spectralDelaySend?: number; // 0-1, default 0
+  // Freeze Send (Phase 9)
+  freezeSend?: number; // 0-1, default 0
   // 3D Audio / Binaural (Phase 7D)
   binauralEnabled?: boolean;
   binauralAzimuth?: number; // 0-360 degrees, default 0
@@ -651,10 +653,22 @@ export const EuclideanSequencer = () => {
     delayBus: Tone.Gain;
     reverbBus: Tone.Gain;
     spectralDelayBus: Tone.Gain;
+    freezeBus: Tone.Gain;
   } | null>(null);
 
   // Spectral Delay global state (Phase 7C)
   const [spectralDelayEnabled, setSpectralDelayEnabled] = useState(false);
+
+  // Freeze Reverb global state (Phase 9)
+  const [freezeEnabled, setFreezeEnabled] = useState(false);
+  const [freezeFeedback, setFreezeFeedback] = useState(0.95);
+  const [freezeFilterFreq, setFreezeFilterFreq] = useState(6000);
+  const freezeRef = useRef<{ bus: Tone.Gain; delay: Tone.Delay; filter: Tone.Filter; feedbackGain: Tone.Gain; out: Tone.Gain } | null>(null);
+
+  // Gated Reverb global state (Phase 9)
+  const [gatedEnabled, setGatedEnabled] = useState(false);
+  const [gatedThreshold, setGatedThreshold] = useState(-40);
+  const gatedRef = useRef<{ gate: Tone.Gate; out: Tone.Gain; reverbNormalOut: Tone.Gain } | null>(null);
   const [spectralDelayWet, setSpectralDelayWet] = useState(0.5);
   const [spectralDelayLowTime, setSpectralDelayLowTime] = useState(0);
   const [spectralDelayMidTime, setSpectralDelayMidTime] = useState(80);
@@ -889,6 +903,7 @@ export const EuclideanSequencer = () => {
         if (config.freqShiftEnabled !== undefined) newTrack.freqShiftEnabled = config.freqShiftEnabled;
         if (config.freqShift !== undefined) newTrack.freqShift = config.freqShift;
         if ((config as any).spectralDelaySend !== undefined) newTrack.spectralDelaySend = (config as any).spectralDelaySend;
+        if ((config as any).freezeSend !== undefined) newTrack.freezeSend = (config as any).freezeSend;
 
         // Tonal fields
         if (config.rootNote !== undefined) newTrack.rootNote = config.rootNote;
@@ -1007,6 +1022,7 @@ export const EuclideanSequencer = () => {
           freqShiftEnabled: t.freqShiftEnabled,
           freqShift: t.freqShift,
           spectralDelaySend: t.spectralDelaySend,
+          freezeSend: t.freezeSend,
           binauralEnabled: t.binauralEnabled,
           binauralAzimuth: t.binauralAzimuth,
           binauralDistance: t.binauralDistance,
@@ -1150,6 +1166,7 @@ export const EuclideanSequencer = () => {
         freqShiftEnabled: (config as any).freqShiftEnabled ?? false,
         freqShift: (config as any).freqShift ?? 0,
         spectralDelaySend: (config as any).spectralDelaySend ?? 0,
+        freezeSend: (config as any).freezeSend ?? 0,
         binauralEnabled: (config as any).binauralEnabled ?? false,
         binauralAzimuth: (config as any).binauralAzimuth ?? 0,
         binauralDistance: (config as any).binauralDistance ?? 3,
@@ -1192,6 +1209,7 @@ export const EuclideanSequencer = () => {
           synthsRef.current[t.id]?.setPan?.((config as any).pan ?? 0);
           synthsRef.current[t.id]?.setFreqShift?.((config as any).freqShiftEnabled ? ((config as any).freqShift ?? 0) : 0, (config as any).freqShiftEnabled ?? false);
           synthsRef.current[t.id]?.setSpectralSend?.((config as any).spectralDelaySend ?? 0);
+          synthsRef.current[t.id]?.setFreezeSend?.((config as any).freezeSend ?? 0);
           // Restore binaural
           synthsRef.current[t.id]?.switchBinaural?.((config as any).binauralEnabled ?? false);
           if ((config as any).binauralEnabled) {
@@ -1286,6 +1304,24 @@ export const EuclideanSequencer = () => {
     return () => clearInterval(interval);
   }, [crossfeedEnabled]);
 
+  // Freeze Reverb sync (Phase 9)
+  useEffect(() => {
+    const fr = freezeRef.current;
+    if (!fr) return;
+    fr.out.gain.rampTo(freezeEnabled ? 1 : 0, 0.1);
+    fr.feedbackGain.gain.rampTo(freezeFeedback, 0.1);
+    fr.filter.frequency.rampTo(freezeFilterFreq, 0.1);
+  }, [freezeEnabled, freezeFeedback, freezeFilterFreq]);
+
+  // Gated Reverb sync (Phase 9)
+  useEffect(() => {
+    const gr = gatedRef.current;
+    if (!gr) return;
+    gr.out.gain.rampTo(gatedEnabled ? 1 : 0, 0.05);
+    gr.reverbNormalOut.gain.rampTo(gatedEnabled ? 0 : 1, 0.05);
+    gr.gate.threshold = gatedThreshold;
+  }, [gatedEnabled, gatedThreshold]);
+
 
   const stepsKey = tracks.map(t => `${t.id}:${t.steps}`).join('|');
   const mcm = useMemo(() => {
@@ -1344,7 +1380,35 @@ export const EuclideanSequencer = () => {
 
     // Routing
     delayBus.chain(delay, delayFilter, compressor);
-    reverbBus.chain(reverb, reverbFilter, compressor);
+    // Decomposed reverb chain with reverbNormalOut for gated path
+    const reverbNormalOut = new Tone.Gain(1);
+    reverbBus.connect(reverb);
+    reverb.connect(reverbFilter);
+    reverbFilter.connect(reverbNormalOut);
+    reverbNormalOut.connect(compressor);
+
+    // ---- GATED REVERB BUS (Phase 9) ----
+    const gatedOut = new Tone.Gain(0);
+    const gate = new Tone.Gate({ threshold: -40, smoothing: 0.01 });
+    reverb.connect(gate);
+    gate.connect(gatedOut);
+    gatedOut.connect(compressor);
+    gatedRef.current = { gate, out: gatedOut, reverbNormalOut };
+
+    // ---- FREEZE BUS (Phase 9) ----
+    const freezeBus = new Tone.Gain(1);
+    const freezeDelay = new Tone.Delay(0.08);
+    const freezeFilter = new Tone.Filter(6000, 'lowpass');
+    const freezeFeedbackGain = new Tone.Gain(0.95);
+    const freezeOut = new Tone.Gain(0);
+    // Manual feedback loop: bus→delay→filter→out, filter→feedbackGain→delay
+    freezeBus.connect(freezeDelay);
+    freezeDelay.connect(freezeFilter);
+    freezeFilter.connect(freezeOut);
+    freezeFilter.connect(freezeFeedbackGain);
+    freezeFeedbackGain.connect(freezeDelay);
+    freezeOut.connect(compressor);
+    freezeRef.current = { bus: freezeBus, delay: freezeDelay, filter: freezeFilter, feedbackGain: freezeFeedbackGain, out: freezeOut };
 
     // Spectral Delay Bus (Phase 7C)
     const spectralDelayBus = new Tone.Gain(1);
@@ -1373,7 +1437,7 @@ export const EuclideanSequencer = () => {
     };
 
     compressor.chain(limiter, analyser, Tone.getDestination());
-    masterBusRef.current = { compressor, limiter, analyser, delay, reverb, delayFilter, reverbFilter, delayBus, reverbBus, spectralDelayBus };
+    masterBusRef.current = { compressor, limiter, analyser, delay, reverb, delayFilter, reverbFilter, delayBus, reverbBus, spectralDelayBus, freezeBus };
     setGlobalAnalyser(analyser);
 
     // Sidechain Setup (Kick -> Cloud)
@@ -1385,6 +1449,7 @@ export const EuclideanSequencer = () => {
     const kickDelaySend = new Tone.Gain(0).connect(delayBus);
     const kickReverbSend = new Tone.Gain(0).connect(reverbBus);
     const kickSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
+    const kickFreezeSend = new Tone.Gain(0).connect(freezeBus);
     // EQ filters in series: filter → eqHpf → eqLpf → [pannerGain→panner, panner3DGain→panner3D] → freqShifter → [compressor, sends]
     const kickEqHpf = new Tone.Filter(20, "highpass");
     const kickEqLpf = new Tone.Filter(20000, "lowpass");
@@ -1418,11 +1483,14 @@ export const EuclideanSequencer = () => {
     kickFsDirectGain.connect(kickDelaySend);
     kickFsDirectGain.connect(kickReverbSend);
     kickFsDirectGain.connect(kickSpectralSend);
+    kickFsBypassGain.connect(kickFreezeSend);
+    kickFsDirectGain.connect(kickFreezeSend);
     kickFollower.connect(sidechainInverter);
 
     const snareDelaySend = new Tone.Gain(0).connect(delayBus);
     const snareReverbSend = new Tone.Gain(0).connect(reverbBus);
     const snareSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
+    const snareFreezeSend = new Tone.Gain(0).connect(freezeBus);
     const snareEqHpf = new Tone.Filter(20, "highpass");
     const snareEqLpf = new Tone.Filter(20000, "lowpass");
     const snarePanner = new Tone.Panner(0);
@@ -1452,10 +1520,13 @@ export const EuclideanSequencer = () => {
     snareFsDirectGain.connect(snareDelaySend);
     snareFsDirectGain.connect(snareReverbSend);
     snareFsDirectGain.connect(snareSpectralSend);
+    snareFsBypassGain.connect(snareFreezeSend);
+    snareFsDirectGain.connect(snareFreezeSend);
 
     const hatDelaySend = new Tone.Gain(0).connect(delayBus);
     const hatReverbSend = new Tone.Gain(0).connect(reverbBus);
     const hatSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
+    const hatFreezeSend = new Tone.Gain(0).connect(freezeBus);
     const hatEqHpf = new Tone.Filter(20, "highpass");
     const hatEqLpf = new Tone.Filter(20000, "lowpass");
     const hatPanner = new Tone.Panner(0);
@@ -1485,6 +1556,8 @@ export const EuclideanSequencer = () => {
     hatFsDirectGain.connect(hatDelaySend);
     hatFsDirectGain.connect(hatReverbSend);
     hatFsDirectGain.connect(hatSpectralSend);
+    hatFsBypassGain.connect(hatFreezeSend);
+    hatFsDirectGain.connect(hatFreezeSend);
 
     // Layered Kick
     let kickBody = new Tone.MembraneSynth({
@@ -1568,6 +1641,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.kick.freqShifter = kickFreqShifter;
     // Spectral Delay send injection for kick
     synthsRef.current.kick.setSpectralSend = (value: number) => { kickSpectralSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.kick.setFreezeSend = (value: number) => { kickFreezeSend.gain.rampTo(value, 0.05); };
     // Binaural 3D injection for kick
     synthsRef.current.kick.switchBinaural = (binaural: boolean) => {
       kickPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
@@ -1690,6 +1764,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.snare.panner = snarePanner;
     synthsRef.current.snare.freqShifter = snareFreqShifter;
     synthsRef.current.snare.setSpectralSend = (value: number) => { snareSpectralSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.snare.setFreezeSend = (value: number) => { snareFreezeSend.gain.rampTo(value, 0.05); };
     synthsRef.current.snare.switchBinaural = (binaural: boolean) => {
       snarePannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
       snarePanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
@@ -1820,6 +1895,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.hat.panner = hatPanner;
     synthsRef.current.hat.freqShifter = hatFreqShifter;
     synthsRef.current.hat.setSpectralSend = (value: number) => { hatSpectralSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.hat.setFreezeSend = (value: number) => { hatFreezeSend.gain.rampTo(value, 0.05); };
     synthsRef.current.hat.switchBinaural = (binaural: boolean) => {
       hatPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
       hatPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
@@ -1854,6 +1930,7 @@ export const EuclideanSequencer = () => {
     const cloudDelaySend = new Tone.Gain(0).connect(delayBus);
     const cloudReverbSend = new Tone.Gain(0).connect(reverbBus);
     const cloudSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
+    const cloudFreezeSend = new Tone.Gain(0).connect(freezeBus);
     const cloudEqHpf = new Tone.Filter(20, "highpass");
     const cloudEqLpf = new Tone.Filter(20000, "lowpass");
     const cloudPanner = new Tone.Panner(0);
@@ -1883,6 +1960,8 @@ export const EuclideanSequencer = () => {
     cloudFsDirectGain.connect(cloudDelaySend);
     cloudFsDirectGain.connect(cloudReverbSend);
     cloudFsDirectGain.connect(cloudSpectralSend);
+    cloudFsBypassGain.connect(cloudFreezeSend);
+    cloudFsDirectGain.connect(cloudFreezeSend);
 
     // Cloud Analyser for Envelope Crossfeed (Phase 7E)
     const cloudAnalyser = new Tone.Analyser('waveform', 256);
@@ -1944,6 +2023,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.cloud.panner = cloudPanner;
     synthsRef.current.cloud.freqShifter = cloudFreqShifter;
     synthsRef.current.cloud.setSpectralSend = (value: number) => { cloudSpectralSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.cloud.setFreezeSend = (value: number) => { cloudFreezeSend.gain.rampTo(value, 0.05); };
     synthsRef.current.cloud.switchBinaural = (binaural: boolean) => {
       cloudPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
       cloudPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
@@ -1982,6 +2062,7 @@ export const EuclideanSequencer = () => {
     const toneDelaySend = new Tone.Gain(0.15).connect(delayBus);
     const toneReverbSend = new Tone.Gain(0.2).connect(reverbBus);
     const toneSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
+    const toneFreezeSend = new Tone.Gain(0).connect(freezeBus);
     const toneEqHpf = new Tone.Filter(20, "highpass");
     const toneEqLpf = new Tone.Filter(20000, "lowpass");
     const tonePanner = new Tone.Panner(0);
@@ -2011,6 +2092,8 @@ export const EuclideanSequencer = () => {
     toneFsDirectGain.connect(toneDelaySend);
     toneFsDirectGain.connect(toneReverbSend);
     toneFsDirectGain.connect(toneSpectralSend);
+    toneFsBypassGain.connect(toneFreezeSend);
+    toneFsDirectGain.connect(toneFreezeSend);
     toneFilterRef.current = toneFilter;
 
     const toneMonoSynth = new Tone.MonoSynth({
@@ -2069,6 +2152,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.tone.panner = tonePanner;
     synthsRef.current.tone.freqShifter = toneFreqShifter;
     synthsRef.current.tone.setSpectralSend = (value: number) => { toneSpectralSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.tone.setFreezeSend = (value: number) => { toneFreezeSend.gain.rampTo(value, 0.05); };
     synthsRef.current.tone.switchBinaural = (binaural: boolean) => {
       tonePannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
       tonePanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
@@ -2729,6 +2813,7 @@ export const EuclideanSequencer = () => {
       const delaySend = new Tone.Gain(0).connect(master.delayBus);
       const reverbSend = new Tone.Gain(0).connect(master.reverbBus);
       const spectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
+      const freezeSendNode = new Tone.Gain(0).connect(master.freezeBus);
 
       // Create BitCrusher for this track — route through panner→freqShifter if available
       const pannerNode = synthsRef.current[trackId]?.panner;
@@ -2738,6 +2823,7 @@ export const EuclideanSequencer = () => {
       bitCrusher.connect(delaySend);
       bitCrusher.connect(reverbSend);
       bitCrusher.connect(spectralSend);
+      bitCrusher.connect(freezeSendNode);
 
       // Create GrainPlayer
       const grainPlayer = new Tone.GrainPlayer(audioBuffer).connect(bitCrusher);
@@ -2857,6 +2943,9 @@ export const EuclideanSequencer = () => {
       synthObj.setSpectralSend = (value: number) => {
         spectralSend.gain.rampTo(value, 0.05);
       };
+      synthObj.setFreezeSend = (value: number) => {
+        freezeSendNode.gain.rampTo(value, 0.05);
+      };
       
       // Update initial sends and volume
       const track = tracksRef.current.find(t => t.id === trackId);
@@ -2864,6 +2953,7 @@ export const EuclideanSequencer = () => {
         synthObj.setVolume(track.volume);
         synthObj.setSends(track.delaySend, track.reverbSend);
         synthObj.setSpectralSend(track.spectralDelaySend ?? 0);
+        synthObj.setFreezeSend(track.freezeSend ?? 0);
       }
 
       // If Cloud in Eno mode, initialize Eno engine after GrainPlayer setup
@@ -3079,6 +3169,10 @@ export const EuclideanSequencer = () => {
       // Spectral Delay Send real-time sync
       if (param === 'spectralDelaySend') {
         synthObj.setSpectralSend?.(val as number);
+      }
+      // Freeze Send real-time sync (Phase 9)
+      if (param === 'freezeSend') {
+        synthObj.setFreezeSend?.(val as number);
       }
       // Binaural real-time sync
       if (param === 'binauralEnabled') {
@@ -3456,6 +3550,7 @@ export const EuclideanSequencer = () => {
     let _fsBypassGainRef: Tone.Gain | null = null;
     let _fsDirectGainRef: Tone.Gain | null = null;
     let _spectralSendRef: Tone.Gain | null = null;
+    let _freezeSendRef: Tone.Gain | null = null;
     let _pannerGainRef: Tone.Gain | null = null;
     let _panner3DGainRef: Tone.Gain | null = null;
     let _panner3DRef: Tone.Panner3D | null = null;
@@ -3464,6 +3559,7 @@ export const EuclideanSequencer = () => {
       const kickDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const kickReverbSend = new Tone.Gain(0).connect(master.reverbBus);
       const kickSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
+      const kickFreezeSend = new Tone.Gain(0).connect(master.freezeBus);
       const kickEqHpf = new Tone.Filter(20, "highpass");
       const kickEqLpf = new Tone.Filter(20000, "lowpass");
       const kickPanner = new Tone.Panner(0);
@@ -3494,6 +3590,8 @@ export const EuclideanSequencer = () => {
       kickFsDirectGain.connect(kickDelaySend);
       kickFsDirectGain.connect(kickReverbSend);
       kickFsDirectGain.connect(kickSpectralSend);
+      kickFsBypassGain.connect(kickFreezeSend);
+      kickFsDirectGain.connect(kickFreezeSend);
 
       let kickBody = new Tone.MembraneSynth({
         pitchDecay: 0.05, octaves: 10, oscillator: { type: 'sine' },
@@ -3562,6 +3660,7 @@ export const EuclideanSequencer = () => {
       synthsRef.current.kick.panner = kickPanner;
       synthsRef.current.kick.freqShifter = kickFreqShifter;
       synthsRef.current.kick.setSpectralSend = (value: number) => { kickSpectralSend.gain.rampTo(value, 0.05); };
+      synthsRef.current.kick.setFreezeSend = (value: number) => { kickFreezeSend.gain.rampTo(value, 0.05); };
       synthsRef.current.kick.switchBinaural = (binaural: boolean) => {
         kickPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
         kickPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
@@ -3587,6 +3686,7 @@ export const EuclideanSequencer = () => {
       const snareDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const snareReverbSend = new Tone.Gain(0).connect(master.reverbBus);
       const snareSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
+      const snareFreezeSend = new Tone.Gain(0).connect(master.freezeBus);
       const snareEqHpf = new Tone.Filter(20, "highpass");
       const snareEqLpf = new Tone.Filter(20000, "lowpass");
       const snarePanner = new Tone.Panner(0);
@@ -3616,6 +3716,8 @@ export const EuclideanSequencer = () => {
       snareFsDirectGain.connect(snareDelaySend);
       snareFsDirectGain.connect(snareReverbSend);
       snareFsDirectGain.connect(snareSpectralSend);
+      snareFsBypassGain.connect(snareFreezeSend);
+      snareFsDirectGain.connect(snareFreezeSend);
 
       let snareSynth = new Tone.NoiseSynth({
         noise: { type: 'white' as any },
@@ -3690,6 +3792,7 @@ export const EuclideanSequencer = () => {
       synthsRef.current.snare.panner = snarePanner;
       synthsRef.current.snare.freqShifter = snareFreqShifter;
       synthsRef.current.snare.setSpectralSend = (value: number) => { snareSpectralSend.gain.rampTo(value, 0.05); };
+      synthsRef.current.snare.setFreezeSend = (value: number) => { snareFreezeSend.gain.rampTo(value, 0.05); };
       synthsRef.current.snare.switchBinaural = (binaural: boolean) => { snarePannerGain.gain.rampTo(binaural ? 0 : 1, 0.1); snarePanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1); };
       synthsRef.current.snare.updateBinaural = (azimuth: number, distance: number) => {
         const rad = (azimuth * Math.PI) / 180;
@@ -3706,6 +3809,7 @@ export const EuclideanSequencer = () => {
       const hatDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const hatReverbSend = new Tone.Gain(0).connect(master.reverbBus);
       const hatSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
+      const hatFreezeSend = new Tone.Gain(0).connect(master.freezeBus);
       const hatEqHpf = new Tone.Filter(20, "highpass");
       const hatEqLpf = new Tone.Filter(20000, "lowpass");
       const hatPanner = new Tone.Panner(0);
@@ -3735,6 +3839,8 @@ export const EuclideanSequencer = () => {
       hatFsDirectGain.connect(hatDelaySend);
       hatFsDirectGain.connect(hatReverbSend);
       hatFsDirectGain.connect(hatSpectralSend);
+      hatFsBypassGain.connect(hatFreezeSend);
+      hatFsDirectGain.connect(hatFreezeSend);
 
       let hatSynth: Tone.NoiseSynth | null = new Tone.NoiseSynth({ noise: { type: 'white' as any }, envelope: { attack: 0.001, decay: 0.05, sustain: 0 }, volume: -2 }).connect(hatFilter);
       let hatMetalSynth: Tone.MetalSynth | null = null;
@@ -3800,6 +3906,7 @@ export const EuclideanSequencer = () => {
       synthsRef.current.hat.panner = hatPanner;
       synthsRef.current.hat.freqShifter = hatFreqShifter;
       synthsRef.current.hat.setSpectralSend = (value: number) => { hatSpectralSend.gain.rampTo(value, 0.05); };
+      synthsRef.current.hat.setFreezeSend = (value: number) => { hatFreezeSend.gain.rampTo(value, 0.05); };
       synthsRef.current.hat.switchBinaural = (binaural: boolean) => { hatPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1); hatPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1); };
       synthsRef.current.hat.updateBinaural = (azimuth: number, distance: number) => {
         const rad = (azimuth * Math.PI) / 180;
@@ -3821,6 +3928,7 @@ export const EuclideanSequencer = () => {
       const toneDelaySend = new Tone.Gain(0.15).connect(master.delayBus);
       const toneReverbSend = new Tone.Gain(0.2).connect(master.reverbBus);
       const toneSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
+      const toneFreezeSend = new Tone.Gain(0).connect(master.freezeBus);
       const toneEqHpf = new Tone.Filter(20, "highpass");
       const toneEqLpf = new Tone.Filter(20000, "lowpass");
       const tonePanner = new Tone.Panner(0);
@@ -3850,6 +3958,8 @@ export const EuclideanSequencer = () => {
       toneFsDirectGain.connect(toneDelaySend);
       toneFsDirectGain.connect(toneReverbSend);
       toneFsDirectGain.connect(toneSpectralSend);
+      toneFsBypassGain.connect(toneFreezeSend);
+      toneFsDirectGain.connect(toneFreezeSend);
       toneFilterRef.current = toneFilter;
       _eqHpfRef = toneEqHpf;
       _eqLpfRef = toneEqLpf;
@@ -3858,6 +3968,7 @@ export const EuclideanSequencer = () => {
       _fsBypassGainRef = toneFsBypassGain;
       _fsDirectGainRef = toneFsDirectGain;
       _spectralSendRef = toneSpectralSend;
+      _freezeSendRef = toneFreezeSend;
       _pannerGainRef = tonePannerGain;
       _panner3DGainRef = tonePanner3DGain;
       _panner3DRef = tonePanner3D;
@@ -4594,6 +4705,11 @@ export const EuclideanSequencer = () => {
         const ssRef = _spectralSendRef;
         synthsRef.current.tone.setSpectralSend = (value: number) => { ssRef.gain.rampTo(value, 0.05); };
       }
+      // Freeze send injection for tone rebuild (Phase 9)
+      if (_freezeSendRef) {
+        const fsRef2 = _freezeSendRef;
+        synthsRef.current.tone.setFreezeSend = (value: number) => { fsRef2.gain.rampTo(value, 0.05); };
+      }
       // Binaural injection for tone rebuild (Phase 7D)
       if (_pannerGainRef && _panner3DGainRef && _panner3DRef) {
         const pgRef = _pannerGainRef;
@@ -4631,6 +4747,8 @@ export const EuclideanSequencer = () => {
       synthsRef.current[trackId].setFreqShift?.(track.freqShiftEnabled ? (track.freqShift ?? 0) : 0, track.freqShiftEnabled ?? false);
       // Restore spectral delay send
       synthsRef.current[trackId].setSpectralSend?.(track.spectralDelaySend ?? 0);
+      // Restore freeze send (Phase 9)
+      synthsRef.current[trackId].setFreezeSend?.(track.freezeSend ?? 0);
       // Restore binaural state (Phase 7D)
       synthsRef.current[trackId].switchBinaural?.(track.binauralEnabled ?? false);
       if (track.binauralEnabled) {
@@ -5906,6 +6024,73 @@ export const EuclideanSequencer = () => {
         )}
       </div>
 
+      {/* Freeze Reverb Panel (Phase 9) */}
+      <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
+        <button
+          onClick={() => setFreezeEnabled(!freezeEnabled)}
+          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('freezeEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
+          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
+          className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+            freezeEnabled
+              ? 'bg-system-accent text-white border-system-accent'
+              : 'bg-background text-idm-muted border-border'
+          } ${isStudyMode ? 'cursor-help' : ''}`}
+          title="Freeze — campo sonoro que no decae"
+        >FRZ</button>
+        <span className="text-[8px] font-mono text-idm-muted">Freeze</span>
+        {freezeEnabled && (
+          <div className="flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-1"
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('freezeFeedback'); setHoveredGlobalEl(e.currentTarget); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>FB</span>
+              <input type="range" min={0.5} max={0.99} step={0.01} value={freezeFeedback}
+                onChange={e => setFreezeFeedback(Number(e.target.value))}
+                className="w-12 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted w-8">{freezeFeedback.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center gap-1"
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('freezeFilterFreq'); setHoveredGlobalEl(e.currentTarget); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>LP</span>
+              <input type="range" min={500} max={12000} step={500} value={freezeFilterFreq}
+                onChange={e => setFreezeFilterFreq(Number(e.target.value))}
+                className="w-12 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted w-10">{(freezeFilterFreq/1000).toFixed(1)}k</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Gated Reverb Panel (Phase 9) */}
+      <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
+        <button
+          onClick={() => setGatedEnabled(!gatedEnabled)}
+          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('gatedEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
+          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
+          className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+            gatedEnabled
+              ? 'bg-system-accent text-white border-system-accent'
+              : 'bg-background text-idm-muted border-border'
+          } ${isStudyMode ? 'cursor-help' : ''}`}
+          title="Gated Reverb — reverb cortado abruptamente"
+        >GRV</button>
+        <span className="text-[8px] font-mono text-idm-muted">Gated Reverb</span>
+        {gatedEnabled && (
+          <div className="flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-1"
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('gatedThreshold'); setHoveredGlobalEl(e.currentTarget); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>Thr</span>
+              <input type="range" min={-60} max={-10} step={1} value={gatedThreshold}
+                onChange={e => setGatedThreshold(Number(e.target.value))}
+                className="w-12 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted w-10">{gatedThreshold}dB</span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Tracks Container with z-index to ensure interactivity */}
       <div className="space-y-6 relative z-10">
         <MesoInsightMonitor tracks={tracks} isStudyMode={isStudyMode} />
@@ -6397,6 +6582,7 @@ export const EuclideanSequencer = () => {
               freqShiftEnabled={track.freqShiftEnabled}
               freqShift={track.freqShift}
               spectralDelaySend={track.spectralDelaySend}
+              freezeSend={track.freezeSend}
               binauralEnabled={track.binauralEnabled}
               binauralAzimuth={track.binauralAzimuth}
               binauralDistance={track.binauralDistance}

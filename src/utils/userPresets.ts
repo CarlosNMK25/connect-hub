@@ -94,6 +94,8 @@ export interface UserPresetTrack {
   freqShift?: number;
   // Spectral Delay Send (Phase 7C)
   spectralDelaySend?: number;
+  // Freeze Send (Phase 9)
+  freezeSend?: number;
   // 3D Audio / Binaural (Phase 7D)
   binauralEnabled?: boolean;
   binauralAzimuth?: number;

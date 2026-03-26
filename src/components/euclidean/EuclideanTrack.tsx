@@ -242,6 +242,7 @@ interface EuclideanTrackProps {
   freqShiftEnabled?: boolean;
   freqShift?: number;
   spectralDelaySend?: number;
+  freezeSend?: number;
   // 3D Audio / Binaural (Phase 7D)
   binauralEnabled?: boolean;
   binauralAzimuth?: number;
@@ -524,6 +525,7 @@ export const EuclideanTrack = React.memo(({
   freqShiftEnabled,
   freqShift,
   spectralDelaySend,
+  freezeSend,
   // 3D Audio / Binaural
   binauralEnabled,
   binauralAzimuth,
@@ -723,6 +725,16 @@ export const EuclideanTrack = React.memo(({
               <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
                 onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSamplerParamChange('spectralDelaySend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
                 <div className="h-full transition-all duration-100" style={{ width: `${(spectralDelaySend ?? 0) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
+              </div>
+            </div>
+            <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('freezeSend', e)} onMouseLeave={handleParamLeave}>
+              <div className="flex justify-between items-center w-16">
+                <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Frz</span>
+                <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round((freezeSend ?? 0) * 100)}%</span>
+              </div>
+              <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
+                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSamplerParamChange('freezeSend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
+                <div className="h-full transition-all duration-100" style={{ width: `${(freezeSend ?? 0) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
               </div>
             </div>
           </div>
