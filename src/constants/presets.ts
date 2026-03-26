@@ -43,6 +43,11 @@ export interface TrackPreset {
   grainSize?: number;
   overlap?: number;
   spray?: number;
+  // Phase 6D — Layer 2 Time Stretch
+  layer2StretchEnabled?: boolean;
+  layer2StretchRate?: number;
+  layer2Blend?: number;
+  layer2Pitch?: number;
 }
 
 export interface ScenePreset {
