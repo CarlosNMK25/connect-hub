@@ -52,6 +52,22 @@ export interface TrackPreset {
   pan?: number;
   freqShiftEnabled?: boolean;
   freqShift?: number;
+  // Phase 8 — Percussive Synthesis
+  kickPitchDecay?: number;
+  kickOctaves?: number;
+  kickDecay?: number;
+  kickClickType?: string;
+  hatMode?: string;
+  hatHarmonicity?: number;
+  hatModIndex?: number;
+  hatResonance?: number;
+  hatDecay?: number;
+  hatNoiseType?: string;
+  snareDecay?: number;
+  snareNoiseType?: string;
+  snareBodyEnabled?: boolean;
+  snareBodyPitch?: number;
+  snareBodyDecay?: number;
 }
 
 export interface ScenePreset {
