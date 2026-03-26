@@ -1518,6 +1518,7 @@ export const EuclideanSequencer = () => {
     const kickReverbSend = new Tone.Gain(0).connect(reverbBus);
     const kickSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
     const kickFreezeSend = new Tone.Gain(0).connect(freezeBus);
+    const kickReverseSend = new Tone.Gain(0).connect(reverseBus);
     // EQ filters in series: filter → eqHpf → eqLpf → [pannerGain→panner, panner3DGain→panner3D] → freqShifter → [compressor, sends]
     const kickEqHpf = new Tone.Filter(20, "highpass");
     const kickEqLpf = new Tone.Filter(20000, "lowpass");
