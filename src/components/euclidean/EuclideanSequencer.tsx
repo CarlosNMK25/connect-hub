@@ -3448,12 +3448,10 @@ export const EuclideanSequencer = () => {
       _pannerRef = tonePanner;
       _freqShifterRef = toneFreqShifter;
       _spectralSendRef = toneSpectralSend;
-      // Store dual-panner refs for binaural rebuild injection
-      if (synthsRef.current.tone) {
-        synthsRef.current.tone._pannerGain = tonePannerGain;
-        synthsRef.current.tone._panner3DGain = tonePanner3DGain;
-        synthsRef.current.tone._panner3D = tonePanner3D;
-      }
+      _pannerGainRef = tonePannerGain;
+      _panner3DGainRef = tonePanner3DGain;
+      _panner3DRef = tonePanner3D;
+      _toneFilterRef = toneFilter;
 
       // Reconectar nodo de captura si existe
       if (recordingDestRef.current) {
