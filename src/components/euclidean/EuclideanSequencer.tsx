@@ -5510,6 +5510,18 @@ export const EuclideanSequencer = () => {
               <Target size={12} />
               <span className="hidden sm:inline">Space</span>
             </button>
+            <button 
+              onClick={() => setSongModeEnabled(prev => !prev)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-300 border ${
+                songModeEnabled 
+                  ? 'bg-system-accent text-white border-system-accent' 
+                  : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'
+              }`}
+              title="Toggle Song Mode"
+            >
+              <Layers size={12} />
+              <span className="hidden sm:inline">Song</span>
+            </button>
           </div>
 
           <button
