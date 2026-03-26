@@ -645,6 +645,15 @@ export const EuclideanSequencer = () => {
   const [spectralDelayHighTime, setSpectralDelayHighTime] = useState(160);
   const [spectralDelayLowFreq, setSpectralDelayLowFreq] = useState(200);
   const [spectralDelayHighFreq, setSpectralDelayHighFreq] = useState(4000);
+
+  // Envelope Crossfeed global state (Phase 7E)
+  const [crossfeedEnabled, setCrossfeedEnabled] = useState(false);
+  const [crossfeedDepth, setCrossfeedDepth] = useState(2000);
+  const [crossfeedBase, setCrossfeedBase] = useState(400);
+  const cloudAnalyserRef = useRef<Tone.Analyser | null>(null);
+  const crossfeedEnabledRef = useRef(false);
+  const crossfeedBaseRef = useRef(400);
+  const crossfeedDepthRef = useRef(2000);
   const spectralDelayRef = useRef<{
     bus: Tone.Gain;
     out: Tone.Gain;
