@@ -673,7 +673,27 @@ export const EuclideanTrack = React.memo(({
           </div>
           </div>
 
-          {/* Track Name + Solo/Mute + Status */}
+          {/* Pan Control */}
+          <div className="flex flex-col gap-1 flex-none">
+            <div className="flex items-center gap-1">
+              <span className="text-[7px] font-mono text-idm-muted">L</span>
+              <input type="range"
+                min={-1} max={1} step={0.05}
+                value={pan ?? 0}
+                onChange={e => onSamplerParamChange('pan', Number(e.target.value))}
+                className="w-10 h-[7px] accent-system-accent"
+              />
+              <span className="text-[7px] font-mono text-idm-muted">R</span>
+            </div>
+            <span className="text-[7px] font-mono text-idm-muted text-center">
+              {pan === 0 || !pan
+                ? 'C'
+                : (pan ?? 0) > 0
+                  ? `R${Math.round((pan ?? 0) * 100)}`
+                  : `L${Math.round(Math.abs(pan ?? 0) * 100)}`
+              }
+            </span>
+          </div>
           <div className="flex items-center gap-2 flex-none">
             <h3 className="font-mono text-lg font-black uppercase tracking-tighter text-idm-ink leading-none">{name}</h3>
             <div className="flex gap-1">
