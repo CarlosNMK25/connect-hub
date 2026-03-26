@@ -2440,6 +2440,16 @@ export const EuclideanSequencer = () => {
       if (synthObj.bitCrusher && param === 'bitCrush') {
         synthObj.bitCrusher.bits.value = val;
       }
+      // EQ real-time sync
+      if (['eqEnabled', 'eqHpfFreq', 'eqLpfFreq'].includes(param)) {
+        const updatedTrack = tracksRef.current.find(t => t.id === trackId);
+        if (updatedTrack) {
+          const merged = { ...updatedTrack, [param]: val };
+          const hpf = merged.eqEnabled ? (merged.eqHpfFreq ?? 20) : 20;
+          const lpf = merged.eqEnabled ? (merged.eqLpfFreq ?? 20000) : 20000;
+          synthObj.updateEq?.(hpf, lpf);
+        }
+      }
     }
   }, []);
 
