@@ -434,6 +434,8 @@ export const EuclideanTrack = React.memo(({
   layer2Offset,
   layer2FilterFreq,
   layer2Reverse,
+  layer2StretchEnabled,
+  layer2StretchRate,
   onLoadLayer2,
   onClearLayer2,
   onLayer2ParamChange,

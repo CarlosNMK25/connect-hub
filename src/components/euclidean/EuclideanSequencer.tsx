@@ -5097,6 +5097,8 @@ export const EuclideanSequencer = () => {
               layer2Offset={track.layer2Offset}
               layer2FilterFreq={track.layer2FilterFreq}
               layer2Reverse={track.layer2Reverse}
+              layer2StretchEnabled={track.layer2StretchEnabled}
+              layer2StretchRate={track.layer2StretchRate}
               onLoadLayer2={(file) => handleLoadLayer2(track.id, file)}
               onClearLayer2={() => handleClearLayer2(track.id)}
               onLayer2ParamChange={(param, value) => handleLayer2ParamChange(track.id, param, value)}
