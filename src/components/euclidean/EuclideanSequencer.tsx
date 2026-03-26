@@ -2287,6 +2287,7 @@ export const EuclideanSequencer = () => {
       const master = masterBusRef.current;
       const delaySend = new Tone.Gain(0).connect(master.delayBus);
       const reverbSend = new Tone.Gain(0).connect(master.reverbBus);
+      const spectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
 
       // Create BitCrusher for this track — route through panner→freqShifter if available
       const pannerNode = synthsRef.current[trackId]?.panner;
@@ -2295,6 +2296,7 @@ export const EuclideanSequencer = () => {
       );
       bitCrusher.connect(delaySend);
       bitCrusher.connect(reverbSend);
+      bitCrusher.connect(spectralSend);
 
       // Create GrainPlayer
       const grainPlayer = new Tone.GrainPlayer(audioBuffer).connect(bitCrusher);
