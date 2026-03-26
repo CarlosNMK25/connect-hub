@@ -4177,24 +4177,25 @@ export const EuclideanSequencer = () => {
         synthsRef.current.tone.setSpectralSend = (value: number) => { ssRef.gain.rampTo(value, 0.05); };
       }
       // Binaural injection for tone rebuild (Phase 7D)
-      {
-        const tPannerGain = synthsRef.current.tone._pannerGain;
-        const tPanner3DGain = synthsRef.current.tone._panner3DGain;
-        const tPanner3D = synthsRef.current.tone._panner3D;
-        if (tPannerGain && tPanner3DGain && tPanner3D) {
-          synthsRef.current.tone.switchBinaural = (binaural: boolean) => {
-            tPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
-            tPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
-          };
-          synthsRef.current.tone.updateBinaural = (azimuth: number, distance: number) => {
-            const rad = (azimuth * Math.PI) / 180;
-            tPanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance);
-          };
-        }
+      if (_pannerGainRef && _panner3DGainRef && _panner3DRef) {
+        const pgRef = _pannerGainRef;
+        const p3gRef = _panner3DGainRef;
+        const p3dRef = _panner3DRef;
+        synthsRef.current.tone.switchBinaural = (binaural: boolean) => {
+          pgRef.gain.rampTo(binaural ? 0 : 1, 0.1);
+          p3gRef.gain.rampTo(binaural ? 1 : 0, 0.1);
+        };
+        synthsRef.current.tone.updateBinaural = (azimuth: number, distance: number) => {
+          const rad = (azimuth * Math.PI) / 180;
+          try { p3dRef.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) {
+            p3dRef.positionX.value = Math.sin(rad) * distance;
+            p3dRef.positionZ.value = -Math.cos(rad) * distance;
+          }
+        };
       }
       // Crossfeed injection for tone rebuild (Phase 7E)
-      if (toneFilterRef.current) {
-        const tf = toneFilterRef.current;
+      if (_toneFilterRef) {
+        const tf = _toneFilterRef;
         synthsRef.current.tone.setCrossfeedFreq = (hz: number) => { tf.frequency.rampTo(hz, 0.05); };
       }
     }
