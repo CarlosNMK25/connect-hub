@@ -1047,6 +1047,10 @@ export const EuclideanSequencer = () => {
         // Time Stretch
         stretchEnabled: (config as any).stretchEnabled ?? false,
         stretchRate: (config as any).stretchRate ?? 1.0,
+        // EQ
+        eqEnabled: (config as any).eqEnabled ?? false,
+        eqHpfFreq: (config as any).eqHpfFreq ?? 20,
+        eqLpfFreq: (config as any).eqLpfFreq ?? 20000,
         hits: 0,
         misses: 0,
       });
