@@ -3124,6 +3124,8 @@ export const EuclideanSequencer = () => {
       toneFilterRef.current = toneFilter;
       _eqHpfRef = toneEqHpf;
       _eqLpfRef = toneEqLpf;
+      _pannerRef = tonePanner;
+      _freqShifterRef = toneFreqShifter;
 
       // Reconectar nodo de captura si existe
       if (recordingDestRef.current) {
