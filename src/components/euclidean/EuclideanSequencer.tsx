@@ -3690,6 +3690,8 @@ export const EuclideanSequencer = () => {
       snareFsDirectGain.connect(snareDelaySend);
       snareFsDirectGain.connect(snareReverbSend);
       snareFsDirectGain.connect(snareSpectralSend);
+      snareFsBypassGain.connect(snareFreezeSend);
+      snareFsDirectGain.connect(snareFreezeSend);
 
       let snareSynth = new Tone.NoiseSynth({
         noise: { type: 'white' as any },
