@@ -2288,6 +2288,8 @@ export const EuclideanTrack = React.memo(({
         </div>
       )}
 
+      </div>{/* === END COLLAPSIBLE ZONE === */}
+
       <StudyTooltip
         content={hoveredParam ? getMicroText(hoveredParam, voice) : ''}
         visible={!!hoveredParam && isStudyMode}
