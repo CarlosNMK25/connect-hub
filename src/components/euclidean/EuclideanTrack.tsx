@@ -231,6 +231,10 @@ interface EuclideanTrackProps {
   // Time Stretch props
   stretchEnabled?: boolean;
   stretchRate?: number;
+  // EQ props
+  eqEnabled?: boolean;
+  eqHpfFreq?: number;
+  eqLpfFreq?: number;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
