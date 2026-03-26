@@ -1180,7 +1180,29 @@ export const EuclideanSequencer = () => {
           if ((config as any).binauralEnabled) {
             synthsRef.current[t.id]?.updateBinaural?.((config as any).binauralAzimuth ?? 0, (config as any).binauralDistance ?? 3);
           }
-        }
+          // Phase 8 — Restore percussive synth params
+          if (t.id === 'kick') {
+            synthsRef.current.kick?.setKickParams?.(
+              (config as any).kickPitchDecay ?? 0.05,
+              (config as any).kickOctaves ?? 10,
+              (config as any).kickDecay ?? 0.4,
+              (config as any).kickClickType ?? 'pink'
+            );
+          }
+          if (t.id === 'snare') {
+            synthsRef.current.snare?.setSnareParams?.((config as any).snareDecay ?? 0.2, (config as any).snareNoiseType ?? 'white');
+            synthsRef.current.snare?.setSnareBody?.((config as any).snareBodyEnabled ?? false, (config as any).snareBodyPitch ?? 180, (config as any).snareBodyDecay ?? 0.1);
+          }
+          if (t.id === 'hat') {
+            synthsRef.current.hat?.setHatMode?.(
+              (config as any).hatMode ?? 'noise',
+              (config as any).hatHarmonicity ?? 5.1,
+              (config as any).hatModIndex ?? 32,
+              (config as any).hatResonance ?? 4000,
+              (config as any).hatDecay ?? 0.05,
+              (config as any).hatNoiseType ?? 'white'
+            );
+          }
         // Recalcular matrices Markov para tracks tonales
         if (t.isTonal && (t.noteMode ?? 'euclidean') === 'markov') {
           updateMarkovMatrix(t);
