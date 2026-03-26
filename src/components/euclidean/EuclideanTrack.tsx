@@ -404,12 +404,12 @@ export const EuclideanTrack = React.memo(({
       </div>
 
       <div className={`transition-all duration-500 ${isTrackDimmed ? 'grayscale-[0.8]' : ''}`}>
-        {/* === ROW 1: Identity + Controls + Waveform === */}
-        <div className="flex items-center gap-4 flex-wrap overflow-hidden">
+        {/* === HEADER ROW: Identity (always visible, clickable) === */}
+        <div className="flex items-center gap-4 flex-wrap cursor-pointer select-none" onClick={onToggleExpand}>
           {/* Volume Fader */}
           <div 
             ref={volumeBarRef}
-            onMouseDown={handleVolumeMouseDown}
+            onMouseDown={(e) => { e.stopPropagation(); handleVolumeMouseDown(e); }}
             onMouseEnter={(e) => handleParamEnter('volume', e)}
             onMouseLeave={handleParamLeave}
             className="w-2.5 h-14 rounded-full bg-idm-bg border border-black/5 shadow-inner transition-all duration-300 relative overflow-hidden cursor-ns-resize group flex-none"
