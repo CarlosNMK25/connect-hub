@@ -3039,11 +3039,15 @@ export const EuclideanSequencer = () => {
       const hatReverbSend = new Tone.Gain(0).connect(master.reverbBus);
       const hatEqHpf = new Tone.Filter(20, "highpass");
       const hatEqLpf = new Tone.Filter(20000, "lowpass");
+      const hatPanner = new Tone.Panner(0);
+      const hatFreqShifter = new Tone.FrequencyShifter(0);
       const hatFilter = new Tone.Filter(5000, "highpass").connect(hatEqHpf);
       hatEqHpf.connect(hatEqLpf);
-      hatEqLpf.connect(master.compressor);
-      hatEqLpf.connect(hatDelaySend);
-      hatEqLpf.connect(hatReverbSend);
+      hatEqLpf.connect(hatPanner);
+      hatPanner.connect(hatFreqShifter);
+      hatFreqShifter.connect(master.compressor);
+      hatFreqShifter.connect(hatDelaySend);
+      hatFreqShifter.connect(hatReverbSend);
 
       const hatSynth = new Tone.NoiseSynth({
         noise: { type: 'white' },
@@ -3072,16 +3076,20 @@ export const EuclideanSequencer = () => {
           hatFilter.dispose();
           hatEqHpf.dispose();
           hatEqLpf.dispose();
+          hatPanner.dispose();
+          hatFreqShifter.dispose();
           hatDelaySend.dispose();
           hatReverbSend.dispose();
         }
       };
-      // EQ injection for hat rebuild
       synthsRef.current.hat.updateEq = (hpfFreq: number, lpfFreq: number) => {
         hatEqHpf.frequency.rampTo(hpfFreq, 0.05);
         hatEqLpf.frequency.rampTo(lpfFreq, 0.05);
       };
-      // Lorenz + Nested LFO injection for hat rebuild
+      synthsRef.current.hat.setPan = (value: number) => { hatPanner.pan.rampTo(value, 0.05); };
+      synthsRef.current.hat.setFreqShift = (hz: number) => { hatFreqShifter.frequency.rampTo(hz, 0.05); };
+      synthsRef.current.hat.panner = hatPanner;
+      synthsRef.current.hat.freqShifter = hatFreqShifter;
       synthsRef.current.hat.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
         if (target === 'filter') hatFilter.frequency.rampTo(2000 + normalizedValue * depth, 0.05);
       };
