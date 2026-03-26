@@ -71,7 +71,7 @@ interface EuclideanTrackProps {
   sampleEnd: number;
   attack: number;
   decay: number;
-  mode: 'GATE' | 'TRIGGER';
+  mode: 'GATE' | 'TRIGGER' | 'ONE-SHOT';
   pitch: number;
   normalize: boolean;
   grainSize: number;
