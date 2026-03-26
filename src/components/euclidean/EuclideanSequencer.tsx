@@ -1451,6 +1451,16 @@ export const EuclideanSequencer = () => {
     freezeOut.connect(compressor);
     freezeRef.current = { bus: freezeBus, delay: freezeDelay, filter: freezeFilter, feedbackGain: freezeFeedbackGain, out: freezeOut };
 
+    // ---- REVERSE REVERB BUS (Phase 9) ----
+    const reverseBus = new Tone.Gain(1);
+    const reverseIR = generateReverseIR(Tone.getContext().rawContext as BaseAudioContext, 2.5);
+    const reverseConvolver = new Tone.Convolver(reverseIR);
+    const reverseOut = new Tone.Gain(0);
+    reverseBus.connect(reverseConvolver);
+    reverseConvolver.connect(reverseOut);
+    reverseOut.connect(compressor);
+    reverseRef.current = { bus: reverseBus, convolver: reverseConvolver, out: reverseOut };
+
     // Spectral Delay Bus (Phase 7C)
     const spectralDelayBus = new Tone.Gain(1);
     const spectralDelayOut = new Tone.Gain(0);
