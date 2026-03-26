@@ -247,6 +247,7 @@ export const PEDAGOGY = {
     hatHarmonicity: "El grado de afinación del metal. Bajo, el hat no tiene opinión sobre las notas — es ruido con textura. Alto, empieza a tener preferencias tonales, a querer estar en clave. El metal real está en algún punto intermedio, y ese punto intermedio es exactamente donde vive la magia.",
     hatModIndex: "La agresividad del metal. Bajo es el hat que pide permiso antes de sonar. Alto es el hat que irrumpe en la mezcla sin anunciarse, llenando el espectro de presencia. Entre los dos extremos están todos los hats que alguna vez has escuchado en IDM.",
     hatResonance: "La frecuencia donde el metal quiere cantar. Cada plato real tiene una resonancia fundamental — el punto donde vibra con más energía cuando lo golpeas. Aquí defines ese punto para el hat virtual. Es como elegir de qué metal está hecho.",
+    hatNoiseType: "El color de la cortina de ruido. White es la estática de un televisor sin señal a las 3AM. Pink es la lluvia cayendo sobre un tejado de zinc. Brown es el rumor sordo del viento dentro de una cueva. El mismo hat, tres climas sonoros.",
   } as PedagogyMicro,
 
   meso: {
