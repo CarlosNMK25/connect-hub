@@ -1395,6 +1395,7 @@ export const EuclideanSequencer = () => {
         snareFreqShifter.dispose();
         snareDelaySend.dispose();
         snareReverbSend.dispose();
+        snareSpectralSend.dispose();
       }
     };
     // EQ injection for snare
@@ -1407,6 +1408,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.snare.setFreqShift = (hz: number) => { snareFreqShifter.frequency.rampTo(hz, 0.05); };
     synthsRef.current.snare.panner = snarePanner;
     synthsRef.current.snare.freqShifter = snareFreqShifter;
+    synthsRef.current.snare.setSpectralSend = (value: number) => { snareSpectralSend.gain.rampTo(value, 0.05); };
     // Lorenz + Nested LFO injection for snare
     synthsRef.current.snare.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
       if (target === 'filter') {
