@@ -2217,7 +2217,7 @@ export const EuclideanTrack = React.memo(({
               onParamChange(trackId, 'mutationRate', 0.05);
               onParamChange(trackId, 'mutationSpeed', 1);
               // Reset all probabilities to 1
-              for(let i=0; i<64; i++) onProbabilityChange(i, 1);
+              for(let i=0; i<64; i++) onSequencerAction(trackId, 'probability', i, 1);
             }}
             className="absolute -top-2 -right-2 w-5 h-5 bg-white hover:bg-system-accent/10 border border-black/5 rounded-full flex items-center justify-center text-[8px] font-mono text-idm-muted hover:text-system-accent transition-all shadow-sm"
             title="Reset Engine"
