@@ -3689,12 +3689,21 @@ export const EuclideanSequencer = () => {
       };
       synthsRef.current.tone.updateNestedLfo = (r1: number, r2: number, d: number) => synthsRef.current.tone.nestedLfoInstance?.update(r1, r2, d);
       synthsRef.current.tone.disposeNestedLfo = () => { synthsRef.current.tone.nestedLfoInstance?.dispose(); synthsRef.current.tone.nestedLfoInstance = null; };
+      // EQ injection for tone rebuild
+      synthsRef.current.tone.updateEq = (hpfFreq: number, lpfFreq: number) => {
+        toneEqHpf.frequency.rampTo(hpfFreq, 0.05);
+        toneEqLpf.frequency.rampTo(lpfFreq, 0.05);
+      };
     }
-    // Apply current volume and sends
+    // Apply current volume, sends, and EQ
     const track = tracksRef.current.find(t => t.id === trackId);
     if (track && synthsRef.current[trackId]) {
       synthsRef.current[trackId].setVolume(track.volume);
       synthsRef.current[trackId].setSends(track.delaySend, track.reverbSend);
+      // Restore EQ state
+      const hpf = track.eqEnabled ? (track.eqHpfFreq ?? 20) : 20;
+      const lpf = track.eqEnabled ? (track.eqLpfFreq ?? 20000) : 20000;
+      synthsRef.current[trackId].updateEq?.(hpf, lpf);
     }
   };
 
