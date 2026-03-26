@@ -1425,11 +1425,15 @@ export const EuclideanSequencer = () => {
     const cloudReverbSend = new Tone.Gain(0).connect(reverbBus);
     const cloudEqHpf = new Tone.Filter(20, "highpass");
     const cloudEqLpf = new Tone.Filter(20000, "lowpass");
+    const cloudPanner = new Tone.Panner(0);
+    const cloudFreqShifter = new Tone.FrequencyShifter(0);
     const cloudFilter = new Tone.Filter(1000, "lowpass").connect(cloudEqHpf);
     cloudEqHpf.connect(cloudEqLpf);
-    cloudEqLpf.connect(compressor);
-    cloudEqLpf.connect(cloudDelaySend);
-    cloudEqLpf.connect(cloudReverbSend);
+    cloudEqLpf.connect(cloudPanner);
+    cloudPanner.connect(cloudFreqShifter);
+    cloudFreqShifter.connect(compressor);
+    cloudFreqShifter.connect(cloudDelaySend);
+    cloudFreqShifter.connect(cloudReverbSend);
 
     const cloudDucker = new Tone.Gain(1).connect(cloudFilter);
     const cloudLFO = new Tone.LFO({
