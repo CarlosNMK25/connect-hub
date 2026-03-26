@@ -630,6 +630,26 @@ export const EuclideanSequencer = () => {
     reverbFilter: Tone.Filter;
     delayBus: Tone.Gain;
     reverbBus: Tone.Gain;
+    spectralDelayBus: Tone.Gain;
+  } | null>(null);
+
+  // Spectral Delay global state (Phase 7C)
+  const [spectralDelayEnabled, setSpectralDelayEnabled] = useState(false);
+  const [spectralDelayWet, setSpectralDelayWet] = useState(0.5);
+  const [spectralDelayLowTime, setSpectralDelayLowTime] = useState(0);
+  const [spectralDelayMidTime, setSpectralDelayMidTime] = useState(80);
+  const [spectralDelayHighTime, setSpectralDelayHighTime] = useState(160);
+  const [spectralDelayLowFreq, setSpectralDelayLowFreq] = useState(200);
+  const [spectralDelayHighFreq, setSpectralDelayHighFreq] = useState(4000);
+  const spectralDelayRef = useRef<{
+    bus: Tone.Gain;
+    out: Tone.Gain;
+    lowFilter: Tone.Filter;
+    midFilter: Tone.Filter;
+    highFilter: Tone.Filter;
+    lowDelay: Tone.Delay;
+    midDelay: Tone.Delay;
+    highDelay: Tone.Delay;
   } | null>(null);
 
   const [globalAnalyser, setGlobalAnalyser] = useState<Tone.Analyser | null>(null);
