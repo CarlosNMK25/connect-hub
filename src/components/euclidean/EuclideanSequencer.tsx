@@ -1403,6 +1403,9 @@ export const EuclideanSequencer = () => {
         kickEqHpf.dispose();
         kickEqLpf.dispose();
         kickPanner.dispose();
+        kickPanner3D.dispose();
+        kickPannerGain.dispose();
+        kickPanner3DGain.dispose();
         kickFreqShifter.dispose();
         kickDelaySend.dispose();
         kickReverbSend.dispose();
@@ -1421,6 +1424,18 @@ export const EuclideanSequencer = () => {
     synthsRef.current.kick.freqShifter = kickFreqShifter;
     // Spectral Delay send injection for kick
     synthsRef.current.kick.setSpectralSend = (value: number) => { kickSpectralSend.gain.rampTo(value, 0.05); };
+    // Binaural 3D injection for kick
+    synthsRef.current.kick.switchBinaural = (binaural: boolean) => {
+      kickPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
+      kickPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
+    };
+    synthsRef.current.kick.updateBinaural = (azimuth: number, distance: number) => {
+      const rad = (azimuth * Math.PI) / 180;
+      try { kickPanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) {
+        kickPanner3D.positionX.value = Math.sin(rad) * distance;
+        kickPanner3D.positionZ.value = -Math.cos(rad) * distance;
+      }
+    };
     // Lorenz + Nested LFO injection for kick
     synthsRef.current.kick.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
       if (target === 'filter') {
