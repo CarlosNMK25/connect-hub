@@ -896,6 +896,23 @@ export const EuclideanSequencer = () => {
         if (config.octaveRange !== undefined) newTrack.octaveRange = config.octaveRange;
         if (config.noteIndices !== undefined) newTrack.noteIndices = [...config.noteIndices];
         
+        // Phase 8 — Percussive Synthesis fields
+        if (config.kickPitchDecay !== undefined) newTrack.kickPitchDecay = config.kickPitchDecay;
+        if (config.kickOctaves !== undefined) newTrack.kickOctaves = config.kickOctaves;
+        if (config.kickDecay !== undefined) newTrack.kickDecay = config.kickDecay;
+        if (config.kickClickType !== undefined) newTrack.kickClickType = config.kickClickType;
+        if (config.hatMode !== undefined) newTrack.hatMode = config.hatMode;
+        if (config.hatHarmonicity !== undefined) newTrack.hatHarmonicity = config.hatHarmonicity;
+        if (config.hatModIndex !== undefined) newTrack.hatModIndex = config.hatModIndex;
+        if (config.hatResonance !== undefined) newTrack.hatResonance = config.hatResonance;
+        if (config.hatDecay !== undefined) newTrack.hatDecay = config.hatDecay;
+        if (config.hatNoiseType !== undefined) newTrack.hatNoiseType = config.hatNoiseType;
+        if (config.snareDecay !== undefined) newTrack.snareDecay = config.snareDecay;
+        if (config.snareNoiseType !== undefined) newTrack.snareNoiseType = config.snareNoiseType;
+        if (config.snareBodyEnabled !== undefined) newTrack.snareBodyEnabled = config.snareBodyEnabled;
+        if (config.snareBodyPitch !== undefined) newTrack.snareBodyPitch = config.snareBodyPitch;
+        if (config.snareBodyDecay !== undefined) newTrack.snareBodyDecay = config.snareBodyDecay;
+
         // Reset counters for fresh start
         newTrack.hits = 0;
         newTrack.misses = 0;
