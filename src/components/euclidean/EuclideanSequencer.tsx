@@ -3295,6 +3295,8 @@ export const EuclideanSequencer = () => {
       const kickPannerGain = new Tone.Gain(1);
       const kickPanner3DGain = new Tone.Gain(0);
       const kickFreqShifter = new Tone.FrequencyShifter(0);
+      const kickFsBypassGain = new Tone.Gain(0);
+      const kickFsDirectGain = new Tone.Gain(1);
       const kickFilter = new Tone.Filter(2000, "lowpass").connect(kickEqHpf);
       kickEqHpf.connect(kickEqLpf);
       kickEqLpf.connect(kickPannerGain);
@@ -3302,12 +3304,19 @@ export const EuclideanSequencer = () => {
       if (synthsRef.current.kickFollower) kickEqLpf.connect(synthsRef.current.kickFollower);
       kickPannerGain.connect(kickPanner);
       kickPanner3DGain.connect(kickPanner3D);
-      kickPanner.connect(kickFreqShifter);
-      kickPanner3D.connect(kickFreqShifter);
+      kickPanner.connect(kickFsBypassGain);
+      kickPanner3D.connect(kickFsBypassGain);
+      kickFsBypassGain.connect(kickFreqShifter);
       kickFreqShifter.connect(master.compressor);
       kickFreqShifter.connect(kickDelaySend);
       kickFreqShifter.connect(kickReverbSend);
       kickFreqShifter.connect(kickSpectralSend);
+      kickPanner.connect(kickFsDirectGain);
+      kickPanner3D.connect(kickFsDirectGain);
+      kickFsDirectGain.connect(master.compressor);
+      kickFsDirectGain.connect(kickDelaySend);
+      kickFsDirectGain.connect(kickReverbSend);
+      kickFsDirectGain.connect(kickSpectralSend);
 
       const kickBody = new Tone.MembraneSynth({
         pitchDecay: 0.05, octaves: 10, oscillator: { type: 'sine' },
