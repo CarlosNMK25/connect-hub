@@ -3974,6 +3974,8 @@ export const EuclideanSequencer = () => {
       // Restore pan and freqShift
       synthsRef.current[trackId].setPan?.(track.pan ?? 0);
       synthsRef.current[trackId].setFreqShift?.(track.freqShiftEnabled ? (track.freqShift ?? 0) : 0);
+      // Restore spectral delay send
+      synthsRef.current[trackId].setSpectralSend?.(track.spectralDelaySend ?? 0);
     }
   };
 
