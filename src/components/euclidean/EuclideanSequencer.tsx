@@ -1534,15 +1534,19 @@ export const EuclideanSequencer = () => {
       synthsRef.current.kick.nestedLfoInstance = null;
     };
 
-    const snareSynth = new Tone.NoiseSynth({
-      noise: { type: 'white' },
+    let snareSynth = new Tone.NoiseSynth({
+      noise: { type: 'white' as any },
       envelope: { attack: 0.001, decay: 0.2, sustain: 0 },
       volume: -4
     }).connect(snareFilter);
+    let snareBody: Tone.MembraneSynth | null = null;
 
     synthsRef.current.snare = {
       triggerAttackRelease: (duration: string, time: number, velocity: number) => {
         snareSynth.triggerAttackRelease(duration, time, velocity);
+        if (snareBody) {
+          try { snareBody.triggerAttackRelease("C2", duration, time, velocity * 0.6); } catch(e) {}
+        }
         const baseCutoff = 1500;
         const dynamicCutoff = baseCutoff + (velocity * 5000);
         if (isFinite(dynamicCutoff)) {
@@ -1551,6 +1555,7 @@ export const EuclideanSequencer = () => {
       },
       setVolume: (vol: number) => {
         snareSynth.volume.rampTo(Tone.gainToDb(vol) - 4, 0.05);
+        if (snareBody) snareBody.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
       },
       setSends: (delayVal: number, reverbVal: number) => {
         snareDelaySend.gain.rampTo(delayVal, 0.05);
@@ -1558,6 +1563,7 @@ export const EuclideanSequencer = () => {
       },
       dispose: () => {
         snareSynth.dispose();
+        snareBody?.dispose();
         snareFilter.dispose();
         snareEqHpf.dispose();
         snareEqLpf.dispose();
@@ -1571,6 +1577,36 @@ export const EuclideanSequencer = () => {
         snareDelaySend.dispose();
         snareReverbSend.dispose();
         snareSpectralSend.dispose();
+      }
+    };
+    // Phase 8 — Snare synth params setter
+    synthsRef.current.snare.setSnareParams = (decay: number, noiseType: string) => {
+      snareSynth.envelope.decay = decay;
+      const currentType = (snareSynth as any).noise?.type || 'white';
+      if (noiseType !== currentType) {
+        snareSynth.dispose();
+        snareSynth = new Tone.NoiseSynth({
+          noise: { type: noiseType as any },
+          envelope: { attack: 0.001, decay, sustain: 0 },
+          volume: -4
+        }).connect(snareFilter);
+      }
+    };
+    // Phase 8 — Snare body (layered MembraneSynth)
+    synthsRef.current.snare.setSnareBody = (enabled: boolean, pitch: number, bodyDecay: number) => {
+      if (enabled && !snareBody) {
+        snareBody = new Tone.MembraneSynth({
+          pitchDecay: 0.08, octaves: 4, oscillator: { type: 'sine' },
+          envelope: { attack: 0.001, decay: bodyDecay, sustain: 0.01, release: 0.5 },
+          volume: -6
+        }).connect(snareFilter);
+        snareBody.frequency.value = pitch;
+      } else if (!enabled && snareBody) {
+        snareBody.dispose();
+        snareBody = null;
+      } else if (enabled && snareBody) {
+        snareBody.frequency.value = pitch;
+        snareBody.set({ envelope: { decay: bodyDecay } });
       }
     };
     synthsRef.current.snare.updateEq = (hpfFreq: number, lpfFreq: number) => {
