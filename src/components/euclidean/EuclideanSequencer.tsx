@@ -744,6 +744,9 @@ export const EuclideanSequencer = () => {
   const [spectralDelayLowFreq, setSpectralDelayLowFreq] = useState(200);
   const [spectralDelayHighFreq, setSpectralDelayHighFreq] = useState(4000);
 
+  // Active FX panel in Controls column (only one visible at a time)
+  const [activeFxPanel, setActiveFxPanel] = useState<'GRV' | 'RVR' | 'FRZ' | 'XFD' | 'SDLY' | null>(null);
+
   // Envelope Crossfeed global state (Phase 7E)
   const [crossfeedEnabled, setCrossfeedEnabled] = useState(false);
   const [crossfeedDepth, setCrossfeedDepth] = useState(2000);
