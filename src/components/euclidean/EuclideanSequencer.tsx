@@ -1433,9 +1433,13 @@ export const EuclideanSequencer = () => {
     // Tone Synth Setup (MonoSynth)
     const toneDelaySend = new Tone.Gain(0.15).connect(delayBus);
     const toneReverbSend = new Tone.Gain(0.2).connect(reverbBus);
-    const toneFilter = new Tone.Filter(2000, "lowpass").connect(compressor);
-    toneFilter.connect(toneDelaySend);
-    toneFilter.connect(toneReverbSend);
+    const toneEqHpf = new Tone.Filter(20, "highpass");
+    const toneEqLpf = new Tone.Filter(20000, "lowpass");
+    const toneFilter = new Tone.Filter(2000, "lowpass").connect(toneEqHpf);
+    toneEqHpf.connect(toneEqLpf);
+    toneEqLpf.connect(compressor);
+    toneEqLpf.connect(toneDelaySend);
+    toneEqLpf.connect(toneReverbSend);
     toneFilterRef.current = toneFilter;
 
     const toneMonoSynth = new Tone.MonoSynth({
