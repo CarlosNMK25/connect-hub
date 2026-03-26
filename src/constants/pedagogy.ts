@@ -232,6 +232,20 @@ export const PEDAGOGY = {
     crossfeedEnabled: "La conversación entre los dos mundos sonoros de la app: el ritmo granular de Cloud dicta la apertura tonal de Tone. Es el principio del vocoder sin su complejidad técnica — el espacio sonoro controlando la melodía, la textura gobernando el timbre.",
     crossfeedBase: "El silencio tonal. La frecuencia donde Tone descansa cuando Cloud no habla — el punto de partida del diálogo entre los dos motores. Aquí vive Tone antes de que Cloud lo despierte.",
     crossfeedDepth: "Cuánto puede hablar Cloud a través de Tone. Depth pequeño es un susurro — apenas perceptible, sutil. Depth grande es una orden: cuando Cloud explota en grains, Tone abre su boca espectral y canta todo lo que puede.",
+    // Phase 8 — Percussive Synthesis: Kick, Snare, Hat
+    kickPitchDecay: "La caída del pitch es la firma del kick. En 0.01 es un golpe sin memoria, presente y ya ido. En 0.5 es una afirmación — el sonido recuerda de dónde vino antes de instalarse en su frecuencia final. La diferencia entre un kick de Roland TR-808 y un bombo de orquesta sinfónica es, en parte, este número.",
+    kickOctaves: "El tamaño del viaje tonal del kick. Octaves=1 es un paso. Octaves=10 es un salto desde el tejado hasta el sótano. La gravedad del golpe se mide en cuánto cae antes de llegar al suelo.",
+    kickDecay: "El tiempo que el kick decide quedarse. Corto es un visitante puntual — llega, golpea, se va. Largo es un invitado que se queda resonando mientras la siguiente nota ya ha llegado. En el dub, el kick nunca termina de irse.",
+    kickClickType: "El carácter del primer milisegundo. White es el chasquido de un látigo. Pink es la bofetada de una mano abierta. Brown es el golpe sordo de un puño contra una mesa de madera. El mismo kick, tres personalidades del ataque.",
+    snareDecay: "Cuánto tiempo el snare habita el silencio después del golpe. Un snare seco es una coma. Un snare largo es un punto y aparte que obliga a la siguiente nota a esperar.",
+    snareNoiseType: "El color del snare. White es fluorescente, todo brillo y aristas. Pink es la luz de una tarde nublada — completo pero sin agresividad. Brown es la oscuridad antes de que tus ojos se acostumbren.",
+    snareBodyEnabled: "El snare sin cuerpo es una queja. Con cuerpo es una afirmación. La membrana que vibra detrás del ruido es lo que convierte el crack en un sonido que reconoces como \"snare\" aunque no hayas oído ninguno igual antes.",
+    snareBodyPitch: "La nota que nadie está escuchando conscientemente pero que define el carácter del snare. Baja, el snare es gordo y oscuro. Alta, el snare es tenso y urgente. El cerebro procesa ambas capas a la vez y las combina en una sola identidad sonora.",
+    snareBodyDecay: "El tempo del cuerpo, independiente del tempo del ruido. Cuando los dos terminan juntos el snare es uno. Cuando terminan en tiempos distintos el snare es dos cosas que se despiden por separado.",
+    hatMode: "La diferencia entre el hat como ruido y el hat como instrumento. En modo Noise es abstracto — una cortina de frecuencias. En modo Metal es concreto — metal vibrando, con su propia voz y sus propios armónicos imposibles de nombrar.",
+    hatHarmonicity: "El grado de afinación del metal. Bajo, el hat no tiene opinión sobre las notas — es ruido con textura. Alto, empieza a tener preferencias tonales, a querer estar en clave. El metal real está en algún punto intermedio, y ese punto intermedio es exactamente donde vive la magia.",
+    hatModIndex: "La agresividad del metal. Bajo es el hat que pide permiso antes de sonar. Alto es el hat que irrumpe en la mezcla sin anunciarse, llenando el espectro de presencia. Entre los dos extremos están todos los hats que alguna vez has escuchado en IDM.",
+    hatResonance: "La frecuencia donde el metal quiere cantar. Cada plato real tiene una resonancia fundamental — el punto donde vibra con más energía cuando lo golpeas. Aquí defines ese punto para el hat virtual. Es como elegir de qué metal está hecho.",
   } as PedagogyMicro,
 
   meso: {
