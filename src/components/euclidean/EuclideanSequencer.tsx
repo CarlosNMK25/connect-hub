@@ -3902,6 +3902,7 @@ export const EuclideanSequencer = () => {
       const toneDelaySend = new Tone.Gain(0.15).connect(master.delayBus);
       const toneReverbSend = new Tone.Gain(0.2).connect(master.reverbBus);
       const toneSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
+      const toneFreezeSend = new Tone.Gain(0).connect(master.freezeBus);
       const toneEqHpf = new Tone.Filter(20, "highpass");
       const toneEqLpf = new Tone.Filter(20000, "lowpass");
       const tonePanner = new Tone.Panner(0);
