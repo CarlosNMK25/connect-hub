@@ -1813,18 +1813,27 @@ export const EuclideanSequencer = () => {
     const tonePannerGain = new Tone.Gain(1);
     const tonePanner3DGain = new Tone.Gain(0);
     const toneFreqShifter = new Tone.FrequencyShifter(0);
+    const toneFsBypassGain = new Tone.Gain(0);
+    const toneFsDirectGain = new Tone.Gain(1);
     const toneFilter = new Tone.Filter(2000, "lowpass").connect(toneEqHpf);
     toneEqHpf.connect(toneEqLpf);
     toneEqLpf.connect(tonePannerGain);
     toneEqLpf.connect(tonePanner3DGain);
     tonePannerGain.connect(tonePanner);
     tonePanner3DGain.connect(tonePanner3D);
-    tonePanner.connect(toneFreqShifter);
-    tonePanner3D.connect(toneFreqShifter);
+    tonePanner.connect(toneFsBypassGain);
+    tonePanner3D.connect(toneFsBypassGain);
+    toneFsBypassGain.connect(toneFreqShifter);
     toneFreqShifter.connect(compressor);
     toneFreqShifter.connect(toneDelaySend);
     toneFreqShifter.connect(toneReverbSend);
     toneFreqShifter.connect(toneSpectralSend);
+    tonePanner.connect(toneFsDirectGain);
+    tonePanner3D.connect(toneFsDirectGain);
+    toneFsDirectGain.connect(compressor);
+    toneFsDirectGain.connect(toneDelaySend);
+    toneFsDirectGain.connect(toneReverbSend);
+    toneFsDirectGain.connect(toneSpectralSend);
     toneFilterRef.current = toneFilter;
 
     const toneMonoSynth = new Tone.MonoSynth({
