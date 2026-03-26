@@ -1066,6 +1066,9 @@ export const EuclideanSequencer = () => {
         eqEnabled: (config as any).eqEnabled ?? false,
         eqHpfFreq: (config as any).eqHpfFreq ?? 20,
         eqLpfFreq: (config as any).eqLpfFreq ?? 20000,
+        pan: (config as any).pan ?? 0,
+        freqShiftEnabled: (config as any).freqShiftEnabled ?? false,
+        freqShift: (config as any).freqShift ?? 0,
         hits: 0,
         misses: 0,
       });
