@@ -5203,6 +5203,8 @@ export const EuclideanSequencer = () => {
       synthsRef.current[trackId].setSpectralSend?.(track.spectralDelaySend ?? 0);
       // Restore freeze send (Phase 9)
       synthsRef.current[trackId].setFreezeSend?.(track.freezeSend ?? 0);
+      // Restore reverse send (Phase 9)
+      synthsRef.current[trackId].setReverseSend?.(track.reverseSend ?? 0);
       // Restore binaural state (Phase 7D)
       synthsRef.current[trackId].switchBinaural?.(track.binauralEnabled ?? false);
       if (track.binauralEnabled) {
