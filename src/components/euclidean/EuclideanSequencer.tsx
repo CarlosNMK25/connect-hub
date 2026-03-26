@@ -1935,6 +1935,8 @@ export const EuclideanSequencer = () => {
     cloudFsDirectGain.connect(cloudDelaySend);
     cloudFsDirectGain.connect(cloudReverbSend);
     cloudFsDirectGain.connect(cloudSpectralSend);
+    cloudFsBypassGain.connect(cloudFreezeSend);
+    cloudFsDirectGain.connect(cloudFreezeSend);
 
     // Cloud Analyser for Envelope Crossfeed (Phase 7E)
     const cloudAnalyser = new Tone.Analyser('waveform', 256);
