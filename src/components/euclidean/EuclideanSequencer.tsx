@@ -1462,6 +1462,8 @@ export const EuclideanSequencer = () => {
         if (synthsRef.current.cloud.bitCrusher) synthsRef.current.cloud.bitCrusher.dispose();
         cloudEqHpf.dispose();
         cloudEqLpf.dispose();
+        cloudPanner.dispose();
+        cloudFreqShifter.dispose();
         cloudDelaySend.dispose();
         cloudReverbSend.dispose();
       }
@@ -1471,6 +1473,11 @@ export const EuclideanSequencer = () => {
       cloudEqHpf.frequency.rampTo(hpfFreq, 0.05);
       cloudEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
+    // Pan + FreqShifter injection for cloud
+    synthsRef.current.cloud.setPan = (value: number) => { cloudPanner.pan.rampTo(value, 0.05); };
+    synthsRef.current.cloud.setFreqShift = (hz: number) => { cloudFreqShifter.frequency.rampTo(hz, 0.05); };
+    synthsRef.current.cloud.panner = cloudPanner;
+    synthsRef.current.cloud.freqShifter = cloudFreqShifter;
     // Lorenz + Nested LFO injection for cloud
     synthsRef.current.cloud.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
       if (target === 'filter') {
