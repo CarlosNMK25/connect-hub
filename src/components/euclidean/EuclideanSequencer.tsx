@@ -2897,7 +2897,7 @@ export const EuclideanSequencer = () => {
       }
       if (param === 'freqShiftEnabled') {
         const updatedTrack = tracksRef.current.find(t => t.id === trackId);
-        synthObj.setFreqShift?.(val ? (updatedTrack?.freqShift ?? 0) : 0);
+        synthObj.setFreqShift?.(val ? (updatedTrack?.freqShift ?? 0) : 0, val as boolean);
       }
       // Spectral Delay Send real-time sync
       if (param === 'spectralDelaySend') {
