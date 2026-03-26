@@ -45,25 +45,13 @@ interface EuclideanTrackProps {
   trackId: string;
   stats: { hits: number; misses: number; cycleCount: number };
   previewPattern?: number[];
-  onStepsChange: (val: number) => void;
-  onPulsesChange: (val: number) => void;
-  onOffsetChange: (val: number) => void;
   probabilities: number[];
-  onProbabilityChange: (index: number, val: number) => void;
-  onToggleStep: (index: number) => void;
   isDjMode: boolean;
-  // Stochastic Engine Props
   chaosEnabled: boolean;
   entropy: number;
-  onChaosToggle: () => void;
-  onEntropyChange: (val: number) => void;
   evolveEnabled: boolean;
   mutationRate: number;
   mutationSpeed: number;
-  onEvolveToggle: () => void;
-  onMutationRateChange: (val: number) => void;
-  onMutationSpeedChange: (val: number) => void;
-  // Sampler Props
   samplerBuffer: AudioBuffer | null;
   samplerStatus: 'IDLE' | 'DECODING' | 'READY';
   samplerFilename: string | null;
@@ -78,42 +66,23 @@ interface EuclideanTrackProps {
   overlap: number;
   spray: number;
   bitCrush: number;
-  onFileUpload: (file: File) => void;
-  onSamplerParamChange: (param: string, val: any) => void;
-  onClearSampler: () => void;
-  onMuteToggle: () => void;
-  onSoloToggle: () => void;
   volume: number;
-  onVolumeChange: (val: number) => void;
   isMuted: boolean;
   isSoloed: boolean;
   anySoloed: boolean;
   delaySend: number;
   reverbSend: number;
-  onDelaySendChange: (val: number) => void;
-  onReverbSendChange: (val: number) => void;
   ratchet: number;
-  onRatchetChange: (val: number) => void;
-  // Tonal Props
   isTonal: boolean;
   rootNote: number;
   scaleId: string;
   octaveRange: number;
   noteIndices: number[];
-  onRootNoteChange: (val: number) => void;
-  onScaleChange: (val: string) => void;
-  onOctaveRangeChange: (val: number) => void;
-  onNoteIndexChange: (stepIdx: number, val: number) => void;
   synthType?: string;
   fmRatio?: number;
   fmIndex?: number;
-  onSynthTypeChange?: (val: string) => void;
-  onFmRatioChange?: (val: number) => void;
-  onFmIndexChange?: (val: number) => void;
   wfAmount?: number;
   wfSymmetry?: number;
-  onWfAmountChange?: (val: number) => void;
-  onWfSymmetryChange?: (val: number) => void;
   addPartials?: number;
   addBrightness?: number;
   arRate?: number;
@@ -127,36 +96,14 @@ interface EuclideanTrackProps {
   ksBrightness?: number;
   modalBody?: string;
   modalDecay?: number;
-  onAddPartialsChange?: (val: number) => void;
-  onAddBrightnessChange?: (val: number) => void;
-  onArRateChange?: (val: number) => void;
-  onArDepthChange?: (val: number) => void;
-  onPadVoicesChange?: (val: number) => void;
-  onPadDetuneChange?: (val: number) => void;
-  onPadAttackChange?: (val: number) => void;
-  onDroneFeedbackChange?: (val: number) => void;
-  onDroneFilterFreqChange?: (val: number) => void;
-  onKsDecayChange?: (val: number) => void;
-  onKsBrightnessChange?: (val: number) => void;
-  onModalBodyChange?: (val: string) => void;
-  onModalDecayChange?: (val: number) => void;
   ambientVolume?: number;
   ambientSpeed?: number;
-  onAmbientVolumeChange?: (val: number) => void;
-  onAmbientSpeedChange?: (val: number) => void;
   cloudMode?: 'granular' | 'eno';
   enoSpeed?: number;
-  onCloudModeChange?: (mode: 'granular' | 'eno') => void;
-  onEnoSpeedChange?: (val: number) => void;
   rrEnabled?: boolean;
   rrAmount?: number;
-  onRrEnabledChange?: (val: boolean) => void;
-  onRrAmountChange?: (val: number) => void;
   driftEnabled?: boolean;
   driftRate?: number;
-  onDriftEnabledChange?: (val: boolean) => void;
-  onDriftRateChange?: (val: number) => void;
-  // Layer 2
   layer2Status?: 'empty' | 'loading' | 'ready';
   layer2Filename?: string;
   layer2Blend?: number;
@@ -166,32 +113,21 @@ interface EuclideanTrackProps {
   layer2Reverse?: boolean;
   layer2StretchEnabled?: boolean;
   layer2StretchRate?: number;
-  onLoadLayer2?: (file: File) => void;
-  onClearLayer2?: () => void;
-  // Lorenz Attractor
   lorenzEnabled?: boolean;
   lorenzDepth?: number;
   lorenzTarget?: string;
   lorenzSpeed?: number;
-  onLorenzParamChange?: (param: string, value: number | boolean | string) => void;
-  // Nested LFO
   nestedLfoEnabled?: boolean;
   nestedLfoRate1?: number;
   nestedLfoRate2?: number;
   nestedLfoDepth?: number;
-  onNestedLfoToggle?: (enabled: boolean) => void;
-  onNestedLfoParamChange?: (param: string, value: number) => void;
-  onLayer2ParamChange?: (param: string, value: number | boolean) => void;
   toneRecordingState?: 'idle' | 'armed' | 'recording';
-  onRecordAction?: () => void;
   cloudRecordingState?: 'idle' | 'armed' | 'recording';
-  onCloudRecordAction?: () => void;
   isStudyMode: boolean;
   studyVoice?: PedagogyVoice;
   temporalityMode: TemporalityMode;
   bpm: number;
   swing: number;
-  // Pattern mode props
   patternMode?: 'euclidean' | 'lsystem' | 'ca';
   lsSeed?: string;
   lsRuleA?: string;
@@ -201,57 +137,32 @@ interface EuclideanTrackProps {
   caSeed?: string;
   caDensity?: number;
   caSpeed?: number;
-  onPatternModeChange?: (mode: 'euclidean' | 'lsystem' | 'ca') => void;
-  onLsParamChange?: (param: string, value: string | number) => void;
-  onLsRegenerate?: () => void;
-  onLsReset?: () => void;
-  onCaParamChange?: (param: string, value: string | number) => void;
-  onCaReset?: () => void;
-  // Markov props
   noteMode?: 'euclidean' | 'markov';
   markovStyle?: string;
   markovTemperature?: number;
   markovAnchor?: number;
   markovShowMatrix?: boolean;
-  onNoteModeChange?: (mode: 'euclidean' | 'markov') => void;
-  onMarkovParamChange?: (param: string, value: string | number | boolean) => void;
-  onMarkovRegenerate?: () => void;
-  onGetMarkovMatrix?: (trackId: string) => number[][] | undefined;
-  // Slicer props
   slicerEnabled?: boolean;
   sliceCount?: number;
   sliceOrder?: number[];
   sliceReverse?: boolean[];
   slicePitch?: number[];
-  onSlicerToggle?: (enabled: boolean) => void;
-  onSliceCountChange?: (count: number) => void;
-  onSliceOrderChange?: (order: number[]) => void;
-  onSliceReverseToggle?: (sliceIdx: number) => void;
-  onSlicePitchChange?: (sliceIdx: number, semitones: number) => void;
-  onSliceRandomize?: () => void;
-  onSliceReset?: () => void;
-  // Time Stretch props
   stretchEnabled?: boolean;
   stretchRate?: number;
-  // EQ props
   eqEnabled?: boolean;
   eqHpfFreq?: number;
   eqLpfFreq?: number;
-  // Pan + FreqShifter props
   pan?: number;
   freqShiftEnabled?: boolean;
   freqShift?: number;
-   spectralDelaySend?: number;
+  spectralDelaySend?: number;
   freezeSend?: number;
-  // Extreme Loop
   extremeLoopEnabled?: boolean;
   extremeLoopSize?: number;
   extremeLoopPoint?: number;
-  // 3D Audio / Binaural (Phase 7D)
   binauralEnabled?: boolean;
   binauralAzimuth?: number;
   binauralDistance?: number;
-  // Phase 8 — Percussive Synthesis
   kickPitchDecay?: number;
   kickOctaves?: number;
   kickDecay?: number;
@@ -267,7 +178,21 @@ interface EuclideanTrackProps {
   snareBodyEnabled?: boolean;
   snareBodyPitch?: number;
   snareBodyDecay?: number;
-  onPercSynthParamChange?: (param: string, value: number | string | boolean) => void;
+  // ═══════ UNIVERSAL CALLBACKS (stable references) ═══════
+  onParamChange: (trackId: string, param: string, value: any) => void;
+  onSequencerAction: (trackId: string, action: string, value?: any, value2?: any) => void;
+  onTonalAction: (trackId: string, action: string, value?: any) => void;
+  onSlicerAction: (trackId: string, action: string, value?: any, value2?: any) => void;
+  onSamplerParamChange: (trackId: string, param: string, val: any) => void;
+  onPercSynthParamChange?: (trackId: string, param: string, value: number | string | boolean) => void;
+  onFileUpload: (trackId: string, file: File) => void;
+  onClearSampler: (trackId: string) => void;
+  onLoadLayer2?: (trackId: string, file: File) => void;
+  onClearLayer2?: (trackId: string) => void;
+  onLayer2ParamChange?: (trackId: string, param: string, value: number | boolean) => void;
+  onRecordAction?: () => void;
+  onCloudRecordAction?: () => void;
+  onGetMarkovMatrix?: (trackId: string) => number[][] | undefined;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
@@ -323,237 +248,40 @@ const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible
 };
 
 export const EuclideanTrack = React.memo(({
-  id,
-  name,
-  color,
-  synth,
-  steps,
-  pulses,
-  offset,
-  pattern,
-  jitter,
-  globalStep,
-  mcm,
-  syncImpact,
-  lastHit,
-  trackId,
-  stats,
-  previewPattern,
-  onStepsChange,
-  onPulsesChange,
-  onOffsetChange,
-  probabilities,
-  onProbabilityChange,
-  onToggleStep,
-  isDjMode,
-  chaosEnabled,
-  entropy,
-  onChaosToggle,
-  onEntropyChange,
-  evolveEnabled,
-  mutationRate,
-  mutationSpeed,
-  onEvolveToggle,
-  onMutationRateChange,
-  onMutationSpeedChange,
-  samplerBuffer,
-  samplerStatus,
-  samplerFilename,
-  sampleStart,
-  sampleEnd,
-  attack,
-  decay,
-  mode,
-  pitch,
-  normalize,
-  grainSize,
-  overlap,
-  spray,
-  bitCrush,
-  onFileUpload,
-  onSamplerParamChange,
-  onClearSampler,
-  onMuteToggle,
-  onSoloToggle,
-  volume,
-  onVolumeChange,
-  isMuted,
-  isSoloed,
-  anySoloed,
-  delaySend,
-  reverbSend,
-  onDelaySendChange,
-  onReverbSendChange,
-  ratchet,
-  onRatchetChange,
-  isTonal,
-  rootNote,
-  scaleId,
-  octaveRange,
-  noteIndices,
-  onRootNoteChange,
-  onScaleChange,
-  onOctaveRangeChange,
-  onNoteIndexChange,
-  synthType,
-  fmRatio,
-  fmIndex,
-  wfAmount,
-  wfSymmetry,
-  onSynthTypeChange,
-  onFmRatioChange,
-  onFmIndexChange,
-  onWfAmountChange,
-  onWfSymmetryChange,
-  addPartials,
-  addBrightness,
-  arRate,
-  arDepth,
-  padVoices,
-  padDetune,
-  padAttack,
-  droneFeedback,
-  droneFilterFreq,
-  ksDecay,
-  ksBrightness,
-  modalBody,
-  modalDecay,
-  onAddPartialsChange,
-  onAddBrightnessChange,
-  onArRateChange,
-  onArDepthChange,
-  onPadVoicesChange,
-  onPadDetuneChange,
-  onPadAttackChange,
-  onDroneFeedbackChange,
-  onDroneFilterFreqChange,
-  onKsDecayChange,
-  onKsBrightnessChange,
-  onModalBodyChange,
-  onModalDecayChange,
-  ambientVolume,
-  ambientSpeed,
-  onAmbientVolumeChange,
-  onAmbientSpeedChange,
-  cloudMode,
-  enoSpeed,
-  onCloudModeChange,
-  onEnoSpeedChange,
-  rrEnabled,
-  rrAmount,
-  onRrEnabledChange,
-  onRrAmountChange,
-  driftEnabled,
-  driftRate,
-  onDriftEnabledChange,
-  onDriftRateChange,
-  lorenzEnabled,
-  lorenzDepth,
-  lorenzTarget,
-  lorenzSpeed,
-  onLorenzParamChange,
-  nestedLfoEnabled,
-  nestedLfoRate1,
-  nestedLfoRate2,
-  nestedLfoDepth,
-  onNestedLfoToggle,
-  onNestedLfoParamChange,
-  layer2Status,
-  layer2Filename,
-  layer2Blend,
-  layer2Pitch,
-  layer2Offset,
-  layer2FilterFreq,
-  layer2Reverse,
-  layer2StretchEnabled,
-  layer2StretchRate,
-  onLoadLayer2,
-  onClearLayer2,
-  onLayer2ParamChange,
-  toneRecordingState,
-  onRecordAction,
-  cloudRecordingState,
-  onCloudRecordAction,
-  isStudyMode,
-  studyVoice = 'technical',
-  temporalityMode,
-  bpm,
-  swing,
-  patternMode,
-  lsSeed,
-  lsRuleA,
-  lsIterations,
-  lsRotation,
-  caRule,
-  caSeed,
-  caDensity,
-  caSpeed,
-  onPatternModeChange,
-  onLsParamChange,
-  onLsRegenerate,
-  onLsReset,
-  onCaParamChange,
-  onCaReset,
-  // Markov
-  noteMode,
-  markovStyle,
-  markovTemperature,
-  markovAnchor,
-  markovShowMatrix,
-  onNoteModeChange,
-  onMarkovParamChange,
-  onMarkovRegenerate,
-  onGetMarkovMatrix,
-  // Slicer
-  slicerEnabled,
-  sliceCount,
-  sliceOrder,
-  sliceReverse,
-  slicePitch,
-  onSlicerToggle,
-  onSliceCountChange,
-  onSliceOrderChange,
-  onSliceReverseToggle,
-  onSlicePitchChange,
-  onSliceRandomize,
-  onSliceReset,
-  // Time Stretch
-  stretchEnabled,
-  stretchRate,
-  // EQ
-  eqEnabled,
-  eqHpfFreq,
-  eqLpfFreq,
-  // Pan + FreqShifter
-  pan,
-  freqShiftEnabled,
-  freqShift,
-  spectralDelaySend,
-  freezeSend,
-  extremeLoopEnabled,
-  extremeLoopSize,
-  extremeLoopPoint,
-  // 3D Audio / Binaural
-  binauralEnabled,
-  binauralAzimuth,
-  binauralDistance,
-  // Phase 8 — Percussive Synthesis
-  kickPitchDecay,
-  kickOctaves,
-  kickDecay,
-  kickClickType,
-  hatMode,
-  hatHarmonicity,
-  hatModIndex,
-  hatResonance,
-  hatDecay,
-  hatNoiseType,
-  snareDecay,
-  snareNoiseType,
-  snareBodyEnabled,
-  snareBodyPitch,
-  snareBodyDecay,
-  onPercSynthParamChange,
+  id, name, color, synth, steps, pulses, offset, pattern, jitter, globalStep, mcm,
+  syncImpact, lastHit, trackId, stats, previewPattern, probabilities, isDjMode,
+  chaosEnabled, entropy, evolveEnabled, mutationRate, mutationSpeed,
+  samplerBuffer, samplerStatus, samplerFilename, sampleStart, sampleEnd,
+  attack, decay, mode, pitch, normalize, grainSize, overlap, spray, bitCrush,
+  volume, isMuted, isSoloed, anySoloed, delaySend, reverbSend, ratchet,
+  isTonal, rootNote, scaleId, octaveRange, noteIndices,
+  synthType, fmRatio, fmIndex, wfAmount, wfSymmetry,
+  addPartials, addBrightness, arRate, arDepth,
+  padVoices, padDetune, padAttack, droneFeedback, droneFilterFreq,
+  ksDecay, ksBrightness, modalBody, modalDecay,
+  ambientVolume, ambientSpeed, cloudMode, enoSpeed,
+  rrEnabled, rrAmount, driftEnabled, driftRate,
+  lorenzEnabled, lorenzDepth, lorenzTarget, lorenzSpeed,
+  nestedLfoEnabled, nestedLfoRate1, nestedLfoRate2, nestedLfoDepth,
+  layer2Status, layer2Filename, layer2Blend, layer2Pitch,
+  layer2Offset, layer2FilterFreq, layer2Reverse, layer2StretchEnabled, layer2StretchRate,
+  toneRecordingState, cloudRecordingState,
+  isStudyMode, studyVoice = 'technical', temporalityMode, bpm, swing,
+  patternMode, lsSeed, lsRuleA, lsIterations, lsRotation,
+  caRule, caSeed, caDensity, caSpeed,
+  noteMode, markovStyle, markovTemperature, markovAnchor, markovShowMatrix,
+  slicerEnabled, sliceCount, sliceOrder, sliceReverse, slicePitch,
+  stretchEnabled, stretchRate, eqEnabled, eqHpfFreq, eqLpfFreq,
+  pan, freqShiftEnabled, freqShift, spectralDelaySend, freezeSend,
+  extremeLoopEnabled, extremeLoopSize, extremeLoopPoint,
+  binauralEnabled, binauralAzimuth, binauralDistance,
+  kickPitchDecay, kickOctaves, kickDecay, kickClickType,
+  hatMode, hatHarmonicity, hatModIndex, hatResonance, hatDecay, hatNoiseType,
+  snareDecay, snareNoiseType, snareBodyEnabled, snareBodyPitch, snareBodyDecay,
+  onParamChange, onSequencerAction, onTonalAction, onSlicerAction,
+  onSamplerParamChange, onPercSynthParamChange,
+  onFileUpload, onClearSampler, onLoadLayer2, onClearLayer2, onLayer2ParamChange,
+  onRecordAction, onCloudRecordAction, onGetMarkovMatrix,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
@@ -621,7 +349,7 @@ export const EuclideanTrack = React.memo(({
     const y = e.clientY - rect.top;
     const height = rect.height;
     const val = 1 - Math.max(0, Math.min(1, y / height));
-    onVolumeChange(val);
+    onParamChange(trackId, 'volume', val);
   };
 
   useEffect(() => {
@@ -700,7 +428,7 @@ export const EuclideanTrack = React.memo(({
                 <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round(delaySend * 100)}%</span>
               </div>
               <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
-                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onDelaySendChange(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
+                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onParamChange(trackId, 'delaySend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
                 <div className="h-full transition-all duration-100" style={{ width: `${delaySend * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
               </div>
             </div>
@@ -710,7 +438,7 @@ export const EuclideanTrack = React.memo(({
                 <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round(reverbSend * 100)}%</span>
               </div>
               <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
-                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onReverbSendChange(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
+                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onParamChange(trackId, 'reverbSend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
                 <div className="h-full transition-all duration-100" style={{ width: `${reverbSend * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
               </div>
             </div>
@@ -720,7 +448,7 @@ export const EuclideanTrack = React.memo(({
                 <span className="text-[6px] font-mono text-idm-muted leading-none">{ratchet}×</span>
               </div>
               <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
-                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onRatchetChange(Math.round(Math.max(0, Math.min(4, ((e.clientX - rect.left) / rect.width) * 4)))); }}>
+                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onParamChange(trackId, 'ratchet', Math.round(Math.max(0, Math.min(4, ((e.clientX - rect.left) / rect.width) * 4)))); }}>
                 <div className="h-full transition-all duration-100" style={{ width: `${(ratchet / 4) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
             </div>
           </div>
@@ -730,7 +458,7 @@ export const EuclideanTrack = React.memo(({
                 <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round((spectralDelaySend ?? 0) * 100)}%</span>
               </div>
               <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
-                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSamplerParamChange('spectralDelaySend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
+                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSamplerParamChange(trackId, 'spectralDelaySend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
                 <div className="h-full transition-all duration-100" style={{ width: `${(spectralDelaySend ?? 0) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
               </div>
             </div>
@@ -740,7 +468,7 @@ export const EuclideanTrack = React.memo(({
                 <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round((freezeSend ?? 0) * 100)}%</span>
               </div>
               <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
-                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSamplerParamChange('freezeSend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
+                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSamplerParamChange(trackId, 'freezeSend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
                 <div className="h-full transition-all duration-100" style={{ width: `${(freezeSend ?? 0) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
               </div>
             </div>
@@ -753,7 +481,7 @@ export const EuclideanTrack = React.memo(({
               <input type="range"
                 min={-1} max={1} step={0.05}
                 value={pan ?? 0}
-                onChange={e => onSamplerParamChange('pan', Number(e.target.value))}
+                onChange={e => onSamplerParamChange(trackId, 'pan', Number(e.target.value))}
                 className="w-10 h-[7px] accent-system-accent"
               />
               <span className="text-[7px] font-mono text-idm-muted">R</span>
@@ -770,7 +498,7 @@ export const EuclideanTrack = React.memo(({
           {/* 3D Binaural toggle + controls (Phase 7D) */}
           <div className="flex items-center gap-1 flex-none" onMouseEnter={(e) => handleParamEnter('binauralEnabled', e)} onMouseLeave={handleParamLeave}>
             <button
-              onClick={() => onSamplerParamChange('binauralEnabled', !binauralEnabled)}
+              onClick={() => onSamplerParamChange(trackId, 'binauralEnabled', !binauralEnabled)}
               className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
                 binauralEnabled
                   ? 'bg-system-accent text-white border-system-accent'
@@ -786,7 +514,7 @@ export const EuclideanTrack = React.memo(({
                   <span className="text-[7px] font-mono text-idm-muted w-5">Az</span>
                   <input type="range" min={0} max={360} step={5}
                     value={binauralAzimuth ?? 0}
-                    onChange={e => onSamplerParamChange('binauralAzimuth', Number(e.target.value))}
+                    onChange={e => onSamplerParamChange(trackId, 'binauralAzimuth', Number(e.target.value))}
                     className="w-14 h-[7px] accent-system-accent" />
                   <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{binauralAzimuth ?? 0}°</span>
                 </div>
@@ -794,7 +522,7 @@ export const EuclideanTrack = React.memo(({
                   <span className="text-[7px] font-mono text-idm-muted w-5">Dst</span>
                   <input type="range" min={1} max={10} step={0.5}
                     value={binauralDistance ?? 3}
-                    onChange={e => onSamplerParamChange('binauralDistance', Number(e.target.value))}
+                    onChange={e => onSamplerParamChange(trackId, 'binauralDistance', Number(e.target.value))}
                     className="w-14 h-[7px] accent-system-accent" />
                   <span className="text-[7px] font-mono text-idm-muted w-6 text-right">{(binauralDistance ?? 3).toFixed(1)}</span>
                 </div>
@@ -804,10 +532,10 @@ export const EuclideanTrack = React.memo(({
           <div className="flex items-center gap-2 flex-none">
             <h3 className="font-mono text-lg font-black uppercase tracking-tighter text-idm-ink leading-none">{name}</h3>
             <div className="flex gap-1">
-              <button onClick={(e) => { e.stopPropagation(); onSoloToggle(); }}
+              <button onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'isSoloed', !isSoloed); }}
                 className={`w-4 h-4 flex items-center justify-center rounded-[2px] text-[8px] font-mono font-bold transition-all border ${isSoloed ? 'bg-system-accent text-white border-system-accent shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
                 title="Solo">S</button>
-              <button onClick={(e) => { e.stopPropagation(); onMuteToggle(); }}
+              <button onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'isMuted', !isMuted); }}
                 className={`w-4 h-4 flex items-center justify-center rounded-[2px] text-[8px] font-mono font-bold transition-all border ${isMuted ? 'bg-idm-ink text-white border-idm-ink shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
                 title="Mute">M</button>
             </div>
@@ -823,7 +551,7 @@ export const EuclideanTrack = React.memo(({
             <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('patternMode', e)} onMouseLeave={handleParamLeave}>
               <select
                 value={patternMode ?? 'euclidean'}
-                onChange={e => onPatternModeChange?.(e.target.value as 'euclidean' | 'lsystem' | 'ca')}
+                onChange={e => onSequencerAction(trackId, 'patternMode', e.target.value as 'euclidean' | 'lsystem' | 'ca')}
                 className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent"
               >
                 <option value="euclidean">E</option>
@@ -867,7 +595,7 @@ export const EuclideanTrack = React.memo(({
             {samplerStatus === 'READY' && (
               <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
-                  onClick={() => onSamplerParamChange('stretchEnabled', !stretchEnabled)}
+                  onClick={() => onSamplerParamChange(trackId, 'stretchEnabled', !stretchEnabled)}
                   className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
                     stretchEnabled
                       ? 'bg-system-accent text-white border-system-accent'
@@ -878,7 +606,7 @@ export const EuclideanTrack = React.memo(({
                   STR
                 </button>
                 <button
-                  onClick={() => onSlicerToggle?.(!slicerEnabled)}
+                  onClick={() => onSlicerAction(trackId, 'toggle', !slicerEnabled)}
                   className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
                     slicerEnabled
                       ? 'bg-system-accent text-white border-system-accent'
@@ -888,7 +616,7 @@ export const EuclideanTrack = React.memo(({
                 >
                   SLICE
                 </button>
-                <button onClick={onClearSampler}
+                <button onClick={() => onClearSampler(trackId)}
                   className="p-1 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-md transition-all border border-red-500/20"
                   title="Clear Sample">
                   <Trash2 size={10} />
@@ -902,13 +630,13 @@ export const EuclideanTrack = React.memo(({
             )}
 
             <input type="file" ref={fileInputRef} className="hidden" accept="audio/*"
-              onChange={(e) => e.target.files?.[0] && onFileUpload(e.target.files[0])} />
+              onChange={(e) => e.target.files?.[0] && onFileUpload(trackId, e.target.files[0])} />
           </div>
 
           {/* EQ — visible always */}
           <div className="flex items-center gap-1.5 flex-none">
             <button
-              onClick={() => onSamplerParamChange('eqEnabled', !eqEnabled)}
+              onClick={() => onSamplerParamChange(trackId, 'eqEnabled', !eqEnabled)}
               className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
                 eqEnabled
                   ? 'bg-system-accent text-white border-system-accent'
@@ -925,7 +653,7 @@ export const EuclideanTrack = React.memo(({
                   <input type="range"
                     min={20} max={2000} step={10}
                     value={eqHpfFreq ?? 20}
-                    onChange={e => onSamplerParamChange('eqHpfFreq', Number(e.target.value))}
+                    onChange={e => onSamplerParamChange(trackId, 'eqHpfFreq', Number(e.target.value))}
                     className="w-14 h-[7px] accent-system-accent"
                   />
                   <span className="text-[7px] font-mono text-idm-muted w-12 text-right">
@@ -937,7 +665,7 @@ export const EuclideanTrack = React.memo(({
                   <input type="range"
                     min={1000} max={20000} step={100}
                     value={eqLpfFreq ?? 20000}
-                    onChange={e => onSamplerParamChange('eqLpfFreq', Number(e.target.value))}
+                    onChange={e => onSamplerParamChange(trackId, 'eqLpfFreq', Number(e.target.value))}
                     className="w-14 h-[7px] accent-system-accent"
                   />
                   <span className="text-[7px] font-mono text-idm-muted w-14 text-right">
@@ -951,7 +679,7 @@ export const EuclideanTrack = React.memo(({
           {/* Frequency Shifter */}
           <div className="flex items-center gap-1.5 flex-none" onMouseEnter={(e) => handleParamEnter('freqShiftEnabled', e)} onMouseLeave={handleParamLeave}>
             <button
-              onClick={() => onSamplerParamChange('freqShiftEnabled', !freqShiftEnabled)}
+              onClick={() => onSamplerParamChange(trackId, 'freqShiftEnabled', !freqShiftEnabled)}
               className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
                 freqShiftEnabled
                   ? 'bg-system-accent text-white border-system-accent'
@@ -966,7 +694,7 @@ export const EuclideanTrack = React.memo(({
                 <input type="range"
                   min={-500} max={500} step={5}
                   value={freqShift ?? 0}
-                  onChange={e => onSamplerParamChange('freqShift', Number(e.target.value))}
+                  onChange={e => onSamplerParamChange(trackId, 'freqShift', Number(e.target.value))}
                   className="w-16 h-[7px] accent-system-accent"
                 />
                 <span className="text-[7px] font-mono text-idm-muted w-10 text-right">
@@ -981,7 +709,7 @@ export const EuclideanTrack = React.memo(({
             {/* Round Robin */}
             <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('roundRobin', e)} onMouseLeave={handleParamLeave}>
               <button
-                onClick={() => onRrEnabledChange?.(!rrEnabled)}
+                onClick={() => onParamChange(trackId, 'rrEnabled', !rrEnabled)}
                 className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
                   rrEnabled
                     ? 'bg-system-accent text-white border-system-accent'
@@ -999,7 +727,7 @@ export const EuclideanTrack = React.memo(({
                     max={100}
                     step={1}
                     value={rrAmount ?? 30}
-                    onChange={e => onRrAmountChange?.(Number(e.target.value))}
+                    onChange={e => onParamChange(trackId, 'rrAmount', Number(e.target.value))}
                     className="w-12 h-[7px] accent-system-accent"
                     title={`RR Amount: ${rrAmount ?? 30}%`}
                   />
@@ -1012,7 +740,7 @@ export const EuclideanTrack = React.memo(({
             {/* Phase Drift */}
             <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('phaseDrift', e)} onMouseLeave={handleParamLeave}>
               <button
-                onClick={() => onDriftEnabledChange?.(!driftEnabled)}
+                onClick={() => onParamChange(trackId, 'driftEnabled', !driftEnabled)}
                 className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
                   driftEnabled
                     ? 'bg-system-accent text-white border-system-accent'
@@ -1030,7 +758,7 @@ export const EuclideanTrack = React.memo(({
                     max={0.05}
                     step={0.001}
                     value={driftRate ?? 0.01}
-                    onChange={e => onDriftRateChange?.(Number(e.target.value))}
+                    onChange={e => onParamChange(trackId, 'driftRate', Number(e.target.value))}
                     className="w-12 h-[7px] accent-system-accent"
                     title={`Drift Rate: ${(driftRate ?? 0.01).toFixed(3)}`}
                   />
@@ -1044,7 +772,7 @@ export const EuclideanTrack = React.memo(({
             {/* Lorenz Attractor */}
             <div className="flex items-center gap-1.5">
               <button
-                onClick={() => onLorenzParamChange?.('lorenzEnabled', !lorenzEnabled)}
+                onClick={() => onTonalAction(trackId, 'lorenzEnabled', !lorenzEnabled)}
                 className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
                   lorenzEnabled
                     ? 'bg-system-accent text-white border-system-accent'
@@ -1060,7 +788,7 @@ export const EuclideanTrack = React.memo(({
                     <span className="text-[7px] font-mono text-idm-muted w-6">Dep</span>
                     <input type="range" min={0} max={5000} step={100}
                       value={lorenzDepth ?? 1000}
-                      onChange={e => onLorenzParamChange?.('lorenzDepth', Number(e.target.value))}
+                      onChange={e => onTonalAction(trackId, 'lorenzDepth', Number(e.target.value))}
                       className="w-12 h-[7px] accent-system-accent"
                     />
                     <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
@@ -1071,7 +799,7 @@ export const EuclideanTrack = React.memo(({
                     <span className="text-[7px] font-mono text-idm-muted w-6">Spd</span>
                     <input type="range" min={0.5} max={3.0} step={0.1}
                       value={lorenzSpeed ?? 1.0}
-                      onChange={e => onLorenzParamChange?.('lorenzSpeed', Number(e.target.value))}
+                      onChange={e => onTonalAction(trackId, 'lorenzSpeed', Number(e.target.value))}
                       className="w-12 h-[7px] accent-system-accent"
                     />
                     <span className="text-[7px] font-mono text-idm-muted w-6 text-right">
@@ -1082,7 +810,7 @@ export const EuclideanTrack = React.memo(({
                     <span className="text-[7px] font-mono text-idm-muted w-6">Tgt</span>
                     <select
                       value={lorenzTarget ?? 'filter'}
-                      onChange={e => onLorenzParamChange?.('lorenzTarget', e.target.value)}
+                      onChange={e => onTonalAction(trackId, 'lorenzTarget', e.target.value)}
                       className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5 text-foreground focus:outline-none focus:border-system-accent"
                     >
                       <option value="filter">Filter</option>
@@ -1096,7 +824,7 @@ export const EuclideanTrack = React.memo(({
             {/* Nested LFO */}
             <div className="flex items-center gap-1.5">
               <button
-                onClick={() => onNestedLfoToggle?.(!nestedLfoEnabled)}
+                onClick={() => onTonalAction(trackId, 'nestedLfoEnabled', !nestedLfoEnabled)}
                 className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
                   nestedLfoEnabled
                     ? 'bg-system-accent text-white border-system-accent'
@@ -1112,7 +840,7 @@ export const EuclideanTrack = React.memo(({
                     <span className="text-[7px] font-mono text-idm-muted w-6">R1</span>
                     <input type="range" min={0.01} max={2.0} step={0.01}
                       value={nestedLfoRate1 ?? 0.1}
-                      onChange={e => onNestedLfoParamChange?.('nestedLfoRate1', Number(e.target.value))}
+                      onChange={e => onTonalAction(trackId, 'nestedLfoRate1', Number(e.target.value))}
                       className="w-12 h-[7px] accent-system-accent"
                     />
                     <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
@@ -1123,7 +851,7 @@ export const EuclideanTrack = React.memo(({
                     <span className="text-[7px] font-mono text-idm-muted w-6">R2</span>
                     <input type="range" min={0.5} max={20.0} step={0.5}
                       value={nestedLfoRate2 ?? 4.0}
-                      onChange={e => onNestedLfoParamChange?.('nestedLfoRate2', Number(e.target.value))}
+                      onChange={e => onTonalAction(trackId, 'nestedLfoRate2', Number(e.target.value))}
                       className="w-12 h-[7px] accent-system-accent"
                     />
                     <span className="text-[7px] font-mono text-idm-muted w-6 text-right">
@@ -1134,7 +862,7 @@ export const EuclideanTrack = React.memo(({
                     <span className="text-[7px] font-mono text-idm-muted w-6">Dep</span>
                     <input type="range" min={0} max={5000} step={100}
                       value={nestedLfoDepth ?? 800}
-                      onChange={e => onNestedLfoParamChange?.('nestedLfoDepth', Number(e.target.value))}
+                      onChange={e => onTonalAction(trackId, 'nestedLfoDepth', Number(e.target.value))}
                       className="w-12 h-[7px] accent-system-accent"
                     />
                     <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
@@ -1155,7 +883,7 @@ export const EuclideanTrack = React.memo(({
                     accept="audio/*"
                     ref={layer2InputRef}
                     className="hidden"
-                    onChange={e => e.target.files?.[0] && onLoadLayer2?.(e.target.files[0])}
+                    onChange={e => e.target.files?.[0] && onLoadLayer2?.(trackId, e.target.files[0])}
                   />
                   <span className="text-[8px] font-mono px-2 py-0.5 rounded border border-black/10 bg-white text-idm-muted hover:border-system-accent hover:text-system-accent transition-colors flex items-center gap-1 cursor-pointer">
                     + L2
@@ -1170,7 +898,7 @@ export const EuclideanTrack = React.memo(({
                       {layer2Filename ?? 'L2'}
                     </span>
                     <button
-                      onClick={() => onClearLayer2?.()}
+                      onClick={() => onClearLayer2?.(trackId)}
                       className="text-[8px] font-mono text-idm-muted hover:text-red-500 transition-colors"
                     >
                       ✕
@@ -1181,7 +909,7 @@ export const EuclideanTrack = React.memo(({
                     <span className="text-[7px] font-mono text-idm-muted w-6">BLD</span>
                     <input type="range" min={0} max={1} step={0.01}
                       value={layer2Blend ?? 0.8}
-                      onChange={e => onLayer2ParamChange?.('layer2Blend', Number(e.target.value))}
+                      onChange={e => onLayer2ParamChange?.(trackId, 'layer2Blend', Number(e.target.value))}
                       className="w-12 h-[7px] accent-system-accent" />
                     <span className="text-[7px] font-mono text-idm-muted w-5 text-right">
                       {Math.round((layer2Blend ?? 0.8) * 100)}
@@ -1192,7 +920,7 @@ export const EuclideanTrack = React.memo(({
                     <span className="text-[7px] font-mono text-idm-muted w-6">PCH</span>
                     <input type="range" min={-24} max={24} step={1}
                       value={layer2Pitch ?? 0}
-                      onChange={e => onLayer2ParamChange?.('layer2Pitch', Number(e.target.value))}
+                      onChange={e => onLayer2ParamChange?.(trackId, 'layer2Pitch', Number(e.target.value))}
                       className="w-12 h-[7px] accent-system-accent" />
                     <span className="text-[7px] font-mono text-idm-muted w-5 text-right">
                       {(layer2Pitch ?? 0) > 0 ? '+' : ''}{layer2Pitch ?? 0}
@@ -1203,7 +931,7 @@ export const EuclideanTrack = React.memo(({
                     <span className="text-[7px] font-mono text-idm-muted w-6">OFF</span>
                     <input type="range" min={0} max={500} step={1}
                       value={layer2Offset ?? 0}
-                      onChange={e => onLayer2ParamChange?.('layer2Offset', Number(e.target.value))}
+                      onChange={e => onLayer2ParamChange?.(trackId, 'layer2Offset', Number(e.target.value))}
                       className="w-12 h-[7px] accent-system-accent" />
                     <span className="text-[7px] font-mono text-idm-muted w-7 text-right">
                       {layer2Offset ?? 0}ms
@@ -1214,7 +942,7 @@ export const EuclideanTrack = React.memo(({
                     <span className="text-[7px] font-mono text-idm-muted w-6">FLT</span>
                     <input type="range" min={200} max={8000} step={50}
                       value={layer2FilterFreq ?? 8000}
-                      onChange={e => onLayer2ParamChange?.('layer2FilterFreq', Number(e.target.value))}
+                      onChange={e => onLayer2ParamChange?.(trackId, 'layer2FilterFreq', Number(e.target.value))}
                       className="w-12 h-[7px] accent-system-accent" />
                     <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
                       {layer2FilterFreq ?? 8000}
@@ -1224,7 +952,7 @@ export const EuclideanTrack = React.memo(({
                   <div className="flex items-center gap-1">
                     <span className="text-[7px] font-mono text-idm-muted w-6">REV</span>
                     <button
-                      onClick={() => onLayer2ParamChange?.('layer2Reverse', !(layer2Reverse ?? false))}
+                      onClick={() => onLayer2ParamChange?.(trackId, 'layer2Reverse', !(layer2Reverse ?? false))}
                       className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
                         layer2Reverse
                           ? 'bg-system-accent text-white border-system-accent'
@@ -1238,7 +966,7 @@ export const EuclideanTrack = React.memo(({
                   <div className="flex items-center gap-1">
                     <span className="text-[7px] font-mono text-idm-muted w-6">STR</span>
                     <button
-                      onClick={() => onLayer2ParamChange?.('layer2StretchEnabled', !(layer2StretchEnabled ?? false))}
+                      onClick={() => onLayer2ParamChange?.(trackId, 'layer2StretchEnabled', !(layer2StretchEnabled ?? false))}
                       className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
                         layer2StretchEnabled
                           ? 'bg-system-accent text-white border-system-accent'
@@ -1252,7 +980,7 @@ export const EuclideanTrack = React.memo(({
                       <>
                         <input type="range" min={0.25} max={2.0} step={0.05}
                           value={layer2StretchRate ?? 1.0}
-                          onChange={e => onLayer2ParamChange?.('layer2StretchRate', Number(e.target.value))}
+                          onChange={e => onLayer2ParamChange?.(trackId, 'layer2StretchRate', Number(e.target.value))}
                           className="w-14 h-[7px] accent-system-accent" />
                         <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
                           {(layer2StretchRate ?? 1.0).toFixed(2)}×
@@ -1275,7 +1003,7 @@ export const EuclideanTrack = React.memo(({
                 <span>Pulses</span><span style={{ color }}>{pulses}</span>
               </div>
               <input type="range" min="0" max={steps} value={pulses} 
-                onChange={(e) => onPulsesChange(parseInt(e.target.value))}
+                onChange={(e) => onSequencerAction(trackId, 'pulses', parseInt(e.target.value))}
                 className="w-full h-1 bg-idm-bg appearance-none cursor-pointer rounded-full" style={{ accentColor: color }} />
             </div>
             <div className="space-y-1 w-28 relative" onMouseEnter={(e) => handleParamEnter('steps', e)} onMouseLeave={handleParamLeave}>
@@ -1283,7 +1011,7 @@ export const EuclideanTrack = React.memo(({
                 <span>Steps</span><span style={{ color }}>{steps}</span>
               </div>
               <input type="range" min="1" max="32" value={steps} 
-                onChange={(e) => onStepsChange(parseInt(e.target.value))}
+                onChange={(e) => onSequencerAction(trackId, 'steps', parseInt(e.target.value))}
                 className="w-full h-1 bg-idm-bg appearance-none cursor-pointer rounded-full" style={{ accentColor: color }} />
             </div>
             <div className="space-y-1 w-28 relative" onMouseEnter={(e) => handleParamEnter('offset', e)} onMouseLeave={handleParamLeave}>
@@ -1291,7 +1019,7 @@ export const EuclideanTrack = React.memo(({
                 <span>Offset</span><span style={{ color }}>{offset}</span>
               </div>
               <input type="range" min="0" max={steps - 1} value={offset} 
-                onChange={(e) => onOffsetChange(parseInt(e.target.value))}
+                onChange={(e) => onSequencerAction(trackId, 'offset', parseInt(e.target.value))}
                 className="w-full h-1 bg-idm-bg appearance-none cursor-pointer rounded-full" style={{ accentColor: color }} />
             </div>
           </div>
@@ -1301,7 +1029,7 @@ export const EuclideanTrack = React.memo(({
             <div className="flex items-center gap-3 flex-none border-l border-black/5 pl-3">
               <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('lsSeed', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-7">Seed</span>
-                <select value={lsSeed ?? 'X'} onChange={e => onLsParamChange?.('lsSeed', e.target.value)}
+                <select value={lsSeed ?? 'X'} onChange={e => onSequencerAction(trackId, 'lsParam', 'lsSeed', e.target.value)}
                   className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
                   <option value="X">X</option>
                   <option value="XO">XO</option>
@@ -1311,7 +1039,7 @@ export const EuclideanTrack = React.memo(({
               </div>
               <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('lsRuleA', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-7">Rule</span>
-                <select value={lsRuleA ?? 'XO'} onChange={e => onLsParamChange?.('lsRuleA', e.target.value)}
+                <select value={lsRuleA ?? 'XO'} onChange={e => onSequencerAction(trackId, 'lsParam', 'lsRuleA', e.target.value)}
                   className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
                   <option value="XO">Fibonacci</option>
                   <option value="XX">Double</option>
@@ -1322,23 +1050,23 @@ export const EuclideanTrack = React.memo(({
               <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('lsIterations', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-6">Iter</span>
                 <input type="range" min={1} max={6} step={1} value={lsIterations ?? 3}
-                  onChange={e => onLsParamChange?.('lsIterations', Number(e.target.value))}
+                  onChange={e => onSequencerAction(trackId, 'lsParam', 'lsIterations', Number(e.target.value))}
                   className="w-14 h-[7px]" style={{ accentColor: color }} />
                 <span className="text-[7px] font-mono text-idm-muted w-3">{lsIterations ?? 3}</span>
               </div>
               <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('lsRotation', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-6">Rot</span>
                 <input type="range" min={0} max={steps - 1} step={1} value={lsRotation ?? 0}
-                  onChange={e => onLsParamChange?.('lsRotation', Number(e.target.value))}
+                  onChange={e => onSequencerAction(trackId, 'lsParam', 'lsRotation', Number(e.target.value))}
                   className="w-14 h-[7px]" style={{ accentColor: color }} />
                 <span className="text-[7px] font-mono text-idm-muted w-3">{lsRotation ?? 0}</span>
               </div>
               <div className="flex gap-1">
-                <button onClick={() => onLsRegenerate?.()}
+                <button onClick={() => onSequencerAction(trackId, 'lsRegenerate')}
                   className="text-[8px] font-mono px-2 py-0.5 rounded border border-system-accent text-system-accent hover:bg-system-accent hover:text-white transition-colors">
                   REGEN
                 </button>
-                <button onClick={() => onLsReset?.()}
+                <button onClick={() => onSequencerAction(trackId, 'lsReset')}
                   className="text-[8px] font-mono px-2 py-0.5 rounded border border-black/10 text-idm-muted hover:border-system-accent hover:text-system-accent transition-colors">
                   RESET
                 </button>
@@ -1351,7 +1079,7 @@ export const EuclideanTrack = React.memo(({
             <div className="flex items-center gap-3 flex-none border-l border-black/5 pl-3">
               <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('caRule', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-7">Rule</span>
-                <select value={caRule ?? 30} onChange={e => onCaParamChange?.('caRule', Number(e.target.value))}
+                <select value={caRule ?? 30} onChange={e => onSequencerAction(trackId, 'caParam', 'caRule', Number(e.target.value))}
                   className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
                   <option value={30}>Rule 30</option>
                   <option value={90}>Rule 90</option>
@@ -1361,7 +1089,7 @@ export const EuclideanTrack = React.memo(({
               </div>
               <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('caSeed', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-7">Seed</span>
-                <select value={caSeed ?? 'center'} onChange={e => onCaParamChange?.('caSeed', e.target.value)}
+                <select value={caSeed ?? 'center'} onChange={e => onSequencerAction(trackId, 'caParam', 'caSeed', e.target.value)}
                   className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
                   <option value="center">Centro</option>
                   <option value="edge">Borde</option>
@@ -1372,20 +1100,20 @@ export const EuclideanTrack = React.memo(({
               <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('caDensity', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-7">Dens</span>
                 <input type="range" min={0} max={100} step={5} value={caDensity ?? 50}
-                  onChange={e => onCaParamChange?.('caDensity', Number(e.target.value))}
+                  onChange={e => onSequencerAction(trackId, 'caParam', 'caDensity', Number(e.target.value))}
                   className="w-14 h-[7px]" style={{ accentColor: color }} />
                 <span className="text-[7px] font-mono text-idm-muted w-6 text-right">{caDensity ?? 50}%</span>
               </div>
               <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('caSpeed', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted w-6">Spd</span>
-                <select value={caSpeed ?? 1} onChange={e => onCaParamChange?.('caSpeed', Number(e.target.value))}
+                <select value={caSpeed ?? 1} onChange={e => onSequencerAction(trackId, 'caParam', 'caSpeed', Number(e.target.value))}
                   className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent">
                   <option value={1}>×1</option>
                   <option value={2}>×2</option>
                   <option value={4}>×4</option>
                 </select>
               </div>
-              <button onClick={() => onCaReset?.()}
+              <button onClick={() => onSequencerAction(trackId, 'caReset')}
                 className="text-[8px] font-mono px-2 py-0.5 rounded border border-black/10 text-idm-muted hover:border-system-accent hover:text-system-accent transition-colors">
                 RESET
               </button>
@@ -1447,7 +1175,7 @@ export const EuclideanTrack = React.memo(({
 
           {pendingOffset !== offset ? (
             <button 
-              onClick={() => onOffsetChange(pendingOffset)}
+              onClick={() => onSequencerAction(trackId, 'offset', pendingOffset)}
               className="flex-1 h-12 bg-system-accent text-white font-mono text-[13px] font-black uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all animate-in fade-in zoom-in-95 flex items-center justify-center gap-3"
             >
               <Disc size={20} className="animate-spin-slow" />
@@ -1470,12 +1198,12 @@ export const EuclideanTrack = React.memo(({
           sliceReverse={sliceReverse ?? []}
           slicePitch={slicePitch ?? []}
           color={color}
-          onSliceCountChange={onSliceCountChange ?? (() => {})}
-          onSliceOrderChange={onSliceOrderChange ?? (() => {})}
-          onSliceReverseToggle={onSliceReverseToggle ?? (() => {})}
-          onSlicePitchChange={onSlicePitchChange ?? (() => {})}
-          onRandomize={onSliceRandomize ?? (() => {})}
-          onReset={onSliceReset ?? (() => {})}
+          onSliceCountChange={(count: number) => onSlicerAction(trackId, 'count', count)}
+          onSliceOrderChange={(order: number[]) => onSlicerAction(trackId, 'order', order)}
+          onSliceReverseToggle={(idx: number) => onSlicerAction(trackId, 'reverseToggle', idx)}
+          onSlicePitchChange={(idx: number, st: number) => onSlicerAction(trackId, 'pitch', idx, st)}
+          onRandomize={() => onSlicerAction(trackId, 'randomize')}
+          onReset={() => onSlicerAction(trackId, 'reset')}
         />
       )}
 
@@ -1500,7 +1228,7 @@ export const EuclideanTrack = React.memo(({
                 </div>
                 <input 
                   type="range" min="0" max="0.95" step="0.01" value={sampleStart} 
-                  onChange={(e) => onSamplerParamChange('sampleStart', parseFloat(e.target.value))}
+                  onChange={(e) => onSamplerParamChange(trackId, 'sampleStart', parseFloat(e.target.value))}
                   className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
                 />
               </div>
@@ -1515,7 +1243,7 @@ export const EuclideanTrack = React.memo(({
                 </div>
                 <input 
                   type="range" min={sampleStart + 0.05} max="1" step="0.01" value={sampleEnd} 
-                  onChange={(e) => onSamplerParamChange('sampleEnd', parseFloat(e.target.value))}
+                  onChange={(e) => onSamplerParamChange(trackId, 'sampleEnd', parseFloat(e.target.value))}
                   className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
                 />
               </div>
@@ -1540,7 +1268,7 @@ export const EuclideanTrack = React.memo(({
                 </div>
                 <input 
                   type="range" min="10" max="500" step="1" value={grainSize} 
-                  onChange={(e) => onSamplerParamChange('grainSize', parseInt(e.target.value))}
+                  onChange={(e) => onSamplerParamChange(trackId, 'grainSize', parseInt(e.target.value))}
                   className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
                 />
               </div>
@@ -1555,7 +1283,7 @@ export const EuclideanTrack = React.memo(({
                 </div>
                 <input 
                   type="range" min="0" max="1" step="0.01" value={overlap} 
-                  onChange={(e) => onSamplerParamChange('overlap', parseFloat(e.target.value))}
+                  onChange={(e) => onSamplerParamChange(trackId, 'overlap', parseFloat(e.target.value))}
                   className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
                 />
               </div>
@@ -1570,7 +1298,7 @@ export const EuclideanTrack = React.memo(({
                 </div>
                 <input 
                   type="range" min="0" max="500" step="1" value={spray} 
-                  onChange={(e) => onSamplerParamChange('spray', parseInt(e.target.value))}
+                  onChange={(e) => onSamplerParamChange(trackId, 'spray', parseInt(e.target.value))}
                   className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
                 />
               </div>
@@ -1585,7 +1313,7 @@ export const EuclideanTrack = React.memo(({
                 </div>
                 <input 
                   type="range" min="2" max="16" step="1" value={bitCrush} 
-                  onChange={(e) => onSamplerParamChange('bitCrush', parseInt(e.target.value))}
+                  onChange={(e) => onSamplerParamChange(trackId, 'bitCrush', parseInt(e.target.value))}
                   className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
                 />
               </div>
@@ -1607,7 +1335,7 @@ export const EuclideanTrack = React.memo(({
                   </div>
                   <input 
                     type="range" min="0" max="500" step="1" value={attack} 
-                    onChange={(e) => onSamplerParamChange('attack', parseInt(e.target.value))}
+                    onChange={(e) => onSamplerParamChange(trackId, 'attack', parseInt(e.target.value))}
                     className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
                   />
                 </div>
@@ -1618,7 +1346,7 @@ export const EuclideanTrack = React.memo(({
                   </div>
                   <input 
                     type="range" min="10" max="2000" step="1" value={decay} 
-                    onChange={(e) => onSamplerParamChange('decay', parseInt(e.target.value))}
+                    onChange={(e) => onSamplerParamChange(trackId, 'decay', parseInt(e.target.value))}
                     className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
                   />
                 </div>
@@ -1634,7 +1362,7 @@ export const EuclideanTrack = React.memo(({
                 </div>
                 <input 
                   type="range" min="-24" max="24" step="1" value={pitch} 
-                  onChange={(e) => onSamplerParamChange('pitch', parseInt(e.target.value))}
+                  onChange={(e) => onSamplerParamChange(trackId, 'pitch', parseInt(e.target.value))}
                   className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
                 />
               </div>
@@ -1648,7 +1376,7 @@ export const EuclideanTrack = React.memo(({
                   <input
                     type="range" min="0.25" max="2.0" step="0.05"
                     value={stretchRate ?? 1.0}
-                    onChange={(e) => onSamplerParamChange('stretchRate', parseFloat(e.target.value))}
+                    onChange={(e) => onSamplerParamChange(trackId, 'stretchRate', parseFloat(e.target.value))}
                     className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent"
                   />
                 </div>
@@ -1684,14 +1412,14 @@ export const EuclideanTrack = React.memo(({
                       : ['TRIGGER', 'GATE'] as const;
                     const currentIdx = cycle.indexOf(mode as any);
                     const nextMode = cycle[(currentIdx + 1) % cycle.length];
-                    onSamplerParamChange('mode', nextMode);
+                    onSamplerParamChange(trackId, 'mode', nextMode);
                   }}
                   className={`flex-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-widest border transition-all ${mode !== 'TRIGGER' ? 'bg-system-accent text-white border-system-accent shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:border-black/10'}`}
                 >
                   {mode}
                 </button>
                 <button 
-                  onClick={() => onSamplerParamChange('normalize', !normalize)}
+                  onClick={() => onSamplerParamChange(trackId, 'normalize', !normalize)}
                   className={`flex-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-widest border transition-all ${normalize ? 'bg-green-600/10 text-green-600 border-green-600/20 shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:border-black/10'}`}
                 >
                   Norm
@@ -1706,7 +1434,7 @@ export const EuclideanTrack = React.memo(({
         <div className="flex items-center gap-3 mt-2 p-3 bg-idm-bg rounded-2xl border border-border">
           <button
             onMouseEnter={(e) => handleParamEnter('extremeLoopEnabled', e)} onMouseLeave={handleParamLeave}
-            onClick={() => onSamplerParamChange('extremeLoopEnabled', !extremeLoopEnabled)}
+            onClick={() => onSamplerParamChange(trackId, 'extremeLoopEnabled', !extremeLoopEnabled)}
             className={`text-[8px] font-mono font-bold px-2 py-1 rounded border transition-colors ${
               extremeLoopEnabled
                 ? 'bg-system-accent text-white border-system-accent'
@@ -1723,7 +1451,7 @@ export const EuclideanTrack = React.memo(({
                 <input
                   type="range" min={1} max={50} step={1}
                   value={extremeLoopSize ?? 10}
-                  onChange={e => onSamplerParamChange('extremeLoopSize', Number(e.target.value))}
+                  onChange={e => onSamplerParamChange(trackId, 'extremeLoopSize', Number(e.target.value))}
                   className="w-16 h-1 accent-system-accent"
                 />
                 <span className="text-[7px] font-mono text-idm-muted w-8">{extremeLoopSize ?? 10}ms</span>
@@ -1733,7 +1461,7 @@ export const EuclideanTrack = React.memo(({
                 <input
                   type="range" min={0} max={1} step={0.01}
                   value={extremeLoopPoint ?? 0.5}
-                  onChange={e => onSamplerParamChange('extremeLoopPoint', Number(e.target.value))}
+                  onChange={e => onSamplerParamChange(trackId, 'extremeLoopPoint', Number(e.target.value))}
                   className="w-16 h-1 accent-system-accent"
                 />
                 <span className="text-[7px] font-mono text-idm-muted w-8">{Math.round((extremeLoopPoint ?? 0.5) * 100)}%</span>
@@ -1748,17 +1476,17 @@ export const EuclideanTrack = React.memo(({
           <span className="text-[7px] font-mono uppercase text-idm-muted w-8 shrink-0">Kick</span>
           <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('kickPitchDecay', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted">PD</span>
-            <input type="range" min={1} max={50} step={1} value={Math.round((kickPitchDecay ?? 0.05) * 100)} onChange={e => onPercSynthParamChange('kickPitchDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
+            <input type="range" min={1} max={50} step={1} value={Math.round((kickPitchDecay ?? 0.05) * 100)} onChange={e => onPercSynthParamChange?.(trackId, 'kickPitchDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
           </div>
           <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('kickOctaves', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted">Oct</span>
-            <input type="range" min={1} max={10} step={1} value={kickOctaves ?? 10} onChange={e => onPercSynthParamChange('kickOctaves', Number(e.target.value))} className="w-14 h-1 accent-primary" />
+            <input type="range" min={1} max={10} step={1} value={kickOctaves ?? 10} onChange={e => onPercSynthParamChange?.(trackId, 'kickOctaves', Number(e.target.value))} className="w-14 h-1 accent-primary" />
           </div>
           <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('kickDecay', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted">Dec</span>
-            <input type="range" min={10} max={100} step={1} value={Math.round((kickDecay ?? 0.4) * 100)} onChange={e => onPercSynthParamChange('kickDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
+            <input type="range" min={10} max={100} step={1} value={Math.round((kickDecay ?? 0.4) * 100)} onChange={e => onPercSynthParamChange?.(trackId, 'kickDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
           </div>
-          <select value={kickClickType ?? 'pink'} onChange={e => onPercSynthParamChange('kickClickType', e.target.value)} onMouseEnter={(e) => handleParamEnter('kickClickType', e)} onMouseLeave={handleParamLeave} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
+          <select value={kickClickType ?? 'pink'} onChange={e => onPercSynthParamChange?.(trackId, 'kickClickType', e.target.value)} onMouseEnter={(e) => handleParamEnter('kickClickType', e)} onMouseLeave={handleParamLeave} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
             <option value="white">White</option>
             <option value="pink">Pink</option>
             <option value="brown">Brown</option>
@@ -1771,25 +1499,25 @@ export const EuclideanTrack = React.memo(({
           <span className="text-[7px] font-mono uppercase text-idm-muted w-8 shrink-0">Snr</span>
           <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('snareDecay', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted">Dec</span>
-            <input type="range" min={5} max={50} step={1} value={Math.round((snareDecay ?? 0.2) * 100)} onChange={e => onPercSynthParamChange('snareDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
+            <input type="range" min={5} max={50} step={1} value={Math.round((snareDecay ?? 0.2) * 100)} onChange={e => onPercSynthParamChange?.(trackId, 'snareDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
           </div>
-          <select value={snareNoiseType ?? 'white'} onChange={e => onPercSynthParamChange('snareNoiseType', e.target.value)} onMouseEnter={(e) => handleParamEnter('snareNoiseType', e)} onMouseLeave={handleParamLeave} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
+          <select value={snareNoiseType ?? 'white'} onChange={e => onPercSynthParamChange?.(trackId, 'snareNoiseType', e.target.value)} onMouseEnter={(e) => handleParamEnter('snareNoiseType', e)} onMouseLeave={handleParamLeave} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
             <option value="white">White</option>
             <option value="pink">Pink</option>
             <option value="brown">Brown</option>
           </select>
-          <button onClick={() => onPercSynthParamChange('snareBodyEnabled', !(snareBodyEnabled ?? false))} onMouseEnter={(e) => handleParamEnter('snareBodyEnabled', e)} onMouseLeave={handleParamLeave} className={`text-[7px] font-mono uppercase px-2 py-0.5 rounded border transition-all ${snareBodyEnabled ? 'bg-primary/10 text-primary border-primary/20' : 'bg-background text-muted-foreground border-border'}`}>
+          <button onClick={() => onPercSynthParamChange?.(trackId, 'snareBodyEnabled', !(snareBodyEnabled ?? false))} onMouseEnter={(e) => handleParamEnter('snareBodyEnabled', e)} onMouseLeave={handleParamLeave} className={`text-[7px] font-mono uppercase px-2 py-0.5 rounded border transition-all ${snareBodyEnabled ? 'bg-primary/10 text-primary border-primary/20' : 'bg-background text-muted-foreground border-border'}`}>
             Body
           </button>
           {snareBodyEnabled && (
             <>
               <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('snareBodyPitch', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted">Hz</span>
-                <input type="range" min={100} max={400} step={5} value={snareBodyPitch ?? 180} onChange={e => onPercSynthParamChange('snareBodyPitch', Number(e.target.value))} className="w-12 h-1 accent-primary" />
+                <input type="range" min={100} max={400} step={5} value={snareBodyPitch ?? 180} onChange={e => onPercSynthParamChange?.(trackId, 'snareBodyPitch', Number(e.target.value))} className="w-12 h-1 accent-primary" />
               </div>
               <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('snareBodyDecay', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted">BD</span>
-                <input type="range" min={5} max={30} step={1} value={Math.round((snareBodyDecay ?? 0.1) * 100)} onChange={e => onPercSynthParamChange('snareBodyDecay', Number(e.target.value) / 100)} className="w-12 h-1 accent-primary" />
+                <input type="range" min={5} max={30} step={1} value={Math.round((snareBodyDecay ?? 0.1) * 100)} onChange={e => onPercSynthParamChange?.(trackId, 'snareBodyDecay', Number(e.target.value) / 100)} className="w-12 h-1 accent-primary" />
               </div>
             </>
           )}
@@ -1799,7 +1527,7 @@ export const EuclideanTrack = React.memo(({
       {id === 'hat' && samplerStatus === 'IDLE' && onPercSynthParamChange && (
         <div className="flex items-center gap-3 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
           <span className="text-[7px] font-mono uppercase text-idm-muted w-8 shrink-0">Hat</span>
-          <select value={hatMode ?? 'noise'} onChange={e => onPercSynthParamChange('hatMode', e.target.value)} onMouseEnter={(e) => handleParamEnter('hatMode', e)} onMouseLeave={handleParamLeave} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
+          <select value={hatMode ?? 'noise'} onChange={e => onPercSynthParamChange?.(trackId, 'hatMode', e.target.value)} onMouseEnter={(e) => handleParamEnter('hatMode', e)} onMouseLeave={handleParamLeave} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
             <option value="noise">Noise</option>
             <option value="metal">Metal</option>
           </select>
@@ -1807,19 +1535,19 @@ export const EuclideanTrack = React.memo(({
             <>
               <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('hatHarmonicity', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted">Harm</span>
-                <input type="range" min={1} max={100} step={1} value={Math.round((hatHarmonicity ?? 5.1) * 10)} onChange={e => onPercSynthParamChange('hatHarmonicity', Number(e.target.value) / 10)} className="w-12 h-1 accent-primary" />
+                <input type="range" min={1} max={100} step={1} value={Math.round((hatHarmonicity ?? 5.1) * 10)} onChange={e => onPercSynthParamChange?.(trackId, 'hatHarmonicity', Number(e.target.value) / 10)} className="w-12 h-1 accent-primary" />
               </div>
               <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('hatModIndex', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted">Mod</span>
-                <input type="range" min={1} max={100} step={1} value={hatModIndex ?? 32} onChange={e => onPercSynthParamChange('hatModIndex', Number(e.target.value))} className="w-12 h-1 accent-primary" />
+                <input type="range" min={1} max={100} step={1} value={hatModIndex ?? 32} onChange={e => onPercSynthParamChange?.(trackId, 'hatModIndex', Number(e.target.value))} className="w-12 h-1 accent-primary" />
               </div>
               <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('hatResonance', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted">Res</span>
-                <input type="range" min={100} max={8000} step={100} value={hatResonance ?? 4000} onChange={e => onPercSynthParamChange('hatResonance', Number(e.target.value))} className="w-12 h-1 accent-primary" />
+                <input type="range" min={100} max={8000} step={100} value={hatResonance ?? 4000} onChange={e => onPercSynthParamChange?.(trackId, 'hatResonance', Number(e.target.value))} className="w-12 h-1 accent-primary" />
               </div>
             </>
           ) : (
-            <select value={hatNoiseType ?? 'white'} onChange={e => onPercSynthParamChange('hatNoiseType', e.target.value)} onMouseEnter={(e) => handleParamEnter('hatNoiseType', e)} onMouseLeave={handleParamLeave} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
+            <select value={hatNoiseType ?? 'white'} onChange={e => onPercSynthParamChange?.(trackId, 'hatNoiseType', e.target.value)} onMouseEnter={(e) => handleParamEnter('hatNoiseType', e)} onMouseLeave={handleParamLeave} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
               <option value="white">White</option>
               <option value="pink">Pink</option>
               <option value="brown">Brown</option>
@@ -1827,7 +1555,7 @@ export const EuclideanTrack = React.memo(({
           )}
           <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('hatDecay', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted">Dec</span>
-            <input type="range" min={1} max={50} step={1} value={Math.round((hatDecay ?? 0.05) * 100)} onChange={e => onPercSynthParamChange('hatDecay', Number(e.target.value) / 100)} className="w-12 h-1 accent-primary" />
+            <input type="range" min={1} max={50} step={1} value={Math.round((hatDecay ?? 0.05) * 100)} onChange={e => onPercSynthParamChange?.(trackId, 'hatDecay', Number(e.target.value) / 100)} className="w-12 h-1 accent-primary" />
           </div>
         </div>
       )}
@@ -1872,7 +1600,7 @@ export const EuclideanTrack = React.memo(({
               <span className="text-[8px] font-mono uppercase text-idm-muted">Synth</span>
               <select
                 value={synthType || 'mono'}
-                onChange={(e) => onSynthTypeChange?.(e.target.value)}
+                onChange={(e) => onTonalAction(trackId, 'synthType', e.target.value)}
                 className="block w-14 bg-white border border-black/10 rounded-lg text-[10px] font-mono px-1.5 py-1 text-idm-ink focus:outline-none focus:border-system-accent"
               >
                 <option value="mono">Mono</option>
@@ -1891,7 +1619,7 @@ export const EuclideanTrack = React.memo(({
               <span className="text-[8px] font-mono uppercase text-idm-muted">Notes</span>
               <select
                 value={noteMode ?? 'euclidean'}
-                onChange={e => onNoteModeChange?.(e.target.value as 'euclidean' | 'markov')}
+                onChange={e => onSequencerAction(trackId, 'noteMode', e.target.value as 'euclidean' | 'markov')}
                 className="block w-20 bg-background border border-border rounded-lg text-[10px] font-mono px-1.5 py-1 text-foreground focus:outline-none focus:border-system-accent"
               >
                 <option value="euclidean">Euclidean</option>
@@ -1902,7 +1630,7 @@ export const EuclideanTrack = React.memo(({
               <span className="text-[8px] font-mono uppercase text-idm-muted">Root</span>
               <select
                 value={rootNote}
-                onChange={(e) => onRootNoteChange(parseInt(e.target.value))}
+                onChange={(e) => onParamChange(trackId, 'rootNote', parseInt(e.target.value))}
                 className="block w-16 bg-white border border-black/10 rounded-lg text-[10px] font-mono px-1.5 py-1 text-idm-ink focus:outline-none focus:border-system-accent"
               >
                 {Array.from({ length: 37 }, (_, i) => 36 + i).map(midi => (
@@ -1914,7 +1642,7 @@ export const EuclideanTrack = React.memo(({
               <span className="text-[8px] font-mono uppercase text-idm-muted">Scale</span>
               <select
                 value={scaleId}
-                onChange={(e) => onScaleChange(e.target.value)}
+                onChange={(e) => onParamChange(trackId, 'scaleId', e.target.value)}
                 className="block w-28 bg-white border border-black/10 rounded-lg text-[10px] font-mono px-1.5 py-1 text-idm-ink focus:outline-none focus:border-system-accent"
               >
                 {Object.entries(SCALE_NAMES).map(([key, label]) => (
@@ -1926,7 +1654,7 @@ export const EuclideanTrack = React.memo(({
               <span className="text-[8px] font-mono uppercase text-idm-muted">Oct</span>
               <select
                 value={octaveRange}
-                onChange={(e) => onOctaveRangeChange(parseInt(e.target.value))}
+                onChange={(e) => onParamChange(trackId, 'octaveRange', parseInt(e.target.value))}
                 className="block w-12 bg-white border border-black/10 rounded-lg text-[10px] font-mono px-1.5 py-1 text-idm-ink focus:outline-none focus:border-system-accent"
               >
                 {[1, 2, 3].map(v => (
@@ -1945,7 +1673,7 @@ export const EuclideanTrack = React.memo(({
             <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Style</span>
             <select
               value={markovStyle ?? 'scale'}
-              onChange={e => onMarkovParamChange?.('markovStyle', e.target.value)}
+              onChange={e => onSequencerAction(trackId, 'markovParam', 'markovStyle', e.target.value)}
               className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 text-foreground focus:outline-none focus:border-system-accent"
             >
               <option value="scale">Escala</option>
@@ -1960,7 +1688,7 @@ export const EuclideanTrack = React.memo(({
             <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Temp</span>
             <input type="range" min={0} max={100} step={5}
               value={markovTemperature ?? 40}
-              onChange={e => onMarkovParamChange?.('markovTemperature', Number(e.target.value))}
+              onChange={e => onSequencerAction(trackId, 'markovParam', 'markovTemperature', Number(e.target.value))}
               className="w-14 h-1 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[7px] font-mono text-muted-foreground w-6 text-right">
@@ -1972,7 +1700,7 @@ export const EuclideanTrack = React.memo(({
             <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Anchor</span>
             <select
               value={markovAnchor ?? 0}
-              onChange={e => onMarkovParamChange?.('markovAnchor', Number(e.target.value))}
+              onChange={e => onSequencerAction(trackId, 'markovParam', 'markovAnchor', Number(e.target.value))}
               className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 text-foreground focus:outline-none focus:border-system-accent"
             >
               <option value={0}>OFF</option>
@@ -1983,7 +1711,7 @@ export const EuclideanTrack = React.memo(({
           </div>
           {/* Nueva Matriz */}
           <button
-            onClick={() => onMarkovRegenerate?.()}
+            onClick={() => onSequencerAction(trackId, 'markovRegenerate')}
             className="text-[8px] font-mono px-2 py-0.5 rounded border border-system-accent text-system-accent hover:bg-system-accent hover:text-white transition-colors"
           >
             NUEVA MATRIZ
@@ -1991,7 +1719,7 @@ export const EuclideanTrack = React.memo(({
           {/* Ver Matriz */}
           <div onMouseEnter={(e) => handleParamEnter('markovShowMatrix', e)} onMouseLeave={handleParamLeave}>
             <button
-              onClick={() => onMarkovParamChange?.('markovShowMatrix', !(markovShowMatrix ?? false))}
+              onClick={() => onSequencerAction(trackId, 'markovParam', 'markovShowMatrix', !(markovShowMatrix ?? false))}
               className={`text-[8px] font-mono px-2 py-0.5 rounded border transition-colors ${
                 markovShowMatrix
                   ? 'bg-system-accent text-white border-system-accent'
@@ -2038,7 +1766,7 @@ export const EuclideanTrack = React.memo(({
               max="10"
               step="0.1"
               value={fmRatio ?? 2}
-              onChange={(e) => onFmRatioChange?.(parseFloat(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'fmRatio', parseFloat(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-6">
@@ -2053,7 +1781,7 @@ export const EuclideanTrack = React.memo(({
               max="50"
               step="1"
               value={fmIndex ?? 10}
-              onChange={(e) => onFmIndexChange?.(parseInt(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'fmIndex', parseInt(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-6">
@@ -2073,7 +1801,7 @@ export const EuclideanTrack = React.memo(({
               max="10"
               step="0.1"
               value={wfAmount ?? 3}
-              onChange={(e) => onWfAmountChange?.(parseFloat(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'wfAmount', parseFloat(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-6">
@@ -2088,7 +1816,7 @@ export const EuclideanTrack = React.memo(({
               max="1"
               step="0.05"
               value={wfSymmetry ?? 0}
-              onChange={(e) => onWfSymmetryChange?.(parseFloat(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'wfSymmetry', parseFloat(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-8">
@@ -2105,7 +1833,7 @@ export const EuclideanTrack = React.memo(({
             <input
               type="range" min="2" max="8" step="1"
               value={addPartials ?? 4}
-              onChange={(e) => onAddPartialsChange?.(parseInt(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'addPartials', parseInt(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-4">
@@ -2117,7 +1845,7 @@ export const EuclideanTrack = React.memo(({
             <input
               type="range" min="0" max="1" step="0.05"
               value={addBrightness ?? 0.5}
-              onChange={(e) => onAddBrightnessChange?.(parseFloat(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'addBrightness', parseFloat(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-6">
@@ -2134,7 +1862,7 @@ export const EuclideanTrack = React.memo(({
             <input
               type="range" min="3" max="7" step="1"
               value={padVoices ?? 5}
-              onChange={(e) => onPadVoicesChange?.(parseInt(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'padVoices', parseInt(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-4">
@@ -2146,7 +1874,7 @@ export const EuclideanTrack = React.memo(({
             <input
               type="range" min="0" max="100" step="1"
               value={padDetune ?? 30}
-              onChange={(e) => onPadDetuneChange?.(parseInt(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'padDetune', parseInt(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-6">
@@ -2158,7 +1886,7 @@ export const EuclideanTrack = React.memo(({
             <input
               type="range" min="0.01" max="2.0" step="0.01"
               value={padAttack ?? 0.3}
-              onChange={(e) => onPadAttackChange?.(parseFloat(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'padAttack', parseFloat(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-8">
@@ -2175,7 +1903,7 @@ export const EuclideanTrack = React.memo(({
             <input
               type="range" min="0.70" max="0.98" step="0.01"
               value={droneFeedback ?? 0.88}
-              onChange={(e) => onDroneFeedbackChange?.(parseFloat(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'droneFeedback', parseFloat(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-8">
@@ -2187,7 +1915,7 @@ export const EuclideanTrack = React.memo(({
             <input
               type="range" min="200" max="8000" step="50"
               value={droneFilterFreq ?? 2000}
-              onChange={(e) => onDroneFilterFreqChange?.(parseInt(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'droneFilterFreq', parseInt(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-12">
@@ -2204,7 +1932,7 @@ export const EuclideanTrack = React.memo(({
             <input
               type="range" min="0.80" max="0.999" step="0.001"
               value={ksDecay ?? 0.97}
-              onChange={(e) => onKsDecayChange?.(parseFloat(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'ksDecay', parseFloat(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-10">
@@ -2216,7 +1944,7 @@ export const EuclideanTrack = React.memo(({
             <input
               type="range" min="500" max="8000" step="100"
               value={ksBrightness ?? 5000}
-              onChange={(e) => onKsBrightnessChange?.(parseInt(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'ksBrightness', parseInt(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-12">
@@ -2232,7 +1960,7 @@ export const EuclideanTrack = React.memo(({
             <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Body</span>
             <select
               value={modalBody ?? 'bell'}
-              onChange={(e) => onModalBodyChange?.(e.target.value)}
+              onChange={(e) => onTonalAction(trackId, 'modalBody', e.target.value)}
               className="block w-14 bg-white border border-black/10 rounded-lg text-[10px] font-mono px-1.5 py-1 text-idm-ink focus:outline-none focus:border-system-accent"
             >
               <option value="bell">Bell</option>
@@ -2245,7 +1973,7 @@ export const EuclideanTrack = React.memo(({
             <input
               type="range" min="0.5" max="3.0" step="0.1"
               value={modalDecay ?? 1.0}
-              onChange={(e) => onModalDecayChange?.(parseFloat(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'modalDecay', parseFloat(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-8">
@@ -2262,7 +1990,7 @@ export const EuclideanTrack = React.memo(({
             <input
               type="range" min="0.1" max="1.0" step="0.05"
               value={ambientVolume ?? 0.6}
-              onChange={(e) => onAmbientVolumeChange?.(parseFloat(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'ambientVolume', parseFloat(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-8">
@@ -2274,7 +2002,7 @@ export const EuclideanTrack = React.memo(({
             <input
               type="range" min="0.5" max="2.0" step="0.1"
               value={ambientSpeed ?? 1.0}
-              onChange={(e) => onAmbientSpeedChange?.(parseFloat(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'ambientSpeed', parseFloat(e.target.value))}
               className="w-20 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-8">
@@ -2292,7 +2020,7 @@ export const EuclideanTrack = React.memo(({
             <input
               type="range" min="20" max="2000" step="10"
               value={arRate ?? 80}
-              onChange={(e) => onArRateChange?.(parseInt(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'arRate', parseInt(e.target.value))}
               className="w-16 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-10">
@@ -2304,7 +2032,7 @@ export const EuclideanTrack = React.memo(({
             <input
               type="range" min="0" max="3000" step="50"
               value={arDepth ?? 0}
-              onChange={(e) => onArDepthChange?.(parseInt(e.target.value))}
+              onChange={(e) => onTonalAction(trackId, 'arDepth', parseInt(e.target.value))}
               className="w-16 h-1 bg-idm-ink/10 appearance-none cursor-pointer accent-system-accent"
             />
             <span className="text-[8px] font-mono text-system-accent w-10">
@@ -2355,7 +2083,7 @@ export const EuclideanTrack = React.memo(({
             <span className="text-[7px] font-mono uppercase text-idm-muted">Mode</span>
             <select
               value={cloudMode ?? 'granular'}
-              onChange={e => onCloudModeChange?.(e.target.value as 'granular' | 'eno')}
+              onChange={e => onTonalAction(trackId, 'cloudMode', e.target.value as 'granular' | 'eno')}
               className="block w-16 bg-white border border-black/10 rounded-lg text-[10px] font-mono px-1.5 py-1 text-idm-ink focus:outline-none focus:border-system-accent"
             >
               <option value="granular">Gran</option>
@@ -2368,7 +2096,7 @@ export const EuclideanTrack = React.memo(({
               <input
                 type="range" min={0.5} max={2.0} step={0.1}
                 value={enoSpeed ?? 1.0}
-                onChange={e => onEnoSpeedChange?.(parseFloat(e.target.value))}
+                onChange={e => onTonalAction(trackId, 'enoSpeed', parseFloat(e.target.value))}
                 className="w-20 h-[7px] accent-system-accent"
               />
               <span className="text-[7px] font-mono text-idm-ink">
@@ -2399,14 +2127,14 @@ export const EuclideanTrack = React.memo(({
                 effectiveProbability={chaosEnabled ? (probabilities[i] || 1) * entropy : (probabilities[i] || 1)}
                 previewActive={previewPattern ? previewPattern[i] === 1 : false}
                 temporalOffset={temporalOffsets?.[i] ?? 0}
-                onProbabilityChange={(val) => onProbabilityChange(i, val)}
-                onToggle={() => onToggleStep(i)}
+                onProbabilityChange={(val) => onSequencerAction(trackId, 'probability', i, val)}
+                onToggle={() => onSequencerAction(trackId, 'toggleStep', i)}
                 evolveEnabled={evolveEnabled}
                 isTonal={isTonal}
                 noteName={noteName}
                 noteIndex={noteIdx}
                 maxNoteIndex={maxIdx}
-                onNoteIndexChange={(val) => onNoteIndexChange(i, val)}
+                onNoteIndexChange={(val) => onSequencerAction(trackId, 'noteIndex', i, val)}
               />
             );
           })}
@@ -2423,7 +2151,7 @@ export const EuclideanTrack = React.memo(({
             onMouseLeave={handleParamLeave}
           >
             <button 
-              onClick={onChaosToggle}
+              onClick={() => onParamChange(trackId, 'chaosEnabled', !chaosEnabled)}
               className={`px-3 py-1.5 rounded-xl font-mono text-[10px] uppercase tracking-widest transition-all border ${chaosEnabled ? 'bg-system-accent text-white border-system-accent shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
             >
               Chaos
@@ -2435,7 +2163,7 @@ export const EuclideanTrack = React.memo(({
               </div>
               <input 
                 type="range" min="0" max="1" step="0.01" value={entropy} 
-                onChange={(e) => onEntropyChange(parseFloat(e.target.value))}
+                onChange={(e) => onParamChange(trackId, 'entropy', parseFloat(e.target.value))}
                 disabled={!chaosEnabled}
                 className={`w-full h-1 appearance-none cursor-pointer rounded-full ${chaosEnabled ? 'bg-system-accent/20 accent-system-accent' : 'bg-white accent-idm-muted/40 cursor-not-allowed'}`}
               />
@@ -2449,7 +2177,7 @@ export const EuclideanTrack = React.memo(({
             onMouseLeave={handleParamLeave}
           >
             <button 
-              onClick={onEvolveToggle}
+              onClick={() => onParamChange(trackId, 'evolveEnabled', !evolveEnabled)}
               className={`px-3 py-1.5 rounded-xl font-mono text-[10px] uppercase tracking-widest transition-all border ${evolveEnabled ? 'bg-idm-ink text-white border-idm-ink shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
             >
               Evolve
@@ -2462,7 +2190,7 @@ export const EuclideanTrack = React.memo(({
                 </div>
                 <input 
                   type="range" min="0.01" max="0.3" step="0.01" value={mutationRate} 
-                  onChange={(e) => onMutationRateChange(parseFloat(e.target.value))}
+                  onChange={(e) => onParamChange(trackId, 'mutationRate', parseFloat(e.target.value))}
                   disabled={!evolveEnabled}
                   className={`w-full h-1 appearance-none cursor-pointer rounded-full ${evolveEnabled ? 'bg-idm-ink/20 accent-idm-ink' : 'bg-white accent-idm-muted/40 cursor-not-allowed'}`}
                 />
@@ -2474,7 +2202,7 @@ export const EuclideanTrack = React.memo(({
                 </div>
                 <input 
                   type="range" min="1" max="8" step="1" value={mutationSpeed} 
-                  onChange={(e) => onMutationSpeedChange(parseInt(e.target.value))}
+                  onChange={(e) => onParamChange(trackId, 'mutationSpeed', parseInt(e.target.value))}
                   disabled={!evolveEnabled}
                   className={`w-full h-1 appearance-none cursor-pointer rounded-full ${evolveEnabled ? 'bg-idm-ink/20 accent-idm-ink' : 'bg-white accent-idm-muted/40 cursor-not-allowed'}`}
                 />
@@ -2485,9 +2213,9 @@ export const EuclideanTrack = React.memo(({
           {/* Reset Button (Small icon in corner) */}
           <button 
             onClick={() => {
-              onEntropyChange(1);
-              onMutationRateChange(0.05);
-              onMutationSpeedChange(1);
+              onParamChange(trackId, 'entropy', 1);
+              onParamChange(trackId, 'mutationRate', 0.05);
+              onParamChange(trackId, 'mutationSpeed', 1);
               // Reset all probabilities to 1
               for(let i=0; i<64; i++) onProbabilityChange(i, 1);
             }}
@@ -2508,8 +2236,6 @@ export const EuclideanTrack = React.memo(({
     </div>
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison to avoid re-renders on every sequencer tick
-  // Only re-render if critical props change
   return (
     prevProps.steps === nextProps.steps &&
     prevProps.pulses === nextProps.pulses &&
@@ -2537,7 +2263,6 @@ export const EuclideanTrack = React.memo(({
     prevProps.stats.cycleCount === nextProps.stats.cycleCount &&
     prevProps.probabilities === nextProps.probabilities &&
     prevProps.pattern === nextProps.pattern &&
-    // Sampler Params
     prevProps.sampleStart === nextProps.sampleStart &&
     prevProps.sampleEnd === nextProps.sampleEnd &&
     prevProps.attack === nextProps.attack &&
@@ -2554,7 +2279,6 @@ export const EuclideanTrack = React.memo(({
     prevProps.bpm === nextProps.bpm &&
     prevProps.swing === nextProps.swing &&
     prevProps.ratchet === nextProps.ratchet &&
-    // Tonal
     prevProps.isTonal === nextProps.isTonal &&
     prevProps.rootNote === nextProps.rootNote &&
     prevProps.scaleId === nextProps.scaleId &&
@@ -2618,10 +2342,11 @@ export const EuclideanTrack = React.memo(({
     prevProps.pan === nextProps.pan &&
     prevProps.freqShiftEnabled === nextProps.freqShiftEnabled &&
     prevProps.freqShift === nextProps.freqShift &&
+    prevProps.spectralDelaySend === nextProps.spectralDelaySend &&
+    prevProps.freezeSend === nextProps.freezeSend &&
     prevProps.binauralEnabled === nextProps.binauralEnabled &&
     prevProps.binauralAzimuth === nextProps.binauralAzimuth &&
     prevProps.binauralDistance === nextProps.binauralDistance &&
-    // Phase 8
     prevProps.kickPitchDecay === nextProps.kickPitchDecay &&
     prevProps.kickOctaves === nextProps.kickOctaves &&
     prevProps.kickDecay === nextProps.kickDecay &&
@@ -2639,6 +2364,14 @@ export const EuclideanTrack = React.memo(({
     prevProps.snareBodyDecay === nextProps.snareBodyDecay &&
     prevProps.extremeLoopEnabled === nextProps.extremeLoopEnabled &&
     prevProps.extremeLoopSize === nextProps.extremeLoopSize &&
-    prevProps.extremeLoopPoint === nextProps.extremeLoopPoint
+    prevProps.extremeLoopPoint === nextProps.extremeLoopPoint &&
+    prevProps.slicerEnabled === nextProps.slicerEnabled &&
+    prevProps.sliceCount === nextProps.sliceCount &&
+    prevProps.sliceOrder === nextProps.sliceOrder &&
+    prevProps.onParamChange === nextProps.onParamChange &&
+    prevProps.onSequencerAction === nextProps.onSequencerAction &&
+    prevProps.onTonalAction === nextProps.onTonalAction &&
+    prevProps.onSlicerAction === nextProps.onSlicerAction &&
+    prevProps.onSamplerParamChange === nextProps.onSamplerParamChange
   );
 });

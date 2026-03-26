@@ -3287,6 +3287,261 @@ export const EuclideanSequencer = () => {
     }
   }, []);
 
+  // ────── Universal Param Change (simple setTracks + optional logging) ──────
+  const handleParamChange = useCallback((trackId: string, param: string, value: any) => {
+    const track = tracksRef.current.find(t => t.id === trackId);
+    if (track) {
+      switch (param) {
+        case 'chaosEnabled': logChange(`Chaos ${value ? 'ON' : 'OFF'} (${track.name})`); break;
+        case 'evolveEnabled': logChange(`Evolve ${value ? 'ON' : 'OFF'} (${track.name})`); break;
+        case 'entropy': logChange(`${track.name} entropy → ${Math.round(value * 100)}%`); break;
+        case 'mutationRate': logChange(`${track.name} mutation → ${Math.round(value * 100)}%`); break;
+      }
+    }
+    setTracks(prev => prev.map(t => t.id === trackId ? { ...t, [param]: value } : t));
+  }, [logChange]);
+
+  // ────── Sequencer Actions ──────
+  const handleSequencerAction = useCallback((trackId: string, action: string, value?: any, value2?: any) => {
+    switch (action) {
+      case 'steps': {
+        const track = tracksRef.current.find(t => t.id === trackId);
+        if (!track) return;
+        const val = value as number;
+        const oldDensity = Math.round((track.pulses / track.steps) * 100);
+        const newPulses = Math.min(track.pulses, val);
+        const newDensity = Math.round((newPulses / val) * 100);
+        const rhythmicSteps = tracksRef.current.filter(t => t.id !== 'cloud').map(t => t.id === trackId ? val : t.steps);
+        const newMcm = lcmArray(rhythmicSteps);
+        const oldMcm = lcmArray(tracksRef.current.filter(t => t.id !== 'cloud').map(t => t.steps));
+        const deltas: string[] = [];
+        if (newMcm !== oldMcm) deltas.push(`MCM ${oldMcm} → ${newMcm}`);
+        deltas.push(`Dens ${oldDensity}% → ${newDensity}%`);
+        logChange(`${track.name} steps ${track.steps} → ${val}`, deltas);
+        setTracks(prev => prev.map(t => t.id === trackId ? updateTrackPattern({ ...t, steps: val, pulses: Math.min(t.pulses, val) }) : t));
+        break;
+      }
+      case 'pulses': {
+        const track = tracksRef.current.find(t => t.id === trackId);
+        if (!track) return;
+        const val = value as number;
+        logChange(`${track.name} pulses ${track.pulses} → ${val}`, [`Dens ${Math.round((track.pulses / track.steps) * 100)}% → ${Math.round((val / track.steps) * 100)}%`]);
+        setTracks(prev => prev.map(t => t.id === trackId ? updateTrackPattern({ ...t, pulses: val }) : t));
+        break;
+      }
+      case 'offset': {
+        const track = tracksRef.current.find(t => t.id === trackId);
+        if (track) logChange(`${track.name} offset ${track.offset} → ${value}`);
+        setTracks(prev => prev.map(t => t.id === trackId ? updateTrackPattern({ ...t, offset: value }) : t));
+        break;
+      }
+      case 'probability': {
+        setTracks(prev => prev.map(t => {
+          if (t.id !== trackId) return t;
+          const newProbs = [...t.probabilities];
+          newProbs[value as number] = value2 as number;
+          return { ...t, probabilities: newProbs };
+        }));
+        break;
+      }
+      case 'toggleStep': {
+        setTracks(prev => prev.map(t => {
+          if (t.id !== trackId) return t;
+          const newPattern = [...t.pattern];
+          newPattern[value as number] = newPattern[value as number] === 1 ? 0 : 1;
+          return { ...t, pattern: newPattern, pulses: newPattern.filter(p => p === 1).length };
+        }));
+        break;
+      }
+      case 'noteIndex': {
+        setTracks(prev => prev.map(t => {
+          if (t.id !== trackId) return t;
+          const newIndices = [...t.noteIndices];
+          newIndices[value as number] = value2 as number;
+          return { ...t, noteIndices: newIndices };
+        }));
+        break;
+      }
+      case 'patternMode':
+        if (value === 'ca') { delete caStateRef.current[trackId]; caEvolveCycleRef.current[trackId] = 0; }
+        setTracks(prev => prev.map(t => t.id === trackId ? updateTrackPattern({ ...t, patternMode: value }) : t));
+        break;
+      case 'lsParam':
+        setTracks(prev => prev.map(t => t.id === trackId ? updateTrackPattern({ ...t, [value]: value2 }) : t));
+        break;
+      case 'lsRegenerate':
+        setTracks(prev => prev.map(t => t.id === trackId ? updateTrackPattern(t) : t));
+        break;
+      case 'lsReset':
+        setTracks(prev => prev.map(t => t.id === trackId ? updateTrackPattern({ ...t, lsSeed: 'X', lsRuleA: 'XO', lsIterations: 3, lsRotation: 0 }) : t));
+        break;
+      case 'caParam':
+        delete caStateRef.current[trackId]; caEvolveCycleRef.current[trackId] = 0;
+        setTracks(prev => prev.map(t => t.id === trackId ? updateTrackPattern({ ...t, [value]: value2 }) : t));
+        break;
+      case 'caReset':
+        delete caStateRef.current[trackId]; caEvolveCycleRef.current[trackId] = 0;
+        setTracks(prev => prev.map(t => t.id === trackId ? updateTrackPattern(t) : t));
+        break;
+      case 'noteMode': {
+        const track = tracksRef.current.find(t => t.id === trackId);
+        if (track && value === 'markov') updateMarkovMatrix({ ...track, noteMode: value } as any);
+        setTracks(prev => prev.map(t => t.id === trackId ? { ...t, noteMode: value } : t));
+        break;
+      }
+      case 'markovParam': {
+        const track = tracksRef.current.find(t => t.id === trackId);
+        if (track && ['markovStyle', 'markovTemperature'].includes(value)) updateMarkovMatrix({ ...track, [value]: value2 } as any);
+        setTracks(prev => prev.map(t => t.id === trackId ? { ...t, [value]: value2 } : t));
+        break;
+      }
+      case 'markovRegenerate': {
+        const t = tracksRef.current.find(tr => tr.id === trackId);
+        if (t) updateMarkovMatrix(t as any);
+        break;
+      }
+    }
+  }, [logChange, updateMarkovMatrix]);
+
+  // ────── Tonal/Synth Actions ──────
+  const handleTonalAction = useCallback((trackId: string, action: string, value?: any) => {
+    const synth = synthsRef.current[trackId];
+    const track = tracksRef.current.find(t => t.id === trackId);
+
+    if (action === 'synthType') {
+      setTracks(prev => prev.map(t => t.id === trackId ? { ...t, synthType: value } : t));
+      synth?.disposeNestedLfo?.();
+      if (synth?.dispose) synth.dispose();
+      initializeOriginalSynth(trackId, value);
+      logChange(`${track?.name ?? 'Tone'} synth → ${String(value).toUpperCase()}`);
+      return;
+    }
+    if (action === 'cloudMode') {
+      handleCloudModeChange(value);
+      return;
+    }
+
+    setTracks(prev => prev.map(t => t.id === trackId ? { ...t, [action]: value } : t));
+
+    const merged = track ? { ...track, [action]: value } : null;
+    if (!merged) return;
+    switch (action) {
+      case 'fmRatio': case 'fmIndex':
+        synth?.updateFmParams?.(merged.fmRatio ?? 2, merged.fmIndex ?? 10); break;
+      case 'wfAmount': case 'wfSymmetry':
+        synth?.updateWfParams?.(merged.wfAmount ?? 3, merged.wfSymmetry ?? 0); break;
+      case 'addPartials': case 'addBrightness':
+        synth?.updateAddParams?.(merged.addPartials ?? 4, merged.addBrightness ?? 0.5); break;
+      case 'arRate': case 'arDepth':
+        synth?.updateArParams?.(merged.arRate ?? 80, merged.arDepth ?? 0); break;
+      case 'padVoices': case 'padDetune': case 'padAttack':
+        synth?.updatePadParams?.(merged.padVoices ?? 5, merged.padDetune ?? 30, merged.padAttack ?? 0.3); break;
+      case 'droneFeedback': case 'droneFilterFreq':
+        synth?.updateDroneParams?.(merged.droneFeedback ?? 0.88, merged.droneFilterFreq ?? 2000); break;
+      case 'ksDecay': case 'ksBrightness':
+        synth?.updateKsParams?.(merged.ksDecay ?? 0.97, merged.ksBrightness ?? 5000); break;
+      case 'lorenzEnabled':
+        if (value === true) startLorenzRaf(); break;
+      case 'nestedLfoEnabled':
+        if (value) { synth?.initNestedLfo?.(track?.nestedLfoRate1 ?? 0.1, track?.nestedLfoRate2 ?? 4.0, track?.nestedLfoDepth ?? 800); }
+        else { synth?.disposeNestedLfo?.(); }
+        break;
+      case 'nestedLfoRate1': case 'nestedLfoRate2': case 'nestedLfoDepth':
+        synth?.updateNestedLfo?.(merged.nestedLfoRate1 ?? 0.1, merged.nestedLfoRate2 ?? 4.0, merged.nestedLfoDepth ?? 800); break;
+    }
+  }, [logChange, startLorenzRaf, handleCloudModeChange]);
+
+  // ────── Slicer Actions ──────
+  const handleSlicerAction = useCallback((trackId: string, action: string, value?: any, value2?: any) => {
+    switch (action) {
+      case 'toggle': {
+        const t = tracksRef.current.find(tr => tr.id === trackId);
+        if (value && t?.samplerBuffer) recalculateSlices({ ...t, sliceCount: t.sliceCount ?? 16, slicerEnabled: true } as any);
+        setTracks(prev => prev.map(t => t.id === trackId ? { ...t, slicerEnabled: value, sliceCount: t.sliceCount ?? 16 } : t));
+        break;
+      }
+      case 'count': {
+        const t = tracksRef.current.find(tr => tr.id === trackId);
+        if (t?.samplerBuffer) recalculateSlices({ ...t, sliceCount: value } as any);
+        setTracks(prev => prev.map(t => t.id === trackId ? { ...t, sliceCount: value } : t));
+        break;
+      }
+      case 'order':
+        setTracks(prev => prev.map(t => t.id === trackId ? { ...t, sliceOrder: value } : t)); break;
+      case 'reverseToggle':
+        setTracks(prev => prev.map(t => {
+          if (t.id !== trackId) return t;
+          const r = [...(t.sliceReverse ?? [])]; r[value as number] = !r[value as number]; return { ...t, sliceReverse: r };
+        })); break;
+      case 'pitch':
+        setTracks(prev => prev.map(t => {
+          if (t.id !== trackId) return t;
+          const p = [...(t.slicePitch ?? [])]; p[value as number] = value2 as number; return { ...t, slicePitch: p };
+        })); break;
+      case 'randomize': {
+        const track = tracksRef.current.find(t => t.id === trackId);
+        const count = track?.sliceCount ?? 16;
+        setTracks(prev => prev.map(t => t.id === trackId ? { ...t, sliceOrder: defaultSliceOrder(count).sort(() => Math.random() - 0.5) } : t));
+        break;
+      }
+      case 'reset': {
+        const track = tracksRef.current.find(t => t.id === trackId);
+        const count = track?.sliceCount ?? 16;
+        setTracks(prev => prev.map(t => t.id === trackId ? {
+          ...t, sliceOrder: defaultSliceOrder(count), sliceReverse: defaultSliceReverse(count), slicePitch: defaultSlicePitch(count)
+        } : t));
+        break;
+      }
+    }
+  }, [recalculateSlices]);
+
+  // ────── Wrapped file handlers (stable refs) ──────
+  const handleFileUploadCb = useCallback((trackId: string, file: File) => handleFileUpload(trackId, file), []);
+  const handleClearSamplerCb = useCallback((trackId: string) => handleClearSampler(trackId), []);
+  const handleLoadLayer2Cb = useCallback((trackId: string, file: File) => handleLoadLayer2(trackId, file), []);
+  const handleClearLayer2Cb = useCallback((trackId: string) => handleClearLayer2(trackId), []);
+
+  const handlePercSynthParamChange = useCallback((trackId: string, param: string, value: number | string | boolean) => {
+    setTracks(prev => prev.map(t => t.id === trackId ? { ...t, [param]: value } : t));
+    setTimeout(() => {
+      const tr = tracksRef.current.find(t => t.id === trackId);
+      if (!tr) return;
+      if (trackId === 'kick') {
+        synthsRef.current.kick?.setKickParams?.(
+          param === 'kickPitchDecay' ? value as number : (tr.kickPitchDecay ?? 0.05),
+          param === 'kickOctaves' ? value as number : (tr.kickOctaves ?? 10),
+          param === 'kickDecay' ? value as number : (tr.kickDecay ?? 0.4),
+          param === 'kickClickType' ? value as string : (tr.kickClickType ?? 'pink')
+        );
+      } else if (trackId === 'snare') {
+        if (['snareDecay', 'snareNoiseType'].includes(param)) {
+          synthsRef.current.snare?.setSnareParams?.(
+            param === 'snareDecay' ? value as number : (tr.snareDecay ?? 0.2),
+            param === 'snareNoiseType' ? value as string : (tr.snareNoiseType ?? 'white')
+          );
+        }
+        if (['snareBodyEnabled', 'snareBodyPitch', 'snareBodyDecay'].includes(param)) {
+          synthsRef.current.snare?.setSnareBody?.(
+            param === 'snareBodyEnabled' ? value as boolean : (tr.snareBodyEnabled ?? false),
+            param === 'snareBodyPitch' ? value as number : (tr.snareBodyPitch ?? 180),
+            param === 'snareBodyDecay' ? value as number : (tr.snareBodyDecay ?? 0.1)
+          );
+        }
+      } else if (trackId === 'hat') {
+        synthsRef.current.hat?.setHatMode?.(
+          param === 'hatMode' ? value as string : (tr.hatMode ?? 'noise'),
+          param === 'hatHarmonicity' ? value as number : (tr.hatHarmonicity ?? 5.1),
+          param === 'hatModIndex' ? value as number : (tr.hatModIndex ?? 32),
+          param === 'hatResonance' ? value as number : (tr.hatResonance ?? 4000),
+          param === 'hatDecay' ? value as number : (tr.hatDecay ?? 0.05),
+          param === 'hatNoiseType' ? value as string : (tr.hatNoiseType ?? 'white')
+        );
+      }
+    }, 0);
+  }, []);
+
+  const handleGetMarkovMatrix = useCallback((trackId: string) => markovMatrixRef.current[trackId], []);
+
   const startRecordingNow = useCallback(() => {
     if (!recordingDestRef.current) {
       if (!toneFilterRef.current) {
@@ -6202,321 +6457,17 @@ export const EuclideanSequencer = () => {
               lastHit={lastHit?.color === track.color ? lastHit : null}
               isDjMode={isDjMode}
               previewPattern={previewPatterns?.[track.id]}
-              onStepsChange={(val) => {
-                const oldSteps = track.steps;
-                const oldDensity = Math.round((track.pulses / oldSteps) * 100);
-                const newPulses = Math.min(track.pulses, val);
-                const newDensity = Math.round((newPulses / val) * 100);
-                // Compute MCM delta
-                const rhythmicSteps = tracks.filter(t => t.id !== 'cloud').map(t => t.id === track.id ? val : t.steps);
-                const newMcm = lcmArray(rhythmicSteps);
-                const deltas: string[] = [];
-                if (newMcm !== mcm) deltas.push(`MCM ${mcm} → ${newMcm}`);
-                deltas.push(`Dens ${oldDensity}% → ${newDensity}%`);
-                const oldEclipseSec = mcm * 60 / bpm / 4;
-                const newEclipseSec = newMcm * 60 / bpm / 4;
-                if (newMcm !== mcm) deltas.push(`Eclipse ${formatEclipseTime(oldEclipseSec, false)} → ${formatEclipseTime(newEclipseSec, false)}`);
-                logChange(`${track.name} steps ${oldSteps} → ${val}`, deltas);
-                setTracks(prev => prev.map(t => {
-                  if (t.id === track.id) {
-                    return updateTrackPattern({ ...t, steps: val, pulses: Math.min(t.pulses, val) });
-                  }
-                  return t;
-                }));
-              }}
-              onPulsesChange={(val) => {
-                const oldPulses = track.pulses;
-                const oldDensity = Math.round((oldPulses / track.steps) * 100);
-                const newDensity = Math.round((val / track.steps) * 100);
-                logChange(`${track.name} pulses ${oldPulses} → ${val}`, [`Dens ${oldDensity}% → ${newDensity}%`]);
-                setTracks(prev => prev.map(t => t.id === track.id ? updateTrackPattern({ ...t, pulses: val }) : t));
-              }}
-              onOffsetChange={(val) => {
-                logChange(`${track.name} offset ${track.offset} → ${val}`);
-                setTracks(prev => prev.map(t => t.id === track.id ? updateTrackPattern({ ...t, offset: val }) : t));
-              }}
-              onProbabilityChange={(idx, val) => setTracks(prev => prev.map(t => {
-                if (t.id === track.id) {
-                  const newProbs = [...t.probabilities];
-                  newProbs[idx] = val;
-                  return { ...t, probabilities: newProbs };
-                }
-                return t;
-              }))}
-              onChaosToggle={() => {
-                const newState = !track.chaosEnabled;
-                logChange(`Chaos ${newState ? 'ON' : 'OFF'} (${track.name})`, newState ? [`HitRate ~${hitRateData.rate ?? 100}% → estimado menor`] : []);
-                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, chaosEnabled: newState } : t));
-              }}
-              onEntropyChange={(val) => {
-                logChange(`${track.name} entropy ${track.entropy} → ${val}×`);
-                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, entropy: val } : t));
-              }}
-              onEvolveToggle={() => {
-                const newState = !track.evolveEnabled;
-                logChange(`Evolve ${newState ? 'ON' : 'OFF'} (${track.name})`);
-                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, evolveEnabled: newState } : t));
-              }}
-              onMutationRateChange={(val) => {
-                logChange(`${track.name} mutation ${Math.round(track.mutationRate * 100)}% → ${Math.round(val * 100)}%`);
-                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, mutationRate: val } : t));
-              }}
-              onMutationSpeedChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, mutationSpeed: val } : t))}
-              onFileUpload={(file) => handleFileUpload(track.id, file)}
-              onSamplerParamChange={(param, val) => handleSamplerParamChange(track.id, param, val)}
-              onClearSampler={() => handleClearSampler(track.id)}
-              onToggleStep={(idx) => setTracks(prev => prev.map(t => {
-                if (t.id === track.id) {
-                  const newPattern = [...t.pattern];
-                  newPattern[idx] = newPattern[idx] === 1 ? 0 : 1;
-                  const newPulses = newPattern.filter(p => p === 1).length;
-                  return { ...t, pattern: newPattern, pulses: newPulses };
-                }
-                return t;
-              }))}
-              onMuteToggle={() => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, isMuted: !t.isMuted } : t))}
-              onSoloToggle={() => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, isSoloed: !t.isSoloed } : t))}
-              volume={track.volume}
-              onVolumeChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, volume: val } : t))}
-              delaySend={track.delaySend}
-              onDelaySendChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, delaySend: val } : t))}
-              reverbSend={track.reverbSend}
-              onReverbSendChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, reverbSend: val } : t))}
-              ratchet={track.ratchet}
-              onRatchetChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, ratchet: val } : t))}
-              rrEnabled={track.rrEnabled}
-              rrAmount={track.rrAmount}
-              onRrEnabledChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, rrEnabled: val } : t))}
-              onRrAmountChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, rrAmount: val } : t))}
-              driftEnabled={track.driftEnabled}
-              driftRate={track.driftRate}
-              onDriftEnabledChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, driftEnabled: val } : t))}
-              onDriftRateChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, driftRate: val } : t))}
-              lorenzEnabled={track.lorenzEnabled}
-              lorenzDepth={track.lorenzDepth}
-              lorenzTarget={track.lorenzTarget}
-              lorenzSpeed={track.lorenzSpeed}
-              onLorenzParamChange={(param, value) => {
-                setTracks(prev => prev.map(t => {
-                  if (t.id !== track.id) return t;
-                  const updated = { ...t, [param]: value };
-                  // If toggling lorenzEnabled on, start RAF
-                  if (param === 'lorenzEnabled' && value === true) startLorenzRaf();
-                  return updated;
-                }));
-              }}
-              nestedLfoEnabled={track.nestedLfoEnabled}
-              nestedLfoRate1={track.nestedLfoRate1}
-              nestedLfoRate2={track.nestedLfoRate2}
-              nestedLfoDepth={track.nestedLfoDepth}
-              onNestedLfoToggle={(enabled) => {
-                if (enabled) {
-                  const t = tracksRef.current.find(tr => tr.id === track.id);
-                  synthsRef.current[track.id]?.initNestedLfo?.(
-                    t?.nestedLfoRate1 ?? 0.1,
-                    t?.nestedLfoRate2 ?? 4.0,
-                    t?.nestedLfoDepth ?? 800
-                  );
-                } else {
-                  synthsRef.current[track.id]?.disposeNestedLfo?.();
-                }
-                setTracks(prev => prev.map(t =>
-                  t.id === track.id ? { ...t, nestedLfoEnabled: enabled } : t
-                ));
-              }}
-              onNestedLfoParamChange={(param, value) => {
-                setTracks(prev => prev.map(t => {
-                  if (t.id !== track.id) return t;
-                  const updated = { ...t, [param]: value };
-                  synthsRef.current[track.id]?.updateNestedLfo?.(
-                    updated.nestedLfoRate1 ?? 0.1,
-                    updated.nestedLfoRate2 ?? 4.0,
-                    updated.nestedLfoDepth ?? 800
-                  );
-                  return updated;
-                }));
-              }}
-              layer2Status={track.layer2Status}
-              layer2Filename={track.layer2Filename}
-              layer2Blend={track.layer2Blend}
-              layer2Pitch={track.layer2Pitch}
-              layer2Offset={track.layer2Offset}
-              layer2FilterFreq={track.layer2FilterFreq}
-              layer2Reverse={track.layer2Reverse}
-              layer2StretchEnabled={track.layer2StretchEnabled}
-              layer2StretchRate={track.layer2StretchRate}
-              onLoadLayer2={(file) => handleLoadLayer2(track.id, file)}
-              onClearLayer2={() => handleClearLayer2(track.id)}
-              onLayer2ParamChange={(param, value) => handleLayer2ParamChange(track.id, param, value)}
-              isTonal={track.isTonal}
-              rootNote={track.rootNote}
-              scaleId={track.scaleId}
-              octaveRange={track.octaveRange}
-              noteIndices={track.noteIndices}
-              onRootNoteChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, rootNote: val } : t))}
-              onScaleChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, scaleId: val } : t))}
-              onOctaveRangeChange={(val) => setTracks(prev => prev.map(t => t.id === track.id ? { ...t, octaveRange: val } : t))}
-              onNoteIndexChange={(stepIdx, val) => setTracks(prev => prev.map(t => {
-                if (t.id === track.id) {
-                  const newIndices = [...t.noteIndices];
-                  newIndices[stepIdx] = val;
-                  return { ...t, noteIndices: newIndices };
-                }
-                return t;
-              }))}
-              synthType={track.synthType}
-              fmRatio={track.fmRatio}
-              fmIndex={track.fmIndex}
-              onSynthTypeChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, synthType: val } : t));
-                // Dispose nestedLfo before synth to prevent orphaned oscillators
-                synthsRef.current.tone?.disposeNestedLfo?.();
-                if (synthsRef.current.tone?.dispose) {
-                  synthsRef.current.tone.dispose();
-                }
-                initializeOriginalSynth('tone', val);
-                logChange(`Tone synth → ${val.toUpperCase()}`);
-              }}
-              onFmRatioChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, fmRatio: val } : t));
-                if (synthsRef.current.tone?.updateFmParams) {
-                  const toneTrack = tracksRef.current.find(t => t.id === 'tone');
-                  synthsRef.current.tone.updateFmParams(val, toneTrack?.fmIndex ?? 10);
-                }
-              }}
-              onFmIndexChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, fmIndex: val } : t));
-                if (synthsRef.current.tone?.updateFmParams) {
-                  const toneTrack = tracksRef.current.find(t => t.id === 'tone');
-                  synthsRef.current.tone.updateFmParams(toneTrack?.fmRatio ?? 2, val);
-                }
-              }}
-              wfAmount={track.wfAmount}
-              wfSymmetry={track.wfSymmetry}
-              onWfAmountChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, wfAmount: val } : t));
-                if (synthsRef.current.tone?.updateWfParams) {
-                  const toneTrack = tracksRef.current.find(t => t.id === 'tone');
-                  synthsRef.current.tone.updateWfParams(val, toneTrack?.wfSymmetry ?? 0);
-                }
-              }}
-              onWfSymmetryChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, wfSymmetry: val } : t));
-                if (synthsRef.current.tone?.updateWfParams) {
-                  const toneTrack = tracksRef.current.find(t => t.id === 'tone');
-                  synthsRef.current.tone.updateWfParams(toneTrack?.wfAmount ?? 3, val);
-                }
-              }}
-              addPartials={track.addPartials}
-              addBrightness={track.addBrightness}
-              arRate={track.arRate}
-              arDepth={track.arDepth}
-              onAddPartialsChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, addPartials: val } : t));
-                if (synthsRef.current.tone?.updateAddParams) {
-                  const tt = tracksRef.current.find(t => t.id === 'tone');
-                  synthsRef.current.tone.updateAddParams(val, tt?.addBrightness ?? 0.5);
-                }
-              }}
-              onAddBrightnessChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, addBrightness: val } : t));
-                if (synthsRef.current.tone?.updateAddParams) {
-                  const tt = tracksRef.current.find(t => t.id === 'tone');
-                  synthsRef.current.tone.updateAddParams(tt?.addPartials ?? 4, val);
-                }
-              }}
-              onArRateChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, arRate: val } : t));
-                if (synthsRef.current.tone?.updateArParams) {
-                  const tt = tracksRef.current.find(t => t.id === 'tone');
-                  synthsRef.current.tone.updateArParams(val, tt?.arDepth ?? 0);
-                }
-              }}
-              onArDepthChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, arDepth: val } : t));
-                if (synthsRef.current.tone?.updateArParams) {
-                  const tt = tracksRef.current.find(t => t.id === 'tone');
-                  synthsRef.current.tone.updateArParams(tt?.arRate ?? 80, val);
-                }
-              }}
-              padVoices={track.padVoices}
-              padDetune={track.padDetune}
-              padAttack={track.padAttack}
-              droneFeedback={track.droneFeedback}
-              droneFilterFreq={track.droneFilterFreq}
-              onPadVoicesChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, padVoices: val } : t));
-                if (synthsRef.current.tone?.updatePadParams) {
-                  const tt = tracksRef.current.find(t => t.id === 'tone');
-                  synthsRef.current.tone.updatePadParams(val, tt?.padDetune ?? 30, tt?.padAttack ?? 0.3);
-                }
-              }}
-              onPadDetuneChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, padDetune: val } : t));
-                if (synthsRef.current.tone?.updatePadParams) {
-                  const tt = tracksRef.current.find(t => t.id === 'tone');
-                  synthsRef.current.tone.updatePadParams(tt?.padVoices ?? 5, val, tt?.padAttack ?? 0.3);
-                }
-              }}
-              onPadAttackChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, padAttack: val } : t));
-                if (synthsRef.current.tone?.updatePadParams) {
-                  const tt = tracksRef.current.find(t => t.id === 'tone');
-                  synthsRef.current.tone.updatePadParams(tt?.padVoices ?? 5, tt?.padDetune ?? 30, val);
-                }
-              }}
-              onDroneFeedbackChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, droneFeedback: val } : t));
-                if (synthsRef.current.tone?.updateDroneParams) {
-                  const tt = tracksRef.current.find(t => t.id === 'tone');
-                  synthsRef.current.tone.updateDroneParams(val, tt?.droneFilterFreq ?? 2000);
-                }
-              }}
-              onDroneFilterFreqChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, droneFilterFreq: val } : t));
-                if (synthsRef.current.tone?.updateDroneParams) {
-                  const tt = tracksRef.current.find(t => t.id === 'tone');
-                  synthsRef.current.tone.updateDroneParams(tt?.droneFeedback ?? 0.88, val);
-                }
-              }}
-              ksDecay={track.ksDecay}
-              ksBrightness={track.ksBrightness}
-              modalBody={track.modalBody}
-              modalDecay={track.modalDecay}
-              onKsDecayChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, ksDecay: val } : t));
-                if (synthsRef.current.tone?.updateKsParams) {
-                  const tt = tracksRef.current.find(t => t.id === 'tone');
-                  synthsRef.current.tone.updateKsParams(val, tt?.ksBrightness ?? 5000);
-                }
-              }}
-              onKsBrightnessChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, ksBrightness: val } : t));
-                if (synthsRef.current.tone?.updateKsParams) {
-                  const tt = tracksRef.current.find(t => t.id === 'tone');
-                  synthsRef.current.tone.updateKsParams(tt?.ksDecay ?? 0.97, val);
-                }
-              }}
-              onModalBodyChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, modalBody: val } : t));
-              }}
-              onModalDecayChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, modalDecay: val } : t));
-              }}
-              ambientVolume={track.ambientVolume}
-              ambientSpeed={track.ambientSpeed}
-              onAmbientVolumeChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, ambientVolume: val } : t));
-              }}
-              onAmbientSpeedChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'tone' ? { ...t, ambientSpeed: val } : t));
-              }}
-              cloudMode={track.cloudMode}
-              enoSpeed={track.enoSpeed}
-              onCloudModeChange={handleCloudModeChange}
-              onEnoSpeedChange={(val) => {
-                setTracks(prev => prev.map(t => t.id === 'cloud' ? { ...t, enoSpeed: val } : t));
-              }}
+              onParamChange={handleParamChange}
+              onSequencerAction={handleSequencerAction}
+              onTonalAction={handleTonalAction}
+              onSlicerAction={handleSlicerAction}
+              onFileUpload={handleFileUploadCb}
+              onSamplerParamChange={handleSamplerParamChange}
+              onClearSampler={handleClearSamplerCb}
+              onLoadLayer2={handleLoadLayer2Cb}
+              onClearLayer2={handleClearLayer2Cb}
+              onLayer2ParamChange={handleLayer2ParamChange}
+              onPercSynthParamChange={handlePercSynthParamChange}
               toneRecordingState={toneRecordingState}
               onRecordAction={handleArmOrRecord}
               cloudRecordingState={cloudRecordingState}
@@ -6527,216 +6478,7 @@ export const EuclideanSequencer = () => {
               temporalityMode={temporalityMode}
               bpm={bpm}
               swing={swing}
-              onPatternModeChange={(mode) => {
-                if (mode === 'ca') {
-                  delete caStateRef.current[track.id];
-                  caEvolveCycleRef.current[track.id] = 0;
-                }
-                setTracks(prev => prev.map(t =>
-                  t.id === track.id
-                    ? updateTrackPattern({ ...t, patternMode: mode })
-                    : t
-                ));
-              }}
-              onLsParamChange={(param, value) => {
-                setTracks(prev => prev.map(t =>
-                  t.id === track.id
-                    ? updateTrackPattern({ ...t, [param]: value })
-                    : t
-                ));
-              }}
-              onLsRegenerate={() => {
-                setTracks(prev => prev.map(t =>
-                  t.id === track.id ? updateTrackPattern(t) : t
-                ));
-              }}
-              onLsReset={() => {
-                setTracks(prev => prev.map(t =>
-                  t.id === track.id
-                    ? updateTrackPattern({ ...t, lsSeed: 'X', lsRuleA: 'XO', lsIterations: 3, lsRotation: 0 })
-                    : t
-                ));
-              }}
-              onCaParamChange={(param, value) => {
-                delete caStateRef.current[track.id];
-                caEvolveCycleRef.current[track.id] = 0;
-                setTracks(prev => prev.map(t =>
-                  t.id === track.id
-                    ? updateTrackPattern({ ...t, [param]: value })
-                    : t
-                ));
-              }}
-              onCaReset={() => {
-                delete caStateRef.current[track.id];
-                caEvolveCycleRef.current[track.id] = 0;
-                setTracks(prev => prev.map(t =>
-                  t.id === track.id ? updateTrackPattern(t) : t
-                ));
-              }}
-              // Markov props
-              noteMode={track.noteMode}
-              markovStyle={track.markovStyle}
-              markovTemperature={track.markovTemperature}
-              markovAnchor={track.markovAnchor}
-              markovShowMatrix={track.markovShowMatrix}
-              onNoteModeChange={(mode) => {
-                const updated = { ...track, noteMode: mode };
-                if (mode === 'markov') updateMarkovMatrix(updated);
-                setTracks(prev => prev.map(t =>
-                  t.id === track.id ? { ...t, noteMode: mode } : t
-                ));
-              }}
-              onMarkovParamChange={(param, value) => {
-                const updated = { ...track, [param]: value };
-                if (['markovStyle', 'markovTemperature'].includes(param)) {
-                  updateMarkovMatrix(updated);
-                }
-                setTracks(prev => prev.map(t =>
-                  t.id === track.id ? { ...t, [param]: value } : t
-                ));
-              }}
-              onMarkovRegenerate={() => {
-                const t = tracks.find(tr => tr.id === track.id);
-                if (t) updateMarkovMatrix(t);
-              }}
-              onGetMarkovMatrix={(trackId) => markovMatrixRef.current[trackId]}
-              // Slicer props
-              slicerEnabled={track.slicerEnabled}
-              sliceCount={track.sliceCount}
-              sliceOrder={track.sliceOrder}
-              sliceReverse={track.sliceReverse}
-              slicePitch={track.slicePitch}
-              onSlicerToggle={(enabled) => {
-                const t = tracks.find(tr => tr.id === track.id);
-                if (enabled && t?.samplerBuffer) {
-                  recalculateSlices({ ...t, sliceCount: t.sliceCount ?? 16, slicerEnabled: true });
-                }
-                setTracks(prev => prev.map(t =>
-                  t.id === track.id
-                    ? { ...t, slicerEnabled: enabled, sliceCount: t.sliceCount ?? 16 }
-                    : t
-                ));
-              }}
-              onSliceCountChange={(count) => {
-                const t = tracks.find(tr => tr.id === track.id);
-                if (t?.samplerBuffer) {
-                  recalculateSlices({ ...t, sliceCount: count });
-                }
-                setTracks(prev => prev.map(t =>
-                  t.id === track.id ? { ...t, sliceCount: count } : t
-                ));
-              }}
-              onSliceOrderChange={(order) => {
-                setTracks(prev => prev.map(t =>
-                  t.id === track.id ? { ...t, sliceOrder: order } : t
-                ));
-              }}
-              onSliceReverseToggle={(sliceIdx) => {
-                setTracks(prev => prev.map(t => {
-                  if (t.id !== track.id) return t;
-                  const newReverse = [...(t.sliceReverse ?? [])];
-                  newReverse[sliceIdx] = !newReverse[sliceIdx];
-                  return { ...t, sliceReverse: newReverse };
-                }));
-              }}
-              onSlicePitchChange={(sliceIdx, semitones) => {
-                setTracks(prev => prev.map(t => {
-                  if (t.id !== track.id) return t;
-                  const newPitch = [...(t.slicePitch ?? [])];
-                  newPitch[sliceIdx] = semitones;
-                  return { ...t, slicePitch: newPitch };
-                }));
-              }}
-              onSliceRandomize={() => {
-                const count = track.sliceCount ?? 16;
-                const shuffled = defaultSliceOrder(count).sort(() => Math.random() - 0.5);
-                setTracks(prev => prev.map(t =>
-                  t.id === track.id ? { ...t, sliceOrder: shuffled } : t
-                ));
-              }}
-              onSliceReset={() => {
-                const count = track.sliceCount ?? 16;
-                setTracks(prev => prev.map(t =>
-                  t.id === track.id ? {
-                    ...t,
-                    sliceOrder: defaultSliceOrder(count),
-                    sliceReverse: defaultSliceReverse(count),
-                    slicePitch: defaultSlicePitch(count)
-                  } : t
-                ));
-              }}
-              // Time Stretch props
-              stretchEnabled={track.stretchEnabled}
-              stretchRate={track.stretchRate}
-              // EQ props
-              eqEnabled={track.eqEnabled}
-              eqHpfFreq={track.eqHpfFreq}
-              eqLpfFreq={track.eqLpfFreq}
-              pan={track.pan}
-              freqShiftEnabled={track.freqShiftEnabled}
-              freqShift={track.freqShift}
-              spectralDelaySend={track.spectralDelaySend}
-               freezeSend={track.freezeSend}
-               extremeLoopEnabled={track.extremeLoopEnabled}
-               extremeLoopSize={track.extremeLoopSize}
-               extremeLoopPoint={track.extremeLoopPoint}
-               binauralEnabled={track.binauralEnabled}
-              binauralAzimuth={track.binauralAzimuth}
-              binauralDistance={track.binauralDistance}
-              kickPitchDecay={track.kickPitchDecay}
-              kickOctaves={track.kickOctaves}
-              kickDecay={track.kickDecay}
-              kickClickType={track.kickClickType}
-              hatMode={track.hatMode}
-              hatHarmonicity={track.hatHarmonicity}
-              hatModIndex={track.hatModIndex}
-              hatResonance={track.hatResonance}
-              hatDecay={track.hatDecay}
-              hatNoiseType={track.hatNoiseType}
-              snareDecay={track.snareDecay}
-              snareNoiseType={track.snareNoiseType}
-              snareBodyEnabled={track.snareBodyEnabled}
-              snareBodyPitch={track.snareBodyPitch}
-              snareBodyDecay={track.snareBodyDecay}
-              onPercSynthParamChange={(param, value) => {
-                setTracks(prev => prev.map(t => t.id === track.id ? { ...t, [param]: value } : t));
-                // Sync to audio engine
-                setTimeout(() => {
-                  const tr = tracksRef.current.find(t => t.id === track.id);
-                  if (!tr) return;
-                  if (track.id === 'kick') {
-                    synthsRef.current.kick?.setKickParams?.(
-                      param === 'kickPitchDecay' ? value as number : (tr.kickPitchDecay ?? 0.05),
-                      param === 'kickOctaves' ? value as number : (tr.kickOctaves ?? 10),
-                      param === 'kickDecay' ? value as number : (tr.kickDecay ?? 0.4),
-                      param === 'kickClickType' ? value as string : (tr.kickClickType ?? 'pink')
-                    );
-                  } else if (track.id === 'snare') {
-                    if (param === 'snareDecay' || param === 'snareNoiseType') {
-                      synthsRef.current.snare?.setSnareParams?.(
-                        param === 'snareDecay' ? value as number : (tr.snareDecay ?? 0.2),
-                        param === 'snareNoiseType' ? value as string : (tr.snareNoiseType ?? 'white')
-                      );
-                    }
-                    if (param === 'snareBodyEnabled' || param === 'snareBodyPitch' || param === 'snareBodyDecay') {
-                      synthsRef.current.snare?.setSnareBody?.(
-                        param === 'snareBodyEnabled' ? value as boolean : (tr.snareBodyEnabled ?? false),
-                        param === 'snareBodyPitch' ? value as number : (tr.snareBodyPitch ?? 180),
-                        param === 'snareBodyDecay' ? value as number : (tr.snareBodyDecay ?? 0.1)
-                      );
-                    }
-                  } else if (track.id === 'hat') {
-                    synthsRef.current.hat?.setHatMode?.(
-                      param === 'hatMode' ? value as string : (tr.hatMode ?? 'noise'),
-                      param === 'hatHarmonicity' ? value as number : (tr.hatHarmonicity ?? 5.1),
-                      param === 'hatModIndex' ? value as number : (tr.hatModIndex ?? 32),
-                      param === 'hatResonance' ? value as number : (tr.hatResonance ?? 4000),
-                      param === 'hatDecay' ? value as number : (tr.hatDecay ?? 0.05),
-                      param === 'hatNoiseType' ? value as string : (tr.hatNoiseType ?? 'white')
-                    );
-                  }
-                }, 0);
-              }}
+              onGetMarkovMatrix={handleGetMarkovMatrix}
             />
           </div>
         ))}
