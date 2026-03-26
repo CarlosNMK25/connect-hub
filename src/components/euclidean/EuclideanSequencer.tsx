@@ -1131,7 +1131,7 @@ export const EuclideanSequencer = () => {
           synthsRef.current[t.id]?.updateEq?.(hpf, lpf);
           // Restore pan and freqShift
           synthsRef.current[t.id]?.setPan?.((config as any).pan ?? 0);
-          synthsRef.current[t.id]?.setFreqShift?.((config as any).freqShiftEnabled ? ((config as any).freqShift ?? 0) : 0);
+          synthsRef.current[t.id]?.setFreqShift?.((config as any).freqShiftEnabled ? ((config as any).freqShift ?? 0) : 0, (config as any).freqShiftEnabled ?? false);
           synthsRef.current[t.id]?.setSpectralSend?.((config as any).spectralDelaySend ?? 0);
           // Restore binaural
           synthsRef.current[t.id]?.switchBinaural?.((config as any).binauralEnabled ?? false);
@@ -1312,6 +1312,8 @@ export const EuclideanSequencer = () => {
     const kickPannerGain = new Tone.Gain(1);
     const kickPanner3DGain = new Tone.Gain(0);
     const kickFreqShifter = new Tone.FrequencyShifter(0);
+    const kickFsBypassGain = new Tone.Gain(0); // bypass=0: freqShifter path muted by default
+    const kickFsDirectGain = new Tone.Gain(1); // direct=1: clean path active by default
     const kickFilter = new Tone.Filter(2000, "lowpass").connect(kickEqHpf);
     kickEqHpf.connect(kickEqLpf);
     kickEqLpf.connect(kickPannerGain);
@@ -1319,12 +1321,21 @@ export const EuclideanSequencer = () => {
     kickEqLpf.connect(kickFollower); // Follower pre-pan for sidechain independence
     kickPannerGain.connect(kickPanner);
     kickPanner3DGain.connect(kickPanner3D);
-    kickPanner.connect(kickFreqShifter);
-    kickPanner3D.connect(kickFreqShifter);
+    // FreqShifter bypass routing: dual-gain crossfade
+    kickPanner.connect(kickFsBypassGain);
+    kickPanner3D.connect(kickFsBypassGain);
+    kickFsBypassGain.connect(kickFreqShifter);
     kickFreqShifter.connect(compressor);
     kickFreqShifter.connect(kickDelaySend);
     kickFreqShifter.connect(kickReverbSend);
     kickFreqShifter.connect(kickSpectralSend);
+    // Direct path (bypass freqShifter)
+    kickPanner.connect(kickFsDirectGain);
+    kickPanner3D.connect(kickFsDirectGain);
+    kickFsDirectGain.connect(compressor);
+    kickFsDirectGain.connect(kickDelaySend);
+    kickFsDirectGain.connect(kickReverbSend);
+    kickFsDirectGain.connect(kickSpectralSend);
     kickFollower.connect(sidechainInverter);
 
     const snareDelaySend = new Tone.Gain(0).connect(delayBus);
@@ -1338,18 +1349,27 @@ export const EuclideanSequencer = () => {
     const snarePannerGain = new Tone.Gain(1);
     const snarePanner3DGain = new Tone.Gain(0);
     const snareFreqShifter = new Tone.FrequencyShifter(0);
+    const snareFsBypassGain = new Tone.Gain(0);
+    const snareFsDirectGain = new Tone.Gain(1);
     const snareFilter = new Tone.Filter(5000, "lowpass").connect(snareEqHpf);
     snareEqHpf.connect(snareEqLpf);
     snareEqLpf.connect(snarePannerGain);
     snareEqLpf.connect(snarePanner3DGain);
     snarePannerGain.connect(snarePanner);
     snarePanner3DGain.connect(snarePanner3D);
-    snarePanner.connect(snareFreqShifter);
-    snarePanner3D.connect(snareFreqShifter);
+    snarePanner.connect(snareFsBypassGain);
+    snarePanner3D.connect(snareFsBypassGain);
+    snareFsBypassGain.connect(snareFreqShifter);
     snareFreqShifter.connect(compressor);
     snareFreqShifter.connect(snareDelaySend);
     snareFreqShifter.connect(snareReverbSend);
     snareFreqShifter.connect(snareSpectralSend);
+    snarePanner.connect(snareFsDirectGain);
+    snarePanner3D.connect(snareFsDirectGain);
+    snareFsDirectGain.connect(compressor);
+    snareFsDirectGain.connect(snareDelaySend);
+    snareFsDirectGain.connect(snareReverbSend);
+    snareFsDirectGain.connect(snareSpectralSend);
 
     const hatDelaySend = new Tone.Gain(0).connect(delayBus);
     const hatReverbSend = new Tone.Gain(0).connect(reverbBus);
@@ -1362,18 +1382,27 @@ export const EuclideanSequencer = () => {
     const hatPannerGain = new Tone.Gain(1);
     const hatPanner3DGain = new Tone.Gain(0);
     const hatFreqShifter = new Tone.FrequencyShifter(0);
+    const hatFsBypassGain = new Tone.Gain(0);
+    const hatFsDirectGain = new Tone.Gain(1);
     const hatFilter = new Tone.Filter(5000, "highpass").connect(hatEqHpf);
     hatEqHpf.connect(hatEqLpf);
     hatEqLpf.connect(hatPannerGain);
     hatEqLpf.connect(hatPanner3DGain);
     hatPannerGain.connect(hatPanner);
     hatPanner3DGain.connect(hatPanner3D);
-    hatPanner.connect(hatFreqShifter);
-    hatPanner3D.connect(hatFreqShifter);
+    hatPanner.connect(hatFsBypassGain);
+    hatPanner3D.connect(hatFsBypassGain);
+    hatFsBypassGain.connect(hatFreqShifter);
     hatFreqShifter.connect(compressor);
     hatFreqShifter.connect(hatDelaySend);
     hatFreqShifter.connect(hatReverbSend);
     hatFreqShifter.connect(hatSpectralSend);
+    hatPanner.connect(hatFsDirectGain);
+    hatPanner3D.connect(hatFsDirectGain);
+    hatFsDirectGain.connect(compressor);
+    hatFsDirectGain.connect(hatDelaySend);
+    hatFsDirectGain.connect(hatReverbSend);
+    hatFsDirectGain.connect(hatSpectralSend);
 
     // Layered Kick
     const kickBody = new Tone.MembraneSynth({
@@ -1418,6 +1447,8 @@ export const EuclideanSequencer = () => {
         kickPannerGain.dispose();
         kickPanner3DGain.dispose();
         kickFreqShifter.dispose();
+        kickFsBypassGain.dispose();
+        kickFsDirectGain.dispose();
         kickDelaySend.dispose();
         kickReverbSend.dispose();
         kickSpectralSend.dispose();
@@ -1430,7 +1461,13 @@ export const EuclideanSequencer = () => {
     };
     // Pan + FreqShifter injection for kick
     synthsRef.current.kick.setPan = (value: number) => { kickPanner.pan.rampTo(value, 0.05); };
-    synthsRef.current.kick.setFreqShift = (hz: number) => { kickFreqShifter.frequency.rampTo(hz, 0.05); };
+    synthsRef.current.kick.setFreqShift = (hz: number, enabled?: boolean) => {
+      kickFreqShifter.frequency.rampTo(hz, 0.05);
+      if (enabled !== undefined) {
+        kickFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
+        kickFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
+      }
+    };
     synthsRef.current.kick.panner = kickPanner;
     synthsRef.current.kick.freqShifter = kickFreqShifter;
     // Spectral Delay send injection for kick
@@ -1499,6 +1536,8 @@ export const EuclideanSequencer = () => {
         snarePannerGain.dispose();
         snarePanner3DGain.dispose();
         snareFreqShifter.dispose();
+        snareFsBypassGain.dispose();
+        snareFsDirectGain.dispose();
         snareDelaySend.dispose();
         snareReverbSend.dispose();
         snareSpectralSend.dispose();
@@ -1509,7 +1548,13 @@ export const EuclideanSequencer = () => {
       snareEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     synthsRef.current.snare.setPan = (value: number) => { snarePanner.pan.rampTo(value, 0.05); };
-    synthsRef.current.snare.setFreqShift = (hz: number) => { snareFreqShifter.frequency.rampTo(hz, 0.05); };
+    synthsRef.current.snare.setFreqShift = (hz: number, enabled?: boolean) => {
+      snareFreqShifter.frequency.rampTo(hz, 0.05);
+      if (enabled !== undefined) {
+        snareFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
+        snareFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
+      }
+    };
     synthsRef.current.snare.panner = snarePanner;
     synthsRef.current.snare.freqShifter = snareFreqShifter;
     synthsRef.current.snare.setSpectralSend = (value: number) => { snareSpectralSend.gain.rampTo(value, 0.05); };
@@ -1576,6 +1621,8 @@ export const EuclideanSequencer = () => {
         hatPannerGain.dispose();
         hatPanner3DGain.dispose();
         hatFreqShifter.dispose();
+        hatFsBypassGain.dispose();
+        hatFsDirectGain.dispose();
         hatDelaySend.dispose();
         hatReverbSend.dispose();
         hatSpectralSend.dispose();
@@ -1586,7 +1633,13 @@ export const EuclideanSequencer = () => {
       hatEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     synthsRef.current.hat.setPan = (value: number) => { hatPanner.pan.rampTo(value, 0.05); };
-    synthsRef.current.hat.setFreqShift = (hz: number) => { hatFreqShifter.frequency.rampTo(hz, 0.05); };
+    synthsRef.current.hat.setFreqShift = (hz: number, enabled?: boolean) => {
+      hatFreqShifter.frequency.rampTo(hz, 0.05);
+      if (enabled !== undefined) {
+        hatFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
+        hatFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
+      }
+    };
     synthsRef.current.hat.panner = hatPanner;
     synthsRef.current.hat.freqShifter = hatFreqShifter;
     synthsRef.current.hat.setSpectralSend = (value: number) => { hatSpectralSend.gain.rampTo(value, 0.05); };
@@ -1632,18 +1685,27 @@ export const EuclideanSequencer = () => {
     const cloudPannerGain = new Tone.Gain(1);
     const cloudPanner3DGain = new Tone.Gain(0);
     const cloudFreqShifter = new Tone.FrequencyShifter(0);
+    const cloudFsBypassGain = new Tone.Gain(0);
+    const cloudFsDirectGain = new Tone.Gain(1);
     const cloudFilter = new Tone.Filter(1000, "lowpass").connect(cloudEqHpf);
     cloudEqHpf.connect(cloudEqLpf);
     cloudEqLpf.connect(cloudPannerGain);
     cloudEqLpf.connect(cloudPanner3DGain);
     cloudPannerGain.connect(cloudPanner);
     cloudPanner3DGain.connect(cloudPanner3D);
-    cloudPanner.connect(cloudFreqShifter);
-    cloudPanner3D.connect(cloudFreqShifter);
+    cloudPanner.connect(cloudFsBypassGain);
+    cloudPanner3D.connect(cloudFsBypassGain);
+    cloudFsBypassGain.connect(cloudFreqShifter);
     cloudFreqShifter.connect(compressor);
     cloudFreqShifter.connect(cloudDelaySend);
     cloudFreqShifter.connect(cloudReverbSend);
     cloudFreqShifter.connect(cloudSpectralSend);
+    cloudPanner.connect(cloudFsDirectGain);
+    cloudPanner3D.connect(cloudFsDirectGain);
+    cloudFsDirectGain.connect(compressor);
+    cloudFsDirectGain.connect(cloudDelaySend);
+    cloudFsDirectGain.connect(cloudReverbSend);
+    cloudFsDirectGain.connect(cloudSpectralSend);
 
     // Cloud Analyser for Envelope Crossfeed (Phase 7E)
     const cloudAnalyser = new Tone.Analyser('waveform', 256);
@@ -1682,6 +1744,8 @@ export const EuclideanSequencer = () => {
         cloudPannerGain.dispose();
         cloudPanner3DGain.dispose();
         cloudFreqShifter.dispose();
+        cloudFsBypassGain.dispose();
+        cloudFsDirectGain.dispose();
         cloudDelaySend.dispose();
         cloudReverbSend.dispose();
         cloudSpectralSend.dispose();
@@ -1693,7 +1757,13 @@ export const EuclideanSequencer = () => {
       cloudEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     synthsRef.current.cloud.setPan = (value: number) => { cloudPanner.pan.rampTo(value, 0.05); };
-    synthsRef.current.cloud.setFreqShift = (hz: number) => { cloudFreqShifter.frequency.rampTo(hz, 0.05); };
+    synthsRef.current.cloud.setFreqShift = (hz: number, enabled?: boolean) => {
+      cloudFreqShifter.frequency.rampTo(hz, 0.05);
+      if (enabled !== undefined) {
+        cloudFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
+        cloudFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
+      }
+    };
     synthsRef.current.cloud.panner = cloudPanner;
     synthsRef.current.cloud.freqShifter = cloudFreqShifter;
     synthsRef.current.cloud.setSpectralSend = (value: number) => { cloudSpectralSend.gain.rampTo(value, 0.05); };
@@ -1743,18 +1813,27 @@ export const EuclideanSequencer = () => {
     const tonePannerGain = new Tone.Gain(1);
     const tonePanner3DGain = new Tone.Gain(0);
     const toneFreqShifter = new Tone.FrequencyShifter(0);
+    const toneFsBypassGain = new Tone.Gain(0);
+    const toneFsDirectGain = new Tone.Gain(1);
     const toneFilter = new Tone.Filter(2000, "lowpass").connect(toneEqHpf);
     toneEqHpf.connect(toneEqLpf);
     toneEqLpf.connect(tonePannerGain);
     toneEqLpf.connect(tonePanner3DGain);
     tonePannerGain.connect(tonePanner);
     tonePanner3DGain.connect(tonePanner3D);
-    tonePanner.connect(toneFreqShifter);
-    tonePanner3D.connect(toneFreqShifter);
+    tonePanner.connect(toneFsBypassGain);
+    tonePanner3D.connect(toneFsBypassGain);
+    toneFsBypassGain.connect(toneFreqShifter);
     toneFreqShifter.connect(compressor);
     toneFreqShifter.connect(toneDelaySend);
     toneFreqShifter.connect(toneReverbSend);
     toneFreqShifter.connect(toneSpectralSend);
+    tonePanner.connect(toneFsDirectGain);
+    tonePanner3D.connect(toneFsDirectGain);
+    toneFsDirectGain.connect(compressor);
+    toneFsDirectGain.connect(toneDelaySend);
+    toneFsDirectGain.connect(toneReverbSend);
+    toneFsDirectGain.connect(toneSpectralSend);
     toneFilterRef.current = toneFilter;
 
     const toneMonoSynth = new Tone.MonoSynth({
@@ -1791,6 +1870,8 @@ export const EuclideanSequencer = () => {
         tonePannerGain.dispose();
         tonePanner3DGain.dispose();
         toneFreqShifter.dispose();
+        toneFsBypassGain.dispose();
+        toneFsDirectGain.dispose();
         toneDelaySend.dispose();
         toneReverbSend.dispose();
         toneSpectralSend.dispose();
@@ -1801,7 +1882,13 @@ export const EuclideanSequencer = () => {
       toneEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     synthsRef.current.tone.setPan = (value: number) => { tonePanner.pan.rampTo(value, 0.05); };
-    synthsRef.current.tone.setFreqShift = (hz: number) => { toneFreqShifter.frequency.rampTo(hz, 0.05); };
+    synthsRef.current.tone.setFreqShift = (hz: number, enabled?: boolean) => {
+      toneFreqShifter.frequency.rampTo(hz, 0.05);
+      if (enabled !== undefined) {
+        toneFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
+        toneFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
+      }
+    };
     synthsRef.current.tone.panner = tonePanner;
     synthsRef.current.tone.freqShifter = toneFreqShifter;
     synthsRef.current.tone.setSpectralSend = (value: number) => { toneSpectralSend.gain.rampTo(value, 0.05); };
@@ -2810,7 +2897,7 @@ export const EuclideanSequencer = () => {
       }
       if (param === 'freqShiftEnabled') {
         const updatedTrack = tracksRef.current.find(t => t.id === trackId);
-        synthObj.setFreqShift?.(val ? (updatedTrack?.freqShift ?? 0) : 0);
+        synthObj.setFreqShift?.(val ? (updatedTrack?.freqShift ?? 0) : 0, val as boolean);
       }
       // Spectral Delay Send real-time sync
       if (param === 'spectralDelaySend') {
@@ -3189,6 +3276,8 @@ export const EuclideanSequencer = () => {
     let _eqLpfRef: Tone.Filter | null = null;
     let _pannerRef: Tone.Panner | null = null;
     let _freqShifterRef: Tone.FrequencyShifter | null = null;
+    let _fsBypassGainRef: Tone.Gain | null = null;
+    let _fsDirectGainRef: Tone.Gain | null = null;
     let _spectralSendRef: Tone.Gain | null = null;
     let _pannerGainRef: Tone.Gain | null = null;
     let _panner3DGainRef: Tone.Gain | null = null;
@@ -3206,6 +3295,8 @@ export const EuclideanSequencer = () => {
       const kickPannerGain = new Tone.Gain(1);
       const kickPanner3DGain = new Tone.Gain(0);
       const kickFreqShifter = new Tone.FrequencyShifter(0);
+      const kickFsBypassGain = new Tone.Gain(0);
+      const kickFsDirectGain = new Tone.Gain(1);
       const kickFilter = new Tone.Filter(2000, "lowpass").connect(kickEqHpf);
       kickEqHpf.connect(kickEqLpf);
       kickEqLpf.connect(kickPannerGain);
@@ -3213,12 +3304,19 @@ export const EuclideanSequencer = () => {
       if (synthsRef.current.kickFollower) kickEqLpf.connect(synthsRef.current.kickFollower);
       kickPannerGain.connect(kickPanner);
       kickPanner3DGain.connect(kickPanner3D);
-      kickPanner.connect(kickFreqShifter);
-      kickPanner3D.connect(kickFreqShifter);
+      kickPanner.connect(kickFsBypassGain);
+      kickPanner3D.connect(kickFsBypassGain);
+      kickFsBypassGain.connect(kickFreqShifter);
       kickFreqShifter.connect(master.compressor);
       kickFreqShifter.connect(kickDelaySend);
       kickFreqShifter.connect(kickReverbSend);
       kickFreqShifter.connect(kickSpectralSend);
+      kickPanner.connect(kickFsDirectGain);
+      kickPanner3D.connect(kickFsDirectGain);
+      kickFsDirectGain.connect(master.compressor);
+      kickFsDirectGain.connect(kickDelaySend);
+      kickFsDirectGain.connect(kickReverbSend);
+      kickFsDirectGain.connect(kickSpectralSend);
 
       const kickBody = new Tone.MembraneSynth({
         pitchDecay: 0.05, octaves: 10, oscillator: { type: 'sine' },
@@ -3255,7 +3353,8 @@ export const EuclideanSequencer = () => {
           kickBody.dispose(); kickClick.dispose(); kickFilter.dispose();
           kickEqHpf.dispose(); kickEqLpf.dispose();
           kickPanner.dispose(); kickPanner3D.dispose(); kickPannerGain.dispose(); kickPanner3DGain.dispose();
-          kickFreqShifter.dispose(); kickDelaySend.dispose(); kickReverbSend.dispose(); kickSpectralSend.dispose();
+          kickFreqShifter.dispose(); kickFsBypassGain.dispose(); kickFsDirectGain.dispose();
+          kickDelaySend.dispose(); kickReverbSend.dispose(); kickSpectralSend.dispose();
         }
       };
       synthsRef.current.kick.updateEq = (hpfFreq: number, lpfFreq: number) => {
@@ -3263,7 +3362,13 @@ export const EuclideanSequencer = () => {
         kickEqLpf.frequency.rampTo(lpfFreq, 0.05);
       };
       synthsRef.current.kick.setPan = (value: number) => { kickPanner.pan.rampTo(value, 0.05); };
-      synthsRef.current.kick.setFreqShift = (hz: number) => { kickFreqShifter.frequency.rampTo(hz, 0.05); };
+      synthsRef.current.kick.setFreqShift = (hz: number, enabled?: boolean) => {
+        kickFreqShifter.frequency.rampTo(hz, 0.05);
+        if (enabled !== undefined) {
+          kickFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
+          kickFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
+        }
+      };
       synthsRef.current.kick.panner = kickPanner;
       synthsRef.current.kick.freqShifter = kickFreqShifter;
       synthsRef.current.kick.setSpectralSend = (value: number) => { kickSpectralSend.gain.rampTo(value, 0.05); };
@@ -3300,18 +3405,27 @@ export const EuclideanSequencer = () => {
       const snarePannerGain = new Tone.Gain(1);
       const snarePanner3DGain = new Tone.Gain(0);
       const snareFreqShifter = new Tone.FrequencyShifter(0);
+      const snareFsBypassGain = new Tone.Gain(0);
+      const snareFsDirectGain = new Tone.Gain(1);
       const snareFilter = new Tone.Filter(5000, "lowpass").connect(snareEqHpf);
       snareEqHpf.connect(snareEqLpf);
       snareEqLpf.connect(snarePannerGain);
       snareEqLpf.connect(snarePanner3DGain);
       snarePannerGain.connect(snarePanner);
       snarePanner3DGain.connect(snarePanner3D);
-      snarePanner.connect(snareFreqShifter);
-      snarePanner3D.connect(snareFreqShifter);
+      snarePanner.connect(snareFsBypassGain);
+      snarePanner3D.connect(snareFsBypassGain);
+      snareFsBypassGain.connect(snareFreqShifter);
       snareFreqShifter.connect(master.compressor);
       snareFreqShifter.connect(snareDelaySend);
       snareFreqShifter.connect(snareReverbSend);
       snareFreqShifter.connect(snareSpectralSend);
+      snarePanner.connect(snareFsDirectGain);
+      snarePanner3D.connect(snareFsDirectGain);
+      snareFsDirectGain.connect(master.compressor);
+      snareFsDirectGain.connect(snareDelaySend);
+      snareFsDirectGain.connect(snareReverbSend);
+      snareFsDirectGain.connect(snareSpectralSend);
 
       const snareSynth = new Tone.NoiseSynth({
         noise: { type: 'white' },
@@ -3334,12 +3448,19 @@ export const EuclideanSequencer = () => {
         dispose: () => {
           snareSynth.dispose(); snareFilter.dispose(); snareEqHpf.dispose(); snareEqLpf.dispose();
           snarePanner.dispose(); snarePanner3D.dispose(); snarePannerGain.dispose(); snarePanner3DGain.dispose();
-          snareFreqShifter.dispose(); snareDelaySend.dispose(); snareReverbSend.dispose(); snareSpectralSend.dispose();
+          snareFreqShifter.dispose(); snareFsBypassGain.dispose(); snareFsDirectGain.dispose();
+          snareDelaySend.dispose(); snareReverbSend.dispose(); snareSpectralSend.dispose();
         }
       };
       synthsRef.current.snare.updateEq = (hpfFreq: number, lpfFreq: number) => { snareEqHpf.frequency.rampTo(hpfFreq, 0.05); snareEqLpf.frequency.rampTo(lpfFreq, 0.05); };
       synthsRef.current.snare.setPan = (value: number) => { snarePanner.pan.rampTo(value, 0.05); };
-      synthsRef.current.snare.setFreqShift = (hz: number) => { snareFreqShifter.frequency.rampTo(hz, 0.05); };
+      synthsRef.current.snare.setFreqShift = (hz: number, enabled?: boolean) => {
+        snareFreqShifter.frequency.rampTo(hz, 0.05);
+        if (enabled !== undefined) {
+          snareFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
+          snareFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
+        }
+      };
       synthsRef.current.snare.panner = snarePanner;
       synthsRef.current.snare.freqShifter = snareFreqShifter;
       synthsRef.current.snare.setSpectralSend = (value: number) => { snareSpectralSend.gain.rampTo(value, 0.05); };
@@ -3367,18 +3488,27 @@ export const EuclideanSequencer = () => {
       const hatPannerGain = new Tone.Gain(1);
       const hatPanner3DGain = new Tone.Gain(0);
       const hatFreqShifter = new Tone.FrequencyShifter(0);
+      const hatFsBypassGain = new Tone.Gain(0);
+      const hatFsDirectGain = new Tone.Gain(1);
       const hatFilter = new Tone.Filter(5000, "highpass").connect(hatEqHpf);
       hatEqHpf.connect(hatEqLpf);
       hatEqLpf.connect(hatPannerGain);
       hatEqLpf.connect(hatPanner3DGain);
       hatPannerGain.connect(hatPanner);
       hatPanner3DGain.connect(hatPanner3D);
-      hatPanner.connect(hatFreqShifter);
-      hatPanner3D.connect(hatFreqShifter);
+      hatPanner.connect(hatFsBypassGain);
+      hatPanner3D.connect(hatFsBypassGain);
+      hatFsBypassGain.connect(hatFreqShifter);
       hatFreqShifter.connect(master.compressor);
       hatFreqShifter.connect(hatDelaySend);
       hatFreqShifter.connect(hatReverbSend);
       hatFreqShifter.connect(hatSpectralSend);
+      hatPanner.connect(hatFsDirectGain);
+      hatPanner3D.connect(hatFsDirectGain);
+      hatFsDirectGain.connect(master.compressor);
+      hatFsDirectGain.connect(hatDelaySend);
+      hatFsDirectGain.connect(hatReverbSend);
+      hatFsDirectGain.connect(hatSpectralSend);
 
       const hatSynth = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.001, decay: 0.05, sustain: 0 }, volume: -2 }).connect(hatFilter);
       synthsRef.current.hat = {
@@ -3392,12 +3522,19 @@ export const EuclideanSequencer = () => {
         dispose: () => {
           hatSynth.dispose(); hatFilter.dispose(); hatEqHpf.dispose(); hatEqLpf.dispose();
           hatPanner.dispose(); hatPanner3D.dispose(); hatPannerGain.dispose(); hatPanner3DGain.dispose();
-          hatFreqShifter.dispose(); hatDelaySend.dispose(); hatReverbSend.dispose(); hatSpectralSend.dispose();
+          hatFreqShifter.dispose(); hatFsBypassGain.dispose(); hatFsDirectGain.dispose();
+          hatDelaySend.dispose(); hatReverbSend.dispose(); hatSpectralSend.dispose();
         }
       };
       synthsRef.current.hat.updateEq = (hpfFreq: number, lpfFreq: number) => { hatEqHpf.frequency.rampTo(hpfFreq, 0.05); hatEqLpf.frequency.rampTo(lpfFreq, 0.05); };
       synthsRef.current.hat.setPan = (value: number) => { hatPanner.pan.rampTo(value, 0.05); };
-      synthsRef.current.hat.setFreqShift = (hz: number) => { hatFreqShifter.frequency.rampTo(hz, 0.05); };
+      synthsRef.current.hat.setFreqShift = (hz: number, enabled?: boolean) => {
+        hatFreqShifter.frequency.rampTo(hz, 0.05);
+        if (enabled !== undefined) {
+          hatFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
+          hatFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
+        }
+      };
       synthsRef.current.hat.panner = hatPanner;
       synthsRef.current.hat.freqShifter = hatFreqShifter;
       synthsRef.current.hat.setSpectralSend = (value: number) => { hatSpectralSend.gain.rampTo(value, 0.05); };
@@ -3430,23 +3567,34 @@ export const EuclideanSequencer = () => {
       const tonePannerGain = new Tone.Gain(1);
       const tonePanner3DGain = new Tone.Gain(0);
       const toneFreqShifter = new Tone.FrequencyShifter(0);
+      const toneFsBypassGain = new Tone.Gain(0);
+      const toneFsDirectGain = new Tone.Gain(1);
       const toneFilter = new Tone.Filter(2000, "lowpass").connect(toneEqHpf);
       toneEqHpf.connect(toneEqLpf);
       toneEqLpf.connect(tonePannerGain);
       toneEqLpf.connect(tonePanner3DGain);
       tonePannerGain.connect(tonePanner);
       tonePanner3DGain.connect(tonePanner3D);
-      tonePanner.connect(toneFreqShifter);
-      tonePanner3D.connect(toneFreqShifter);
+      tonePanner.connect(toneFsBypassGain);
+      tonePanner3D.connect(toneFsBypassGain);
+      toneFsBypassGain.connect(toneFreqShifter);
       toneFreqShifter.connect(master.compressor);
       toneFreqShifter.connect(toneDelaySend);
       toneFreqShifter.connect(toneReverbSend);
       toneFreqShifter.connect(toneSpectralSend);
+      tonePanner.connect(toneFsDirectGain);
+      tonePanner3D.connect(toneFsDirectGain);
+      toneFsDirectGain.connect(master.compressor);
+      toneFsDirectGain.connect(toneDelaySend);
+      toneFsDirectGain.connect(toneReverbSend);
+      toneFsDirectGain.connect(toneSpectralSend);
       toneFilterRef.current = toneFilter;
       _eqHpfRef = toneEqHpf;
       _eqLpfRef = toneEqLpf;
       _pannerRef = tonePanner;
       _freqShifterRef = toneFreqShifter;
+      _fsBypassGainRef = toneFsBypassGain;
+      _fsDirectGainRef = toneFsDirectGain;
       _spectralSendRef = toneSpectralSend;
       _pannerGainRef = tonePannerGain;
       _panner3DGainRef = tonePanner3DGain;
@@ -4166,8 +4314,16 @@ export const EuclideanSequencer = () => {
       if (_pannerRef && _freqShifterRef) {
         const pRef = _pannerRef;
         const fsRef = _freqShifterRef;
+        const bpRef = _fsBypassGainRef;
+        const drRef = _fsDirectGainRef;
         synthsRef.current.tone.setPan = (value: number) => { pRef.pan.rampTo(value, 0.05); };
-        synthsRef.current.tone.setFreqShift = (hz: number) => { fsRef.frequency.rampTo(hz, 0.05); };
+        synthsRef.current.tone.setFreqShift = (hz: number, enabled?: boolean) => {
+          fsRef.frequency.rampTo(hz, 0.05);
+          if (enabled !== undefined && bpRef && drRef) {
+            bpRef.gain.rampTo(enabled ? 1 : 0, 0.02);
+            drRef.gain.rampTo(enabled ? 0 : 1, 0.02);
+          }
+        };
         synthsRef.current.tone.panner = pRef;
         synthsRef.current.tone.freqShifter = fsRef;
       }
@@ -4210,7 +4366,7 @@ export const EuclideanSequencer = () => {
       synthsRef.current[trackId].updateEq?.(hpf, lpf);
       // Restore pan and freqShift
       synthsRef.current[trackId].setPan?.(track.pan ?? 0);
-      synthsRef.current[trackId].setFreqShift?.(track.freqShiftEnabled ? (track.freqShift ?? 0) : 0);
+      synthsRef.current[trackId].setFreqShift?.(track.freqShiftEnabled ? (track.freqShift ?? 0) : 0, track.freqShiftEnabled ?? false);
       // Restore spectral delay send
       synthsRef.current[trackId].setSpectralSend?.(track.spectralDelaySend ?? 0);
       // Restore binaural state (Phase 7D)
