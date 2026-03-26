@@ -4168,6 +4168,27 @@ export const EuclideanSequencer = () => {
         const ssRef = _spectralSendRef;
         synthsRef.current.tone.setSpectralSend = (value: number) => { ssRef.gain.rampTo(value, 0.05); };
       }
+      // Binaural injection for tone rebuild (Phase 7D)
+      {
+        const tPannerGain = synthsRef.current.tone._pannerGain;
+        const tPanner3DGain = synthsRef.current.tone._panner3DGain;
+        const tPanner3D = synthsRef.current.tone._panner3D;
+        if (tPannerGain && tPanner3DGain && tPanner3D) {
+          synthsRef.current.tone.switchBinaural = (binaural: boolean) => {
+            tPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
+            tPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
+          };
+          synthsRef.current.tone.updateBinaural = (azimuth: number, distance: number) => {
+            const rad = (azimuth * Math.PI) / 180;
+            tPanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance);
+          };
+        }
+      }
+      // Crossfeed injection for tone rebuild (Phase 7E)
+      if (toneFilterRef.current) {
+        const tf = toneFilterRef.current;
+        synthsRef.current.tone.setCrossfeedFreq = (hz: number) => { tf.frequency.rampTo(hz, 0.05); };
+      }
     }
     // Apply current volume, sends, EQ, pan, and freqShift
     const track = tracksRef.current.find(t => t.id === trackId);
