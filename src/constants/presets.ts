@@ -462,4 +462,43 @@ export const PRESETS: ScenePreset[] = [
       cloud: { pulses: 4, steps: 16, offset: 0, cloudMode: 'granular', grainSize: 300, overlap: 0.5, spray: 150, volume: 0.4, delaySend: 0.1, reverbSend: 0.4 },
     }
   },
+  // ── Phase 9/10 Presets ──
+  {
+    id: 'freeze-cathedral',
+    name: 'Freeze Cathedral',
+    type: 'master',
+    category: 'Experimental',
+    description: 'Patrones densos alimentan un Freeze Reverb que acumula capas — el ritmo se convierte en catedral de sonido congelado.',
+    bpm: 85,
+    jitter: 8,
+    swing: 0.15,
+    dynamics: 60,
+    temporalityMode: 'dilla',
+    tracks: {
+      kick: { pulses: 3, steps: 8, offset: 0, volume: 0.8, delaySend: 0, reverbSend: 0.1, freezeSend: 0.7 },
+      snare: { pulses: 2, steps: 8, offset: 3, volume: 0.6, delaySend: 0.1, reverbSend: 0.15, freezeSend: 0.5 },
+      hat: { pulses: 5, steps: 16, offset: 0, pan: 0.4, volume: 0.45, delaySend: 0.05, reverbSend: 0.1, freezeSend: 0.3 },
+      tone: { pulses: 4, steps: 12, offset: 0, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: [0, 4, 7, 3, 6, 2, 5, 1, 4, 7, 3, 6], synthType: 'pad', padVoices: 5, padDetune: 40, volume: 0.5, delaySend: 0.1, reverbSend: 0.2, freezeSend: 0.85 },
+      cloud: { pulses: 3, steps: 8, offset: 0, cloudMode: 'eno', enoSpeed: 0.7, volume: 0.35, delaySend: 0, reverbSend: 0.3, freezeSend: 0.6 },
+    }
+  },
+  {
+    id: 'xlp-oscillator',
+    name: 'XLP Oscillator',
+    type: 'master',
+    category: 'Glitch',
+    description: 'Extreme Loop con tamaños ≤15ms convierte samples en osciladores — cada hit genera un tono continuo cuya frecuencia depende del punto de loop.',
+    bpm: 110,
+    jitter: 2,
+    swing: 0,
+    dynamics: 70,
+    temporalityMode: 'grid',
+    tracks: {
+      kick: { pulses: 4, steps: 16, offset: 0, volume: 0.85, delaySend: 0, reverbSend: 0.1, extremeLoopEnabled: true, extremeLoopSize: 8, extremeLoopPoint: 0.3 },
+      snare: { pulses: 3, steps: 16, offset: 4, volume: 0.65, delaySend: 0.1, reverbSend: 0.15, extremeLoopEnabled: true, extremeLoopSize: 12, extremeLoopPoint: 0.5 },
+      hat: { pulses: 7, steps: 16, offset: 0, pan: -0.5, volume: 0.5, delaySend: 0.05, reverbSend: 0.1, extremeLoopEnabled: true, extremeLoopSize: 5, extremeLoopPoint: 0.7 },
+      tone: { pulses: 5, steps: 12, offset: 0, rootNote: 48, scaleId: 'minor', octaveRange: 2, noteIndices: [0, 2, 4, 7, 5, 3, 6, 1, 4, 7, 2, 5], synthType: 'mono', volume: 0.55, delaySend: 0.15, reverbSend: 0.25 },
+      cloud: { pulses: 4, steps: 16, offset: 0, cloudMode: 'granular', grainSize: 10, overlap: 0.8, spray: 5, volume: 0.4, delaySend: 0.1, reverbSend: 0.3 },
+    }
+  },
 ];

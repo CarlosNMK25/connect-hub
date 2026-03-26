@@ -477,4 +477,50 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
       insight: 'El Bode Frequency Shifter es uno de los pocos procesadores de audio que no tiene análogo en el mundo acústico — ningún instrumento físico puede sumar una cantidad fija de Hz a todas sus frecuencias simultáneamente. Es una operación puramente electrónica, puramente IDM. Autechre y Aphex Twin lo usan exactamente así: para hacer que los instrumentos suenen como algo que no tiene nombre.',
     },
   },
+  'freeze-cathedral': {
+    listening: 'Una catedral hecha de ecos congelados. Los patrones rítmicos densos alimentan el Freeze Reverb, que captura y acumula cada golpe en capas infinitas. El pad frigio con alto Freeze Send se convierte en drone; el kick pierde su ataque y se funde en masa grave. La Cloud en modo Eno aporta movimiento lento dentro del espacio congelado. No es reverb — es arquitectura sonora acumulativa.',
+    structure: 'Cinco pistas con Freeze Send escalonado: Tone (0.85) y Kick (0.7) alimentan más al Freeze, creando el cuerpo principal. Cloud Eno (0.6) y Snare (0.5) aportan textura media. Hat (0.3) añade brillo sutil. A 85 BPM con jitter Dilla, los golpes caen ligeramente fuera de rejilla — cada imprecisión se congela y permanece, creando una cola acumulativa que nunca suena mecánica.',
+    origin: 'El Freeze Reverb nace de un concepto simple: ¿qué pasa si la reverberación nunca termina? En vez del modelo convolutivo tradicional (grabación de impulsos de salas reales), usa un loop de delay con feedback cercano a 1.0 y un filtro LP dentro del bucle. Cada repetición se oscurece progresivamente — la cola no es infinita, sino que se transforma gradualmente en drone grave. Brian Eno exploró esta idea en "Ambient 1: Music for Airports" (1978): sonidos que se alimentan a sí mismos y crean un paisaje auto-evolutivo.',
+    experiments: [
+      'Sube el Freeze Send del Hat a 0.8. Los transientes agudos del hi-hat se acumulan y crean un brillo estático tipo shimmer — el contraste con los drones graves del kick es dramático.',
+      'Baja todos los Freeze Send a 0 excepto Tone. Escucha cómo el pad solo, sin percusión, crea la catedral completa. Luego sube el kick — la masa grave llena el suelo de la catedral.',
+      'Cambia el BPM a 40. A velocidad lenta, cada golpe congelado tiene tiempo de desarrollarse antes de que llegue el siguiente. La densidad baja — la catedral se hace más grande.',
+      'Activa Evolve en la pista Tone con mutation 15%. Las notas que se congelan cambian con cada ciclo — la catedral nunca suena igual dos veces.',
+    ],
+    connections: [
+      'Duende Digital: Mismo universo frigio pero sin Freeze — cada nota termina. Aquí, nada termina.',
+      'Amen Layers: Break Layering llena el espacio con capas de sample; Freeze Cathedral llena el espacio con capas de reverb.',
+      'Bode Machine: Complejidad por transformación tímbrica vs. complejidad por acumulación temporal.',
+    ],
+    listeningGuide: {
+      order: 15,
+      idmRefs: ['§16.1 Freeze Reverb', '§3.2 Envíos', '§9.4 Eno Mode'],
+      whatToHear: 'Cinco pistas con niveles de Freeze Send escalonados (0.3 a 0.85). El Tone pad frigio con Send 0.85 es el motor principal del drone — cada nota se congela y se superpone a las anteriores, oscureciéndose progresivamente por el filtro LP del loop. El kick con Send 0.7 aporta masa grave que se acumula lentamente. Cloud Eno con Send 0.6 inyecta movimiento dentro del espacio congelado. El jitter Dilla (8ms) hace que cada imprecisión temporal se capture y permanezca — el resultado nunca suena mecánico.',
+      experiment: 'Sube y baja el Freeze Send de cada pista individualmente. Observa cómo cada instrumento aporta una capa distinta al drone: kick = masa grave, hat = brillo, tone = armonía, cloud = movimiento. El Freeze Send es literalmente el control de "cuánto de este instrumento se convierte en catedral".',
+      insight: 'El Freeze Reverb no es reverberación en sentido acústico — es un proceso de acumulación temporal. Cada onset se captura en un loop de delay con feedback ~0.95 y filtro LP que oscurece cada repetición. El resultado es un espacio que crece con el tiempo: cuanto más tocas, más grande se hace la catedral. Es el opuesto exacto de la reverberación natural, donde cada sonido decae. Aquí, cada sonido se suma.',
+    },
+  },
+  'xlp-oscillator': {
+    listening: 'Los samples han dejado de ser samples. Con Extreme Loop activado a tamaños de 5-12ms, cada hit se convierte en un tono continuo — un oscilador cuya frecuencia depende del punto del buffer donde el loop se ancla. El kick genera un zumbido grave; el hat, un chillido agudo; el snare, un rugido con textura de ruido. La Cloud con granos de 10ms y spray mínimo refuerza la estética micro-loop. Es síntesis por sample.',
+    structure: 'Tres pistas percusivas con XLP activado a distintos tamaños: Kick (8ms, punto 0.3), Snare (12ms, punto 0.5), Hat (5ms, punto 0.7). El tamaño del loop determina la frecuencia del tono resultante (f ≈ 1000/size Hz): 8ms → ~125Hz, 5ms → ~200Hz, 12ms → ~83Hz. El punto de loop determina el timbre — diferentes posiciones en el buffer tienen diferentes formas de onda. Tone en modo convencional (mono, escala menor) ancla la armonía. Cloud granular con grainSize 10ms es la versión textural del mismo principio.',
+    origin: 'El Extreme Loop Point (XLP) explota un fenómeno conocido en síntesis digital: cuando un loop es suficientemente corto (<20ms), el oído deja de percibir repetición y comienza a percibir tono. Es el principio fundamental de la síntesis wavetable — un ciclo de onda no es más que un loop de ~50 muestras. Autechre usa esta técnica en "Confield" (2001) y "Draft 7.30" (2003): samples procesados hasta que su identidad original desaparece y se convierten en timbres sintéticos únicos, imposibles de replicar con osciladores convencionales.',
+    experiments: [
+      'Cambia el Loop Size del kick de 8ms a 3ms. La frecuencia sube a ~333Hz — el kick se convierte en un tono medio. Luego bájalo a 15ms — vuelve a sonar como repetición rápida, no como tono. La frontera está en ~15ms.',
+      'Mueve el Loop Point del hat de 0.7 a 0.1. El timbre cambia completamente porque estás leyendo una zona diferente del buffer. Es como cambiar la forma de onda de un oscilador — pero cada "forma de onda" es única porque viene del sample.',
+      'Desactiva XLP en todas las pistas. Los samples vuelven a sonar como percusión normal. Reactívalos uno a uno — cada activación transforma un instrumento en un oscilador. Este A/B muestra exactamente la frontera entre sample y síntesis.',
+      'Activa Evolve con mutation 20% en la pista Hat. Las probabilidades mutan — el patrón de activación de los osciladores XLP cambia cada ciclo, creando secuencias tímbricas generativas.',
+    ],
+    connections: [
+      'Lluvia Granular: Granos pequeños como vía paralela hacia la textura micro-temporal — Cloud vs XLP.',
+      'Bode Machine: Frequency Shifter transforma timbres sumando Hz; XLP transforma samples convirtiéndolos en osciladores.',
+      'Confield: Poliritmia prima + glitch. XLP Oscillator añade la dimensión tímbrica que Confield explora solo rítmicamente.',
+    ],
+    listeningGuide: {
+      order: 16,
+      idmRefs: ['§17.1 Extreme Loop', '§2.3 Micro-loop', '§9.1 Granular'],
+      whatToHear: 'Tres pistas percusivas convertidas en osciladores por XLP: Kick (8ms → ~125Hz), Hat (5ms → ~200Hz), Snare (12ms → ~83Hz). Cada una genera un tono continuo cuya frecuencia es ≈1000/loopSize y cuyo timbre depende del punto de loop. La Cloud con grainSize 10ms y spray mínimo (5ms) es la versión granular del mismo concepto — ambos explotan el mismo fenómeno perceptual: loops < 20ms = tono, no repetición.',
+      experiment: 'Varía el Loop Size de una pista entre 3ms y 15ms. Escucha la transición: por debajo de ~15ms, el loop deja de sonar como repetición y se convierte en tono. Luego mueve el Loop Point — el timbre cambia porque estás leyendo una zona diferente del buffer. Es wavetable synthesis con samples como fuente.',
+      insight: 'El Extreme Loop explota el umbral perceptual de ~15-20ms donde repetición se convierte en tono. Es el mismo principio de la síntesis wavetable: un ciclo de onda de 440Hz dura ~2.3ms, un "loop" inaudiblemente corto. XLP te permite crear osciladores con formas de onda imposibles de diseñar con osciladores convencionales, porque cada posición del buffer contiene una forma de onda única derivada de audio real.',
+    },
+  },
 };
