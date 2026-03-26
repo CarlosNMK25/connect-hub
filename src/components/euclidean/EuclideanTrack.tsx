@@ -242,6 +242,10 @@ interface EuclideanTrackProps {
   freqShiftEnabled?: boolean;
   freqShift?: number;
   spectralDelaySend?: number;
+  // 3D Audio / Binaural (Phase 7D)
+  binauralEnabled?: boolean;
+  binauralAzimuth?: number;
+  binauralDistance?: number;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
