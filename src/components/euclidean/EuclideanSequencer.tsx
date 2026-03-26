@@ -3347,6 +3347,10 @@ export const EuclideanSequencer = () => {
       if (param === 'freezeSend') {
         synthObj.setFreezeSend?.(val as number);
       }
+      // Reverse Send real-time sync (Phase 9)
+      if (param === 'reverseSend') {
+        synthObj.setReverseSend?.(val as number);
+      }
       // Binaural real-time sync
       if (param === 'binauralEnabled') {
         synthObj.switchBinaural?.(val as boolean);
