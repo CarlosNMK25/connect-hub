@@ -241,8 +241,12 @@ interface EuclideanTrackProps {
   pan?: number;
   freqShiftEnabled?: boolean;
   freqShift?: number;
-  spectralDelaySend?: number;
+   spectralDelaySend?: number;
   freezeSend?: number;
+  // Extreme Loop
+  extremeLoopEnabled?: boolean;
+  extremeLoopSize?: number;
+  extremeLoopPoint?: number;
   // 3D Audio / Binaural (Phase 7D)
   binauralEnabled?: boolean;
   binauralAzimuth?: number;
@@ -526,6 +530,9 @@ export const EuclideanTrack = React.memo(({
   freqShift,
   spectralDelaySend,
   freezeSend,
+  extremeLoopEnabled,
+  extremeLoopSize,
+  extremeLoopPoint,
   // 3D Audio / Binaural
   binauralEnabled,
   binauralAzimuth,
@@ -1685,6 +1692,46 @@ export const EuclideanTrack = React.memo(({
           </div>
         </div>
       )}
+      {/* Extreme Loop (XLP) — visible only when sample loaded */}
+      {samplerStatus === 'READY' && id !== 'cloud' && (
+        <div className="flex items-center gap-3 mt-2 p-3 bg-idm-bg rounded-2xl border border-border">
+          <button
+            onClick={() => onSamplerParamChange('extremeLoopEnabled', !extremeLoopEnabled)}
+            className={`text-[8px] font-mono font-bold px-2 py-1 rounded border transition-colors ${
+              extremeLoopEnabled
+                ? 'bg-system-accent text-white border-system-accent'
+                : 'bg-background text-idm-muted border-border'
+            }`}
+            title="Extreme Loop — micro loop continuo"
+          >
+            XLP
+          </button>
+          {extremeLoopEnabled && (
+            <>
+              <div className="flex items-center gap-1">
+                <span className="text-[7px] font-mono text-idm-muted">Size</span>
+                <input
+                  type="range" min={1} max={50} step={1}
+                  value={extremeLoopSize ?? 10}
+                  onChange={e => onSamplerParamChange('extremeLoopSize', Number(e.target.value))}
+                  className="w-16 h-1 accent-system-accent"
+                />
+                <span className="text-[7px] font-mono text-idm-muted w-8">{extremeLoopSize ?? 10}ms</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-[7px] font-mono text-idm-muted">Point</span>
+                <input
+                  type="range" min={0} max={1} step={0.01}
+                  value={extremeLoopPoint ?? 0.5}
+                  onChange={e => onSamplerParamChange('extremeLoopPoint', Number(e.target.value))}
+                  className="w-16 h-1 accent-system-accent"
+                />
+                <span className="text-[7px] font-mono text-idm-muted w-8">{Math.round((extremeLoopPoint ?? 0.5) * 100)}%</span>
+              </div>
+            </>
+          )}
+        </div>
+      )}
       {/* Phase 8 — Kick Synthesis Controls */}
       {id === 'kick' && samplerStatus === 'IDLE' && onPercSynthParamChange && (
         <div className="flex items-center gap-3 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
@@ -2579,6 +2626,9 @@ export const EuclideanTrack = React.memo(({
     prevProps.snareNoiseType === nextProps.snareNoiseType &&
     prevProps.snareBodyEnabled === nextProps.snareBodyEnabled &&
     prevProps.snareBodyPitch === nextProps.snareBodyPitch &&
-    prevProps.snareBodyDecay === nextProps.snareBodyDecay
+    prevProps.snareBodyDecay === nextProps.snareBodyDecay &&
+    prevProps.extremeLoopEnabled === nextProps.extremeLoopEnabled &&
+    prevProps.extremeLoopSize === nextProps.extremeLoopSize &&
+    prevProps.extremeLoopPoint === nextProps.extremeLoopPoint
   );
 });

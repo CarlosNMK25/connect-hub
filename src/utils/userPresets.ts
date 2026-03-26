@@ -96,6 +96,10 @@ export interface UserPresetTrack {
   spectralDelaySend?: number;
   // Freeze Send (Phase 9)
   freezeSend?: number;
+  // Extreme Loop (Phase 10)
+  extremeLoopEnabled?: boolean;
+  extremeLoopSize?: number;
+  extremeLoopPoint?: number;
   // 3D Audio / Binaural (Phase 7D)
   binauralEnabled?: boolean;
   binauralAzimuth?: number;

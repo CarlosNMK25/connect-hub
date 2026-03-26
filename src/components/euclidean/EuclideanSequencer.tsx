@@ -155,6 +155,10 @@ interface TrackState {
   spectralDelaySend?: number; // 0-1, default 0
   // Freeze Send (Phase 9)
   freezeSend?: number; // 0-1, default 0
+  // Extreme Loop (Phase 10)
+  extremeLoopEnabled?: boolean; // default false
+  extremeLoopSize?: number;     // ms, 1-50, default 10
+  extremeLoopPoint?: number;    // 0-1, position in buffer, default 0.5
   // 3D Audio / Binaural (Phase 7D)
   binauralEnabled?: boolean;
   binauralAzimuth?: number; // 0-360 degrees, default 0
@@ -904,6 +908,9 @@ export const EuclideanSequencer = () => {
         if (config.freqShift !== undefined) newTrack.freqShift = config.freqShift;
         if ((config as any).spectralDelaySend !== undefined) newTrack.spectralDelaySend = (config as any).spectralDelaySend;
         if ((config as any).freezeSend !== undefined) newTrack.freezeSend = (config as any).freezeSend;
+        if ((config as any).extremeLoopEnabled !== undefined) newTrack.extremeLoopEnabled = (config as any).extremeLoopEnabled;
+        if ((config as any).extremeLoopSize !== undefined) newTrack.extremeLoopSize = (config as any).extremeLoopSize;
+        if ((config as any).extremeLoopPoint !== undefined) newTrack.extremeLoopPoint = (config as any).extremeLoopPoint;
 
         // Tonal fields
         if (config.rootNote !== undefined) newTrack.rootNote = config.rootNote;
@@ -1023,6 +1030,9 @@ export const EuclideanSequencer = () => {
           freqShift: t.freqShift,
           spectralDelaySend: t.spectralDelaySend,
           freezeSend: t.freezeSend,
+          extremeLoopEnabled: t.extremeLoopEnabled,
+          extremeLoopSize: t.extremeLoopSize,
+          extremeLoopPoint: t.extremeLoopPoint,
           binauralEnabled: t.binauralEnabled,
           binauralAzimuth: t.binauralAzimuth,
           binauralDistance: t.binauralDistance,
@@ -1167,6 +1177,9 @@ export const EuclideanSequencer = () => {
         freqShift: (config as any).freqShift ?? 0,
         spectralDelaySend: (config as any).spectralDelaySend ?? 0,
         freezeSend: (config as any).freezeSend ?? 0,
+        extremeLoopEnabled: (config as any).extremeLoopEnabled ?? false,
+        extremeLoopSize: (config as any).extremeLoopSize ?? 10,
+        extremeLoopPoint: (config as any).extremeLoopPoint ?? 0.5,
         binauralEnabled: (config as any).binauralEnabled ?? false,
         binauralAzimuth: (config as any).binauralAzimuth ?? 0,
         binauralDistance: (config as any).binauralDistance ?? 3,
@@ -2385,6 +2398,15 @@ export const EuclideanSequencer = () => {
             const synth = synthsRef.current[track.id];
             if (!synth) return;
 
+            // XLP: skip step trigger when extreme loop is active
+            if (track.extremeLoopEnabled && track.samplerStatus === 'READY' && synth.grainPlayer) {
+              // Still count the hit visually
+              Tone.Draw.schedule(() => {
+                setLastHit({ offset, color: track.color, velocity, id: Math.random() });
+              }, Tone.now());
+              return;
+            }
+
             let scheduledTime = Math.max(baseTime + offset, now + 0.02);
             const lastTime = lastScheduledTimesRef.current[track.id] || 0;
             if (scheduledTime <= lastTime) scheduledTime = lastTime + 0.005;
@@ -2659,6 +2681,12 @@ export const EuclideanSequencer = () => {
       if (synthsRef.current.tone?.stop) {
         synthsRef.current.tone.stop();
       }
+      // Stop XLP loops
+      tracksRef.current.forEach(t => {
+        if (t.extremeLoopEnabled && synthsRef.current[t.id]?.grainPlayer) {
+          try { synthsRef.current[t.id].grainPlayer.stop(); } catch {}
+        }
+      });
       // Reset current steps ref
       Object.keys(currentStepsRef.current).forEach(id => currentStepsRef.current[id] = -1);
       
@@ -2706,6 +2734,12 @@ export const EuclideanSequencer = () => {
       }
       // Start Lorenz RAF if any track has it enabled
       startLorenzRaf();
+      // Start XLP loops
+      tracksRef.current.forEach(t => {
+        if (t.extremeLoopEnabled && t.samplerStatus === 'READY' && synthsRef.current[t.id]?.grainPlayer) {
+          try { synthsRef.current[t.id].grainPlayer.start(); } catch {}
+        }
+      });
     }
     setIsPlaying(!isPlaying);
   };
@@ -2761,6 +2795,17 @@ export const EuclideanSequencer = () => {
         synth.grainPlayer.detune = track.pitch * 100;
         const stretchRate = track.stretchEnabled ? (track.stretchRate ?? 1.0) : 1.0;
         synth.grainPlayer.playbackRate = stretchRate;
+        // XLP sync
+        if (track.extremeLoopEnabled && track.samplerBuffer) {
+          synth.grainPlayer.loop = true;
+          const loopPt = (track.extremeLoopPoint ?? 0.5) * track.samplerBuffer.duration;
+          const loopSz = (track.extremeLoopSize ?? 10) / 1000;
+          synth.grainPlayer.loopStart = loopPt;
+          synth.grainPlayer.loopEnd = loopPt + loopSz;
+          synth.grainPlayer.grainSize = loopSz;
+        } else if (track.id !== 'cloud') {
+          synth.grainPlayer.loop = false;
+        }
       }
         } catch (e) {
           console.warn(`Failed to sync params for track ${track.id}:`, e);
@@ -3136,6 +3181,43 @@ export const EuclideanSequencer = () => {
           case 'sampleEnd': synthObj.grainPlayer.loopEnd = val * synthObj.grainPlayer.buffer.duration; break;
           case 'attack': synthObj.grainPlayer.fadeIn = val / 1000; break;
           case 'decay': synthObj.grainPlayer.fadeOut = val / 1000; break;
+          case 'extremeLoopEnabled': {
+            const currentTrack = tracksRef.current.find(t => t.id === trackId);
+            if (val && currentTrack?.samplerBuffer) {
+              synthObj.grainPlayer.loop = true;
+              const loopPt = (currentTrack.extremeLoopPoint ?? 0.5) * currentTrack.samplerBuffer.duration;
+              const loopSz = (currentTrack.extremeLoopSize ?? 10) / 1000;
+              synthObj.grainPlayer.loopStart = loopPt;
+              synthObj.grainPlayer.loopEnd = loopPt + loopSz;
+              synthObj.grainPlayer.grainSize = loopSz;
+              if (isPlaying) try { synthObj.grainPlayer.start(); } catch {}
+            } else {
+              synthObj.grainPlayer.loop = trackId === 'cloud';
+              try { if (trackId !== 'cloud') synthObj.grainPlayer.stop(); } catch {}
+            }
+            break;
+          }
+          case 'extremeLoopSize': {
+            const ct = tracksRef.current.find(t => t.id === trackId);
+            if (ct?.extremeLoopEnabled && ct.samplerBuffer) {
+              const loopSz = val / 1000;
+              const loopPt = (ct.extremeLoopPoint ?? 0.5) * ct.samplerBuffer.duration;
+              synthObj.grainPlayer.loopStart = loopPt;
+              synthObj.grainPlayer.loopEnd = loopPt + loopSz;
+              synthObj.grainPlayer.grainSize = loopSz;
+            }
+            break;
+          }
+          case 'extremeLoopPoint': {
+            const ct2 = tracksRef.current.find(t => t.id === trackId);
+            if (ct2?.extremeLoopEnabled && ct2.samplerBuffer) {
+              const loopPt = val * ct2.samplerBuffer.duration;
+              const loopSz = (ct2.extremeLoopSize ?? 10) / 1000;
+              synthObj.grainPlayer.loopStart = loopPt;
+              synthObj.grainPlayer.loopEnd = loopPt + loopSz;
+            }
+            break;
+          }
         }
       }
       if (synthObj.bitCrusher && param === 'bitCrush') {
@@ -6582,8 +6664,11 @@ export const EuclideanSequencer = () => {
               freqShiftEnabled={track.freqShiftEnabled}
               freqShift={track.freqShift}
               spectralDelaySend={track.spectralDelaySend}
-              freezeSend={track.freezeSend}
-              binauralEnabled={track.binauralEnabled}
+               freezeSend={track.freezeSend}
+               extremeLoopEnabled={track.extremeLoopEnabled}
+               extremeLoopSize={track.extremeLoopSize}
+               extremeLoopPoint={track.extremeLoopPoint}
+               binauralEnabled={track.binauralEnabled}
               binauralAzimuth={track.binauralAzimuth}
               binauralDistance={track.binauralDistance}
               kickPitchDecay={track.kickPitchDecay}
