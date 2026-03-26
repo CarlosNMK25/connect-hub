@@ -305,6 +305,13 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
       experiment: 'Cambia el modo de temporalidad de Dilla a Grid. Escucha qué le pasa a esa jerarquía de humanidad. Luego cambia la pista Hat de modo Euclidean a CA, Rule 30, Semilla Centro, Densidad 50, Velocidad "Cada 2". Cambia la Regla del CA entre 30, 90 y 110. Rule 30 es caótica e impredecible. Rule 90 genera simetrías que suenan casi melódicas. Rule 110 puede mantener estructuras estables durante muchos ciclos.',
       insight: 'Autechre construye sus piezas más avanzadas con exactamente este principio: un sustrato estable (kick, snare) sobre el que un elemento evoluciona según reglas autónomas. El resultado parece improvisado pero es completamente determinista. No hay azar — hay complejidad emergente. J Dilla descubrió empíricamente con el MPC que si retrasas el kick y adelantas el hat, el groove parece más humano. La app implementa exactamente ese sistema con multiplicadores por instrumento.',
     },
+    listeningGuide2: {
+      order: 15,
+      idmRefs: ['§1.1 Layering Complejo', '§1.2 Velocity Layering', '§13.1 Modal Synthesis'],
+      whatToHear: 'El mismo patrón rítmico de Confield pero con síntesis percusiva completamente diferente. El hat MetalSynth tiene resonancias que el NoiseSynth no puede imitar — escucha cómo las frecuencias del hat interactúan con la reverb del bus. El snare con Body añade una dimensión tonal al ritmo asimétrico. El kick con pitchDecay alto \'cae\' audiblemente en cada golpe.',
+      experiment: 'Cambia el Hat de Metal a Noise y escucha la diferencia. Luego desactiva el Body del Snare. Cada cambio elimina una capa de complejidad tímbrica. Así es como puedes entender exactamente qué aporta cada motor de síntesis al conjunto — no en abstracto, sino en el contexto de un patrón rítmico específico.',
+      insight: 'Autechre construye sus kits percusivos con síntesis FM inarmónica — exactamente lo que hace MetalSynth. El timbre de los hats en Confield (2001) no suena a ningún instrumento existente porque fue sintetizado con ratios de modulación que no corresponden a ninguna relación armónica natural. La inharmonicidad es la firma del IDM percusivo.',
+    },
   },
 
   'duende-digital': {
