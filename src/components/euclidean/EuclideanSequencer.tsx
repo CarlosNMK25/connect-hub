@@ -153,6 +153,8 @@ interface TrackState {
   freqShift?: number; // -500 to +500 Hz, default 0
   // Spectral Delay Send (Phase 7C)
   spectralDelaySend?: number; // 0-1, default 0
+  // Freeze Send (Phase 9)
+  freezeSend?: number; // 0-1, default 0
   // 3D Audio / Binaural (Phase 7D)
   binauralEnabled?: boolean;
   binauralAzimuth?: number; // 0-360 degrees, default 0
