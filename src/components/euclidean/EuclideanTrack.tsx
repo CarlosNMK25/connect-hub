@@ -237,6 +237,10 @@ interface EuclideanTrackProps {
   eqEnabled?: boolean;
   eqHpfFreq?: number;
   eqLpfFreq?: number;
+  // Pan + FreqShifter props
+  pan?: number;
+  freqShiftEnabled?: boolean;
+  freqShift?: number;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
