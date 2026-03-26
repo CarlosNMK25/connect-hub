@@ -2535,7 +2535,9 @@ export const EuclideanSequencer = () => {
                     const startOff = track.sampleStart * bufDur;
                     const randomOff = (Math.random() - 0.5) * sprayAmount;
                     const finalOff = Math.max(0, Math.min(bufDur, startOff + randomOff));
-                    const stepDur = track.mode === 'GATE' ? Tone.Time("32n").toSeconds() : (track.decay / 2000);
+                    const stepDur = track.mode === 'GATE' ? Tone.Time("32n").toSeconds()
+                      : track.mode === 'ONE-SHOT' ? Math.max(0.01, (track.sampleEnd - track.sampleStart) * bufDur / 2)
+                      : (track.decay / 2000);
                     const endOff = track.sampleEnd * bufDur;
                     const roiDur = Math.max(0.01, endOff - finalOff);
                     const dur = Math.max(0.01, Math.min(roiDur, stepDur));
