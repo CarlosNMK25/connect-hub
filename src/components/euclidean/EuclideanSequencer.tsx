@@ -155,6 +155,10 @@ interface TrackState {
   spectralDelaySend?: number; // 0-1, default 0
   // Freeze Send (Phase 9)
   freezeSend?: number; // 0-1, default 0
+  // Extreme Loop (Phase 10)
+  extremeLoopEnabled?: boolean; // default false
+  extremeLoopSize?: number;     // ms, 1-50, default 10
+  extremeLoopPoint?: number;    // 0-1, position in buffer, default 0.5
   // 3D Audio / Binaural (Phase 7D)
   binauralEnabled?: boolean;
   binauralAzimuth?: number; // 0-360 degrees, default 0
