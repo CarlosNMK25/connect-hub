@@ -2980,9 +2980,13 @@ export const EuclideanSequencer = () => {
 
       const toneDelaySend = new Tone.Gain(0.15).connect(master.delayBus);
       const toneReverbSend = new Tone.Gain(0.2).connect(master.reverbBus);
-      const toneFilter = new Tone.Filter(2000, "lowpass").connect(master.compressor);
-      toneFilter.connect(toneDelaySend);
-      toneFilter.connect(toneReverbSend);
+      const toneEqHpf = new Tone.Filter(20, "highpass");
+      const toneEqLpf = new Tone.Filter(20000, "lowpass");
+      const toneFilter = new Tone.Filter(2000, "lowpass").connect(toneEqHpf);
+      toneEqHpf.connect(toneEqLpf);
+      toneEqLpf.connect(master.compressor);
+      toneEqLpf.connect(toneDelaySend);
+      toneEqLpf.connect(toneReverbSend);
       toneFilterRef.current = toneFilter;
 
       // Reconectar nodo de captura si existe
