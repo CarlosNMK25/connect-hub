@@ -5571,185 +5571,330 @@ export const EuclideanSequencer = () => {
                 </div>
               )}
 
-              {/* Controls 2×2 Layout */}
+              {/* Controls — 2 columns: left=controls, right=FX Globales */}
               {showControls && (
-                <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
-                  {/* FILA 1 — TEMPORALIDAD + FILTRO GLOBAL */}
-                  <div className="grid grid-cols-2 gap-6 items-start">
-                    {/* TEMPORALIDAD */}
-                    <div className="flex flex-col gap-2">
-                      <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">Temporalidad</span>
-                      <div className="flex gap-1.5 flex-wrap">
-                        {TEMPORALITY_MODES.map(m => (
-                          <button
-                            key={m.id}
-                            onClick={() => { setTemporalityMode(m.id); logChange(`Temporalidad → ${m.label}`); }}
-                            className={`px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-200 active:scale-95 ${
-                              temporalityMode === m.id
-                                ? 'bg-system-accent text-white shadow-sm'
-                                : 'bg-black/5 text-idm-muted hover:bg-black/10 hover:text-idm-ink'
-                            }`}
-                          >
-                            {m.label}
-                          </button>
-                        ))}
+                <div className="grid grid-cols-[1fr,auto] gap-6 animate-in fade-in slide-in-from-top-2 duration-500">
+                  {/* LEFT COLUMN — Controls */}
+                  <div className="flex flex-col gap-4">
+                    {/* FILA 1 — TEMPORALIDAD + FILTRO GLOBAL */}
+                    <div className="grid grid-cols-2 gap-6 items-start">
+                      {/* TEMPORALIDAD */}
+                      <div className="flex flex-col gap-2">
+                        <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">Temporalidad</span>
+                        <div className="flex gap-1.5 flex-wrap">
+                          {TEMPORALITY_MODES.map(m => (
+                            <button
+                              key={m.id}
+                              onClick={() => { setTemporalityMode(m.id); logChange(`Temporalidad → ${m.label}`); }}
+                              className={`px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-200 active:scale-95 ${
+                                temporalityMode === m.id
+                                  ? 'bg-system-accent text-white shadow-sm'
+                                  : 'bg-black/5 text-idm-muted hover:bg-black/10 hover:text-idm-ink'
+                              }`}
+                            >
+                              {m.label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* FILTRO GLOBAL — HPF + LPF en misma fila */}
-                    <div className="flex flex-col gap-2">
-                      <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">Filtro Global</span>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex flex-col gap-1">
-                          <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxHighPass'); setHoveredGlobalEl(e.currentTarget); } }}
-                            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                            <span>HPF</span>
-                            <span className="text-system-accent">{Math.round(fxHighPass)}Hz</span>
-                          </div>
-                          <input type="range" min="20" max="2000" value={fxHighPass}
-                            onChange={(e) => setFxHighPass(parseInt(e.target.value))}
-                            className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxLowPass'); setHoveredGlobalEl(e.currentTarget); } }}
-                            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                            <span>LPF</span>
-                            <span className="text-system-accent">{Math.round(fxLowPass)}Hz</span>
-                          </div>
-                          <input type="range" min="500" max="20000" value={fxLowPass}
-                            onChange={(e) => setFxLowPass(parseInt(e.target.value))}
-                            className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* FILA 2 — FX GLOBALES a ancho completo, 3 columnas */}
-                  <div className="flex flex-col gap-2">
-                    <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">FX Globales</span>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="flex flex-col gap-1">
-                        <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverbMix'); setHoveredGlobalEl(e.currentTarget); } }}
-                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                          <span>Space</span><span className="text-system-accent">{Math.round(reverbMix * 100)}%</span>
-                        </div>
-                        <input type="range" min="0" max="100" value={reverbMix * 100}
-                          onChange={(e) => setReverbMix(parseInt(e.target.value) / 100)}
-                          className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayMix'); setHoveredGlobalEl(e.currentTarget); } }}
-                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                          <span>Echo</span><span className="text-system-accent">{Math.round(delayMix * 100)}%</span>
-                        </div>
-                        <input type="range" min="0" max="100" value={delayMix * 100}
-                          onChange={(e) => setDelayMix(parseInt(e.target.value) / 100)}
-                          className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayFeedback'); setHoveredGlobalEl(e.currentTarget); } }}
-                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                          <span>Feedback</span><span className="text-system-accent">{Math.round(delayFeedback * 100)}%</span>
-                        </div>
-                        <input type="range" min="0" max="100" value={delayFeedback * 100}
-                          onChange={(e) => setDelayFeedback(parseInt(e.target.value) / 100)}
-                          className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* FILA 3 — RITMO a ancho completo, 4 columnas */}
-                  <div className="flex flex-col gap-2">
-                    <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">Ritmo</span>
-                    <div className="grid grid-cols-4 gap-4">
-                      <div className="flex flex-col gap-1">
-                        <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('bpm'); setHoveredGlobalEl(e.currentTarget); } }}
-                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                          <span>Tempo</span>
-                          <span className="text-idm-ink">{bpm} BPM</span>
-                        </div>
-                        <input type="range" min="40" max="240" value={bpm}
-                          onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('bpm', 'BPM', bpm, v, '', (o, n) => { const oldEclipse = mcm * 60 / o / 4; const newEclipse = mcm * 60 / n / 4; return [`Eclipse ${formatEclipseTime(oldEclipse, false)} → ${formatEclipseTime(newEclipse, false)}`]; }); setBpm(v); }}
-                          className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
-                        <div className="flex flex-col gap-1">
-                          <button onClick={() => setShowMM(prev => !prev)}
-                            className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors self-start ${showMM ? 'bg-system-accent text-white border-system-accent' : 'bg-white text-idm-muted border-black/10 hover:border-system-accent'}`}
-                            title="Metric Modulation">MM</button>
-                          {showMM && (
-                            <div className="flex flex-col gap-2 p-2 bg-white/80 border border-black/10 rounded-lg min-w-[200px]">
-                              <span className="text-[8px] font-mono uppercase text-idm-muted">Metric Modulation</span>
-                              <div className="text-[10px] font-mono text-idm-ink">{bpm} BPM</div>
-                              <div className="grid grid-cols-3 gap-1">
-                                {METRIC_MODULATION_RATIOS.map(({ ratio, label, description }) => {
-                                  const resultBpm = Math.round(Math.max(40, Math.min(240, bpm * ratio)));
-                                  const clamped = resultBpm !== Math.round(bpm * ratio);
-                                  return (
-                                    <button key={label} onClick={() => handleMetricModulation(ratio, label, description)} disabled={clamped}
-                                      className={`flex flex-col items-center px-1 py-1.5 rounded border text-center transition-colors ${clamped ? 'opacity-30 cursor-not-allowed border-black/5 bg-white' : 'border-black/10 bg-white hover:border-system-accent hover:text-system-accent'}`}
-                                      title={`${description} → ${resultBpm} BPM${clamped ? ' (fuera de rango)' : ''}`}>
-                                      <span className="text-[10px] font-mono font-bold text-idm-ink">{label}</span>
-                                      <span className="text-[7px] font-mono text-idm-muted">{resultBpm}</span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                              {mmHistory.length > 0 && (
-                                <div className="flex flex-col gap-0.5">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-[7px] font-mono uppercase text-idm-muted">Historial</span>
-                                    <button onClick={() => handleMetricModulationReset(mmHistory[mmHistory.length - 1].fromBpm)}
-                                      className="text-[7px] font-mono text-idm-muted hover:text-system-accent transition-colors">Reset</button>
-                                  </div>
-                                  {mmHistory.map((entry, i) => (
-                                    <div key={i} className="flex items-center justify-between gap-1">
-                                      <span className="text-[7px] font-mono text-idm-muted">{entry.timestamp}</span>
-                                      <span className="text-[7px] font-mono text-idm-ink">{entry.fromBpm}→{entry.toBpm}</span>
-                                      <span className="text-[7px] font-mono text-system-accent">{entry.ratio}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
+                      {/* FILTRO GLOBAL — HPF + LPF en misma fila */}
+                      <div className="flex flex-col gap-2">
+                        <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">Filtro Global</span>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="flex flex-col gap-1">
+                            <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxHighPass'); setHoveredGlobalEl(e.currentTarget); } }}
+                              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                              <span>HPF</span>
+                              <span className="text-system-accent">{Math.round(fxHighPass)}Hz</span>
                             </div>
-                          )}
+                            <input type="range" min="20" max="2000" value={fxHighPass}
+                              onChange={(e) => setFxHighPass(parseInt(e.target.value))}
+                              className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxLowPass'); setHoveredGlobalEl(e.currentTarget); } }}
+                              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                              <span>LPF</span>
+                              <span className="text-system-accent">{Math.round(fxLowPass)}Hz</span>
+                            </div>
+                            <input type="range" min="500" max="20000" value={fxLowPass}
+                              onChange={(e) => setFxLowPass(parseInt(e.target.value))}
+                              className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('jitter'); setHoveredGlobalEl(e.currentTarget); } }}
-                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                          <span>Jitter</span><span className="text-system-accent">{jitter}ms</span>
-                        </div>
-                        <input type="range" min="0" max="20" value={jitter}
-                          onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('jitter', 'Jitter', jitter, v, 'ms'); setJitter(v); }}
-                          className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('swing'); setHoveredGlobalEl(e.currentTarget); } }}
-                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                          <span>Swing</span><span className="text-system-accent">{swing}%</span>
-                        </div>
-                        <input type="range" min="0" max="100" value={swing}
-                          onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('swing', 'Swing', swing, v, '%'); setSwing(v); }}
-                          className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('dynamics'); setHoveredGlobalEl(e.currentTarget); } }}
-                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                          <span>Dynamics</span><span className="text-system-accent">{dynamics}%</span>
-                        </div>
-                        <input type="range" min="0" max="100" value={dynamics}
-                          onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('dynamics', 'Dynamics', dynamics, v, '%'); setDynamics(v); }}
-                          className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
                       </div>
                     </div>
+
+                    {/* FILA 2 — FX GLOBALES SIMPLES a ancho completo, 3 columnas */}
+                    <div className="flex flex-col gap-2">
+                      <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">FX Globales</span>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="flex flex-col gap-1">
+                          <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverbMix'); setHoveredGlobalEl(e.currentTarget); } }}
+                            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                            <span>Space</span><span className="text-system-accent">{Math.round(reverbMix * 100)}%</span>
+                          </div>
+                          <input type="range" min="0" max="100" value={reverbMix * 100}
+                            onChange={(e) => setReverbMix(parseInt(e.target.value) / 100)}
+                            className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayMix'); setHoveredGlobalEl(e.currentTarget); } }}
+                            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                            <span>Echo</span><span className="text-system-accent">{Math.round(delayMix * 100)}%</span>
+                          </div>
+                          <input type="range" min="0" max="100" value={delayMix * 100}
+                            onChange={(e) => setDelayMix(parseInt(e.target.value) / 100)}
+                            className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayFeedback'); setHoveredGlobalEl(e.currentTarget); } }}
+                            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                            <span>Feedback</span><span className="text-system-accent">{Math.round(delayFeedback * 100)}%</span>
+                          </div>
+                          <input type="range" min="0" max="100" value={delayFeedback * 100}
+                            onChange={(e) => setDelayFeedback(parseInt(e.target.value) / 100)}
+                            className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* FILA 3 — RITMO a ancho completo, 4 columnas */}
+                    <div className="flex flex-col gap-2">
+                      <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">Ritmo</span>
+                      <div className="grid grid-cols-4 gap-4">
+                        <div className="flex flex-col gap-1">
+                          <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('bpm'); setHoveredGlobalEl(e.currentTarget); } }}
+                            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                            <span>Tempo</span>
+                            <span className="text-idm-ink">{bpm} BPM</span>
+                          </div>
+                          <input type="range" min="40" max="240" value={bpm}
+                            onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('bpm', 'BPM', bpm, v, '', (o, n) => { const oldEclipse = mcm * 60 / o / 4; const newEclipse = mcm * 60 / n / 4; return [`Eclipse ${formatEclipseTime(oldEclipse, false)} → ${formatEclipseTime(newEclipse, false)}`]; }); setBpm(v); }}
+                            className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                          <div className="flex flex-col gap-1">
+                            <button onClick={() => setShowMM(prev => !prev)}
+                              className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors self-start ${showMM ? 'bg-system-accent text-white border-system-accent' : 'bg-white text-idm-muted border-black/10 hover:border-system-accent'}`}
+                              title="Metric Modulation">MM</button>
+                            {showMM && (
+                              <div className="flex flex-col gap-2 p-2 bg-white/80 border border-black/10 rounded-lg min-w-[200px]">
+                                <span className="text-[8px] font-mono uppercase text-idm-muted">Metric Modulation</span>
+                                <div className="text-[10px] font-mono text-idm-ink">{bpm} BPM</div>
+                                <div className="grid grid-cols-3 gap-1">
+                                  {METRIC_MODULATION_RATIOS.map(({ ratio, label, description }) => {
+                                    const resultBpm = Math.round(Math.max(40, Math.min(240, bpm * ratio)));
+                                    const clamped = resultBpm !== Math.round(bpm * ratio);
+                                    return (
+                                      <button key={label} onClick={() => handleMetricModulation(ratio, label, description)} disabled={clamped}
+                                        className={`flex flex-col items-center px-1 py-1.5 rounded border text-center transition-colors ${clamped ? 'opacity-30 cursor-not-allowed border-black/5 bg-white' : 'border-black/10 bg-white hover:border-system-accent hover:text-system-accent'}`}
+                                        title={`${description} → ${resultBpm} BPM${clamped ? ' (fuera de rango)' : ''}`}>
+                                        <span className="text-[10px] font-mono font-bold text-idm-ink">{label}</span>
+                                        <span className="text-[7px] font-mono text-idm-muted">{resultBpm}</span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                                {mmHistory.length > 0 && (
+                                  <div className="flex flex-col gap-0.5">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[7px] font-mono uppercase text-idm-muted">Historial</span>
+                                      <button onClick={() => handleMetricModulationReset(mmHistory[mmHistory.length - 1].fromBpm)}
+                                        className="text-[7px] font-mono text-idm-muted hover:text-system-accent transition-colors">Reset</button>
+                                    </div>
+                                    {mmHistory.map((entry, i) => (
+                                      <div key={i} className="flex items-center justify-between gap-1">
+                                        <span className="text-[7px] font-mono text-idm-muted">{entry.timestamp}</span>
+                                        <span className="text-[7px] font-mono text-idm-ink">{entry.fromBpm}→{entry.toBpm}</span>
+                                        <span className="text-[7px] font-mono text-system-accent">{entry.ratio}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('jitter'); setHoveredGlobalEl(e.currentTarget); } }}
+                            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                            <span>Jitter</span><span className="text-system-accent">{jitter}ms</span>
+                          </div>
+                          <input type="range" min="0" max="20" value={jitter}
+                            onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('jitter', 'Jitter', jitter, v, 'ms'); setJitter(v); }}
+                            className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('swing'); setHoveredGlobalEl(e.currentTarget); } }}
+                            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                            <span>Swing</span><span className="text-system-accent">{swing}%</span>
+                          </div>
+                          <input type="range" min="0" max="100" value={swing}
+                            onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('swing', 'Swing', swing, v, '%'); setSwing(v); }}
+                            className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('dynamics'); setHoveredGlobalEl(e.currentTarget); } }}
+                            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                            <span>Dynamics</span><span className="text-system-accent">{dynamics}%</span>
+                          </div>
+                          <input type="range" min="0" max="100" value={dynamics}
+                            onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('dynamics', 'Dynamics', dynamics, v, '%'); setDynamics(v); }}
+                            className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* RIGHT COLUMN — FX Globales toggles + shared param zone */}
+                  <div className="flex flex-col gap-3 min-w-[220px] border-l border-black/5 pl-6">
+                    <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">FX Avanzados</span>
+                    {/* Toggle row */}
+                    <div className="flex gap-1.5 flex-wrap">
+                      {([
+                        { id: 'GRV' as const, label: 'GRV', enabled: gatedEnabled, setEnabled: setGatedEnabled, title: 'Gated Reverb' },
+                        { id: 'RVR' as const, label: 'RVR', enabled: reverseEnabled, setEnabled: setReverseEnabled, title: 'Reverse Reverb' },
+                        { id: 'FRZ' as const, label: 'FRZ', enabled: freezeEnabled, setEnabled: setFreezeEnabled, title: 'Freeze' },
+                        { id: 'XFD' as const, label: 'XFD', enabled: crossfeedEnabled, setEnabled: setCrossfeedEnabled, title: 'Crossfeed' },
+                        { id: 'SDLY' as const, label: 'SDLY', enabled: spectralDelayEnabled, setEnabled: setSpectralDelayEnabled, title: 'Spectral Delay' },
+                      ]).map(fx => (
+                        <button
+                          key={fx.id}
+                          onClick={() => {
+                            const newEnabled = !fx.enabled;
+                            fx.setEnabled(newEnabled);
+                            if (newEnabled) {
+                              setActiveFxPanel(fx.id);
+                            } else if (activeFxPanel === fx.id) {
+                              setActiveFxPanel(null);
+                            }
+                          }}
+                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam(fx.id === 'GRV' ? 'gatedEnabled' : fx.id === 'RVR' ? 'reverseEnabled' : fx.id === 'FRZ' ? 'freezeEnabled' : fx.id === 'XFD' ? 'crossfeedEnabled' : 'spectralDelayEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
+                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
+                          className={`text-[8px] font-mono px-2 py-1 rounded border transition-colors ${
+                            fx.enabled
+                              ? 'bg-system-accent text-white border-system-accent'
+                              : 'bg-background text-idm-muted border-border hover:border-system-accent'
+                          } ${activeFxPanel === fx.id ? 'ring-1 ring-system-accent/50' : ''}`}
+                          title={fx.title}
+                        >
+                          {fx.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Shared param zone */}
+                    <AnimatePresence mode="wait">
+                      {activeFxPanel === 'GRV' && gatedEnabled && (
+                        <motion.div key="grv" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }}
+                          className="flex flex-col gap-2 p-3 border border-border rounded-lg bg-background overflow-hidden">
+                          <span className="text-[8px] font-mono text-idm-muted uppercase">Gated Reverb</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-mono text-idm-muted w-6">Thr</span>
+                            <input type="range" min={-60} max={-10} step={1} value={gatedThreshold}
+                              onChange={e => setGatedThreshold(Number(e.target.value))}
+                              className="flex-1 h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                            <span className="text-[7px] font-mono text-idm-muted w-10 text-right">{gatedThreshold}dB</span>
+                          </div>
+                        </motion.div>
+                      )}
+                      {activeFxPanel === 'RVR' && reverseEnabled && (
+                        <motion.div key="rvr" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }}
+                          className="flex flex-col gap-2 p-3 border border-border rounded-lg bg-background overflow-hidden">
+                          <span className="text-[8px] font-mono text-idm-muted uppercase">Reverse Reverb</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-mono text-idm-muted w-10">Decay</span>
+                            <input type="range" min={0.5} max={4} step={0.1} value={reverseDecay}
+                              onChange={e => setReverseDecay(Number(e.target.value))}
+                              className="flex-1 h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                            <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{reverseDecay.toFixed(1)}s</span>
+                          </div>
+                        </motion.div>
+                      )}
+                      {activeFxPanel === 'FRZ' && freezeEnabled && (
+                        <motion.div key="frz" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }}
+                          className="flex flex-col gap-2 p-3 border border-border rounded-lg bg-background overflow-hidden">
+                          <span className="text-[8px] font-mono text-idm-muted uppercase">Freeze</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-mono text-idm-muted w-6">FB</span>
+                            <input type="range" min={0.5} max={0.99} step={0.01} value={freezeFeedback}
+                              onChange={e => setFreezeFeedback(Number(e.target.value))}
+                              className="flex-1 h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                            <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{freezeFeedback.toFixed(2)}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-mono text-idm-muted w-6">LP</span>
+                            <input type="range" min={500} max={12000} step={500} value={freezeFilterFreq}
+                              onChange={e => setFreezeFilterFreq(Number(e.target.value))}
+                              className="flex-1 h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                            <span className="text-[7px] font-mono text-idm-muted w-10 text-right">{(freezeFilterFreq/1000).toFixed(1)}k</span>
+                          </div>
+                        </motion.div>
+                      )}
+                      {activeFxPanel === 'XFD' && crossfeedEnabled && (
+                        <motion.div key="xfd" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }}
+                          className="flex flex-col gap-2 p-3 border border-border rounded-lg bg-background overflow-hidden">
+                          <span className="text-[8px] font-mono text-idm-muted uppercase">Cloud → Tone</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-mono text-idm-muted w-10">Base</span>
+                            <input type="range" min={200} max={2000} step={50} value={crossfeedBase}
+                              onChange={e => setCrossfeedBase(Number(e.target.value))}
+                              className="flex-1 h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                            <span className="text-[7px] font-mono text-idm-muted w-12 text-right">{crossfeedBase}Hz</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-mono text-idm-muted w-10">Depth</span>
+                            <input type="range" min={0} max={8000} step={200} value={crossfeedDepth}
+                              onChange={e => setCrossfeedDepth(Number(e.target.value))}
+                              className="flex-1 h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                            <span className="text-[7px] font-mono text-idm-muted w-12 text-right">{crossfeedDepth}Hz</span>
+                          </div>
+                        </motion.div>
+                      )}
+                      {activeFxPanel === 'SDLY' && spectralDelayEnabled && (
+                        <motion.div key="sdly" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }}
+                          className="flex flex-col gap-2 p-3 border border-border rounded-lg bg-background overflow-hidden">
+                          <span className="text-[8px] font-mono text-idm-muted uppercase">Spectral Delay</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-mono text-idm-muted w-8">Wet</span>
+                            <input type="range" min={0} max={1} step={0.05} value={spectralDelayWet}
+                              onChange={e => setSpectralDelayWet(Number(e.target.value))}
+                              className="flex-1 h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                            <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{Math.round(spectralDelayWet * 100)}%</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-mono text-idm-muted w-8">Lo</span>
+                            <input type="range" min={0} max={500} step={10} value={spectralDelayLowTime}
+                              onChange={e => setSpectralDelayLowTime(Number(e.target.value))}
+                              className="flex-1 h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                            <span className="text-[7px] font-mono text-idm-muted w-10 text-right">{spectralDelayLowTime}ms</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-mono text-idm-muted w-8">Mid</span>
+                            <input type="range" min={0} max={500} step={10} value={spectralDelayMidTime}
+                              onChange={e => setSpectralDelayMidTime(Number(e.target.value))}
+                              className="flex-1 h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                            <span className="text-[7px] font-mono text-idm-muted w-10 text-right">{spectralDelayMidTime}ms</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-mono text-idm-muted w-8">Hi</span>
+                            <input type="range" min={0} max={500} step={10} value={spectralDelayHighTime}
+                              onChange={e => setSpectralDelayHighTime(Number(e.target.value))}
+                              className="flex-1 h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                            <span className="text-[7px] font-mono text-idm-muted w-10 text-right">{spectralDelayHighTime}ms</span>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
               )}
