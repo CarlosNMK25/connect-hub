@@ -1727,11 +1727,19 @@ export const EuclideanSequencer = () => {
     const toneEqHpf = new Tone.Filter(20, "highpass");
     const toneEqLpf = new Tone.Filter(20000, "lowpass");
     const tonePanner = new Tone.Panner(0);
+    const tonePanner3D = new Tone.Panner3D({ panningModel: 'HRTF', distanceModel: 'inverse' });
+    tonePanner3D.positionY.value = 0;
+    const tonePannerGain = new Tone.Gain(1);
+    const tonePanner3DGain = new Tone.Gain(0);
     const toneFreqShifter = new Tone.FrequencyShifter(0);
     const toneFilter = new Tone.Filter(2000, "lowpass").connect(toneEqHpf);
     toneEqHpf.connect(toneEqLpf);
-    toneEqLpf.connect(tonePanner);
+    toneEqLpf.connect(tonePannerGain);
+    toneEqLpf.connect(tonePanner3DGain);
+    tonePannerGain.connect(tonePanner);
+    tonePanner3DGain.connect(tonePanner3D);
     tonePanner.connect(toneFreqShifter);
+    tonePanner3D.connect(toneFreqShifter);
     toneFreqShifter.connect(compressor);
     toneFreqShifter.connect(toneDelaySend);
     toneFreqShifter.connect(toneReverbSend);
@@ -1768,23 +1776,39 @@ export const EuclideanSequencer = () => {
         toneEqHpf.dispose();
         toneEqLpf.dispose();
         tonePanner.dispose();
+        tonePanner3D.dispose();
+        tonePannerGain.dispose();
+        tonePanner3DGain.dispose();
         toneFreqShifter.dispose();
         toneDelaySend.dispose();
         toneReverbSend.dispose();
         toneSpectralSend.dispose();
       }
     };
-    // EQ injection for tone
     synthsRef.current.tone.updateEq = (hpfFreq: number, lpfFreq: number) => {
       toneEqHpf.frequency.rampTo(hpfFreq, 0.05);
       toneEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
-    // Pan + FreqShifter injection for tone
     synthsRef.current.tone.setPan = (value: number) => { tonePanner.pan.rampTo(value, 0.05); };
     synthsRef.current.tone.setFreqShift = (hz: number) => { toneFreqShifter.frequency.rampTo(hz, 0.05); };
     synthsRef.current.tone.panner = tonePanner;
     synthsRef.current.tone.freqShifter = toneFreqShifter;
     synthsRef.current.tone.setSpectralSend = (value: number) => { toneSpectralSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.tone.switchBinaural = (binaural: boolean) => {
+      tonePannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
+      tonePanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
+    };
+    synthsRef.current.tone.updateBinaural = (azimuth: number, distance: number) => {
+      const rad = (azimuth * Math.PI) / 180;
+      try { tonePanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) {
+        tonePanner3D.positionX.value = Math.sin(rad) * distance;
+        tonePanner3D.positionZ.value = -Math.cos(rad) * distance;
+      }
+    };
+    // Envelope Crossfeed injection (Phase 7E) — Cloud modulates Tone's filter
+    synthsRef.current.tone.setCrossfeedFreq = (hz: number) => {
+      toneFilter.frequency.rampTo(hz, 0.05);
+    };
     // Lorenz + Nested LFO injection for tone
     synthsRef.current.tone.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
       if (target === 'filter') {
