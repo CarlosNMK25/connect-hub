@@ -2801,6 +2801,7 @@ export const EuclideanSequencer = () => {
       bitCrusher.connect(delaySend);
       bitCrusher.connect(reverbSend);
       bitCrusher.connect(spectralSend);
+      bitCrusher.connect(freezeSendNode);
 
       // Create GrainPlayer
       const grainPlayer = new Tone.GrainPlayer(audioBuffer).connect(bitCrusher);
