@@ -1534,6 +1534,8 @@ export const EuclideanSequencer = () => {
     hatFsDirectGain.connect(hatDelaySend);
     hatFsDirectGain.connect(hatReverbSend);
     hatFsDirectGain.connect(hatSpectralSend);
+    hatFsBypassGain.connect(hatFreezeSend);
+    hatFsDirectGain.connect(hatFreezeSend);
 
     // Layered Kick
     let kickBody = new Tone.MembraneSynth({
