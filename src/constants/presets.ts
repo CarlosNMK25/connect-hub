@@ -43,6 +43,10 @@ export interface TrackPreset {
   grainSize?: number;
   overlap?: number;
   spray?: number;
+  // Phase 5 — Synth params used in presets
+  padVoices?: number;
+  padDetune?: number;
+  enoSpeed?: number;
   // Phase 6D — Layer 2 Time Stretch
   layer2StretchEnabled?: boolean;
   layer2StretchRate?: number;
