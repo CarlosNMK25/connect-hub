@@ -749,7 +749,7 @@ export const EuclideanTrack = React.memo(({
             </span>
           </div>
           {/* 3D Binaural toggle + controls (Phase 7D) */}
-          <div className="flex items-center gap-1 flex-none">
+          <div className="flex items-center gap-1 flex-none" onMouseEnter={(e) => handleParamEnter('binauralEnabled', e)} onMouseLeave={handleParamLeave}>
             <button
               onClick={() => onSamplerParamChange('binauralEnabled', !binauralEnabled)}
               className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
@@ -763,7 +763,7 @@ export const EuclideanTrack = React.memo(({
             </button>
             {binauralEnabled && (
               <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1" onMouseEnter={(e) => { e.stopPropagation(); handleParamEnter('binauralAzimuth', e); }} onMouseLeave={handleParamLeave}>
                   <span className="text-[7px] font-mono text-idm-muted w-5">Az</span>
                   <input type="range" min={0} max={360} step={5}
                     value={binauralAzimuth ?? 0}
@@ -771,7 +771,7 @@ export const EuclideanTrack = React.memo(({
                     className="w-14 h-[7px] accent-system-accent" />
                   <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{binauralAzimuth ?? 0}°</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1" onMouseEnter={(e) => { e.stopPropagation(); handleParamEnter('binauralDistance', e); }} onMouseLeave={handleParamLeave}>
                   <span className="text-[7px] font-mono text-idm-muted w-5">Dst</span>
                   <input type="range" min={1} max={10} step={0.5}
                     value={binauralDistance ?? 3}
