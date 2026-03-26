@@ -241,8 +241,12 @@ interface EuclideanTrackProps {
   pan?: number;
   freqShiftEnabled?: boolean;
   freqShift?: number;
-  spectralDelaySend?: number;
+   spectralDelaySend?: number;
   freezeSend?: number;
+  // Extreme Loop
+  extremeLoopEnabled?: boolean;
+  extremeLoopSize?: number;
+  extremeLoopPoint?: number;
   // 3D Audio / Binaural (Phase 7D)
   binauralEnabled?: boolean;
   binauralAzimuth?: number;
