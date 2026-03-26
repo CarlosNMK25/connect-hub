@@ -273,7 +273,7 @@ export const EuclideanTrack = React.memo(({
   noteMode, markovStyle, markovTemperature, markovAnchor, markovShowMatrix,
   slicerEnabled, sliceCount, sliceOrder, sliceReverse, slicePitch,
   stretchEnabled, stretchRate, eqEnabled, eqHpfFreq, eqLpfFreq,
-  pan, freqShiftEnabled, freqShift, spectralDelaySend, freezeSend,
+  pan, freqShiftEnabled, freqShift, spectralDelaySend, freezeSend, reverseSend,
   extremeLoopEnabled, extremeLoopSize, extremeLoopPoint,
   binauralEnabled, binauralAzimuth, binauralDistance,
   kickPitchDecay, kickOctaves, kickDecay, kickClickType,
