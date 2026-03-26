@@ -5568,24 +5568,7 @@ export const EuclideanSequencer = () => {
                 </div>
               )}
 
-              {/* Temporality Mode Selector */}
-              {showControls && (
-                <div className="flex gap-1.5 animate-in fade-in slide-in-from-top-2 duration-500">
-                  {TEMPORALITY_MODES.map(m => (
-                    <button
-                      key={m.id}
-                      onClick={() => { setTemporalityMode(m.id); logChange(`Temporalidad → ${m.label}`); }}
-                      className={`px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-200 active:scale-95 ${
-                        temporalityMode === m.id
-                          ? 'bg-system-accent text-white shadow-sm'
-                          : 'bg-black/5 text-idm-muted hover:bg-black/10 hover:text-idm-ink'
-                      }`}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+              {/* Controls 2×2 — Temporalidad quadrant start */}
 
               {/* Top Row: Core Parameters */}
               {showControls && (
