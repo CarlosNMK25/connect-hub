@@ -259,6 +259,11 @@ const DiagnosisPanel: React.FC<{
       binauralEnabled: t.binauralEnabled,
       binauralAzimuth: t.binauralAzimuth,
       lorenzEnabled: t.lorenzEnabled,
+      hatMode: t.hatMode,
+      snareBodyEnabled: t.snareBodyEnabled,
+      kickPitchDecay: t.kickPitchDecay,
+      kickOctaves: t.kickOctaves,
+      samplerStatus: t.samplerStatus,
     }));
 
     const mcm = computeMcm(diagTracks);
