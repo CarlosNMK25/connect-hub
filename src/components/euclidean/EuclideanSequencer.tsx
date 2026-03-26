@@ -1461,6 +1461,8 @@ export const EuclideanSequencer = () => {
     kickFsDirectGain.connect(kickDelaySend);
     kickFsDirectGain.connect(kickReverbSend);
     kickFsDirectGain.connect(kickSpectralSend);
+    kickFsBypassGain.connect(kickFreezeSend);
+    kickFsDirectGain.connect(kickFreezeSend);
     kickFollower.connect(sidechainInverter);
 
     const snareDelaySend = new Tone.Gain(0).connect(delayBus);
