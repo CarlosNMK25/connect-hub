@@ -2219,9 +2219,10 @@ export const EuclideanSequencer = () => {
       const delaySend = new Tone.Gain(0).connect(master.delayBus);
       const reverbSend = new Tone.Gain(0).connect(master.reverbBus);
 
-      // Create BitCrusher for this track
+      // Create BitCrusher for this track — route through panner→freqShifter if available
+      const pannerNode = synthsRef.current[trackId]?.panner;
       const bitCrusher = new Tone.BitCrusher(16).connect(
-        trackId === 'cloud' ? synthsRef.current.cloud.ducker : master.compressor
+        pannerNode ?? (trackId === 'cloud' ? synthsRef.current.cloud.ducker : master.compressor)
       );
       bitCrusher.connect(delaySend);
       bitCrusher.connect(reverbSend);
