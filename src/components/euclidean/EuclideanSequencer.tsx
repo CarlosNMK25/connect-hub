@@ -1304,8 +1304,25 @@ export const EuclideanSequencer = () => {
     return () => clearInterval(interval);
   }, [crossfeedEnabled]);
 
+  // Freeze Reverb sync (Phase 9)
+  useEffect(() => {
+    const fr = freezeRef.current;
+    if (!fr) return;
+    fr.out.gain.rampTo(freezeEnabled ? 1 : 0, 0.1);
+    fr.feedbackGain.gain.rampTo(freezeFeedback, 0.1);
+    fr.filter.frequency.rampTo(freezeFilterFreq, 0.1);
+  }, [freezeEnabled, freezeFeedback, freezeFilterFreq]);
 
-  const stepsKey = tracks.map(t => `${t.id}:${t.steps}`).join('|');
+  // Gated Reverb sync (Phase 9)
+  useEffect(() => {
+    const gr = gatedRef.current;
+    if (!gr) return;
+    gr.out.gain.rampTo(gatedEnabled ? 1 : 0, 0.05);
+    gr.reverbNormalOut.gain.rampTo(gatedEnabled ? 0 : 1, 0.05);
+    gr.gate.threshold = gatedThreshold;
+  }, [gatedEnabled, gatedThreshold]);
+
+
   const mcm = useMemo(() => {
     const rhythmicTracks = tracks.filter(t => t.id !== 'cloud');
     if (rhythmicTracks.length === 0) return 1;
