@@ -1312,6 +1312,8 @@ export const EuclideanSequencer = () => {
     const kickPannerGain = new Tone.Gain(1);
     const kickPanner3DGain = new Tone.Gain(0);
     const kickFreqShifter = new Tone.FrequencyShifter(0);
+    const kickFsBypassGain = new Tone.Gain(0); // bypass=0: freqShifter path muted by default
+    const kickFsDirectGain = new Tone.Gain(1); // direct=1: clean path active by default
     const kickFilter = new Tone.Filter(2000, "lowpass").connect(kickEqHpf);
     kickEqHpf.connect(kickEqLpf);
     kickEqLpf.connect(kickPannerGain);
@@ -1319,12 +1321,21 @@ export const EuclideanSequencer = () => {
     kickEqLpf.connect(kickFollower); // Follower pre-pan for sidechain independence
     kickPannerGain.connect(kickPanner);
     kickPanner3DGain.connect(kickPanner3D);
-    kickPanner.connect(kickFreqShifter);
-    kickPanner3D.connect(kickFreqShifter);
+    // FreqShifter bypass routing: dual-gain crossfade
+    kickPanner.connect(kickFsBypassGain);
+    kickPanner3D.connect(kickFsBypassGain);
+    kickFsBypassGain.connect(kickFreqShifter);
     kickFreqShifter.connect(compressor);
     kickFreqShifter.connect(kickDelaySend);
     kickFreqShifter.connect(kickReverbSend);
     kickFreqShifter.connect(kickSpectralSend);
+    // Direct path (bypass freqShifter)
+    kickPanner.connect(kickFsDirectGain);
+    kickPanner3D.connect(kickFsDirectGain);
+    kickFsDirectGain.connect(compressor);
+    kickFsDirectGain.connect(kickDelaySend);
+    kickFsDirectGain.connect(kickReverbSend);
+    kickFsDirectGain.connect(kickSpectralSend);
     kickFollower.connect(sidechainInverter);
 
     const snareDelaySend = new Tone.Gain(0).connect(delayBus);
