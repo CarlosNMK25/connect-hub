@@ -3197,12 +3197,20 @@ export const EuclideanSequencer = () => {
       const kickEqHpf = new Tone.Filter(20, "highpass");
       const kickEqLpf = new Tone.Filter(20000, "lowpass");
       const kickPanner = new Tone.Panner(0);
+      const kickPanner3D = new Tone.Panner3D({ panningModel: 'HRTF', distanceModel: 'inverse' });
+      kickPanner3D.positionY.value = 0;
+      const kickPannerGain = new Tone.Gain(1);
+      const kickPanner3DGain = new Tone.Gain(0);
       const kickFreqShifter = new Tone.FrequencyShifter(0);
       const kickFilter = new Tone.Filter(2000, "lowpass").connect(kickEqHpf);
       kickEqHpf.connect(kickEqLpf);
-      kickEqLpf.connect(kickPanner);
+      kickEqLpf.connect(kickPannerGain);
+      kickEqLpf.connect(kickPanner3DGain);
       if (synthsRef.current.kickFollower) kickEqLpf.connect(synthsRef.current.kickFollower);
+      kickPannerGain.connect(kickPanner);
+      kickPanner3DGain.connect(kickPanner3D);
       kickPanner.connect(kickFreqShifter);
+      kickPanner3D.connect(kickFreqShifter);
       kickFreqShifter.connect(master.compressor);
       kickFreqShifter.connect(kickDelaySend);
       kickFreqShifter.connect(kickReverbSend);
@@ -3240,30 +3248,32 @@ export const EuclideanSequencer = () => {
           kickReverbSend.gain.rampTo(reverbVal, 0.05);
         },
         dispose: () => {
-          kickBody.dispose();
-          kickClick.dispose();
-          kickFilter.dispose();
-          kickEqHpf.dispose();
-          kickEqLpf.dispose();
-          kickPanner.dispose();
-          kickFreqShifter.dispose();
-          kickDelaySend.dispose();
-          kickReverbSend.dispose();
-          kickSpectralSend.dispose();
+          kickBody.dispose(); kickClick.dispose(); kickFilter.dispose();
+          kickEqHpf.dispose(); kickEqLpf.dispose();
+          kickPanner.dispose(); kickPanner3D.dispose(); kickPannerGain.dispose(); kickPanner3DGain.dispose();
+          kickFreqShifter.dispose(); kickDelaySend.dispose(); kickReverbSend.dispose(); kickSpectralSend.dispose();
         }
       };
-      // EQ injection for kick rebuild
       synthsRef.current.kick.updateEq = (hpfFreq: number, lpfFreq: number) => {
         kickEqHpf.frequency.rampTo(hpfFreq, 0.05);
         kickEqLpf.frequency.rampTo(lpfFreq, 0.05);
       };
-      // Pan + FreqShifter injection for kick rebuild
       synthsRef.current.kick.setPan = (value: number) => { kickPanner.pan.rampTo(value, 0.05); };
       synthsRef.current.kick.setFreqShift = (hz: number) => { kickFreqShifter.frequency.rampTo(hz, 0.05); };
       synthsRef.current.kick.panner = kickPanner;
       synthsRef.current.kick.freqShifter = kickFreqShifter;
       synthsRef.current.kick.setSpectralSend = (value: number) => { kickSpectralSend.gain.rampTo(value, 0.05); };
-      // Lorenz + Nested LFO injection for kick rebuild
+      synthsRef.current.kick.switchBinaural = (binaural: boolean) => {
+        kickPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
+        kickPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
+      };
+      synthsRef.current.kick.updateBinaural = (azimuth: number, distance: number) => {
+        const rad = (azimuth * Math.PI) / 180;
+        try { kickPanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) {
+          kickPanner3D.positionX.value = Math.sin(rad) * distance;
+          kickPanner3D.positionZ.value = -Math.cos(rad) * distance;
+        }
+      };
       synthsRef.current.kick.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
         if (target === 'filter') kickFilter.frequency.rampTo(800 + normalizedValue * depth, 0.05);
       };
