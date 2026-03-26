@@ -3429,14 +3429,14 @@ export const EuclideanSequencer = () => {
       kickFsDirectGain.connect(kickReverbSend);
       kickFsDirectGain.connect(kickSpectralSend);
 
-      const kickBody = new Tone.MembraneSynth({
+      let kickBody = new Tone.MembraneSynth({
         pitchDecay: 0.05, octaves: 10, oscillator: { type: 'sine' },
         envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 },
         volume: -2
       }).connect(kickFilter);
 
-      const kickClick = new Tone.NoiseSynth({
-        noise: { type: 'pink' },
+      let kickClick = new Tone.NoiseSynth({
+        noise: { type: 'pink' as any },
         envelope: { attack: 0.001, decay: 0.01, sustain: 0 },
         volume: -10
       }).connect(kickFilter);
@@ -3466,6 +3466,19 @@ export const EuclideanSequencer = () => {
           kickPanner.dispose(); kickPanner3D.dispose(); kickPannerGain.dispose(); kickPanner3DGain.dispose();
           kickFreqShifter.dispose(); kickFsBypassGain.dispose(); kickFsDirectGain.dispose();
           kickDelaySend.dispose(); kickReverbSend.dispose(); kickSpectralSend.dispose();
+        }
+      };
+      // Phase 8 — Kick synth params setter (rebuild)
+      synthsRef.current.kick.setKickParams = (pitchDecay: number, octaves: number, decay: number, clickType: string) => {
+        kickBody.set({ pitchDecay, octaves, envelope: { decay } });
+        const currentType = (kickClick as any).noise?.type || 'pink';
+        if (clickType !== currentType) {
+          kickClick.dispose();
+          kickClick = new Tone.NoiseSynth({
+            noise: { type: clickType as any },
+            envelope: { attack: 0.001, decay: 0.01, sustain: 0 },
+            volume: -10
+          }).connect(kickFilter);
         }
       };
       synthsRef.current.kick.updateEq = (hpfFreq: number, lpfFreq: number) => {
