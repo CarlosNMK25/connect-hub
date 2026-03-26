@@ -746,6 +746,57 @@ const RULES: DiagnosisRule[] = [
     insight: () => 'El kick tiene configuración de pitch decay extrema. Con pitchDecay alto y muchas octavas, el barrido de pitch es dramático y audible como elemento musical en sí mismo — no solo como carácter del ataque sino como una nota descendente que forma parte de la armonía. Este es el principio del \'kick tonal\' del hip-hop y el trap.',
     suggestion: () => 'Si el kick suena demasiado \'melodioso\', reduce Octaves a 4-5 manteniendo el PitchDecay alto. Si quieres que el kick sea una nota musical definida (como en 808 trap), sube ambos al máximo y sintoniza el tono del kick con la clave de la pieza usando el rootNote de la pista Tone.',
   },
+  // ═══ PHASE 9: FREEZE & GATED REVERB (2) ═══
+  {
+    id: 'freeze-denso',
+    category: 'combinacion',
+    icon: '❄',
+    priority: 60,
+    condition: (ctx) => {
+      const active = getActiveTracks(ctx);
+      return active.some(t => (t.freezeSend ?? 0) > 0.3 && t.pulseCount !== undefined && t.pulseCount >= 5);
+    },
+    insight: () => 'El Freeze Bus acumula señal de un patrón denso. Con muchos pulsos por ciclo, el campo congelado crece rápidamente — cada golpe adicional se suma sin que el anterior haya decaído. El resultado es una textura densa que puede oscurecer el ritmo original si el feedback es alto. Esto puede ser exactamente lo que buscas, o puede ser un problema de mezcla.',
+    suggestion: () => 'Usa el LP Filter del Freeze para controlar la densidad espectral. Con LP bajo (1-2kHz), solo los graves del patrón se acumulan — el campo resultante es cálido y no compite con los elementos de alta frecuencia del mix. Con LP alto, todo se acumula y la textura puede saturar.',
+  },
+  {
+    id: 'gated-metric-mod',
+    category: 'combinacion',
+    icon: '🚪',
+    priority: 55,
+    condition: (ctx) => {
+      const active = getActiveTracks(ctx);
+      return active.some(t => t.lorenzEnabled) || ctx.globalState.mmHistoryLength > 0;
+    },
+    insight: () => 'Gated Reverb con modulación activa. El gate corta el reverb en función del contenido de la señal, no del tempo — pero el tempo o los parámetros están cambiando. El resultado es que la duración percibida del reverb gateado varía con cada cambio, creando un efecto donde el \'espacio\' de la sala cambia sincrónicamente con el ritmo.',
+    suggestion: () => 'Este es el uso más sofisticado del Gated Reverb — no como decoración sino como elemento rítmico que responde al tiempo cambiante. Ajusta el Threshold para que el gate corte aproximadamente en el primer tercio del decaimiento del reverb: así el efecto es audible sin dominar la mezcla.',
+  },
+  // ═══ PHASE 10: EXTREME LOOPING (1) ═══
+  {
+    id: 'xlp-oscilador',
+    category: 'combinacion',
+    icon: '〰',
+    priority: 50,
+    condition: (ctx) => {
+      const active = getActiveTracks(ctx);
+      return active.some(t => t.id !== 'cloud' && t.extremeLoopEnabled === true && (t.extremeLoopSize ?? 10) <= 15);
+    },
+    insight: () => 'Un Extreme Loop con Size ≤ 15ms está en el rango donde el loop se percibe como tono continuo, no como textura. El GrainPlayer está funcionando como un oscilador primitivo — su frecuencia fundamental es aproximadamente 1000/size Hz. Esta es la técnica IDM de \'síntesis por sampling extremo\': extraer tono de material que originalmente era solo timbre.',
+    suggestion: () => 'Combina Extreme Loop con la pista Tone usando el mismo rootNote. Si el Extreme Loop produce ~200Hz (size=5ms) y la pista Tone está en Sol, tendrás una relación interválica entre el oscilador-sample y la síntesis. También puedes usar el Frequency Shifter sobre la pista con XLP para desplazar el tono resultante.',
+  },
+  // ═══ ONE-SHOT MODE (1) ═══
+  {
+    id: 'oneshot-lento',
+    category: 'combinacion',
+    icon: '▶',
+    priority: 40,
+    condition: (ctx) => {
+      const active = getActiveTracks(ctx);
+      return active.some(t => t.mode === 'ONE-SHOT' && t.pulseCount !== undefined && t.pulseCount <= 2);
+    },
+    insight: () => 'One-Shot con pocos pulsos: el sample suena completo en cada disparo y hay suficiente espacio entre disparos para que termine antes del siguiente. Esta es la configuración ideal para ONE-SHOT — el sample tiene tiempo de decaer naturalmente sin solapamiento.',
+    suggestion: () => 'Prueba con un sample de voz o frase melódica en ONE-SHOT con E(1,8) o E(2,16). El sample suena completo en momentos dispersos del compás, como una voz que interviene puntualmente sobre el ritmo euclidiano de fondo. Es el principio del sampling en hip-hop: la frase vocal como elemento estructural, no como decoración.',
+  },
 ];
 
 export function computeMcm(tracks: DiagnosisContext['tracks']): number {

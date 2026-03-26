@@ -272,6 +272,11 @@ const DiagnosisPanel: React.FC<{
       kickPitchDecay: t.kickPitchDecay,
       kickOctaves: t.kickOctaves,
       samplerStatus: t.samplerStatus,
+      freezeSend: t.freezeSend,
+      extremeLoopEnabled: t.extremeLoopEnabled,
+      extremeLoopSize: t.extremeLoopSize,
+      mode: t.mode,
+      pulseCount: t.pulses,
     }));
 
     const mcm = computeMcm(diagTracks);
