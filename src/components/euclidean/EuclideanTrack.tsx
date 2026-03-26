@@ -287,6 +287,7 @@ export const EuclideanTrack = React.memo(({
   kickPitchDecay, kickOctaves, kickDecay, kickClickType,
   hatMode, hatHarmonicity, hatModIndex, hatResonance, hatDecay, hatNoiseType,
   snareDecay, snareNoiseType, snareBodyEnabled, snareBodyPitch, snareBodyDecay,
+  isExpanded, onToggleExpand, activeScene, scenes, activeAdvancedPanel,
   onParamChange, onSequencerAction, onTonalAction, onSlicerAction,
   onSamplerParamChange, onPercSynthParamChange,
   onFileUpload, onClearSampler, onLoadLayer2, onClearLayer2, onLayer2ParamChange,
