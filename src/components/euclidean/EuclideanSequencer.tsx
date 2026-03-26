@@ -1870,6 +1870,8 @@ export const EuclideanSequencer = () => {
         tonePannerGain.dispose();
         tonePanner3DGain.dispose();
         toneFreqShifter.dispose();
+        toneFsBypassGain.dispose();
+        toneFsDirectGain.dispose();
         toneDelaySend.dispose();
         toneReverbSend.dispose();
         toneSpectralSend.dispose();
@@ -1880,7 +1882,13 @@ export const EuclideanSequencer = () => {
       toneEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     synthsRef.current.tone.setPan = (value: number) => { tonePanner.pan.rampTo(value, 0.05); };
-    synthsRef.current.tone.setFreqShift = (hz: number) => { toneFreqShifter.frequency.rampTo(hz, 0.05); };
+    synthsRef.current.tone.setFreqShift = (hz: number, enabled?: boolean) => {
+      toneFreqShifter.frequency.rampTo(hz, 0.05);
+      if (enabled !== undefined) {
+        toneFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
+        toneFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
+      }
+    };
     synthsRef.current.tone.panner = tonePanner;
     synthsRef.current.tone.freqShifter = toneFreqShifter;
     synthsRef.current.tone.setSpectralSend = (value: number) => { toneSpectralSend.gain.rampTo(value, 0.05); };
