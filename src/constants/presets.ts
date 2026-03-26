@@ -68,6 +68,14 @@ export interface TrackPreset {
   snareBodyEnabled?: boolean;
   snareBodyPitch?: number;
   snareBodyDecay?: number;
+  // Phase 9 — Freeze / Gated Reverb
+  freezeSend?: number;
+  // Phase 10 — Extreme Loop
+  extremeLoopEnabled?: boolean;
+  extremeLoopSize?: number;
+  extremeLoopPoint?: number;
+  // Sampler mode
+  mode?: 'GATE' | 'TRIGGER' | 'ONE-SHOT';
 }
 
 export interface ScenePreset {
