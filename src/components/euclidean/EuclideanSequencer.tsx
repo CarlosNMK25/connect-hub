@@ -1905,6 +1905,7 @@ export const EuclideanSequencer = () => {
     const cloudDelaySend = new Tone.Gain(0).connect(delayBus);
     const cloudReverbSend = new Tone.Gain(0).connect(reverbBus);
     const cloudSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
+    const cloudFreezeSend = new Tone.Gain(0).connect(freezeBus);
     const cloudEqHpf = new Tone.Filter(20, "highpass");
     const cloudEqLpf = new Tone.Filter(20000, "lowpass");
     const cloudPanner = new Tone.Panner(0);
