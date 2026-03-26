@@ -49,6 +49,12 @@ interface TrackSnapshot {
   binauralEnabled?: boolean;
   binauralAzimuth?: number;
   lorenzEnabled?: boolean;
+  // Phase 8 fields
+  hatMode?: string;
+  snareBodyEnabled?: boolean;
+  kickPitchDecay?: number;
+  kickOctaves?: number;
+  samplerStatus?: string;
 }
 
 interface EngineRoomProps {
