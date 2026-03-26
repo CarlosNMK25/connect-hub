@@ -2734,6 +2734,12 @@ export const EuclideanSequencer = () => {
       }
       // Start Lorenz RAF if any track has it enabled
       startLorenzRaf();
+      // Start XLP loops
+      tracksRef.current.forEach(t => {
+        if (t.extremeLoopEnabled && t.samplerStatus === 'READY' && synthsRef.current[t.id]?.grainPlayer) {
+          try { synthsRef.current[t.id].grainPlayer.start(); } catch {}
+        }
+      });
     }
     setIsPlaying(!isPlaying);
   };
