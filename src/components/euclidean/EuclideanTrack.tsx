@@ -1050,6 +1050,10 @@ export const EuclideanTrack = React.memo(({
             </div>
           )}
         </div>
+        {/* === END HEADER ROW === */}
+
+        {/* === COLLAPSIBLE ZONE (CSS collapse — elements stay in DOM for RAF step highlighting) === */}
+        <div className="overflow-hidden transition-all duration-200" style={{ maxHeight: isExpanded ? '4000px' : '0px' }}>
 
         {/* === ROW 2: Sliders P/S/O + Steps === */}
         <div className="flex items-center gap-4 flex-wrap">
