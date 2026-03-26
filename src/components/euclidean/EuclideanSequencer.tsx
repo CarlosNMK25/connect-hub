@@ -2130,6 +2130,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.tone.panner = tonePanner;
     synthsRef.current.tone.freqShifter = toneFreqShifter;
     synthsRef.current.tone.setSpectralSend = (value: number) => { toneSpectralSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.tone.setFreezeSend = (value: number) => { toneFreezeSend.gain.rampTo(value, 0.05); };
     synthsRef.current.tone.switchBinaural = (binaural: boolean) => {
       tonePannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
       tonePanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
