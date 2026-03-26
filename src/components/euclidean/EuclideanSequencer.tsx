@@ -1496,6 +1496,7 @@ export const EuclideanSequencer = () => {
     // Cloud Engine Setup
     const cloudDelaySend = new Tone.Gain(0).connect(delayBus);
     const cloudReverbSend = new Tone.Gain(0).connect(reverbBus);
+    const cloudSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
     const cloudEqHpf = new Tone.Filter(20, "highpass");
     const cloudEqLpf = new Tone.Filter(20000, "lowpass");
     const cloudPanner = new Tone.Panner(0);
@@ -1507,6 +1508,7 @@ export const EuclideanSequencer = () => {
     cloudFreqShifter.connect(compressor);
     cloudFreqShifter.connect(cloudDelaySend);
     cloudFreqShifter.connect(cloudReverbSend);
+    cloudFreqShifter.connect(cloudSpectralSend);
 
     const cloudDucker = new Tone.Gain(1).connect(cloudFilter);
     const cloudLFO = new Tone.LFO({
@@ -1539,6 +1541,7 @@ export const EuclideanSequencer = () => {
         cloudFreqShifter.dispose();
         cloudDelaySend.dispose();
         cloudReverbSend.dispose();
+        cloudSpectralSend.dispose();
       }
     };
     // EQ injection for cloud
@@ -1551,6 +1554,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.cloud.setFreqShift = (hz: number) => { cloudFreqShifter.frequency.rampTo(hz, 0.05); };
     synthsRef.current.cloud.panner = cloudPanner;
     synthsRef.current.cloud.freqShifter = cloudFreqShifter;
+    synthsRef.current.cloud.setSpectralSend = (value: number) => { cloudSpectralSend.gain.rampTo(value, 0.05); };
     // Lorenz + Nested LFO injection for cloud
     synthsRef.current.cloud.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
       if (target === 'filter') {
