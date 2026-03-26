@@ -5593,10 +5593,10 @@ export const EuclideanSequencer = () => {
                       </div>
                     </div>
 
-                    {/* FILTRO GLOBAL */}
+                    {/* FILTRO GLOBAL — HPF + LPF en misma fila */}
                     <div className="flex flex-col gap-2">
                       <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">Filtro Global</span>
-                      <div className="flex flex-col gap-2">
+                      <div className="grid grid-cols-2 gap-4">
                         <div className="flex flex-col gap-1">
                           <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
                             onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxHighPass'); setHoveredGlobalEl(e.currentTarget); } }}
@@ -5623,7 +5623,44 @@ export const EuclideanSequencer = () => {
                     </div>
                   </div>
 
-                  {/* FILA 2 — RITMO a ancho completo, 4 columnas */}
+                  {/* FILA 2 — FX GLOBALES a ancho completo, 3 columnas */}
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">FX Globales</span>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverbMix'); setHoveredGlobalEl(e.currentTarget); } }}
+                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                          <span>Space</span><span className="text-system-accent">{Math.round(reverbMix * 100)}%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value={reverbMix * 100}
+                          onChange={(e) => setReverbMix(parseInt(e.target.value) / 100)}
+                          className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayMix'); setHoveredGlobalEl(e.currentTarget); } }}
+                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                          <span>Echo</span><span className="text-system-accent">{Math.round(delayMix * 100)}%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value={delayMix * 100}
+                          onChange={(e) => setDelayMix(parseInt(e.target.value) / 100)}
+                          className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayFeedback'); setHoveredGlobalEl(e.currentTarget); } }}
+                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                          <span>Feedback</span><span className="text-system-accent">{Math.round(delayFeedback * 100)}%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value={delayFeedback * 100}
+                          onChange={(e) => setDelayFeedback(parseInt(e.target.value) / 100)}
+                          className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* FILA 3 — RITMO a ancho completo, 4 columnas */}
                   <div className="flex flex-col gap-2">
                     <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">Ritmo</span>
                     <div className="grid grid-cols-4 gap-4">
@@ -5707,43 +5744,6 @@ export const EuclideanSequencer = () => {
                         </div>
                         <input type="range" min="0" max="100" value={dynamics}
                           onChange={(e) => { const v = parseInt(e.target.value); logSliderChange('dynamics', 'Dynamics', dynamics, v, '%'); setDynamics(v); }}
-                          className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* FILA 3 — FX GLOBALES a ancho completo, 3 columnas */}
-                  <div className="flex flex-col gap-2">
-                    <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">FX Globales</span>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="flex flex-col gap-1">
-                        <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverbMix'); setHoveredGlobalEl(e.currentTarget); } }}
-                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                          <span>Space</span><span className="text-system-accent">{Math.round(reverbMix * 100)}%</span>
-                        </div>
-                        <input type="range" min="0" max="100" value={reverbMix * 100}
-                          onChange={(e) => setReverbMix(parseInt(e.target.value) / 100)}
-                          className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayMix'); setHoveredGlobalEl(e.currentTarget); } }}
-                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                          <span>Echo</span><span className="text-system-accent">{Math.round(delayMix * 100)}%</span>
-                        </div>
-                        <input type="range" min="0" max="100" value={delayMix * 100}
-                          onChange={(e) => setDelayMix(parseInt(e.target.value) / 100)}
-                          className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayFeedback'); setHoveredGlobalEl(e.currentTarget); } }}
-                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                          <span>Feedback</span><span className="text-system-accent">{Math.round(delayFeedback * 100)}%</span>
-                        </div>
-                        <input type="range" min="0" max="100" value={delayFeedback * 100}
-                          onChange={(e) => setDelayFeedback(parseInt(e.target.value) / 100)}
                           className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
                       </div>
                     </div>
