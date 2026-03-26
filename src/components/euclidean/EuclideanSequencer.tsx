@@ -2816,12 +2816,24 @@ export const EuclideanSequencer = () => {
       if (param === 'spectralDelaySend') {
         synthObj.setSpectralSend?.(val as number);
       }
+      // Binaural real-time sync
+      if (param === 'binauralEnabled') {
+        synthObj.switchBinaural?.(val as boolean);
+        if (val) {
+          const updatedTrack = tracksRef.current.find(t => t.id === trackId);
+          synthObj.updateBinaural?.(updatedTrack?.binauralAzimuth ?? 0, updatedTrack?.binauralDistance ?? 3);
+        }
+      }
+      if (param === 'binauralAzimuth' || param === 'binauralDistance') {
+        const updatedTrack = tracksRef.current.find(t => t.id === trackId);
+        if (updatedTrack?.binauralEnabled) {
+          const az = param === 'binauralAzimuth' ? (val as number) : (updatedTrack?.binauralAzimuth ?? 0);
+          const dist = param === 'binauralDistance' ? (val as number) : (updatedTrack?.binauralDistance ?? 3);
+          synthObj.updateBinaural?.(az, dist);
+        }
+      }
     }
   }, []);
-
-  const startRecordingNow = useCallback(() => {
-    if (!recordingDestRef.current) {
-      if (!toneFilterRef.current) {
         console.warn('REC: No hay toneFilter activo');
         return;
       }
