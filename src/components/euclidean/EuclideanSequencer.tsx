@@ -6538,16 +6538,128 @@ export const EuclideanSequencer = () => {
         </div>
       )}
 
-      {/* ═══ FX GLOBALES — después de pistas ═══ */}
-      {/* Spectral Delay Global Panel (Phase 7C) */}
+      {/* ═══ FX GLOBALES — 2-column layout ═══ */}
+      <div className="grid grid-cols-2 gap-2">
+        {/* GRV — Gated Reverb (1 slider) */}
+        <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
+          <button
+            onClick={() => setGatedEnabled(!gatedEnabled)}
+            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('gatedEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
+            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
+            className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${gatedEnabled ? 'bg-system-accent text-white border-system-accent' : 'bg-background text-idm-muted border-border'} ${isStudyMode ? 'cursor-help' : ''}`}
+            title="Gated Reverb"
+          >GRV</button>
+          <span className="text-[8px] font-mono text-idm-muted">Gated Reverb</span>
+          {gatedEnabled && (
+            <div className="flex items-center gap-1 ml-auto"
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('gatedThreshold'); setHoveredGlobalEl(e.currentTarget); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>Thr</span>
+              <input type="range" min={-60} max={-10} step={1} value={gatedThreshold}
+                onChange={e => setGatedThreshold(Number(e.target.value))}
+                className="w-12 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted w-10">{gatedThreshold}dB</span>
+            </div>
+          )}
+        </div>
+
+        {/* RVR — Reverse Reverb (1 slider) */}
+        <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
+          <button
+            onClick={() => setReverseEnabled(!reverseEnabled)}
+            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverseEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
+            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
+            className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${reverseEnabled ? 'bg-system-accent text-white border-system-accent' : 'bg-background text-idm-muted border-border'} ${isStudyMode ? 'cursor-help' : ''}`}
+            title="Reverse Reverb"
+          >RVR</button>
+          <span className="text-[8px] font-mono text-idm-muted">Reverse</span>
+          {reverseEnabled && (
+            <div className="flex items-center gap-1 ml-auto"
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverseDecay'); setHoveredGlobalEl(e.currentTarget); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>Decay</span>
+              <input type="range" min={0.5} max={4} step={0.1} value={reverseDecay}
+                onChange={e => setReverseDecay(Number(e.target.value))}
+                className="w-12 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted w-8">{reverseDecay.toFixed(1)}s</span>
+            </div>
+          )}
+        </div>
+
+        {/* FRZ — Freeze (2 sliders) */}
+        <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
+          <button
+            onClick={() => setFreezeEnabled(!freezeEnabled)}
+            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('freezeEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
+            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
+            className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${freezeEnabled ? 'bg-system-accent text-white border-system-accent' : 'bg-background text-idm-muted border-border'} ${isStudyMode ? 'cursor-help' : ''}`}
+            title="Freeze"
+          >FRZ</button>
+          <span className="text-[8px] font-mono text-idm-muted">Freeze</span>
+          {freezeEnabled && (
+            <div className="flex items-center gap-3 ml-auto">
+              <div className="flex items-center gap-1"
+                onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('freezeFeedback'); setHoveredGlobalEl(e.currentTarget); } }}
+                onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>FB</span>
+                <input type="range" min={0.5} max={0.99} step={0.01} value={freezeFeedback}
+                  onChange={e => setFreezeFeedback(Number(e.target.value))}
+                  className="w-12 h-[7px] accent-system-accent" />
+                <span className="text-[6px] font-mono text-idm-muted w-8">{freezeFeedback.toFixed(2)}</span>
+              </div>
+              <div className="flex items-center gap-1"
+                onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('freezeFilterFreq'); setHoveredGlobalEl(e.currentTarget); } }}
+                onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>LP</span>
+                <input type="range" min={500} max={12000} step={500} value={freezeFilterFreq}
+                  onChange={e => setFreezeFilterFreq(Number(e.target.value))}
+                  className="w-12 h-[7px] accent-system-accent" />
+                <span className="text-[6px] font-mono text-idm-muted w-10">{(freezeFilterFreq/1000).toFixed(1)}k</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* XFD — Crossfeed (2 sliders) */}
+        <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
+          <button
+            onClick={() => setCrossfeedEnabled(!crossfeedEnabled)}
+            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('crossfeedEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
+            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
+            className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${crossfeedEnabled ? 'bg-system-accent text-white border-system-accent' : 'bg-background text-idm-muted border-border'} ${isStudyMode ? 'cursor-help' : ''}`}
+            title="Envelope Crossfeed — Cloud modula Tone"
+          >XFD</button>
+          <span className="text-[8px] font-mono text-idm-muted">Cloud → Tone</span>
+          {crossfeedEnabled && (
+            <div className="flex items-center gap-3 ml-auto">
+              <div className="flex items-center gap-1"
+                onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('crossfeedBase'); setHoveredGlobalEl(e.currentTarget); } }}
+                onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>Base</span>
+                <input type="range" min={200} max={2000} step={50} value={crossfeedBase}
+                  onChange={e => setCrossfeedBase(Number(e.target.value))}
+                  className="w-12 h-[7px] accent-system-accent" />
+                <span className="text-[6px] font-mono text-idm-muted">{crossfeedBase}Hz</span>
+              </div>
+              <div className="flex items-center gap-1"
+                onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('crossfeedDepth'); setHoveredGlobalEl(e.currentTarget); } }}
+                onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>Depth</span>
+                <input type="range" min={0} max={8000} step={200} value={crossfeedDepth}
+                  onChange={e => setCrossfeedDepth(Number(e.target.value))}
+                  className="w-12 h-[7px] accent-system-accent" />
+                <span className="text-[6px] font-mono text-idm-muted">{crossfeedDepth}Hz</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* SDLY — Spectral Delay (4 sliders, full width) */}
       <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
         <button
           onClick={() => setSpectralDelayEnabled(!spectralDelayEnabled)}
-          className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-            spectralDelayEnabled
-              ? 'bg-system-accent text-white border-system-accent'
-              : 'bg-background text-idm-muted border-border'
-          }`}
+          className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${spectralDelayEnabled ? 'bg-system-accent text-white border-system-accent' : 'bg-background text-idm-muted border-border'}`}
         >SDLY</button>
         <span className="text-[8px] font-mono text-idm-muted">Spectral Delay</span>
         {spectralDelayEnabled && (
@@ -6578,140 +6690,6 @@ export const EuclideanSequencer = () => {
                 onChange={e => setSpectralDelayHighTime(Number(e.target.value))}
                 className="w-10 h-[7px] accent-system-accent" />
               <span className="text-[6px] font-mono text-idm-muted">{spectralDelayHighTime}ms</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Envelope Crossfeed Panel (Phase 7E) */}
-      <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
-        <button
-          onClick={() => setCrossfeedEnabled(!crossfeedEnabled)}
-          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('crossfeedEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
-          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
-          className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-            crossfeedEnabled
-              ? 'bg-system-accent text-white border-system-accent'
-              : 'bg-background text-idm-muted border-border'
-          } ${isStudyMode ? 'cursor-help' : ''}`}
-          title="Envelope Crossfeed — Cloud modula Tone"
-        >XFD</button>
-        <span className="text-[8px] font-mono text-idm-muted">Cloud → Tone</span>
-        {crossfeedEnabled && (
-          <div className="flex items-center gap-3 ml-auto">
-            <div className="flex items-center gap-1"
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('crossfeedBase'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>Base</span>
-              <input type="range" min={200} max={2000} step={50} value={crossfeedBase}
-                onChange={e => setCrossfeedBase(Number(e.target.value))}
-                className="w-12 h-[7px] accent-system-accent" />
-              <span className="text-[6px] font-mono text-idm-muted">{crossfeedBase}Hz</span>
-            </div>
-            <div className="flex items-center gap-1"
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('crossfeedDepth'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>Depth</span>
-              <input type="range" min={0} max={8000} step={200} value={crossfeedDepth}
-                onChange={e => setCrossfeedDepth(Number(e.target.value))}
-                className="w-12 h-[7px] accent-system-accent" />
-              <span className="text-[6px] font-mono text-idm-muted">{crossfeedDepth}Hz</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Freeze Reverb Panel (Phase 9) */}
-      <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
-        <button
-          onClick={() => setFreezeEnabled(!freezeEnabled)}
-          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('freezeEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
-          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
-          className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-            freezeEnabled
-              ? 'bg-system-accent text-white border-system-accent'
-              : 'bg-background text-idm-muted border-border'
-          } ${isStudyMode ? 'cursor-help' : ''}`}
-          title="Freeze — campo sonoro que no decae"
-        >FRZ</button>
-        <span className="text-[8px] font-mono text-idm-muted">Freeze</span>
-        {freezeEnabled && (
-          <div className="flex items-center gap-3 ml-auto">
-            <div className="flex items-center gap-1"
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('freezeFeedback'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>FB</span>
-              <input type="range" min={0.5} max={0.99} step={0.01} value={freezeFeedback}
-                onChange={e => setFreezeFeedback(Number(e.target.value))}
-                className="w-12 h-[7px] accent-system-accent" />
-              <span className="text-[6px] font-mono text-idm-muted w-8">{freezeFeedback.toFixed(2)}</span>
-            </div>
-            <div className="flex items-center gap-1"
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('freezeFilterFreq'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>LP</span>
-              <input type="range" min={500} max={12000} step={500} value={freezeFilterFreq}
-                onChange={e => setFreezeFilterFreq(Number(e.target.value))}
-                className="w-12 h-[7px] accent-system-accent" />
-              <span className="text-[6px] font-mono text-idm-muted w-10">{(freezeFilterFreq/1000).toFixed(1)}k</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Gated Reverb Panel (Phase 9) */}
-      <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
-        <button
-          onClick={() => setGatedEnabled(!gatedEnabled)}
-          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('gatedEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
-          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
-          className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-            gatedEnabled
-              ? 'bg-system-accent text-white border-system-accent'
-              : 'bg-background text-idm-muted border-border'
-          } ${isStudyMode ? 'cursor-help' : ''}`}
-          title="Gated Reverb — reverb cortado abruptamente"
-        >GRV</button>
-        <span className="text-[8px] font-mono text-idm-muted">Gated Reverb</span>
-        {gatedEnabled && (
-          <div className="flex items-center gap-3 ml-auto">
-            <div className="flex items-center gap-1"
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('gatedThreshold'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>Thr</span>
-              <input type="range" min={-60} max={-10} step={1} value={gatedThreshold}
-                onChange={e => setGatedThreshold(Number(e.target.value))}
-                className="w-12 h-[7px] accent-system-accent" />
-              <span className="text-[6px] font-mono text-idm-muted w-10">{gatedThreshold}dB</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Reverse Reverb Panel (Phase 9) */}
-      <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
-        <button
-          onClick={() => setReverseEnabled(!reverseEnabled)}
-          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverseEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
-          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
-          className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-            reverseEnabled
-              ? 'bg-system-accent text-white border-system-accent'
-              : 'bg-background text-idm-muted border-border'
-          } ${isStudyMode ? 'cursor-help' : ''}`}
-          title="Reverse Reverb — cola que crece hacia el sonido"
-        >RVR</button>
-        <span className="text-[8px] font-mono text-idm-muted">Reverse</span>
-        {reverseEnabled && (
-          <div className="flex items-center gap-3 ml-auto">
-            <div className="flex items-center gap-1"
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverseDecay'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>Decay</span>
-              <input type="range" min={0.5} max={4} step={0.1} value={reverseDecay}
-                onChange={e => setReverseDecay(Number(e.target.value))}
-                className="w-12 h-[7px] accent-system-accent" />
-              <span className="text-[6px] font-mono text-idm-muted w-8">{reverseDecay.toFixed(1)}s</span>
             </div>
           </div>
         )}
