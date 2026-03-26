@@ -3783,6 +3783,7 @@ export const EuclideanSequencer = () => {
       const hatDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const hatReverbSend = new Tone.Gain(0).connect(master.reverbBus);
       const hatSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
+      const hatFreezeSend = new Tone.Gain(0).connect(master.freezeBus);
       const hatEqHpf = new Tone.Filter(20, "highpass");
       const hatEqLpf = new Tone.Filter(20000, "lowpass");
       const hatPanner = new Tone.Panner(0);
