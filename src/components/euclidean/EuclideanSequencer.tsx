@@ -26,6 +26,23 @@ import { generateMarkovMatrix, markovNextNote, type MarkovStyle } from '../../ut
 import { LorenzAttractor } from '../../utils/lorenzAttractor';
 import { calculateSliceBoundaries, defaultSliceOrder, defaultSliceReverse, defaultSlicePitch } from '../../utils/slicerUtils';
 
+interface SceneData {
+  pulses: number;
+  steps: number;
+  offset: number;
+  probabilities: number[];
+  pattern: number[];
+  patternMode?: 'euclidean' | 'lsystem' | 'ca';
+  lsSeed?: string;
+  lsRuleA?: string;
+  lsIterations?: number;
+  lsRotation?: number;
+  caRule?: number;
+  caSeed?: string;
+  caDensity?: number;
+  caSpeed?: number;
+}
+
 interface TrackState {
   id: string;
   name: string;
