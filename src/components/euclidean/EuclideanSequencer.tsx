@@ -1619,6 +1619,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.kick.freqShifter = kickFreqShifter;
     // Spectral Delay send injection for kick
     synthsRef.current.kick.setSpectralSend = (value: number) => { kickSpectralSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.kick.setFreezeSend = (value: number) => { kickFreezeSend.gain.rampTo(value, 0.05); };
     // Binaural 3D injection for kick
     synthsRef.current.kick.switchBinaural = (binaural: boolean) => {
       kickPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
