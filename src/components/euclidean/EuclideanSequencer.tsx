@@ -1200,8 +1200,34 @@ export const EuclideanSequencer = () => {
     delayBus.chain(delay, delayFilter, compressor);
     reverbBus.chain(reverb, reverbFilter, compressor);
 
+    // Spectral Delay Bus (Phase 7C)
+    const spectralDelayBus = new Tone.Gain(1);
+    const spectralDelayOut = new Tone.Gain(0);
+    const sdLowFilter = new Tone.Filter(200, 'lowpass');
+    const sdLowDelay = new Tone.Delay(0);
+    sdLowFilter.connect(sdLowDelay);
+    sdLowDelay.connect(spectralDelayOut);
+    const sdMidFilter = new Tone.Filter(Math.sqrt(200 * 4000), 'bandpass');
+    sdMidFilter.Q.value = 0.5;
+    const sdMidDelay = new Tone.Delay(0.08);
+    sdMidFilter.connect(sdMidDelay);
+    sdMidDelay.connect(spectralDelayOut);
+    const sdHighFilter = new Tone.Filter(4000, 'highpass');
+    const sdHighDelay = new Tone.Delay(0.16);
+    sdHighFilter.connect(sdHighDelay);
+    sdHighDelay.connect(spectralDelayOut);
+    spectralDelayBus.connect(sdLowFilter);
+    spectralDelayBus.connect(sdMidFilter);
+    spectralDelayBus.connect(sdHighFilter);
+    spectralDelayOut.connect(compressor);
+    spectralDelayRef.current = {
+      bus: spectralDelayBus, out: spectralDelayOut,
+      lowFilter: sdLowFilter, midFilter: sdMidFilter, highFilter: sdHighFilter,
+      lowDelay: sdLowDelay, midDelay: sdMidDelay, highDelay: sdHighDelay,
+    };
+
     compressor.chain(limiter, analyser, Tone.getDestination());
-    masterBusRef.current = { compressor, limiter, analyser, delay, reverb, delayFilter, reverbFilter, delayBus, reverbBus };
+    masterBusRef.current = { compressor, limiter, analyser, delay, reverb, delayFilter, reverbFilter, delayBus, reverbBus, spectralDelayBus };
     setGlobalAnalyser(analyser);
 
     // Sidechain Setup (Kick -> Cloud)
