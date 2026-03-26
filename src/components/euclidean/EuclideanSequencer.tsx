@@ -2990,6 +2990,8 @@ export const EuclideanSequencer = () => {
       toneEqLpf.connect(toneDelaySend);
       toneEqLpf.connect(toneReverbSend);
       toneFilterRef.current = toneFilter;
+      _eqHpfRef = toneEqHpf;
+      _eqLpfRef = toneEqLpf;
 
       // Reconectar nodo de captura si existe
       if (recordingDestRef.current) {
