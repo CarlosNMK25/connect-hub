@@ -875,50 +875,45 @@ export const EuclideanTrack = React.memo(({
             {/* Nested LFO */}
             <div className="flex items-center gap-1.5">
               <button
-                onClick={() => onTonalAction(trackId, 'nestedLfoEnabled', !nestedLfoEnabled)}
-                className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-                  nestedLfoEnabled
-                    ? 'bg-system-accent text-white border-system-accent'
-                    : 'bg-background text-idm-muted border-border'
+                onClick={(e) => { e.stopPropagation(); onTonalAction(trackId, 'nestedLfoEnabled', !nestedLfoEnabled); }}
+                className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+                  activeAdvancedPanel === 'NLF' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : nestedLfoEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-background text-idm-muted border-border'
                 }`}
                 title="Nested LFO — modulación de la modulación"
               >
                 NLF
+                {nestedLfoEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
               </button>
-              {nestedLfoEnabled && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'NLF' ? null : 'NLF'); }}
+                className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
+                title="Abrir/cerrar panel NLF"
+              >⊙</button>
+              {activeAdvancedPanel === 'NLF' && nestedLfoEnabled && (
                 <div className="flex flex-col gap-0.5">
                   <div className="flex items-center gap-1">
                     <span className="text-[7px] font-mono text-idm-muted w-6">R1</span>
                     <input type="range" min={0.01} max={2.0} step={0.01}
                       value={nestedLfoRate1 ?? 0.1}
                       onChange={e => onTonalAction(trackId, 'nestedLfoRate1', Number(e.target.value))}
-                      className="w-12 h-[7px] accent-system-accent"
-                    />
-                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
-                      {(nestedLfoRate1 ?? 0.1).toFixed(2)}Hz
-                    </span>
+                      className="w-12 h-[7px] accent-system-accent" />
+                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{(nestedLfoRate1 ?? 0.1).toFixed(2)}Hz</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="text-[7px] font-mono text-idm-muted w-6">R2</span>
                     <input type="range" min={0.5} max={20.0} step={0.5}
                       value={nestedLfoRate2 ?? 4.0}
                       onChange={e => onTonalAction(trackId, 'nestedLfoRate2', Number(e.target.value))}
-                      className="w-12 h-[7px] accent-system-accent"
-                    />
-                    <span className="text-[7px] font-mono text-idm-muted w-6 text-right">
-                      {(nestedLfoRate2 ?? 4.0).toFixed(1)}
-                    </span>
+                      className="w-12 h-[7px] accent-system-accent" />
+                    <span className="text-[7px] font-mono text-idm-muted w-6 text-right">{(nestedLfoRate2 ?? 4.0).toFixed(1)}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="text-[7px] font-mono text-idm-muted w-6">Dep</span>
                     <input type="range" min={0} max={5000} step={100}
                       value={nestedLfoDepth ?? 800}
                       onChange={e => onTonalAction(trackId, 'nestedLfoDepth', Number(e.target.value))}
-                      className="w-12 h-[7px] accent-system-accent"
-                    />
-                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
-                      {nestedLfoDepth ?? 800}
-                    </span>
+                      className="w-12 h-[7px] accent-system-accent" />
+                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{nestedLfoDepth ?? 800}</span>
                   </div>
                 </div>
               )}
