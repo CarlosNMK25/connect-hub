@@ -591,6 +591,43 @@ export const EuclideanTrack = React.memo(({
             </div>
           </div>
 
+          {/* Scene Slots (Change 5) */}
+          <div className="w-px h-3.5 bg-border mx-1 flex-shrink-0" />
+          <div className="flex items-center gap-0.5 flex-shrink-0" onClick={e => e.stopPropagation()}>
+            <span className="text-[7px] text-muted-foreground mr-1 tracking-wide font-mono">ESC</span>
+            {Array.from({ length: 8 }, (_, i) => {
+              const hasContent = scenes[i] !== null;
+              const isActive = activeScene === i;
+              return (
+                <button
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeScene', i); }}
+                  className={`w-3.5 h-3.5 rounded-sm text-[6px] font-medium flex-shrink-0 border transition-all flex items-center justify-center ${
+                    isActive
+                      ? 'text-white border-transparent'
+                      : hasContent
+                      ? 'bg-muted text-muted-foreground border-border'
+                      : 'bg-background text-muted-foreground/30 border-border/50'
+                  }`}
+                  style={isActive ? { background: color, borderColor: color } : {}}
+                  title={`Escena ${i + 1}`}
+                >
+                  {i + 1}
+                </button>
+              );
+            })}
+          </div>
+          <div className="w-px h-3.5 bg-border mx-1 flex-shrink-0" />
+          
+          {/* Scene badge + Expand chevron */}
+          <span
+            className="text-[7px] border rounded px-0.5 flex-shrink-0 font-mono"
+            style={{ color, borderColor: color, opacity: 0.8 }}
+          >
+            S{activeScene + 1}
+          </span>
+          <ChevronDown size={14} className={`text-muted-foreground transition-transform duration-200 flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+
           {/* Waveform Display (fills remaining space) */}
           <div className="flex-1 min-w-[120px] h-14 relative group bg-idm-bg rounded-xl border border-black/5 overflow-hidden waveform-container" data-track-id={id}>
             <WaveformDisplay 
