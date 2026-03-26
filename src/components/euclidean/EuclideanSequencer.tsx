@@ -1685,18 +1685,27 @@ export const EuclideanSequencer = () => {
     const cloudPannerGain = new Tone.Gain(1);
     const cloudPanner3DGain = new Tone.Gain(0);
     const cloudFreqShifter = new Tone.FrequencyShifter(0);
+    const cloudFsBypassGain = new Tone.Gain(0);
+    const cloudFsDirectGain = new Tone.Gain(1);
     const cloudFilter = new Tone.Filter(1000, "lowpass").connect(cloudEqHpf);
     cloudEqHpf.connect(cloudEqLpf);
     cloudEqLpf.connect(cloudPannerGain);
     cloudEqLpf.connect(cloudPanner3DGain);
     cloudPannerGain.connect(cloudPanner);
     cloudPanner3DGain.connect(cloudPanner3D);
-    cloudPanner.connect(cloudFreqShifter);
-    cloudPanner3D.connect(cloudFreqShifter);
+    cloudPanner.connect(cloudFsBypassGain);
+    cloudPanner3D.connect(cloudFsBypassGain);
+    cloudFsBypassGain.connect(cloudFreqShifter);
     cloudFreqShifter.connect(compressor);
     cloudFreqShifter.connect(cloudDelaySend);
     cloudFreqShifter.connect(cloudReverbSend);
     cloudFreqShifter.connect(cloudSpectralSend);
+    cloudPanner.connect(cloudFsDirectGain);
+    cloudPanner3D.connect(cloudFsDirectGain);
+    cloudFsDirectGain.connect(compressor);
+    cloudFsDirectGain.connect(cloudDelaySend);
+    cloudFsDirectGain.connect(cloudReverbSend);
+    cloudFsDirectGain.connect(cloudSpectralSend);
 
     // Cloud Analyser for Envelope Crossfeed (Phase 7E)
     const cloudAnalyser = new Tone.Analyser('waveform', 256);
