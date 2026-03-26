@@ -2987,9 +2987,7 @@ export const EuclideanSequencer = () => {
       toneEqLpf.connect(master.compressor);
       toneEqLpf.connect(toneDelaySend);
       toneEqLpf.connect(toneReverbSend);
-      // Store EQ refs for later injection
-      const _toneEqHpf = toneEqHpf;
-      const _toneEqLpf = toneEqLpf;
+      toneFilterRef.current = toneFilter;
 
       // Reconectar nodo de captura si existe
       if (recordingDestRef.current) {
