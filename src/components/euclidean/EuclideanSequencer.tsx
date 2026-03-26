@@ -993,6 +993,10 @@ export const EuclideanSequencer = () => {
           binauralEnabled: t.binauralEnabled,
           binauralAzimuth: t.binauralAzimuth,
           binauralDistance: t.binauralDistance,
+          // Phase 8 — Percussive Synthesis
+          ...(t.id === 'kick' ? { kickPitchDecay: t.kickPitchDecay, kickOctaves: t.kickOctaves, kickDecay: t.kickDecay, kickClickType: t.kickClickType } : {}),
+          ...(t.id === 'hat' ? { hatMode: t.hatMode, hatHarmonicity: t.hatHarmonicity, hatModIndex: t.hatModIndex, hatResonance: t.hatResonance, hatDecay: t.hatDecay, hatNoiseType: t.hatNoiseType } : {}),
+          ...(t.id === 'snare' ? { snareDecay: t.snareDecay, snareNoiseType: t.snareNoiseType, snareBodyEnabled: t.snareBodyEnabled, snareBodyPitch: t.snareBodyPitch, snareBodyDecay: t.snareBodyDecay } : {}),
         }])
       ),
     };
