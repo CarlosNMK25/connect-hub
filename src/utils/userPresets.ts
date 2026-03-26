@@ -123,6 +123,9 @@ export interface UserPresetTrack {
   snareBodyEnabled?: boolean;
   snareBodyPitch?: number;
   snareBodyDecay?: number;
+  // Song Mode — Scene slots
+  activeScene?: number;
+  scenes?: (any | null)[];
 }
 
 export interface UserPreset {

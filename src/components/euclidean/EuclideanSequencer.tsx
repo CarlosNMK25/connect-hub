@@ -26,6 +26,23 @@ import { generateMarkovMatrix, markovNextNote, type MarkovStyle } from '../../ut
 import { LorenzAttractor } from '../../utils/lorenzAttractor';
 import { calculateSliceBoundaries, defaultSliceOrder, defaultSliceReverse, defaultSlicePitch } from '../../utils/slicerUtils';
 
+interface SceneData {
+  pulses: number;
+  steps: number;
+  offset: number;
+  probabilities: number[];
+  pattern: number[];
+  patternMode?: 'euclidean' | 'lsystem' | 'ca';
+  lsSeed?: string;
+  lsRuleA?: string;
+  lsIterations?: number;
+  lsRotation?: number;
+  caRule?: number;
+  caSeed?: string;
+  caDensity?: number;
+  caSpeed?: number;
+}
+
 interface TrackState {
   id: string;
   name: string;
@@ -182,6 +199,11 @@ interface TrackState {
   snareBodyDecay?: number;    // 0.05-0.3, default 0.1
   hits: number;
   misses: number;
+  // Song Mode — Scene slots
+  activeScene: number;           // 0-7
+  scenes: (SceneData | null)[];  // array of 8
+  // UI-only: exclusive advanced panel visibility
+  activeAdvancedPanel?: 'RR' | 'PHD' | 'LRZ' | 'NLF' | null;
 }
 
 /** Generate a synthetic reversed impulse response for Reverse Reverb */
@@ -380,9 +402,9 @@ export const EuclideanSequencer = () => {
   const [delayFeedback, setDelayFeedback] = useState(0.3);
   const [reverbMix, setReverbMix] = useState(0.15);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showVisuals, setShowVisuals] = useState(true);
-  const [showControls, setShowControls] = useState(true);
-  const [showSync, setShowSync] = useState(true);
+  const [showVisuals, setShowVisuals] = useState(false);
+  const [showControls, setShowControls] = useState(false);
+  const [showSync, setShowSync] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [isDjMode, setIsDjMode] = useState(false);
   const [isStudyMode, setIsStudyMode] = useState(false);
@@ -414,6 +436,22 @@ export const EuclideanSequencer = () => {
   const [temporalityMode, setTemporalityMode] = useState<TemporalityMode>('grid');
   const temporalityModeRef = useRef<TemporalityMode>('grid');
   useEffect(() => { temporalityModeRef.current = temporalityMode; }, [temporalityMode]);
+
+  // ── Change 2: Track collapse ──
+  const [expandedTrack, setExpandedTrack] = useState<string | null>('kick');
+  const handleToggleTrack = useCallback((trackId: string) => {
+    setExpandedTrack(prev => prev === trackId ? null : trackId);
+  }, []);
+
+  // ── Change 6: Song Mode state ──
+  const [songModeEnabled, setSongModeEnabled] = useState(false);
+  const [songModeView, setSongModeView] = useState<'performance' | 'chain'>('performance');
+  const [syncAllScenes, setSyncAllScenes] = useState(false);
+  const [chain, setChain] = useState<Array<{ scene: number; cycles: number }>>([
+    { scene: 1, cycles: 4 },
+    { scene: 2, cycles: 2 },
+  ]);
+  const [chainPosition, setChainPosition] = useState(0);
 
   const logChange = useCallback((action: string, deltas: string[] = []) => {
     const now = new Date();
@@ -564,7 +602,7 @@ export const EuclideanSequencer = () => {
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
       isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0,
       isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
-      hits: 0, misses: 0
+      hits: 0, misses: 0, activeScene: 0, scenes: new Array(8).fill(null), activeAdvancedPanel: null
     }),
     updateTrackPattern({ 
       id: 'snare', name: 'Snare', color: '#9D174D', pulses: 2, steps: 16, offset: 4, 
@@ -575,7 +613,7 @@ export const EuclideanSequencer = () => {
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
       isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0,
       isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
-      hits: 0, misses: 0
+      hits: 0, misses: 0, activeScene: 0, scenes: new Array(8).fill(null), activeAdvancedPanel: null
     }),
     updateTrackPattern({ 
       id: 'hat', name: 'Hi-Hat', color: '#155E75', pulses: 8, steps: 16, offset: 2, 
@@ -586,7 +624,7 @@ export const EuclideanSequencer = () => {
       chaosEnabled: false, entropy: 1, evolveEnabled: false, mutationRate: 0.05, mutationSpeed: 1,
       isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0,
       isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
-      hits: 0, misses: 0
+      hits: 0, misses: 0, activeScene: 0, scenes: new Array(8).fill(null), activeAdvancedPanel: null
     }),
     updateTrackPattern({ 
       id: 'cloud', name: 'Atmosphere', color: '#5B21B6', pulses: 4, steps: 16, offset: 0, 
@@ -598,7 +636,7 @@ export const EuclideanSequencer = () => {
       isMuted: false, isSoloed: false, volume: 0.8, delaySend: 0, reverbSend: 0, ratchet: 0,
       isTonal: false, rootNote: 48, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: new Array(64).fill(0), synthType: 'mono',
       cloudMode: 'granular' as const, enoSpeed: 1.0,
-      hits: 0, misses: 0
+      hits: 0, misses: 0, activeScene: 0, scenes: new Array(8).fill(null), activeAdvancedPanel: null
     }),
     updateTrackPattern({ 
       id: 'tone', name: 'Tone', color: '#B45309', pulses: 3, steps: 8, offset: 0, 
@@ -613,7 +651,7 @@ export const EuclideanSequencer = () => {
       wfAmount: 3, wfSymmetry: 0,
       addPartials: 4, addBrightness: 0.5,
       arRate: 80, arDepth: 0,
-      hits: 0, misses: 0
+      hits: 0, misses: 0, activeScene: 0, scenes: new Array(8).fill(null), activeAdvancedPanel: null
     }),
   ]);
 
@@ -3376,6 +3414,16 @@ export const EuclideanSequencer = () => {
 
   // ────── Universal Param Change (simple setTracks + optional logging) ──────
   const handleParamChange = useCallback((trackId: string, param: string, value: any) => {
+    // ── Change 5/6: activeScene with SYNC ALL support ──
+    if (param === 'activeScene') {
+      // TODO: aplicar SceneData al track cuando se implemente en refactoring
+      if (syncAllScenes) {
+        setTracks(prev => prev.map(t => ({ ...t, activeScene: value as number })));
+      } else {
+        setTracks(prev => prev.map(t => t.id === trackId ? { ...t, activeScene: value as number } : t));
+      }
+      return;
+    }
     const track = tracksRef.current.find(t => t.id === trackId);
     if (track) {
       switch (param) {
@@ -3386,7 +3434,7 @@ export const EuclideanSequencer = () => {
       }
     }
     setTracks(prev => prev.map(t => t.id === trackId ? { ...t, [param]: value } : t));
-  }, [logChange]);
+  }, [logChange, syncAllScenes]);
 
   // ────── Sequencer Actions ──────
   const handleSequencerAction = useCallback((trackId: string, action: string, value?: any, value2?: any) => {
@@ -5462,6 +5510,18 @@ export const EuclideanSequencer = () => {
               <Target size={12} />
               <span className="hidden sm:inline">Space</span>
             </button>
+            <button 
+              onClick={() => setSongModeEnabled(prev => !prev)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-300 border ${
+                songModeEnabled 
+                  ? 'bg-system-accent text-white border-system-accent' 
+                  : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'
+              }`}
+              title="Toggle Song Mode"
+            >
+              <Layers size={12} />
+              <span className="hidden sm:inline">Song</span>
+            </button>
           </div>
 
           <button
@@ -6402,6 +6462,137 @@ export const EuclideanSequencer = () => {
         />
       )}
 
+      {/* ═══ TRACKS ═══ */}
+      <div className="space-y-6 relative z-10">
+        <MesoInsightMonitor tracks={tracks} isStudyMode={isStudyMode} />
+        {tracks.map((track, i) => (
+          <div key={track.id} className="transition-all duration-500 opacity-100">
+            <EuclideanTrack
+              {...track}
+              trackId={track.id}
+              stats={uiStats[track.id] || { hits: 0, misses: 0, cycleCount: 0 }}
+              synth={synthsRef.current[track.id]}
+              jitter={jitter}
+              globalStep={globalStep}
+              mcm={mcm}
+              syncImpact={syncImpacts[i]}
+              lastHit={lastHit?.color === track.color ? lastHit : null}
+              isDjMode={isDjMode}
+              previewPattern={previewPatterns?.[track.id]}
+              onParamChange={handleParamChange}
+              onSequencerAction={handleSequencerAction}
+              onTonalAction={handleTonalAction}
+              onSlicerAction={handleSlicerAction}
+              onFileUpload={handleFileUploadCb}
+              onSamplerParamChange={handleSamplerParamChange}
+              onClearSampler={handleClearSamplerCb}
+              onLoadLayer2={handleLoadLayer2Cb}
+              onClearLayer2={handleClearLayer2Cb}
+              onLayer2ParamChange={handleLayer2ParamChange}
+              onPercSynthParamChange={handlePercSynthParamChange}
+              toneRecordingState={toneRecordingState}
+              onRecordAction={handleArmOrRecord}
+              cloudRecordingState={cloudRecordingState}
+              onCloudRecordAction={handleCloudArmOrRecord}
+              isStudyMode={isStudyMode}
+              studyVoice={studyVoice}
+              anySoloed={tracks.some(t => t.isSoloed)}
+              temporalityMode={temporalityMode}
+              bpm={bpm}
+              swing={swing}
+              onGetMarkovMatrix={handleGetMarkovMatrix}
+              isExpanded={expandedTrack === track.id}
+              onToggleExpand={() => handleToggleTrack(track.id)}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* ═══ SONG MODE CHAIN PANEL ═══ */}
+      {songModeEnabled && (
+        <div className="border border-border rounded-lg bg-background overflow-hidden">
+          <div className="flex items-center gap-2 px-3 py-2 bg-system-accent/5 border-b border-border">
+            <span className="text-xs font-medium text-system-accent">Song Mode</span>
+            <button
+              onClick={() => setSongModeView('performance')}
+              className={`text-[9px] px-2 py-0.5 rounded-full border transition-all ${
+                songModeView === 'performance'
+                  ? 'bg-system-accent text-white border-system-accent'
+                  : 'bg-background text-muted-foreground border-border'
+              }`}
+            >
+              Performance
+            </button>
+            <button
+              onClick={() => setSongModeView('chain')}
+              className={`text-[9px] px-2 py-0.5 rounded-full border transition-all ${
+                songModeView === 'chain'
+                  ? 'bg-system-accent text-white border-system-accent'
+                  : 'bg-background text-muted-foreground border-border'
+              }`}
+            >
+              Auto Chain
+            </button>
+            <div className="flex-1" />
+            <button
+              onClick={() => setSyncAllScenes(prev => !prev)}
+              className={`text-[9px] px-2 py-0.5 rounded-full border transition-all ${
+                syncAllScenes
+                  ? 'bg-green-800 text-white border-green-800'
+                  : 'bg-background text-muted-foreground border-border'
+              }`}
+            >
+              SYNC ALL{syncAllScenes ? ' ✓' : ''}
+            </button>
+          </div>
+          <div className="px-3 py-2 flex items-center gap-2 flex-wrap">
+            {chain.map((step, i) => (
+              <React.Fragment key={i}>
+                <div
+                  className={`flex items-center gap-1 px-2 py-1 rounded border cursor-pointer transition-all ${
+                    i === chainPosition
+                      ? 'bg-system-accent/10 border-system-accent/30'
+                      : 'bg-background border-border'
+                  }`}
+                  onClick={() => setChainPosition(i)}
+                >
+                  <span className={`text-xs font-medium ${i === chainPosition ? 'text-system-accent' : 'text-muted-foreground'}`}>
+                    {step.scene}
+                  </span>
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: step.cycles }, (_, j) => (
+                      <span
+                        key={j}
+                        className={`w-1.5 h-1.5 rounded-sm inline-block ${
+                          i === chainPosition ? 'bg-system-accent' : 'bg-muted-foreground/20'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                {i < chain.length - 1
+                  ? <span className="text-muted-foreground text-xs">›</span>
+                  : <span className="text-system-accent text-xs">↺</span>
+                }
+              </React.Fragment>
+            ))}
+            <button
+              onClick={() => setChain(prev => [...prev, { scene: 1, cycles: 2 }])}
+              className="text-[9px] text-muted-foreground hover:text-foreground cursor-pointer"
+            >
+              + añadir
+            </button>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 border-t border-border text-[9px] text-muted-foreground">
+            <div className="w-1.5 h-1.5 rounded-full bg-system-accent flex-shrink-0" />
+            <span>Escena {chain[chainPosition]?.scene} · Ciclo 1/{chain[chainPosition]?.cycles}</span>
+            <div className="flex-1" />
+            <span className="text-[8px]">Lógica de reproducción → fase posterior</span>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ FX GLOBALES — después de pistas ═══ */}
       {/* Spectral Delay Global Panel (Phase 7C) */}
       <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
         <button
@@ -6580,51 +6771,7 @@ export const EuclideanSequencer = () => {
         )}
       </div>
 
-
-      <div className="space-y-6 relative z-10">
-        <MesoInsightMonitor tracks={tracks} isStudyMode={isStudyMode} />
-        {tracks.map((track, i) => (
-          <div key={track.id} className="transition-all duration-500 opacity-100">
-            <EuclideanTrack
-              {...track}
-              trackId={track.id}
-              stats={uiStats[track.id] || { hits: 0, misses: 0, cycleCount: 0 }}
-              synth={synthsRef.current[track.id]}
-              jitter={jitter}
-              globalStep={globalStep}
-              mcm={mcm}
-              syncImpact={syncImpacts[i]}
-              lastHit={lastHit?.color === track.color ? lastHit : null}
-              isDjMode={isDjMode}
-              previewPattern={previewPatterns?.[track.id]}
-              onParamChange={handleParamChange}
-              onSequencerAction={handleSequencerAction}
-              onTonalAction={handleTonalAction}
-              onSlicerAction={handleSlicerAction}
-              onFileUpload={handleFileUploadCb}
-              onSamplerParamChange={handleSamplerParamChange}
-              onClearSampler={handleClearSamplerCb}
-              onLoadLayer2={handleLoadLayer2Cb}
-              onClearLayer2={handleClearLayer2Cb}
-              onLayer2ParamChange={handleLayer2ParamChange}
-              onPercSynthParamChange={handlePercSynthParamChange}
-              toneRecordingState={toneRecordingState}
-              onRecordAction={handleArmOrRecord}
-              cloudRecordingState={cloudRecordingState}
-              onCloudRecordAction={handleCloudArmOrRecord}
-              isStudyMode={isStudyMode}
-              studyVoice={studyVoice}
-              anySoloed={tracks.some(t => t.isSoloed)}
-              temporalityMode={temporalityMode}
-              bpm={bpm}
-              swing={swing}
-              onGetMarkovMatrix={handleGetMarkovMatrix}
-            />
-          </div>
-        ))}
-
-      </div>
-
+      {/* ═══ FOOTER ═══ */}
       <div className="mt-8 pt-4 border-t border-idm-muted/30 flex justify-between items-center text-[10px] font-mono text-idm-ink/40 uppercase tracking-widest">
         <div className="flex gap-4">
           <span>KICK: Membrane</span>

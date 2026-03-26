@@ -179,6 +179,14 @@ interface EuclideanTrackProps {
   snareBodyEnabled?: boolean;
   snareBodyPitch?: number;
   snareBodyDecay?: number;
+  // ═══ Change 2: Collapse ═══
+  isExpanded: boolean;
+  onToggleExpand: () => void;
+  // ═══ Change 5: Scene slots ═══
+  activeScene: number;
+  scenes: (any | null)[];
+  // ═══ Change 3: Exclusive advanced panel ═══
+  activeAdvancedPanel?: 'RR' | 'PHD' | 'LRZ' | 'NLF' | null;
   // ═══════ UNIVERSAL CALLBACKS (stable references) ═══════
   onParamChange: (trackId: string, param: string, value: any) => void;
   onSequencerAction: (trackId: string, action: string, value?: any, value2?: any) => void;
@@ -279,6 +287,7 @@ export const EuclideanTrack = React.memo(({
   kickPitchDecay, kickOctaves, kickDecay, kickClickType,
   hatMode, hatHarmonicity, hatModIndex, hatResonance, hatDecay, hatNoiseType,
   snareDecay, snareNoiseType, snareBodyEnabled, snareBodyPitch, snareBodyDecay,
+  isExpanded, onToggleExpand, activeScene, scenes, activeAdvancedPanel,
   onParamChange, onSequencerAction, onTonalAction, onSlicerAction,
   onSamplerParamChange, onPercSynthParamChange,
   onFileUpload, onClearSampler, onLoadLayer2, onClearLayer2, onLayer2ParamChange,
@@ -395,12 +404,12 @@ export const EuclideanTrack = React.memo(({
       </div>
 
       <div className={`transition-all duration-500 ${isTrackDimmed ? 'grayscale-[0.8]' : ''}`}>
-        {/* === ROW 1: Identity + Controls + Waveform === */}
-        <div className="flex items-center gap-4 flex-wrap overflow-hidden">
+        {/* === HEADER ROW: Identity (always visible, clickable) === */}
+        <div className="flex items-center gap-4 flex-wrap cursor-pointer select-none" onClick={onToggleExpand}>
           {/* Volume Fader */}
           <div 
             ref={volumeBarRef}
-            onMouseDown={handleVolumeMouseDown}
+            onMouseDown={(e) => { e.stopPropagation(); handleVolumeMouseDown(e); }}
             onMouseEnter={(e) => handleParamEnter('volume', e)}
             onMouseLeave={handleParamLeave}
             className="w-2.5 h-14 rounded-full bg-idm-bg border border-black/5 shadow-inner transition-all duration-300 relative overflow-hidden cursor-ns-resize group flex-none"
@@ -582,6 +591,43 @@ export const EuclideanTrack = React.memo(({
             </div>
           </div>
 
+          {/* Scene Slots (Change 5) */}
+          <div className="w-px h-3.5 bg-border mx-1 flex-shrink-0" />
+          <div className="flex items-center gap-0.5 flex-shrink-0" onClick={e => e.stopPropagation()}>
+            <span className="text-[7px] text-muted-foreground mr-1 tracking-wide font-mono">ESC</span>
+            {Array.from({ length: 8 }, (_, i) => {
+              const hasContent = scenes[i] !== null;
+              const isActive = activeScene === i;
+              return (
+                <button
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeScene', i); }}
+                  className={`w-3.5 h-3.5 rounded-sm text-[6px] font-medium flex-shrink-0 border transition-all flex items-center justify-center ${
+                    isActive
+                      ? 'text-white border-transparent'
+                      : hasContent
+                      ? 'bg-muted text-muted-foreground border-border'
+                      : 'bg-background text-muted-foreground/30 border-border/50'
+                  }`}
+                  style={isActive ? { background: color, borderColor: color } : {}}
+                  title={`Escena ${i + 1}`}
+                >
+                  {i + 1}
+                </button>
+              );
+            })}
+          </div>
+          <div className="w-px h-3.5 bg-border mx-1 flex-shrink-0" />
+          
+          {/* Scene badge + Expand chevron */}
+          <span
+            className="text-[7px] border rounded px-0.5 flex-shrink-0 font-mono"
+            style={{ color, borderColor: color, opacity: 0.8 }}
+          >
+            S{activeScene + 1}
+          </span>
+          <ChevronDown size={14} className={`text-muted-foreground transition-transform duration-200 flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+
           {/* Waveform Display (fills remaining space) */}
           <div className="flex-1 min-w-[120px] h-14 relative group bg-idm-bg rounded-xl border border-black/5 overflow-hidden waveform-container" data-track-id={id}>
             <WaveformDisplay 
@@ -715,67 +761,57 @@ export const EuclideanTrack = React.memo(({
             )}
           </div>
 
-          {/* RR + PHD controls — two rows */}
+          {/* RR + PHD + LRZ + NLF controls — exclusive panels with LEDs (Change 3) */}
           <div className="flex flex-col gap-1 flex-none">
             {/* Round Robin */}
             <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('roundRobin', e)} onMouseLeave={handleParamLeave}>
               <button
-                onClick={() => onParamChange(trackId, 'rrEnabled', !rrEnabled)}
-                className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
-                  rrEnabled
-                    ? 'bg-system-accent text-white border-system-accent'
-                    : 'bg-white text-idm-muted border-black/10'
+                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'rrEnabled', !rrEnabled); }}
+                className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                  activeAdvancedPanel === 'RR' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : rrEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-white text-idm-muted border-black/10'
                 }`}
                 title="Round Robin — micro-variación por hit"
               >
                 RR
+                {rrEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
               </button>
-              {rrEnabled && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'RR' ? null : 'RR'); }}
+                className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
+                title="Abrir/cerrar panel RR"
+              >⊙</button>
+              {activeAdvancedPanel === 'RR' && rrEnabled && (
                 <>
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    step={1}
-                    value={rrAmount ?? 30}
+                  <input type="range" min={0} max={100} step={1} value={rrAmount ?? 30}
                     onChange={e => onParamChange(trackId, 'rrAmount', Number(e.target.value))}
-                    className="w-12 h-[7px] accent-system-accent"
-                    title={`RR Amount: ${rrAmount ?? 30}%`}
-                  />
-                  <span className="text-[7px] font-mono text-idm-muted">
-                    {rrAmount ?? 30}
-                  </span>
+                    className="w-12 h-[7px] accent-system-accent" title={`RR Amount: ${rrAmount ?? 30}%`} />
+                  <span className="text-[7px] font-mono text-idm-muted">{rrAmount ?? 30}</span>
                 </>
               )}
             </div>
             {/* Phase Drift */}
             <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('phaseDrift', e)} onMouseLeave={handleParamLeave}>
               <button
-                onClick={() => onParamChange(trackId, 'driftEnabled', !driftEnabled)}
-                className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
-                  driftEnabled
-                    ? 'bg-system-accent text-white border-system-accent'
-                    : 'bg-white text-idm-muted border-black/10'
+                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'driftEnabled', !driftEnabled); }}
+                className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                  activeAdvancedPanel === 'PHD' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : driftEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-white text-idm-muted border-black/10'
                 }`}
                 title="Phase Drift — desfase progresivo estilo Reich"
               >
                 PHD
+                {driftEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
               </button>
-              {driftEnabled && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'PHD' ? null : 'PHD'); }}
+                className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
+                title="Abrir/cerrar panel PHD"
+              >⊙</button>
+              {activeAdvancedPanel === 'PHD' && driftEnabled && (
                 <>
-                  <input
-                    type="range"
-                    min={-0.05}
-                    max={0.05}
-                    step={0.001}
-                    value={driftRate ?? 0.01}
+                  <input type="range" min={-0.05} max={0.05} step={0.001} value={driftRate ?? 0.01}
                     onChange={e => onParamChange(trackId, 'driftRate', Number(e.target.value))}
-                    className="w-12 h-[7px] accent-system-accent"
-                    title={`Drift Rate: ${(driftRate ?? 0.01).toFixed(3)}`}
-                  />
-                  <span className="text-[7px] font-mono text-idm-muted">
-                    {(driftRate ?? 0.01) > 0 ? '+' : ''}{(driftRate ?? 0.01).toFixed(3)}
-                  </span>
+                    className="w-12 h-[7px] accent-system-accent" title={`Drift Rate: ${(driftRate ?? 0.01).toFixed(3)}`} />
+                  <span className="text-[7px] font-mono text-idm-muted">{(driftRate ?? 0.01) > 0 ? '+' : ''}{(driftRate ?? 0.01).toFixed(3)}</span>
                 </>
               )}
             </div>
@@ -783,17 +819,21 @@ export const EuclideanTrack = React.memo(({
             {/* Lorenz Attractor */}
             <div className="flex items-center gap-1.5">
               <button
-                onClick={() => onTonalAction(trackId, 'lorenzEnabled', !lorenzEnabled)}
-                className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-                  lorenzEnabled
-                    ? 'bg-system-accent text-white border-system-accent'
-                    : 'bg-background text-idm-muted border-border'
+                onClick={(e) => { e.stopPropagation(); onTonalAction(trackId, 'lorenzEnabled', !lorenzEnabled); }}
+                className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+                  activeAdvancedPanel === 'LRZ' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : lorenzEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-background text-idm-muted border-border'
                 }`}
                 title="Lorenz Attractor — modulación caótica del filtro"
               >
                 LRZ
+                {lorenzEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
               </button>
-              {lorenzEnabled && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'LRZ' ? null : 'LRZ'); }}
+                className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
+                title="Abrir/cerrar panel LRZ"
+              >⊙</button>
+              {activeAdvancedPanel === 'LRZ' && lorenzEnabled && (
                 <div className="flex flex-col gap-0.5">
                   <div className="flex items-center gap-1">
                     <span className="text-[7px] font-mono text-idm-muted w-6">Dep</span>
@@ -835,50 +875,45 @@ export const EuclideanTrack = React.memo(({
             {/* Nested LFO */}
             <div className="flex items-center gap-1.5">
               <button
-                onClick={() => onTonalAction(trackId, 'nestedLfoEnabled', !nestedLfoEnabled)}
-                className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-                  nestedLfoEnabled
-                    ? 'bg-system-accent text-white border-system-accent'
-                    : 'bg-background text-idm-muted border-border'
+                onClick={(e) => { e.stopPropagation(); onTonalAction(trackId, 'nestedLfoEnabled', !nestedLfoEnabled); }}
+                className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+                  activeAdvancedPanel === 'NLF' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : nestedLfoEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-background text-idm-muted border-border'
                 }`}
                 title="Nested LFO — modulación de la modulación"
               >
                 NLF
+                {nestedLfoEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
               </button>
-              {nestedLfoEnabled && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'NLF' ? null : 'NLF'); }}
+                className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
+                title="Abrir/cerrar panel NLF"
+              >⊙</button>
+              {activeAdvancedPanel === 'NLF' && nestedLfoEnabled && (
                 <div className="flex flex-col gap-0.5">
                   <div className="flex items-center gap-1">
                     <span className="text-[7px] font-mono text-idm-muted w-6">R1</span>
                     <input type="range" min={0.01} max={2.0} step={0.01}
                       value={nestedLfoRate1 ?? 0.1}
                       onChange={e => onTonalAction(trackId, 'nestedLfoRate1', Number(e.target.value))}
-                      className="w-12 h-[7px] accent-system-accent"
-                    />
-                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
-                      {(nestedLfoRate1 ?? 0.1).toFixed(2)}Hz
-                    </span>
+                      className="w-12 h-[7px] accent-system-accent" />
+                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{(nestedLfoRate1 ?? 0.1).toFixed(2)}Hz</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="text-[7px] font-mono text-idm-muted w-6">R2</span>
                     <input type="range" min={0.5} max={20.0} step={0.5}
                       value={nestedLfoRate2 ?? 4.0}
                       onChange={e => onTonalAction(trackId, 'nestedLfoRate2', Number(e.target.value))}
-                      className="w-12 h-[7px] accent-system-accent"
-                    />
-                    <span className="text-[7px] font-mono text-idm-muted w-6 text-right">
-                      {(nestedLfoRate2 ?? 4.0).toFixed(1)}
-                    </span>
+                      className="w-12 h-[7px] accent-system-accent" />
+                    <span className="text-[7px] font-mono text-idm-muted w-6 text-right">{(nestedLfoRate2 ?? 4.0).toFixed(1)}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="text-[7px] font-mono text-idm-muted w-6">Dep</span>
                     <input type="range" min={0} max={5000} step={100}
                       value={nestedLfoDepth ?? 800}
                       onChange={e => onTonalAction(trackId, 'nestedLfoDepth', Number(e.target.value))}
-                      className="w-12 h-[7px] accent-system-accent"
-                    />
-                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
-                      {nestedLfoDepth ?? 800}
-                    </span>
+                      className="w-12 h-[7px] accent-system-accent" />
+                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{nestedLfoDepth ?? 800}</span>
                   </div>
                 </div>
               )}
@@ -1004,6 +1039,10 @@ export const EuclideanTrack = React.memo(({
             </div>
           )}
         </div>
+        {/* === END HEADER ROW === */}
+
+        {/* === COLLAPSIBLE ZONE (CSS collapse — elements stay in DOM for RAF step highlighting) === */}
+        <div className="overflow-hidden transition-all duration-200" style={{ maxHeight: isExpanded ? '4000px' : '0px' }}>
 
         {/* === ROW 2: Sliders P/S/O + Steps === */}
         <div className="flex items-center gap-4 flex-wrap">
@@ -2238,6 +2277,8 @@ export const EuclideanTrack = React.memo(({
         </div>
       )}
 
+      </div>{/* === END COLLAPSIBLE ZONE === */}
+
       <StudyTooltip
         content={hoveredParam ? getMicroText(hoveredParam, voice) : ''}
         visible={!!hoveredParam && isStudyMode}
@@ -2380,6 +2421,10 @@ export const EuclideanTrack = React.memo(({
     prevProps.slicerEnabled === nextProps.slicerEnabled &&
     prevProps.sliceCount === nextProps.sliceCount &&
     prevProps.sliceOrder === nextProps.sliceOrder &&
+    prevProps.isExpanded === nextProps.isExpanded &&
+    prevProps.activeScene === nextProps.activeScene &&
+    prevProps.scenes === nextProps.scenes &&
+    prevProps.activeAdvancedPanel === nextProps.activeAdvancedPanel &&
     prevProps.onParamChange === nextProps.onParamChange &&
     prevProps.onSequencerAction === nextProps.onSequencerAction &&
     prevProps.onTonalAction === nextProps.onTonalAction &&
