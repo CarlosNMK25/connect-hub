@@ -2635,6 +2635,10 @@ export const EuclideanSequencer = () => {
         const updatedTrack = tracksRef.current.find(t => t.id === trackId);
         synthObj.setFreqShift?.(val ? (updatedTrack?.freqShift ?? 0) : 0);
       }
+      // Spectral Delay Send real-time sync
+      if (param === 'spectralDelaySend') {
+        synthObj.setSpectralSend?.(val as number);
+      }
     }
   }, []);
 
