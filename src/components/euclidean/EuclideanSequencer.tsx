@@ -1396,9 +1396,16 @@ export const EuclideanSequencer = () => {
       dispose: () => {
         if (synthsRef.current.cloud.grainPlayer) synthsRef.current.cloud.grainPlayer.dispose();
         if (synthsRef.current.cloud.bitCrusher) synthsRef.current.cloud.bitCrusher.dispose();
+        cloudEqHpf.dispose();
+        cloudEqLpf.dispose();
         cloudDelaySend.dispose();
         cloudReverbSend.dispose();
       }
+    };
+    // EQ injection for cloud
+    synthsRef.current.cloud.updateEq = (hpfFreq: number, lpfFreq: number) => {
+      cloudEqHpf.frequency.rampTo(hpfFreq, 0.05);
+      cloudEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     // Lorenz + Nested LFO injection for cloud
     synthsRef.current.cloud.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
