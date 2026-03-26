@@ -139,6 +139,10 @@ interface TrackState {
   // Time Stretch (Phase 6B)
   stretchEnabled?: boolean;
   stretchRate?: number; // 0.25-2.0, default 1.0
+  // EQ per-track (Phase 6C)
+  eqEnabled?: boolean;
+  eqHpfFreq?: number;   // 20-2000 Hz, default 20
+  eqLpfFreq?: number;   // 1000-20000 Hz, default 20000
   hits: number;
   misses: number;
 }
@@ -913,6 +917,10 @@ export const EuclideanSequencer = () => {
           // Time Stretch
           stretchEnabled: t.stretchEnabled,
           stretchRate: t.stretchRate,
+          // EQ
+          eqEnabled: t.eqEnabled,
+          eqHpfFreq: t.eqHpfFreq,
+          eqLpfFreq: t.eqLpfFreq,
         }])
       ),
     };
@@ -1039,13 +1047,25 @@ export const EuclideanSequencer = () => {
         // Time Stretch
         stretchEnabled: (config as any).stretchEnabled ?? false,
         stretchRate: (config as any).stretchRate ?? 1.0,
+        // EQ
+        eqEnabled: (config as any).eqEnabled ?? false,
+        eqHpfFreq: (config as any).eqHpfFreq ?? 20,
+        eqLpfFreq: (config as any).eqLpfFreq ?? 20000,
         hits: 0,
         misses: 0,
       });
     }));
-    // Recalcular matrices Markov para tracks tonales
+    // Apply EQ and Markov after state update
     setTimeout(() => {
       tracksRef.current.forEach(t => {
+        // Restore EQ
+        const config = up.tracks[t.id];
+        if (config) {
+          const hpf = (config as any).eqEnabled ? ((config as any).eqHpfFreq ?? 20) : 20;
+          const lpf = (config as any).eqEnabled ? ((config as any).eqLpfFreq ?? 20000) : 20000;
+          synthsRef.current[t.id]?.updateEq?.(hpf, lpf);
+        }
+        // Recalcular matrices Markov para tracks tonales
         if (t.isTonal && (t.noteMode ?? 'euclidean') === 'markov') {
           updateMarkovMatrix(t);
         }
@@ -1146,24 +1166,37 @@ export const EuclideanSequencer = () => {
     // Filters for dynamic timbre
     const kickDelaySend = new Tone.Gain(0).connect(delayBus);
     const kickReverbSend = new Tone.Gain(0).connect(reverbBus);
-    const kickFilter = new Tone.Filter(2000, "lowpass").connect(compressor);
-    kickFilter.connect(kickDelaySend);
-    kickFilter.connect(kickReverbSend);
+    // EQ filters in series: filter → eqHpf → eqLpf → [compressor, sends, follower]
+    const kickEqHpf = new Tone.Filter(20, "highpass");
+    const kickEqLpf = new Tone.Filter(20000, "lowpass");
+    const kickFilter = new Tone.Filter(2000, "lowpass").connect(kickEqHpf);
+    kickEqHpf.connect(kickEqLpf);
+    kickEqLpf.connect(compressor);
+    kickEqLpf.connect(kickDelaySend);
+    kickEqLpf.connect(kickReverbSend);
 
-    kickFilter.connect(kickFollower); // Send kick to follower
+    kickEqLpf.connect(kickFollower); // Send kick to follower
     kickFollower.connect(sidechainInverter);
 
     const snareDelaySend = new Tone.Gain(0).connect(delayBus);
     const snareReverbSend = new Tone.Gain(0).connect(reverbBus);
-    const snareFilter = new Tone.Filter(5000, "lowpass").connect(compressor);
-    snareFilter.connect(snareDelaySend);
-    snareFilter.connect(snareReverbSend);
+    const snareEqHpf = new Tone.Filter(20, "highpass");
+    const snareEqLpf = new Tone.Filter(20000, "lowpass");
+    const snareFilter = new Tone.Filter(5000, "lowpass").connect(snareEqHpf);
+    snareEqHpf.connect(snareEqLpf);
+    snareEqLpf.connect(compressor);
+    snareEqLpf.connect(snareDelaySend);
+    snareEqLpf.connect(snareReverbSend);
 
     const hatDelaySend = new Tone.Gain(0).connect(delayBus);
     const hatReverbSend = new Tone.Gain(0).connect(reverbBus);
-    const hatFilter = new Tone.Filter(5000, "highpass").connect(compressor);
-    hatFilter.connect(hatDelaySend);
-    hatFilter.connect(hatReverbSend);
+    const hatEqHpf = new Tone.Filter(20, "highpass");
+    const hatEqLpf = new Tone.Filter(20000, "lowpass");
+    const hatFilter = new Tone.Filter(5000, "highpass").connect(hatEqHpf);
+    hatEqHpf.connect(hatEqLpf);
+    hatEqLpf.connect(compressor);
+    hatEqLpf.connect(hatDelaySend);
+    hatEqLpf.connect(hatReverbSend);
 
     // Layered Kick
     const kickBody = new Tone.MembraneSynth({
@@ -1201,9 +1234,16 @@ export const EuclideanSequencer = () => {
         kickBody.dispose();
         kickClick.dispose();
         kickFilter.dispose();
+        kickEqHpf.dispose();
+        kickEqLpf.dispose();
         kickDelaySend.dispose();
         kickReverbSend.dispose();
       }
+    };
+    // EQ injection for kick
+    synthsRef.current.kick.updateEq = (hpfFreq: number, lpfFreq: number) => {
+      kickEqHpf.frequency.rampTo(hpfFreq, 0.05);
+      kickEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     // Lorenz + Nested LFO injection for kick
     synthsRef.current.kick.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
@@ -1250,9 +1290,16 @@ export const EuclideanSequencer = () => {
       dispose: () => {
         snareSynth.dispose();
         snareFilter.dispose();
+        snareEqHpf.dispose();
+        snareEqLpf.dispose();
         snareDelaySend.dispose();
         snareReverbSend.dispose();
       }
+    };
+    // EQ injection for snare
+    synthsRef.current.snare.updateEq = (hpfFreq: number, lpfFreq: number) => {
+      snareEqHpf.frequency.rampTo(hpfFreq, 0.05);
+      snareEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     // Lorenz + Nested LFO injection for snare
     synthsRef.current.snare.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
@@ -1299,9 +1346,16 @@ export const EuclideanSequencer = () => {
       dispose: () => {
         hatSynth.dispose();
         hatFilter.dispose();
+        hatEqHpf.dispose();
+        hatEqLpf.dispose();
         hatDelaySend.dispose();
         hatReverbSend.dispose();
       }
+    };
+    // EQ injection for hat
+    synthsRef.current.hat.updateEq = (hpfFreq: number, lpfFreq: number) => {
+      hatEqHpf.frequency.rampTo(hpfFreq, 0.05);
+      hatEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     // Lorenz + Nested LFO injection for hat
     synthsRef.current.hat.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
@@ -1325,9 +1379,13 @@ export const EuclideanSequencer = () => {
     // Cloud Engine Setup
     const cloudDelaySend = new Tone.Gain(0).connect(delayBus);
     const cloudReverbSend = new Tone.Gain(0).connect(reverbBus);
-    const cloudFilter = new Tone.Filter(1000, "lowpass").connect(compressor);
-    cloudFilter.connect(cloudDelaySend);
-    cloudFilter.connect(cloudReverbSend);
+    const cloudEqHpf = new Tone.Filter(20, "highpass");
+    const cloudEqLpf = new Tone.Filter(20000, "lowpass");
+    const cloudFilter = new Tone.Filter(1000, "lowpass").connect(cloudEqHpf);
+    cloudEqHpf.connect(cloudEqLpf);
+    cloudEqLpf.connect(compressor);
+    cloudEqLpf.connect(cloudDelaySend);
+    cloudEqLpf.connect(cloudReverbSend);
 
     const cloudDucker = new Tone.Gain(1).connect(cloudFilter);
     const cloudLFO = new Tone.LFO({
@@ -1354,9 +1412,16 @@ export const EuclideanSequencer = () => {
       dispose: () => {
         if (synthsRef.current.cloud.grainPlayer) synthsRef.current.cloud.grainPlayer.dispose();
         if (synthsRef.current.cloud.bitCrusher) synthsRef.current.cloud.bitCrusher.dispose();
+        cloudEqHpf.dispose();
+        cloudEqLpf.dispose();
         cloudDelaySend.dispose();
         cloudReverbSend.dispose();
       }
+    };
+    // EQ injection for cloud
+    synthsRef.current.cloud.updateEq = (hpfFreq: number, lpfFreq: number) => {
+      cloudEqHpf.frequency.rampTo(hpfFreq, 0.05);
+      cloudEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     // Lorenz + Nested LFO injection for cloud
     synthsRef.current.cloud.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
@@ -1384,9 +1449,13 @@ export const EuclideanSequencer = () => {
     // Tone Synth Setup (MonoSynth)
     const toneDelaySend = new Tone.Gain(0.15).connect(delayBus);
     const toneReverbSend = new Tone.Gain(0.2).connect(reverbBus);
-    const toneFilter = new Tone.Filter(2000, "lowpass").connect(compressor);
-    toneFilter.connect(toneDelaySend);
-    toneFilter.connect(toneReverbSend);
+    const toneEqHpf = new Tone.Filter(20, "highpass");
+    const toneEqLpf = new Tone.Filter(20000, "lowpass");
+    const toneFilter = new Tone.Filter(2000, "lowpass").connect(toneEqHpf);
+    toneEqHpf.connect(toneEqLpf);
+    toneEqLpf.connect(compressor);
+    toneEqLpf.connect(toneDelaySend);
+    toneEqLpf.connect(toneReverbSend);
     toneFilterRef.current = toneFilter;
 
     const toneMonoSynth = new Tone.MonoSynth({
@@ -1416,9 +1485,16 @@ export const EuclideanSequencer = () => {
       dispose: () => {
         toneMonoSynth.dispose();
         toneFilter.dispose();
+        toneEqHpf.dispose();
+        toneEqLpf.dispose();
         toneDelaySend.dispose();
         toneReverbSend.dispose();
       }
+    };
+    // EQ injection for tone
+    synthsRef.current.tone.updateEq = (hpfFreq: number, lpfFreq: number) => {
+      toneEqHpf.frequency.rampTo(hpfFreq, 0.05);
+      toneEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     // Lorenz + Nested LFO injection for tone
     synthsRef.current.tone.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
@@ -2380,6 +2456,16 @@ export const EuclideanSequencer = () => {
       if (synthObj.bitCrusher && param === 'bitCrush') {
         synthObj.bitCrusher.bits.value = val;
       }
+      // EQ real-time sync
+      if (['eqEnabled', 'eqHpfFreq', 'eqLpfFreq'].includes(param)) {
+        const updatedTrack = tracksRef.current.find(t => t.id === trackId);
+        if (updatedTrack) {
+          const merged = { ...updatedTrack, [param]: val };
+          const hpf = merged.eqEnabled ? (merged.eqHpfFreq ?? 20) : 20;
+          const lpf = merged.eqEnabled ? (merged.eqLpfFreq ?? 20000) : 20000;
+          synthObj.updateEq?.(hpf, lpf);
+        }
+      }
     }
   }, []);
 
@@ -2727,13 +2813,19 @@ export const EuclideanSequencer = () => {
 
   const initializeOriginalSynth = (trackId: string, overrideSynthType?: string) => {
     const master = masterBusRef.current!;
+    let _eqHpfRef: Tone.Filter | null = null;
+    let _eqLpfRef: Tone.Filter | null = null;
     if (trackId === 'kick') {
       const kickDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const kickReverbSend = new Tone.Gain(0).connect(master.reverbBus);
-      const kickFilter = new Tone.Filter(2000, "lowpass").connect(master.compressor);
-      kickFilter.connect(kickDelaySend);
-      kickFilter.connect(kickReverbSend);
-      if (synthsRef.current.kickFollower) kickFilter.connect(synthsRef.current.kickFollower);
+      const kickEqHpf = new Tone.Filter(20, "highpass");
+      const kickEqLpf = new Tone.Filter(20000, "lowpass");
+      const kickFilter = new Tone.Filter(2000, "lowpass").connect(kickEqHpf);
+      kickEqHpf.connect(kickEqLpf);
+      kickEqLpf.connect(master.compressor);
+      kickEqLpf.connect(kickDelaySend);
+      kickEqLpf.connect(kickReverbSend);
+      if (synthsRef.current.kickFollower) kickEqLpf.connect(synthsRef.current.kickFollower);
 
       const kickBody = new Tone.MembraneSynth({
         pitchDecay: 0.05, octaves: 10, oscillator: { type: 'sine' },
@@ -2770,9 +2862,16 @@ export const EuclideanSequencer = () => {
           kickBody.dispose();
           kickClick.dispose();
           kickFilter.dispose();
+          kickEqHpf.dispose();
+          kickEqLpf.dispose();
           kickDelaySend.dispose();
           kickReverbSend.dispose();
         }
+      };
+      // EQ injection for kick rebuild
+      synthsRef.current.kick.updateEq = (hpfFreq: number, lpfFreq: number) => {
+        kickEqHpf.frequency.rampTo(hpfFreq, 0.05);
+        kickEqLpf.frequency.rampTo(lpfFreq, 0.05);
       };
       // Lorenz + Nested LFO injection for kick rebuild
       synthsRef.current.kick.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
@@ -2788,9 +2887,13 @@ export const EuclideanSequencer = () => {
     } else if (trackId === 'snare') {
       const snareDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const snareReverbSend = new Tone.Gain(0).connect(master.reverbBus);
-      const snareFilter = new Tone.Filter(5000, "lowpass").connect(master.compressor);
-      snareFilter.connect(snareDelaySend);
-      snareFilter.connect(snareReverbSend);
+      const snareEqHpf = new Tone.Filter(20, "highpass");
+      const snareEqLpf = new Tone.Filter(20000, "lowpass");
+      const snareFilter = new Tone.Filter(5000, "lowpass").connect(snareEqHpf);
+      snareEqHpf.connect(snareEqLpf);
+      snareEqLpf.connect(master.compressor);
+      snareEqLpf.connect(snareDelaySend);
+      snareEqLpf.connect(snareReverbSend);
 
       const snareSynth = new Tone.NoiseSynth({
         noise: { type: 'white' },
@@ -2817,9 +2920,16 @@ export const EuclideanSequencer = () => {
         dispose: () => {
           snareSynth.dispose();
           snareFilter.dispose();
+          snareEqHpf.dispose();
+          snareEqLpf.dispose();
           snareDelaySend.dispose();
           snareReverbSend.dispose();
         }
+      };
+      // EQ injection for snare rebuild
+      synthsRef.current.snare.updateEq = (hpfFreq: number, lpfFreq: number) => {
+        snareEqHpf.frequency.rampTo(hpfFreq, 0.05);
+        snareEqLpf.frequency.rampTo(lpfFreq, 0.05);
       };
       // Lorenz + Nested LFO injection for snare rebuild
       synthsRef.current.snare.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
@@ -2835,9 +2945,13 @@ export const EuclideanSequencer = () => {
     } else if (trackId === 'hat') {
       const hatDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const hatReverbSend = new Tone.Gain(0).connect(master.reverbBus);
-      const hatFilter = new Tone.Filter(5000, "highpass").connect(master.compressor);
-      hatFilter.connect(hatDelaySend);
-      hatFilter.connect(hatReverbSend);
+      const hatEqHpf = new Tone.Filter(20, "highpass");
+      const hatEqLpf = new Tone.Filter(20000, "lowpass");
+      const hatFilter = new Tone.Filter(5000, "highpass").connect(hatEqHpf);
+      hatEqHpf.connect(hatEqLpf);
+      hatEqLpf.connect(master.compressor);
+      hatEqLpf.connect(hatDelaySend);
+      hatEqLpf.connect(hatReverbSend);
 
       const hatSynth = new Tone.NoiseSynth({
         noise: { type: 'white' },
@@ -2864,9 +2978,16 @@ export const EuclideanSequencer = () => {
         dispose: () => {
           hatSynth.dispose();
           hatFilter.dispose();
+          hatEqHpf.dispose();
+          hatEqLpf.dispose();
           hatDelaySend.dispose();
           hatReverbSend.dispose();
         }
+      };
+      // EQ injection for hat rebuild
+      synthsRef.current.hat.updateEq = (hpfFreq: number, lpfFreq: number) => {
+        hatEqHpf.frequency.rampTo(hpfFreq, 0.05);
+        hatEqLpf.frequency.rampTo(lpfFreq, 0.05);
       };
       // Lorenz + Nested LFO injection for hat rebuild
       synthsRef.current.hat.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
@@ -2887,10 +3008,16 @@ export const EuclideanSequencer = () => {
 
       const toneDelaySend = new Tone.Gain(0.15).connect(master.delayBus);
       const toneReverbSend = new Tone.Gain(0.2).connect(master.reverbBus);
-      const toneFilter = new Tone.Filter(2000, "lowpass").connect(master.compressor);
-      toneFilter.connect(toneDelaySend);
-      toneFilter.connect(toneReverbSend);
+      const toneEqHpf = new Tone.Filter(20, "highpass");
+      const toneEqLpf = new Tone.Filter(20000, "lowpass");
+      const toneFilter = new Tone.Filter(2000, "lowpass").connect(toneEqHpf);
+      toneEqHpf.connect(toneEqLpf);
+      toneEqLpf.connect(master.compressor);
+      toneEqLpf.connect(toneDelaySend);
+      toneEqLpf.connect(toneReverbSend);
       toneFilterRef.current = toneFilter;
+      _eqHpfRef = toneEqHpf;
+      _eqLpfRef = toneEqLpf;
 
       // Reconectar nodo de captura si existe
       if (recordingDestRef.current) {
@@ -3592,12 +3719,25 @@ export const EuclideanSequencer = () => {
       };
       synthsRef.current.tone.updateNestedLfo = (r1: number, r2: number, d: number) => synthsRef.current.tone.nestedLfoInstance?.update(r1, r2, d);
       synthsRef.current.tone.disposeNestedLfo = () => { synthsRef.current.tone.nestedLfoInstance?.dispose(); synthsRef.current.tone.nestedLfoInstance = null; };
+      // EQ injection for tone rebuild
+      if (_eqHpfRef && _eqLpfRef) {
+        const eqH = _eqHpfRef;
+        const eqL = _eqLpfRef;
+        synthsRef.current.tone.updateEq = (hpfFreq: number, lpfFreq: number) => {
+          eqH.frequency.rampTo(hpfFreq, 0.05);
+          eqL.frequency.rampTo(lpfFreq, 0.05);
+        };
+      }
     }
-    // Apply current volume and sends
+    // Apply current volume, sends, and EQ
     const track = tracksRef.current.find(t => t.id === trackId);
     if (track && synthsRef.current[trackId]) {
       synthsRef.current[trackId].setVolume(track.volume);
       synthsRef.current[trackId].setSends(track.delaySend, track.reverbSend);
+      // Restore EQ state
+      const hpf = track.eqEnabled ? (track.eqHpfFreq ?? 20) : 20;
+      const lpf = track.eqEnabled ? (track.eqLpfFreq ?? 20000) : 20000;
+      synthsRef.current[trackId].updateEq?.(hpf, lpf);
     }
   };
 
@@ -5267,6 +5407,10 @@ export const EuclideanSequencer = () => {
               // Time Stretch props
               stretchEnabled={track.stretchEnabled}
               stretchRate={track.stretchRate}
+              // EQ props
+              eqEnabled={track.eqEnabled}
+              eqHpfFreq={track.eqHpfFreq}
+              eqLpfFreq={track.eqLpfFreq}
             />
           </div>
         ))}

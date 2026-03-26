@@ -231,6 +231,10 @@ interface EuclideanTrackProps {
   // Time Stretch props
   stretchEnabled?: boolean;
   stretchRate?: number;
+  // EQ props
+  eqEnabled?: boolean;
+  eqHpfFreq?: number;
+  eqLpfFreq?: number;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
@@ -481,6 +485,10 @@ export const EuclideanTrack = React.memo(({
   // Time Stretch
   stretchEnabled,
   stretchRate,
+  // EQ
+  eqEnabled,
+  eqHpfFreq,
+  eqLpfFreq,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
@@ -756,6 +764,49 @@ export const EuclideanTrack = React.memo(({
 
             <input type="file" ref={fileInputRef} className="hidden" accept="audio/*"
               onChange={(e) => e.target.files?.[0] && onFileUpload(e.target.files[0])} />
+          </div>
+
+          {/* EQ — visible always */}
+          <div className="flex items-center gap-1.5 flex-none">
+            <button
+              onClick={() => onSamplerParamChange('eqEnabled', !eqEnabled)}
+              className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+                eqEnabled
+                  ? 'bg-system-accent text-white border-system-accent'
+                  : 'bg-background text-idm-muted border-border'
+              }`}
+              title="EQ — filtro de dos bandas HPF + LPF"
+            >
+              EQ
+            </button>
+            {eqEnabled && (
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1">
+                  <span className="text-[7px] font-mono text-idm-muted w-8">HPF</span>
+                  <input type="range"
+                    min={20} max={2000} step={10}
+                    value={eqHpfFreq ?? 20}
+                    onChange={e => onSamplerParamChange('eqHpfFreq', Number(e.target.value))}
+                    className="w-14 h-[7px] accent-system-accent"
+                  />
+                  <span className="text-[7px] font-mono text-idm-muted w-12 text-right">
+                    {eqHpfFreq ?? 20}Hz
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[7px] font-mono text-idm-muted w-8">LPF</span>
+                  <input type="range"
+                    min={1000} max={20000} step={100}
+                    value={eqLpfFreq ?? 20000}
+                    onChange={e => onSamplerParamChange('eqLpfFreq', Number(e.target.value))}
+                    className="w-14 h-[7px] accent-system-accent"
+                  />
+                  <span className="text-[7px] font-mono text-idm-muted w-14 text-right">
+                    {((eqLpfFreq ?? 20000) / 1000).toFixed(1)}kHz
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* RR + PHD controls — two rows */}
@@ -2228,6 +2279,9 @@ export const EuclideanTrack = React.memo(({
     prevProps.nestedLfoRate2 === nextProps.nestedLfoRate2 &&
     prevProps.nestedLfoDepth === nextProps.nestedLfoDepth &&
     prevProps.stretchEnabled === nextProps.stretchEnabled &&
-    prevProps.stretchRate === nextProps.stretchRate
+    prevProps.stretchRate === nextProps.stretchRate &&
+    prevProps.eqEnabled === nextProps.eqEnabled &&
+    prevProps.eqHpfFreq === nextProps.eqHpfFreq &&
+    prevProps.eqLpfFreq === nextProps.eqLpfFreq
   );
 });
