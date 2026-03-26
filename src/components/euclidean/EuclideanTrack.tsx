@@ -761,67 +761,57 @@ export const EuclideanTrack = React.memo(({
             )}
           </div>
 
-          {/* RR + PHD controls — two rows */}
+          {/* RR + PHD + LRZ + NLF controls — exclusive panels with LEDs (Change 3) */}
           <div className="flex flex-col gap-1 flex-none">
             {/* Round Robin */}
             <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('roundRobin', e)} onMouseLeave={handleParamLeave}>
               <button
-                onClick={() => onParamChange(trackId, 'rrEnabled', !rrEnabled)}
-                className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
-                  rrEnabled
-                    ? 'bg-system-accent text-white border-system-accent'
-                    : 'bg-white text-idm-muted border-black/10'
+                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'rrEnabled', !rrEnabled); }}
+                className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                  activeAdvancedPanel === 'RR' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : rrEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-white text-idm-muted border-black/10'
                 }`}
                 title="Round Robin — micro-variación por hit"
               >
                 RR
+                {rrEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
               </button>
-              {rrEnabled && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'RR' ? null : 'RR'); }}
+                className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
+                title="Abrir/cerrar panel RR"
+              >⊙</button>
+              {activeAdvancedPanel === 'RR' && rrEnabled && (
                 <>
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    step={1}
-                    value={rrAmount ?? 30}
+                  <input type="range" min={0} max={100} step={1} value={rrAmount ?? 30}
                     onChange={e => onParamChange(trackId, 'rrAmount', Number(e.target.value))}
-                    className="w-12 h-[7px] accent-system-accent"
-                    title={`RR Amount: ${rrAmount ?? 30}%`}
-                  />
-                  <span className="text-[7px] font-mono text-idm-muted">
-                    {rrAmount ?? 30}
-                  </span>
+                    className="w-12 h-[7px] accent-system-accent" title={`RR Amount: ${rrAmount ?? 30}%`} />
+                  <span className="text-[7px] font-mono text-idm-muted">{rrAmount ?? 30}</span>
                 </>
               )}
             </div>
             {/* Phase Drift */}
             <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('phaseDrift', e)} onMouseLeave={handleParamLeave}>
               <button
-                onClick={() => onParamChange(trackId, 'driftEnabled', !driftEnabled)}
-                className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
-                  driftEnabled
-                    ? 'bg-system-accent text-white border-system-accent'
-                    : 'bg-white text-idm-muted border-black/10'
+                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'driftEnabled', !driftEnabled); }}
+                className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                  activeAdvancedPanel === 'PHD' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : driftEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-white text-idm-muted border-black/10'
                 }`}
                 title="Phase Drift — desfase progresivo estilo Reich"
               >
                 PHD
+                {driftEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
               </button>
-              {driftEnabled && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'PHD' ? null : 'PHD'); }}
+                className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
+                title="Abrir/cerrar panel PHD"
+              >⊙</button>
+              {activeAdvancedPanel === 'PHD' && driftEnabled && (
                 <>
-                  <input
-                    type="range"
-                    min={-0.05}
-                    max={0.05}
-                    step={0.001}
-                    value={driftRate ?? 0.01}
+                  <input type="range" min={-0.05} max={0.05} step={0.001} value={driftRate ?? 0.01}
                     onChange={e => onParamChange(trackId, 'driftRate', Number(e.target.value))}
-                    className="w-12 h-[7px] accent-system-accent"
-                    title={`Drift Rate: ${(driftRate ?? 0.01).toFixed(3)}`}
-                  />
-                  <span className="text-[7px] font-mono text-idm-muted">
-                    {(driftRate ?? 0.01) > 0 ? '+' : ''}{(driftRate ?? 0.01).toFixed(3)}
-                  </span>
+                    className="w-12 h-[7px] accent-system-accent" title={`Drift Rate: ${(driftRate ?? 0.01).toFixed(3)}`} />
+                  <span className="text-[7px] font-mono text-idm-muted">{(driftRate ?? 0.01) > 0 ? '+' : ''}{(driftRate ?? 0.01).toFixed(3)}</span>
                 </>
               )}
             </div>
@@ -829,17 +819,21 @@ export const EuclideanTrack = React.memo(({
             {/* Lorenz Attractor */}
             <div className="flex items-center gap-1.5">
               <button
-                onClick={() => onTonalAction(trackId, 'lorenzEnabled', !lorenzEnabled)}
-                className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-                  lorenzEnabled
-                    ? 'bg-system-accent text-white border-system-accent'
-                    : 'bg-background text-idm-muted border-border'
+                onClick={(e) => { e.stopPropagation(); onTonalAction(trackId, 'lorenzEnabled', !lorenzEnabled); }}
+                className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+                  activeAdvancedPanel === 'LRZ' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : lorenzEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-background text-idm-muted border-border'
                 }`}
                 title="Lorenz Attractor — modulación caótica del filtro"
               >
                 LRZ
+                {lorenzEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
               </button>
-              {lorenzEnabled && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'LRZ' ? null : 'LRZ'); }}
+                className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
+                title="Abrir/cerrar panel LRZ"
+              >⊙</button>
+              {activeAdvancedPanel === 'LRZ' && lorenzEnabled && (
                 <div className="flex flex-col gap-0.5">
                   <div className="flex items-center gap-1">
                     <span className="text-[7px] font-mono text-idm-muted w-6">Dep</span>
