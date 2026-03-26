@@ -2532,6 +2532,21 @@ export const EuclideanSequencer = () => {
           synthObj.updateEq?.(hpf, lpf);
         }
       }
+      // Pan real-time sync
+      if (param === 'pan') {
+        synthObj.setPan?.(val as number);
+      }
+      // FreqShift real-time sync
+      if (param === 'freqShift') {
+        const updatedTrack = tracksRef.current.find(t => t.id === trackId);
+        if (updatedTrack?.freqShiftEnabled) {
+          synthObj.setFreqShift?.(val as number);
+        }
+      }
+      if (param === 'freqShiftEnabled') {
+        const updatedTrack = tracksRef.current.find(t => t.id === trackId);
+        synthObj.setFreqShift?.(val ? (updatedTrack?.freqShift ?? 0) : 0);
+      }
     }
   }, []);
 
