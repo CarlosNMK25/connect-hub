@@ -502,6 +502,7 @@ export const EuclideanTrack = React.memo(({
   pan,
   freqShiftEnabled,
   freqShift,
+  spectralDelaySend,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
