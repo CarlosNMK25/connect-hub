@@ -1358,7 +1358,35 @@ export const EuclideanSequencer = () => {
 
     // Routing
     delayBus.chain(delay, delayFilter, compressor);
-    reverbBus.chain(reverb, reverbFilter, compressor);
+    // Decomposed reverb chain with reverbNormalOut for gated path
+    const reverbNormalOut = new Tone.Gain(1);
+    reverbBus.connect(reverb);
+    reverb.connect(reverbFilter);
+    reverbFilter.connect(reverbNormalOut);
+    reverbNormalOut.connect(compressor);
+
+    // ---- GATED REVERB BUS (Phase 9) ----
+    const gatedOut = new Tone.Gain(0);
+    const gate = new Tone.Gate({ threshold: -40, smoothing: 0.01 });
+    reverb.connect(gate);
+    gate.connect(gatedOut);
+    gatedOut.connect(compressor);
+    gatedRef.current = { gate, out: gatedOut, reverbNormalOut };
+
+    // ---- FREEZE BUS (Phase 9) ----
+    const freezeBus = new Tone.Gain(1);
+    const freezeDelay = new Tone.Delay(0.08);
+    const freezeFilter = new Tone.Filter(6000, 'lowpass');
+    const freezeFeedbackGain = new Tone.Gain(0.95);
+    const freezeOut = new Tone.Gain(0);
+    // Manual feedback loop: bus→delay→filter→out, filter→feedbackGain→delay
+    freezeBus.connect(freezeDelay);
+    freezeDelay.connect(freezeFilter);
+    freezeFilter.connect(freezeOut);
+    freezeFilter.connect(freezeFeedbackGain);
+    freezeFeedbackGain.connect(freezeDelay);
+    freezeOut.connect(compressor);
+    freezeRef.current = { bus: freezeBus, delay: freezeDelay, filter: freezeFilter, feedbackGain: freezeFeedbackGain, out: freezeOut };
 
     // Spectral Delay Bus (Phase 7C)
     const spectralDelayBus = new Tone.Gain(1);
