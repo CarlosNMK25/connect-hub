@@ -1561,23 +1561,35 @@ export const EuclideanSequencer = () => {
         hatEqHpf.dispose();
         hatEqLpf.dispose();
         hatPanner.dispose();
+        hatPanner3D.dispose();
+        hatPannerGain.dispose();
+        hatPanner3DGain.dispose();
         hatFreqShifter.dispose();
         hatDelaySend.dispose();
         hatReverbSend.dispose();
         hatSpectralSend.dispose();
       }
     };
-    // EQ injection for hat
     synthsRef.current.hat.updateEq = (hpfFreq: number, lpfFreq: number) => {
       hatEqHpf.frequency.rampTo(hpfFreq, 0.05);
       hatEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
-    // Pan + FreqShifter injection for hat
     synthsRef.current.hat.setPan = (value: number) => { hatPanner.pan.rampTo(value, 0.05); };
     synthsRef.current.hat.setFreqShift = (hz: number) => { hatFreqShifter.frequency.rampTo(hz, 0.05); };
     synthsRef.current.hat.panner = hatPanner;
     synthsRef.current.hat.freqShifter = hatFreqShifter;
     synthsRef.current.hat.setSpectralSend = (value: number) => { hatSpectralSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.hat.switchBinaural = (binaural: boolean) => {
+      hatPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
+      hatPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
+    };
+    synthsRef.current.hat.updateBinaural = (azimuth: number, distance: number) => {
+      const rad = (azimuth * Math.PI) / 180;
+      try { hatPanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) {
+        hatPanner3D.positionX.value = Math.sin(rad) * distance;
+        hatPanner3D.positionZ.value = -Math.cos(rad) * distance;
+      }
+    };
     // Lorenz + Nested LFO injection for hat
     synthsRef.current.hat.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
       if (target === 'filter') {
