@@ -2516,7 +2516,10 @@ export const EuclideanSequencer = () => {
                 const ratchetVelocity = velocity * Math.pow(0.65, r);
                 try {
                   if (synth.triggerAttackRelease) {
-                    const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
+                    const dur = track.mode === 'GATE' ? "32n"
+                      : track.mode === 'ONE-SHOT' && track.samplerBuffer
+                        ? Math.max(0.01, (track.sampleEnd - track.sampleStart) * track.samplerBuffer.duration / 2)
+                        : (track.decay / 2000);
                     if (track.isTonal) {
                       const freq = noteIndexToFreq(track.rootNote, track.scaleId, noteIdx);
                       synth.triggerAttackRelease(freq, dur, ratchetTime, ratchetVelocity, sliceInfo);

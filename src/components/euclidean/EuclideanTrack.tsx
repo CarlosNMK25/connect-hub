@@ -1676,8 +1676,16 @@ export const EuclideanTrack = React.memo(({
             <div className="space-y-2">
               <div className="flex gap-2">
                 <button 
-                  onClick={() => onSamplerParamChange('mode', mode === 'GATE' ? 'TRIGGER' : 'GATE')}
-                  className={`flex-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-widest border transition-all ${mode === 'GATE' ? 'bg-system-accent text-white border-system-accent shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:border-black/10'}`}
+                  onClick={() => {
+                    const hasSample = samplerStatus === 'READY';
+                    const cycle = hasSample
+                      ? ['TRIGGER', 'GATE', 'ONE-SHOT'] as const
+                      : ['TRIGGER', 'GATE'] as const;
+                    const currentIdx = cycle.indexOf(mode as any);
+                    const nextMode = cycle[(currentIdx + 1) % cycle.length];
+                    onSamplerParamChange('mode', nextMode);
+                  }}
+                  className={`flex-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-widest border transition-all ${mode !== 'TRIGGER' ? 'bg-system-accent text-white border-system-accent shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:border-black/10'}`}
                 >
                   {mode}
                 </button>
