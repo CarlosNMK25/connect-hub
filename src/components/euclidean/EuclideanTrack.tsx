@@ -930,7 +930,7 @@ export const EuclideanTrack = React.memo(({
           </div>
 
           {/* Frequency Shifter */}
-          <div className="flex items-center gap-1.5 flex-none">
+          <div className="flex items-center gap-1.5 flex-none" onMouseEnter={(e) => handleParamEnter('freqShiftEnabled', e)} onMouseLeave={handleParamLeave}>
             <button
               onClick={() => onSamplerParamChange('freqShiftEnabled', !freqShiftEnabled)}
               className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
@@ -943,7 +943,7 @@ export const EuclideanTrack = React.memo(({
               FSH
             </button>
             {freqShiftEnabled && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => { e.stopPropagation(); handleParamEnter('freqShift', e); }} onMouseLeave={handleParamLeave}>
                 <input type="range"
                   min={-500} max={500} step={5}
                   value={freqShift ?? 0}
