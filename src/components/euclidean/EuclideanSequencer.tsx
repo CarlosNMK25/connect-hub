@@ -2972,11 +2972,15 @@ export const EuclideanSequencer = () => {
       const snareReverbSend = new Tone.Gain(0).connect(master.reverbBus);
       const snareEqHpf = new Tone.Filter(20, "highpass");
       const snareEqLpf = new Tone.Filter(20000, "lowpass");
+      const snarePanner = new Tone.Panner(0);
+      const snareFreqShifter = new Tone.FrequencyShifter(0);
       const snareFilter = new Tone.Filter(5000, "lowpass").connect(snareEqHpf);
       snareEqHpf.connect(snareEqLpf);
-      snareEqLpf.connect(master.compressor);
-      snareEqLpf.connect(snareDelaySend);
-      snareEqLpf.connect(snareReverbSend);
+      snareEqLpf.connect(snarePanner);
+      snarePanner.connect(snareFreqShifter);
+      snareFreqShifter.connect(master.compressor);
+      snareFreqShifter.connect(snareDelaySend);
+      snareFreqShifter.connect(snareReverbSend);
 
       const snareSynth = new Tone.NoiseSynth({
         noise: { type: 'white' },
