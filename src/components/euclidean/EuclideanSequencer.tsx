@@ -908,6 +908,9 @@ export const EuclideanSequencer = () => {
         if (config.freqShift !== undefined) newTrack.freqShift = config.freqShift;
         if ((config as any).spectralDelaySend !== undefined) newTrack.spectralDelaySend = (config as any).spectralDelaySend;
         if ((config as any).freezeSend !== undefined) newTrack.freezeSend = (config as any).freezeSend;
+        if ((config as any).extremeLoopEnabled !== undefined) newTrack.extremeLoopEnabled = (config as any).extremeLoopEnabled;
+        if ((config as any).extremeLoopSize !== undefined) newTrack.extremeLoopSize = (config as any).extremeLoopSize;
+        if ((config as any).extremeLoopPoint !== undefined) newTrack.extremeLoopPoint = (config as any).extremeLoopPoint;
 
         // Tonal fields
         if (config.rootNote !== undefined) newTrack.rootNote = config.rootNote;
