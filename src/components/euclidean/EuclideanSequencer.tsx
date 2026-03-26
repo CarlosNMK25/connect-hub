@@ -657,6 +657,17 @@ export const EuclideanSequencer = () => {
 
   // Spectral Delay global state (Phase 7C)
   const [spectralDelayEnabled, setSpectralDelayEnabled] = useState(false);
+
+  // Freeze Reverb global state (Phase 9)
+  const [freezeEnabled, setFreezeEnabled] = useState(false);
+  const [freezeFeedback, setFreezeFeedback] = useState(0.95);
+  const [freezeFilterFreq, setFreezeFilterFreq] = useState(6000);
+  const freezeRef = useRef<{ bus: Tone.Gain; delay: Tone.Delay; filter: Tone.Filter; feedbackGain: Tone.Gain; out: Tone.Gain } | null>(null);
+
+  // Gated Reverb global state (Phase 9)
+  const [gatedEnabled, setGatedEnabled] = useState(false);
+  const [gatedThreshold, setGatedThreshold] = useState(-40);
+  const gatedRef = useRef<{ gate: Tone.Gate; out: Tone.Gain; reverbNormalOut: Tone.Gain } | null>(null);
   const [spectralDelayWet, setSpectralDelayWet] = useState(0.5);
   const [spectralDelayLowTime, setSpectralDelayLowTime] = useState(0);
   const [spectralDelayMidTime, setSpectralDelayMidTime] = useState(80);
