@@ -1178,16 +1178,19 @@ export const EuclideanSequencer = () => {
     // Filters for dynamic timbre
     const kickDelaySend = new Tone.Gain(0).connect(delayBus);
     const kickReverbSend = new Tone.Gain(0).connect(reverbBus);
-    // EQ filters in series: filter → eqHpf → eqLpf → [compressor, sends, follower]
+    // EQ filters in series: filter → eqHpf → eqLpf → panner → freqShifter → [compressor, sends]
     const kickEqHpf = new Tone.Filter(20, "highpass");
     const kickEqLpf = new Tone.Filter(20000, "lowpass");
+    const kickPanner = new Tone.Panner(0);
+    const kickFreqShifter = new Tone.FrequencyShifter(0);
     const kickFilter = new Tone.Filter(2000, "lowpass").connect(kickEqHpf);
     kickEqHpf.connect(kickEqLpf);
-    kickEqLpf.connect(compressor);
-    kickEqLpf.connect(kickDelaySend);
-    kickEqLpf.connect(kickReverbSend);
-
-    kickEqLpf.connect(kickFollower); // Send kick to follower
+    kickEqLpf.connect(kickPanner);
+    kickEqLpf.connect(kickFollower); // Follower pre-pan for sidechain independence
+    kickPanner.connect(kickFreqShifter);
+    kickFreqShifter.connect(compressor);
+    kickFreqShifter.connect(kickDelaySend);
+    kickFreqShifter.connect(kickReverbSend);
     kickFollower.connect(sidechainInverter);
 
     const snareDelaySend = new Tone.Gain(0).connect(delayBus);
