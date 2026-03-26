@@ -3,19 +3,22 @@
  * Cada ficha tiene 5 secciones expandibles en el panel Engine Room → Diagnóstico.
  */
 
+export interface ListeningGuide {
+  order: number;
+  idmRefs: string[];
+  whatToHear: string;
+  experiment: string;
+  insight: string;
+}
+
 export interface PresetPedagogy {
   listening: string;
   structure: string;
   origin: string;
   experiments: string[];
   connections: string[];
-  listeningGuide?: {
-    order: number;
-    idmRefs: string[];
-    whatToHear: string;
-    experiment: string;
-    insight: string;
-  };
+  listeningGuide?: ListeningGuide;
+  listeningGuide2?: ListeningGuide;
 }
 
 export type PresetPedagogyMap = Record<string, PresetPedagogy>;
