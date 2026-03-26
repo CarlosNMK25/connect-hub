@@ -1469,9 +1469,16 @@ export const EuclideanSequencer = () => {
       dispose: () => {
         toneMonoSynth.dispose();
         toneFilter.dispose();
+        toneEqHpf.dispose();
+        toneEqLpf.dispose();
         toneDelaySend.dispose();
         toneReverbSend.dispose();
       }
+    };
+    // EQ injection for tone
+    synthsRef.current.tone.updateEq = (hpfFreq: number, lpfFreq: number) => {
+      toneEqHpf.frequency.rampTo(hpfFreq, 0.05);
+      toneEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     // Lorenz + Nested LFO injection for tone
     synthsRef.current.tone.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
