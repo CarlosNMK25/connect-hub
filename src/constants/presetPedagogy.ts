@@ -442,4 +442,29 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
       insight: 'Burial usaba este principio en sus primeros discos — capas de lo mismo procesado diferente, nunca samples distintos.',
     },
   },
+
+  // --- PHASE 7: DSP ADVANCED PRESETS ---
+  'bode-machine': {
+    listening: 'Toda la app procesada por Frequency Shifter con shifts distintos por pista. Ninguna pista mantiene sus relaciones armónicas originales — el kick ya no es \'un kick\' en sentido tímbrico, es ruido estructurado desplazado 150Hz. La pista Tone con Markov IDM y escala cromática elige notas casi al azar mientras el FSH las desplaza aún más lejos de cualquier tonalidad. Cloud modula el filtro de Tone vía Crossfeed. El resultado es IDM puro: complejidad rítmica sin concesión tímbrica.',
+    structure: 'Kick E(4,16) con FSH +150Hz. Snare E(3,16)+4 con FSH +75Hz. Hat E(7,16) paneado R70 con FSH +200Hz. Tone E(5,16) con Markov IDM temperatura 80 y FSH +50Hz en escala cromática. Cloud granular con Crossfeed activo (Base=300Hz, Depth=4000Hz). Modo Arritmia: nada cae donde el grid dice. Todos los shifts son distintos, creando una paleta tímbrica donde cada instrumento existe en su propio universo inarmónico.',
+    origin: 'El Bode Frequency Shifter fue diseñado por Harald Bode en los años 60 como módulo para sintetizadores modulares. A diferencia del pitch shifter (que multiplica frecuencias), el frequency shifter suma una cantidad fija de Hz a todas las frecuencias — rompiendo las relaciones armónicas naturales. Autechre y Aphex Twin lo usan para crear timbres que no tienen equivalente en el mundo acústico: ningún instrumento físico puede sumar Hz a sus armónicos.',
+    experiments: [
+      'Desactiva el FSH de una pista a la vez y escucha cómo cada pista \'vuelve a ser normal\'. Luego reactívala. Este experimento muestra exactamente cuánto carácter añade el frequency shifting.',
+      'Cambia todos los shifts a +0Hz. El Frequency Shifter sigue activo pero no hace nada. Luego sube uno a +200Hz. La diferencia es inmediata.',
+      'Cambia el estilo Markov de IDM a Flamenco. La melodía adquiere gravedad tonal — pero el FSH +50Hz la distorsiona. Es flamenco visto a través de un prisma inarmónico.',
+      'Desactiva el Crossfeed. Cloud deja de modular Tone. Reactívalo — la textura granular ahora controla la apertura del filtro melódico.',
+    ],
+    connections: [
+      'Confield: Abstracción similar pero sin Frequency Shifter — la complejidad viene de la poliritmia prima.',
+      'Arrhythmia: Misma filosofía de inestabilidad controlada, distinto toolset.',
+      'Duende Digital: El polo opuesto — estructura flamenca donde todo tiene nombre y raíz.',
+    ],
+    listeningGuide: {
+      order: 14,
+      idmRefs: ['§15.3 Frequency Shifter', '§5.1A Markov', '§9.3 Granular'],
+      whatToHear: 'Toda la app procesada por Frequency Shifter con shifts distintos por pista. Ninguna pista mantiene sus relaciones armónicas originales — el kick ya no es \'un kick\' en sentido tímbrico, es ruido estructurado desplazado 150Hz. La pista Tone con Markov IDM y escala cromática elige notas casi al azar mientras el FSH las desplaza aún más lejos de cualquier tonalidad. Cloud modula el filtro de Tone vía XFD. El resultado es IDM puro: complejidad rítmica sin concesión tímbrica.',
+      experiment: 'Desactiva el FSH de una pista a la vez y escucha cómo cada pista \'vuelve a ser normal\'. Luego reactívala. Este experimento muestra exactamente cuánto carácter añade el frequency shifting: el sonido original siempre estaba ahí, solo desplazado.',
+      insight: 'El Bode Frequency Shifter es uno de los pocos procesadores de audio que no tiene análogo en el mundo acústico — ningún instrumento físico puede sumar una cantidad fija de Hz a todas sus frecuencias simultáneamente. Es una operación puramente electrónica, puramente IDM. Autechre y Aphex Twin lo usan exactamente así: para hacer que los instrumentos suenen como algo que no tiene nombre.',
+    },
+  },
 };

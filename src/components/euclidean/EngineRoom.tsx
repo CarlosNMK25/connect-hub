@@ -246,6 +246,13 @@ const DiagnosisPanel: React.FC<{
       markovAnchor: t.markovAnchor,
       lsIterations: t.lsIterations,
       caSpeed: t.caSpeed,
+      pan: t.pan,
+      freqShiftEnabled: t.freqShiftEnabled,
+      freqShift: t.freqShift,
+      spectralDelaySend: t.spectralDelaySend,
+      binauralEnabled: t.binauralEnabled,
+      binauralAzimuth: t.binauralAzimuth,
+      lorenzEnabled: t.lorenzEnabled,
     }));
 
     const mcm = computeMcm(diagTracks);
