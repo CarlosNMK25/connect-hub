@@ -841,6 +841,34 @@ export const EuclideanTrack = React.memo(({
             )}
           </div>
 
+          {/* Frequency Shifter */}
+          <div className="flex items-center gap-1.5 flex-none">
+            <button
+              onClick={() => onSamplerParamChange('freqShiftEnabled', !freqShiftEnabled)}
+              className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+                freqShiftEnabled
+                  ? 'bg-system-accent text-white border-system-accent'
+                  : 'bg-background text-idm-muted border-border'
+              }`}
+              title="Frequency Shifter — desplaza frecuencias (Bode)"
+            >
+              FSH
+            </button>
+            {freqShiftEnabled && (
+              <div className="flex items-center gap-1">
+                <input type="range"
+                  min={-500} max={500} step={5}
+                  value={freqShift ?? 0}
+                  onChange={e => onSamplerParamChange('freqShift', Number(e.target.value))}
+                  className="w-16 h-[7px] accent-system-accent"
+                />
+                <span className="text-[7px] font-mono text-idm-muted w-10 text-right">
+                  {(freqShift ?? 0) > 0 ? '+' : ''}{freqShift ?? 0}Hz
+                </span>
+              </div>
+            )}
+          </div>
+
           {/* RR + PHD controls — two rows */}
           <div className="flex flex-col gap-1 flex-none">
             {/* Round Robin */}
