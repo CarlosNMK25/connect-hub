@@ -715,7 +715,7 @@ export const EuclideanTrack = React.memo(({
                 <div className="h-full transition-all duration-100" style={{ width: `${(ratchet / 4) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
             </div>
           </div>
-            <div className="flex flex-col gap-1 relative">
+            <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('spectralDelayEnabled', e)} onMouseLeave={handleParamLeave}>
               <div className="flex justify-between items-center w-16">
                 <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Sdly</span>
                 <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round((spectralDelaySend ?? 0) * 100)}%</span>
@@ -728,7 +728,7 @@ export const EuclideanTrack = React.memo(({
           </div>
 
           {/* Pan Control */}
-          <div className="flex flex-col gap-1 flex-none">
+          <div className="flex flex-col gap-1 flex-none" onMouseEnter={(e) => handleParamEnter('pan', e)} onMouseLeave={handleParamLeave}>
             <div className="flex items-center gap-1">
               <span className="text-[7px] font-mono text-idm-muted">L</span>
               <input type="range"
@@ -749,7 +749,7 @@ export const EuclideanTrack = React.memo(({
             </span>
           </div>
           {/* 3D Binaural toggle + controls (Phase 7D) */}
-          <div className="flex items-center gap-1 flex-none">
+          <div className="flex items-center gap-1 flex-none" onMouseEnter={(e) => handleParamEnter('binauralEnabled', e)} onMouseLeave={handleParamLeave}>
             <button
               onClick={() => onSamplerParamChange('binauralEnabled', !binauralEnabled)}
               className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
@@ -763,7 +763,7 @@ export const EuclideanTrack = React.memo(({
             </button>
             {binauralEnabled && (
               <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1" onMouseEnter={(e) => { e.stopPropagation(); handleParamEnter('binauralAzimuth', e); }} onMouseLeave={handleParamLeave}>
                   <span className="text-[7px] font-mono text-idm-muted w-5">Az</span>
                   <input type="range" min={0} max={360} step={5}
                     value={binauralAzimuth ?? 0}
@@ -771,7 +771,7 @@ export const EuclideanTrack = React.memo(({
                     className="w-14 h-[7px] accent-system-accent" />
                   <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{binauralAzimuth ?? 0}°</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1" onMouseEnter={(e) => { e.stopPropagation(); handleParamEnter('binauralDistance', e); }} onMouseLeave={handleParamLeave}>
                   <span className="text-[7px] font-mono text-idm-muted w-5">Dst</span>
                   <input type="range" min={1} max={10} step={0.5}
                     value={binauralDistance ?? 3}
@@ -930,7 +930,7 @@ export const EuclideanTrack = React.memo(({
           </div>
 
           {/* Frequency Shifter */}
-          <div className="flex items-center gap-1.5 flex-none">
+          <div className="flex items-center gap-1.5 flex-none" onMouseEnter={(e) => handleParamEnter('freqShiftEnabled', e)} onMouseLeave={handleParamLeave}>
             <button
               onClick={() => onSamplerParamChange('freqShiftEnabled', !freqShiftEnabled)}
               className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
@@ -943,7 +943,7 @@ export const EuclideanTrack = React.memo(({
               FSH
             </button>
             {freqShiftEnabled && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => { e.stopPropagation(); handleParamEnter('freqShift', e); }} onMouseLeave={handleParamLeave}>
                 <input type="range"
                   min={-500} max={500} step={5}
                   value={freqShift ?? 0}

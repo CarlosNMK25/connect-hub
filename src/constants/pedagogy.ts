@@ -135,6 +135,7 @@ export const PEDAGOGY = {
     hatHarmonicity: "Ratio entre las frecuencias del oscilador portador y el modulador en el MetalSynth. Valores bajos (0.1-1.0) producen relaciones inarmónicas extremas — el hat suena ruidoso y sin carácter tonal definido. Valores medios (2-5) producen el espectro metálico característico. Valores altos (7-10) aproximan relaciones más armónicas, el hat gana más tono y menos ruido. Análogo al harmonicity en FM synthesis.",
     hatModIndex: "Índice de modulación del MetalSynth. Controla la amplitud de la modulación FM, lo que determina la riqueza espectral del hat. Valores bajos (1-10) = espectro simple, hat más suave y menos agresivo. Valores altos (50-100) = espectro muy denso con muchos parciales, hat brillante, complejo y agresivo. En síntesis FM, el índice de modulación es el parámetro que más afecta al timbre.",
     hatResonance: "Frecuencia de resonancia del MetalSynth en Hz. Define dónde concentra su energía el plato simulado. Frecuencias bajas (100-500Hz) = hat oscuro y grave, más cercano a un platillo crash o ride. Frecuencias medias (1000-3000Hz) = hat equilibrado, rango típico de hi-hats acústicos. Frecuencias altas (4000-8000Hz) = hat muy brillante y aéreo. Interactúa con harmonicity y modIndex para definir el carácter espectral completo.",
+    hatNoiseType: "Espectro de ruido del hi-hat en modo Noise. White noise = energía igual en todas las frecuencias, hat brillante y abierto tipo TR-909. Pink noise = energía que decrece 3dB/octava, hat más cálido y natural. Brown noise = energía concentrada en graves, hat oscuro y poco convencional. Cada tipo cambia drásticamente el carácter del hat sin alterar el envelope ni el filtro.",
   } as PedagogyMicro,
 
   microLiterary: {
@@ -246,6 +247,7 @@ export const PEDAGOGY = {
     hatHarmonicity: "El grado de afinación del metal. Bajo, el hat no tiene opinión sobre las notas — es ruido con textura. Alto, empieza a tener preferencias tonales, a querer estar en clave. El metal real está en algún punto intermedio, y ese punto intermedio es exactamente donde vive la magia.",
     hatModIndex: "La agresividad del metal. Bajo es el hat que pide permiso antes de sonar. Alto es el hat que irrumpe en la mezcla sin anunciarse, llenando el espectro de presencia. Entre los dos extremos están todos los hats que alguna vez has escuchado en IDM.",
     hatResonance: "La frecuencia donde el metal quiere cantar. Cada plato real tiene una resonancia fundamental — el punto donde vibra con más energía cuando lo golpeas. Aquí defines ese punto para el hat virtual. Es como elegir de qué metal está hecho.",
+    hatNoiseType: "El color de la cortina de ruido. White es la estática de un televisor sin señal a las 3AM. Pink es la lluvia cayendo sobre un tejado de zinc. Brown es el rumor sordo del viento dentro de una cueva. El mismo hat, tres climas sonoros.",
   } as PedagogyMicro,
 
   meso: {
