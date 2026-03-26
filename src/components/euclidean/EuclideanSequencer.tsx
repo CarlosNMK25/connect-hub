@@ -1055,9 +1055,17 @@ export const EuclideanSequencer = () => {
         misses: 0,
       });
     }));
-    // Recalcular matrices Markov para tracks tonales
+    // Apply EQ and Markov after state update
     setTimeout(() => {
       tracksRef.current.forEach(t => {
+        // Restore EQ
+        const config = up.tracks[t.id];
+        if (config) {
+          const hpf = (config as any).eqEnabled ? ((config as any).eqHpfFreq ?? 20) : 20;
+          const lpf = (config as any).eqEnabled ? ((config as any).eqLpfFreq ?? 20000) : 20000;
+          synthsRef.current[t.id]?.updateEq?.(hpf, lpf);
+        }
+        // Recalcular matrices Markov para tracks tonales
         if (t.isTonal && (t.noteMode ?? 'euclidean') === 'markov') {
           updateMarkovMatrix(t);
         }
