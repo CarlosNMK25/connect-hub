@@ -1677,19 +1677,19 @@ export const EuclideanTrack = React.memo(({
       {id === 'kick' && samplerStatus === 'IDLE' && onPercSynthParamChange && (
         <div className="flex items-center gap-3 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
           <span className="text-[7px] font-mono uppercase text-idm-muted w-8 shrink-0">Kick</span>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('kickPitchDecay', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted">PD</span>
             <input type="range" min={1} max={50} step={1} value={Math.round((kickPitchDecay ?? 0.05) * 100)} onChange={e => onPercSynthParamChange('kickPitchDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('kickOctaves', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted">Oct</span>
             <input type="range" min={1} max={10} step={1} value={kickOctaves ?? 10} onChange={e => onPercSynthParamChange('kickOctaves', Number(e.target.value))} className="w-14 h-1 accent-primary" />
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('kickDecay', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted">Dec</span>
             <input type="range" min={10} max={100} step={1} value={Math.round((kickDecay ?? 0.4) * 100)} onChange={e => onPercSynthParamChange('kickDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
           </div>
-          <select value={kickClickType ?? 'pink'} onChange={e => onPercSynthParamChange('kickClickType', e.target.value)} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
+          <select value={kickClickType ?? 'pink'} onChange={e => onPercSynthParamChange('kickClickType', e.target.value)} onMouseEnter={(e) => handleParamEnter('kickClickType', e)} onMouseLeave={handleParamLeave} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
             <option value="white">White</option>
             <option value="pink">Pink</option>
             <option value="brown">Brown</option>
