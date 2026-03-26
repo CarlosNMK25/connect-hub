@@ -2551,6 +2551,22 @@ export const EuclideanTrack = React.memo(({
     prevProps.freqShift === nextProps.freqShift &&
     prevProps.binauralEnabled === nextProps.binauralEnabled &&
     prevProps.binauralAzimuth === nextProps.binauralAzimuth &&
-    prevProps.binauralDistance === nextProps.binauralDistance
+    prevProps.binauralDistance === nextProps.binauralDistance &&
+    // Phase 8
+    prevProps.kickPitchDecay === nextProps.kickPitchDecay &&
+    prevProps.kickOctaves === nextProps.kickOctaves &&
+    prevProps.kickDecay === nextProps.kickDecay &&
+    prevProps.kickClickType === nextProps.kickClickType &&
+    prevProps.hatMode === nextProps.hatMode &&
+    prevProps.hatHarmonicity === nextProps.hatHarmonicity &&
+    prevProps.hatModIndex === nextProps.hatModIndex &&
+    prevProps.hatResonance === nextProps.hatResonance &&
+    prevProps.hatDecay === nextProps.hatDecay &&
+    prevProps.hatNoiseType === nextProps.hatNoiseType &&
+    prevProps.snareDecay === nextProps.snareDecay &&
+    prevProps.snareNoiseType === nextProps.snareNoiseType &&
+    prevProps.snareBodyEnabled === nextProps.snareBodyEnabled &&
+    prevProps.snareBodyPitch === nextProps.snareBodyPitch &&
+    prevProps.snareBodyDecay === nextProps.snareBodyDecay
   );
 });
