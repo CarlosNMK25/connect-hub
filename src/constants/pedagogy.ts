@@ -203,6 +203,21 @@ export const PEDAGOGY = {
     markovTemperature: "El calor que desordena los cristales. A temperatura cero, el sistema encuentra su estado de mínima energía y se queda quieto. A temperatura máxima, todo es igualmente posible y nada es probable.",
     markovAnchor: "La cuerda que ata al explorador a la entrada de la cueva. Sin ella, la melodía puede adentrarse tanto en el laberinto que olvida cómo salir. Con ella, cada cierto tiempo, vuelve a la luz.",
     markovShowMatrix: "El mapa del pensamiento del algoritmo. Ver la matriz es ver cómo decide, antes de que decida. La diferencia entre escuchar música y entender por qué suena así.",
+    // Phase 7 — Pan, Frequency Shifter, Spectral Delay, 3D Binaural, Envelope Crossfeed
+    pan: "El espacio horizontal del sonido. En el silencio entre los auriculares, el ritmo puede venir de cualquier punto del horizonte — izquierda, derecha, o desde el centro exacto donde convergen todos los pulsos.",
+    freqShiftEnabled: "La diferencia entre transponer y desplazar: transponer sube todos los pisos del edificio proporcionalmente, desplazar mueve el edificio entero al número de la calle siguiente. El resultado ya no es música en ningún sentido occidental del término — y eso es exactamente lo que lo hace interesante.",
+    freqShift: "Pequeños desplazamientos, grandes consecuencias. +50Hz convierte una cuerda de guitarra en metal oxidado. +200Hz convierte una voz en maquinaria. El umbral entre lo musical y lo industrial es más fino de lo que parece.",
+    spectralDelayEnabled: "La lluvia cae toda a la vez pero la escuchas en capas: el trueno llega después del rayo, los agudos de la tormenta después de los graves. El Spectral Delay hace lo mismo con cualquier sonido: lo convierte en una narración temporal de su propio contenido espectral.",
+    spectralDelayWet: "Cuánto del tiempo se filtra hacia el sonido. Con wet bajo, el efecto es un fantasma detrás de la señal original. Con wet alto, el original desaparece y solo quedan sus ecos espectrales escalonados.",
+    spectralDelayLowTime: "El cimiento que no espera. Los graves son la gravedad del sonido — llegan primero porque son lo más pesado, lo más terrenal, lo más cercano al golpe físico en el suelo.",
+    spectralDelayMidTime: "La voz del sonido, que llega cuando los graves ya han asentado la base. El medio es donde la mayoría de los instrumentos viven — escucharlo llegar 80ms después del golpe inicial es escuchar el sonido desplegarse como un abanico.",
+    spectralDelayHighTime: "El brillo que llega tarde, como la luz que se demora en rebotar por las esquinas de la habitación. Los agudos son los más viajeros del espectro — dejarlos llegar en su propio tiempo es dejar que el sonido cuente su historia completa.",
+    binauralEnabled: "El sonido que existe en el espacio, no en el disco. Con auriculares, el 3D Binaural rompe la ilusión de que la música vive \"entre los oídos\" y la proyecta al mundo exterior — delante, detrás, arriba. El ritmo puede girar alrededor de tu cabeza como un planeta.",
+    binauralAzimuth: "El ángulo de llegada del sonido. 0° es la máscara directa, el frente donde los ojos miran. 90° es el costado del pensamiento. 180° es lo que viene de donde no se mira. Girar el azimuth lentamente es hacer que el ritmo te circunde.",
+    binauralDistance: "Qué tan lejos vive el sonido de ti. Distancia 1 es el ritmo que te respira en el oído. Distancia 10 es el ritmo que escuchas desde el otro lado de una plaza desierta a las 3 de la mañana.",
+    crossfeedEnabled: "La conversación entre los dos mundos sonoros de la app: el ritmo granular de Cloud dicta la apertura tonal de Tone. Es el principio del vocoder sin su complejidad técnica — el espacio sonoro controlando la melodía, la textura gobernando el timbre.",
+    crossfeedBase: "El silencio tonal. La frecuencia donde Tone descansa cuando Cloud no habla — el punto de partida del diálogo entre los dos motores. Aquí vive Tone antes de que Cloud lo despierte.",
+    crossfeedDepth: "Cuánto puede hablar Cloud a través de Tone. Depth pequeño es un susurro — apenas perceptible, sutil. Depth grande es una orden: cuando Cloud explota en grains, Tone abre su boca espectral y canta todo lo que puede.",
   } as PedagogyMicro,
 
   meso: {
