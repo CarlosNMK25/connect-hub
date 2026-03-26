@@ -1873,6 +1873,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.hat.panner = hatPanner;
     synthsRef.current.hat.freqShifter = hatFreqShifter;
     synthsRef.current.hat.setSpectralSend = (value: number) => { hatSpectralSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.hat.setFreezeSend = (value: number) => { hatFreezeSend.gain.rampTo(value, 0.05); };
     synthsRef.current.hat.switchBinaural = (binaural: boolean) => {
       hatPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
       hatPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
