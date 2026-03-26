@@ -1096,6 +1096,7 @@ export const EuclideanSequencer = () => {
         pan: (config as any).pan ?? 0,
         freqShiftEnabled: (config as any).freqShiftEnabled ?? false,
         freqShift: (config as any).freqShift ?? 0,
+        spectralDelaySend: (config as any).spectralDelaySend ?? 0,
         hits: 0,
         misses: 0,
       });
