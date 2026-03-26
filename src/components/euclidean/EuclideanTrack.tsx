@@ -1065,11 +1065,37 @@ export const EuclideanTrack = React.memo(({
                       className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
                         layer2Reverse
                           ? 'bg-system-accent text-white border-system-accent'
-                          : 'bg-white text-idm-muted border-black/10'
+                          : 'bg-background text-idm-muted border-border'
                       }`}
                     >
                       REV
                     </button>
+                  </div>
+                  {/* Layer 2 Time Stretch (Phase 6D) */}
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] font-mono text-idm-muted w-6">STR</span>
+                    <button
+                      onClick={() => onLayer2ParamChange?.('layer2StretchEnabled', !(layer2StretchEnabled ?? false))}
+                      className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                        layer2StretchEnabled
+                          ? 'bg-system-accent text-white border-system-accent'
+                          : 'bg-background text-idm-muted border-border'
+                      }`}
+                      title="Time Stretch Layer 2"
+                    >
+                      STR
+                    </button>
+                    {layer2StretchEnabled && (
+                      <>
+                        <input type="range" min={0.25} max={2.0} step={0.05}
+                          value={layer2StretchRate ?? 1.0}
+                          onChange={e => onLayer2ParamChange?.('layer2StretchRate', Number(e.target.value))}
+                          className="w-14 h-[7px] accent-system-accent" />
+                        <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
+                          {(layer2StretchRate ?? 1.0).toFixed(2)}×
+                        </span>
+                      </>
+                    )}
                   </div>
                 </>
               )}
