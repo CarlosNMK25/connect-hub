@@ -2355,6 +2355,7 @@ export const EuclideanTrack = React.memo(({
     prevProps.freqShift === nextProps.freqShift &&
     prevProps.spectralDelaySend === nextProps.spectralDelaySend &&
     prevProps.freezeSend === nextProps.freezeSend &&
+    prevProps.reverseSend === nextProps.reverseSend &&
     prevProps.binauralEnabled === nextProps.binauralEnabled &&
     prevProps.binauralAzimuth === nextProps.binauralAzimuth &&
     prevProps.binauralDistance === nextProps.binauralDistance &&
