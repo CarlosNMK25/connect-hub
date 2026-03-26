@@ -184,7 +184,22 @@ interface TrackState {
   misses: number;
 }
 
-const getMesoInsight = (tracks: TrackState[]) => {
+/** Generate a synthetic reversed impulse response for Reverse Reverb */
+function generateReverseIR(ctx: BaseAudioContext, decay: number): AudioBuffer {
+  const sampleRate = ctx.sampleRate;
+  const length = Math.floor(decay * sampleRate);
+  const buffer = ctx.createBuffer(2, length, sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const data = buffer.getChannelData(ch);
+    for (let i = 0; i < length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-3 * i / length);
+    }
+    data.reverse();
+  }
+  return buffer;
+}
+
+
   // Prime Aesthetics check
   const isPrime = (n: number) => {
     if (n <= 1) return false;
