@@ -55,6 +55,11 @@ interface TrackSnapshot {
   kickPitchDecay?: number;
   kickOctaves?: number;
   samplerStatus?: string;
+  // Phase 9/10 fields
+  freezeSend?: number;
+  extremeLoopEnabled?: boolean;
+  extremeLoopSize?: number;
+  mode?: string;
 }
 
 interface EngineRoomProps {
