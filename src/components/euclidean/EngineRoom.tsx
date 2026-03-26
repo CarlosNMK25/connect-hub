@@ -87,6 +87,7 @@ const SECTION_LABELS = [
   { key: 'experiments', label: 'Experimenta' },
   { key: 'connections', label: 'Conexiones' },
   { key: 'listeningGuide', label: 'Guía de escucha' },
+  { key: 'listeningGuide2', label: 'Guía de escucha — Síntesis percusiva' },
 ] as const;
 
 const DiagnosticSection: React.FC<{ activePresetId: string | null }> = React.memo(({ activePresetId }) => {
