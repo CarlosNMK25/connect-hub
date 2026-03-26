@@ -5570,7 +5570,7 @@ export const EuclideanSequencer = () => {
 
               {/* Controls 2×2 Layout */}
               {showControls && (
-                <div className="grid grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-500">
+                <div className="grid grid-cols-2 gap-6 items-start animate-in fade-in slide-in-from-top-2 duration-500">
                   {/* TEMPORALIDAD */}
                   <div className="flex flex-col gap-3">
                     <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">Temporalidad</span>
