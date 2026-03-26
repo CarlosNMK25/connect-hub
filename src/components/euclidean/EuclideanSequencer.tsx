@@ -2756,7 +2756,13 @@ export const EuclideanSequencer = () => {
       synthObj.triggerLayer2 = (time: number, velocity: number) => {
         const ct = tracksRef.current.find(t => t.id === trackId);
         if (!ct || !layer2Player.buffer) return;
-        layer2Player.detune = (ct.layer2Pitch ?? 0) * 100;
+        // Time Stretch for Layer 2 (Phase 6D)
+        const l2StretchRate = ct.layer2StretchEnabled ? (ct.layer2StretchRate ?? 1.0) : 1.0;
+        layer2Player.playbackRate = l2StretchRate;
+        // Pitch compensation: keep pitch stable when stretch changes
+        const l2StretchCompensation = l2StretchRate !== 1.0 ? -1200 * Math.log2(l2StretchRate) : 0;
+        const l2PitchCents = (ct.layer2Pitch ?? 0) * 100;
+        layer2Player.detune = l2PitchCents + l2StretchCompensation;
         layer2Player.reverse = ct.layer2Reverse ?? false;
         const offsetSec = (ct.layer2Offset ?? 0) / 1000;
         const triggerTime = time + offsetSec;
