@@ -1113,6 +1113,9 @@ export const EuclideanSequencer = () => {
         freqShiftEnabled: (config as any).freqShiftEnabled ?? false,
         freqShift: (config as any).freqShift ?? 0,
         spectralDelaySend: (config as any).spectralDelaySend ?? 0,
+        binauralEnabled: (config as any).binauralEnabled ?? false,
+        binauralAzimuth: (config as any).binauralAzimuth ?? 0,
+        binauralDistance: (config as any).binauralDistance ?? 3,
         hits: 0,
         misses: 0,
       });
@@ -1130,6 +1133,11 @@ export const EuclideanSequencer = () => {
           synthsRef.current[t.id]?.setPan?.((config as any).pan ?? 0);
           synthsRef.current[t.id]?.setFreqShift?.((config as any).freqShiftEnabled ? ((config as any).freqShift ?? 0) : 0);
           synthsRef.current[t.id]?.setSpectralSend?.((config as any).spectralDelaySend ?? 0);
+          // Restore binaural
+          synthsRef.current[t.id]?.switchBinaural?.((config as any).binauralEnabled ?? false);
+          if ((config as any).binauralEnabled) {
+            synthsRef.current[t.id]?.updateBinaural?.((config as any).binauralAzimuth ?? 0, (config as any).binauralDistance ?? 3);
+          }
         }
         // Recalcular matrices Markov para tracks tonales
         if (t.isTonal && (t.noteMode ?? 'euclidean') === 'markov') {
