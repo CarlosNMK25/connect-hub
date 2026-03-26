@@ -41,6 +41,12 @@ export interface DiagnosisContext {
     binauralEnabled?: boolean;
     binauralAzimuth?: number;
     lorenzEnabled?: boolean;
+    // Phase 8 fields
+    hatMode?: string;
+    snareBodyEnabled?: boolean;
+    kickPitchDecay?: number;
+    kickOctaves?: number;
+    samplerStatus?: string;
   }>;
   globalState: {
     bpm: number;
@@ -678,6 +684,60 @@ const RULES: DiagnosisRule[] = [
     },
     insight: () => 'El atractor de Lorenz modula el filtro de la pista mientras el Spectral Delay despliega su señal en el tiempo espectral. El caos determinista cambia continuamente qué frecuencias están presentes en cada momento, y el delay espectral las escalona en el tiempo. El resultado es una textura que nunca repite.',
     suggestion: () => 'Aumenta el Lorenz Depth para mayor modulación. Con Lorenz Speed alto + Spectral Delay Hi=300ms, los agudos modulados caóticamente llegan con 300ms de retraso — creas una textura donde el pasado caótico se superpone al presente caótico.',
+  },
+  // ═══ PHASE 8: PERCUSSIVE SYNTHESIS (4) ═══
+  {
+    id: 'hat-metal-activo',
+    category: 'combinacion',
+    icon: '🔩',
+    priority: 45,
+    condition: (ctx) => {
+      const hat = getActiveTracks(ctx).find(t => t.id === 'hat');
+      return !!hat && hat.hatMode === 'metal' && hat.samplerStatus !== 'ready';
+    },
+    insight: () => 'El hi-hat usa síntesis FM (MetalSynth) en lugar de ruido blanco. El MetalSynth simula las resonancias inarmónicas de superficies metálicas reales mediante modulación de frecuencia con seis osciladores. El resultado es un timbre que ningún ruido filtrado puede replicar — tiene la complejidad espectral de un plato real.',
+    suggestion: () => 'Experimenta con Harmonicity entre 3 y 7 para encontrar el punto donde el hat suena más \'metálico\' en el sentido clásico. Modulation Index alto (+50) con Resonance en 4000Hz replica bien el carácter de un TR-909. Bajar Resonance a 800Hz crea un hat más oscuro, casi un ride.',
+  },
+  {
+    id: 'snare-body-layering',
+    category: 'combinacion',
+    icon: '🥁',
+    priority: 50,
+    condition: (ctx) => {
+      const snare = getActiveTracks(ctx).find(t => t.id === 'snare');
+      return !!snare && snare.snareBodyEnabled === true && snare.samplerStatus !== 'ready';
+    },
+    insight: () => 'El snare usa síntesis en dos capas: NoiseSynth (los bordones) más MembraneSynth (la membrana). Este es el principio de síntesis del snare real — dos componentes físicamente distintos que suenan simultáneamente. La membrana aporta la altura tonal, los bordones aportan el crack y la brillantez. La proporción entre las dos capas define el carácter del snare.',
+    suggestion: () => 'Ajusta Body Hz entre 150-220Hz para el rango natural de un snare acústico. Si subes Body Decay por encima del Snare Decay, el cuerpo tonal \'sobrevive\' al ruido y el snare termina con una nota — efecto característico del snare de reggae. Si lo bajas por debajo, el cuerpo es solo la pegada inicial y el ruido tiene la última palabra.',
+  },
+  {
+    id: 'percusiva-compleja',
+    category: 'combinacion',
+    icon: '⚙',
+    priority: 55,
+    condition: (ctx) => {
+      const active = getActiveTracks(ctx);
+      const hat = active.find(t => t.id === 'hat');
+      const snare = active.find(t => t.id === 'snare');
+      const kick = active.find(t => t.id === 'kick');
+      return !!hat && hat.hatMode === 'metal' &&
+        !!snare && snare.snareBodyEnabled === true &&
+        !!kick && kick.kickPitchDecay !== undefined;
+    },
+    insight: () => 'Las tres pistas percusivas usan síntesis avanzada simultáneamente: kick con barrido de pitch controlado, snare con layering membrana+bordones, hat con FM inarmónico. Esta combinación supera en complejidad tímbrica a la mayoría de drum machines hardware. El resultado no es un kit de batería \'realista\' ni un kit \'808\' — es un instrumento propio, con carácter definido por estos parámetros específicos.',
+    suggestion: () => 'Guarda este estado como User Preset antes de seguir experimentando. La combinación exacta de estos 13 parámetros percusivos define una identidad sonora que no se puede recuperar fácilmente. Con el preset guardado, puedes explorar variaciones sabiendo que puedes volver al punto de partida.',
+  },
+  {
+    id: 'kick-pitch-decay-extremo',
+    category: 'combinacion',
+    icon: '📉',
+    priority: 40,
+    condition: (ctx) => {
+      const kick = getActiveTracks(ctx).find(t => t.id === 'kick');
+      return !!kick && ((kick.kickPitchDecay ?? 0) > 0.3 || (kick.kickOctaves ?? 0) > 8);
+    },
+    insight: () => 'El kick tiene configuración de pitch decay extrema. Con pitchDecay alto y muchas octavas, el barrido de pitch es dramático y audible como elemento musical en sí mismo — no solo como carácter del ataque sino como una nota descendente que forma parte de la armonía. Este es el principio del \'kick tonal\' del hip-hop y el trap.',
+    suggestion: () => 'Si el kick suena demasiado \'melodioso\', reduce Octaves a 4-5 manteniendo el PitchDecay alto. Si quieres que el kick sea una nota musical definida (como en 808 trap), sube ambos al máximo y sintoniza el tono del kick con la clave de la pieza usando el rootNote de la pista Tone.',
   },
 ];
 
