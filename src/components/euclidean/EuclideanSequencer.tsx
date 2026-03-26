@@ -2791,6 +2791,7 @@ export const EuclideanSequencer = () => {
       const delaySend = new Tone.Gain(0).connect(master.delayBus);
       const reverbSend = new Tone.Gain(0).connect(master.reverbBus);
       const spectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
+      const freezeSendNode = new Tone.Gain(0).connect(master.freezeBus);
 
       // Create BitCrusher for this track — route through panner→freqShifter if available
       const pannerNode = synthsRef.current[trackId]?.panner;
