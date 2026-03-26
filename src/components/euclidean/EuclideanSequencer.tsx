@@ -1274,9 +1274,16 @@ export const EuclideanSequencer = () => {
       dispose: () => {
         snareSynth.dispose();
         snareFilter.dispose();
+        snareEqHpf.dispose();
+        snareEqLpf.dispose();
         snareDelaySend.dispose();
         snareReverbSend.dispose();
       }
+    };
+    // EQ injection for snare
+    synthsRef.current.snare.updateEq = (hpfFreq: number, lpfFreq: number) => {
+      snareEqHpf.frequency.rampTo(hpfFreq, 0.05);
+      snareEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     // Lorenz + Nested LFO injection for snare
     synthsRef.current.snare.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
