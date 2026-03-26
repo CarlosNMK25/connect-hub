@@ -6689,7 +6689,7 @@ export const EuclideanSequencer = () => {
         </div>
       )}
 
-      {/* ═══ FX GLOBALES — 2-column layout ═══ */}
+
       <div className="grid grid-cols-2 gap-2">
         {/* GRV — Gated Reverb (1 slider) */}
         <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
