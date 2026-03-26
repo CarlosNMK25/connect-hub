@@ -199,7 +199,7 @@ function generateReverseIR(ctx: BaseAudioContext, decay: number): AudioBuffer {
   return buffer;
 }
 
-
+const getMesoInsight = (tracks: TrackState[]) => {
   // Prime Aesthetics check
   const isPrime = (n: number) => {
     if (n <= 1) return false;
