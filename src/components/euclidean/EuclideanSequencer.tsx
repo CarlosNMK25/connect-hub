@@ -1484,23 +1484,35 @@ export const EuclideanSequencer = () => {
         snareEqHpf.dispose();
         snareEqLpf.dispose();
         snarePanner.dispose();
+        snarePanner3D.dispose();
+        snarePannerGain.dispose();
+        snarePanner3DGain.dispose();
         snareFreqShifter.dispose();
         snareDelaySend.dispose();
         snareReverbSend.dispose();
         snareSpectralSend.dispose();
       }
     };
-    // EQ injection for snare
     synthsRef.current.snare.updateEq = (hpfFreq: number, lpfFreq: number) => {
       snareEqHpf.frequency.rampTo(hpfFreq, 0.05);
       snareEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
-    // Pan + FreqShifter injection for snare
     synthsRef.current.snare.setPan = (value: number) => { snarePanner.pan.rampTo(value, 0.05); };
     synthsRef.current.snare.setFreqShift = (hz: number) => { snareFreqShifter.frequency.rampTo(hz, 0.05); };
     synthsRef.current.snare.panner = snarePanner;
     synthsRef.current.snare.freqShifter = snareFreqShifter;
     synthsRef.current.snare.setSpectralSend = (value: number) => { snareSpectralSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.snare.switchBinaural = (binaural: boolean) => {
+      snarePannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
+      snarePanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
+    };
+    synthsRef.current.snare.updateBinaural = (azimuth: number, distance: number) => {
+      const rad = (azimuth * Math.PI) / 180;
+      try { snarePanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) {
+        snarePanner3D.positionX.value = Math.sin(rad) * distance;
+        snarePanner3D.positionZ.value = -Math.cos(rad) * distance;
+      }
+    };
     // Lorenz + Nested LFO injection for snare
     synthsRef.current.snare.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
       if (target === 'filter') {
