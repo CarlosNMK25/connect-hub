@@ -653,6 +653,7 @@ export const EuclideanSequencer = () => {
     delayBus: Tone.Gain;
     reverbBus: Tone.Gain;
     spectralDelayBus: Tone.Gain;
+    freezeBus: Tone.Gain;
   } | null>(null);
 
   // Spectral Delay global state (Phase 7C)
