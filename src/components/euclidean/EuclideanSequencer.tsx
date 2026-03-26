@@ -1744,6 +1744,8 @@ export const EuclideanSequencer = () => {
         cloudPannerGain.dispose();
         cloudPanner3DGain.dispose();
         cloudFreqShifter.dispose();
+        cloudFsBypassGain.dispose();
+        cloudFsDirectGain.dispose();
         cloudDelaySend.dispose();
         cloudReverbSend.dispose();
         cloudSpectralSend.dispose();
@@ -1755,7 +1757,13 @@ export const EuclideanSequencer = () => {
       cloudEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
     synthsRef.current.cloud.setPan = (value: number) => { cloudPanner.pan.rampTo(value, 0.05); };
-    synthsRef.current.cloud.setFreqShift = (hz: number) => { cloudFreqShifter.frequency.rampTo(hz, 0.05); };
+    synthsRef.current.cloud.setFreqShift = (hz: number, enabled?: boolean) => {
+      cloudFreqShifter.frequency.rampTo(hz, 0.05);
+      if (enabled !== undefined) {
+        cloudFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
+        cloudFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
+      }
+    };
     synthsRef.current.cloud.panner = cloudPanner;
     synthsRef.current.cloud.freqShifter = cloudFreqShifter;
     synthsRef.current.cloud.setSpectralSend = (value: number) => { cloudSpectralSend.gain.rampTo(value, 0.05); };
