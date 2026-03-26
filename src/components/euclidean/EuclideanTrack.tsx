@@ -157,6 +157,7 @@ interface EuclideanTrackProps {
   freqShift?: number;
   spectralDelaySend?: number;
   freezeSend?: number;
+  reverseSend?: number;
   extremeLoopEnabled?: boolean;
   extremeLoopSize?: number;
   extremeLoopPoint?: number;
@@ -272,7 +273,7 @@ export const EuclideanTrack = React.memo(({
   noteMode, markovStyle, markovTemperature, markovAnchor, markovShowMatrix,
   slicerEnabled, sliceCount, sliceOrder, sliceReverse, slicePitch,
   stretchEnabled, stretchRate, eqEnabled, eqHpfFreq, eqLpfFreq,
-  pan, freqShiftEnabled, freqShift, spectralDelaySend, freezeSend,
+  pan, freqShiftEnabled, freqShift, spectralDelaySend, freezeSend, reverseSend,
   extremeLoopEnabled, extremeLoopSize, extremeLoopPoint,
   binauralEnabled, binauralAzimuth, binauralDistance,
   kickPitchDecay, kickOctaves, kickDecay, kickClickType,
@@ -470,6 +471,16 @@ export const EuclideanTrack = React.memo(({
               <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
                 onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSamplerParamChange(trackId, 'freezeSend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
                 <div className="h-full transition-all duration-100" style={{ width: `${(freezeSend ?? 0) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
+              </div>
+            </div>
+            <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('reverseSend', e)} onMouseLeave={handleParamLeave}>
+              <div className="flex justify-between items-center w-16">
+                <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rvr</span>
+                <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round((reverseSend ?? 0) * 100)}%</span>
+              </div>
+              <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
+                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSamplerParamChange(trackId, 'reverseSend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
+                <div className="h-full transition-all duration-100" style={{ width: `${(reverseSend ?? 0) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
               </div>
             </div>
           </div>
@@ -2217,7 +2228,7 @@ export const EuclideanTrack = React.memo(({
               onParamChange(trackId, 'mutationRate', 0.05);
               onParamChange(trackId, 'mutationSpeed', 1);
               // Reset all probabilities to 1
-              for(let i=0; i<64; i++) onProbabilityChange(i, 1);
+              for(let i=0; i<64; i++) onSequencerAction(trackId, 'probability', i, 1);
             }}
             className="absolute -top-2 -right-2 w-5 h-5 bg-white hover:bg-system-accent/10 border border-black/5 rounded-full flex items-center justify-center text-[8px] font-mono text-idm-muted hover:text-system-accent transition-all shadow-sm"
             title="Reset Engine"
@@ -2344,6 +2355,7 @@ export const EuclideanTrack = React.memo(({
     prevProps.freqShift === nextProps.freqShift &&
     prevProps.spectralDelaySend === nextProps.spectralDelaySend &&
     prevProps.freezeSend === nextProps.freezeSend &&
+    prevProps.reverseSend === nextProps.reverseSend &&
     prevProps.binauralEnabled === nextProps.binauralEnabled &&
     prevProps.binauralAzimuth === nextProps.binauralAzimuth &&
     prevProps.binauralDistance === nextProps.binauralDistance &&

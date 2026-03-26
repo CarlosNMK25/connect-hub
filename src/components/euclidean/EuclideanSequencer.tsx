@@ -155,6 +155,7 @@ interface TrackState {
   spectralDelaySend?: number; // 0-1, default 0
   // Freeze Send (Phase 9)
   freezeSend?: number; // 0-1, default 0
+  reverseSend?: number; // 0-1, default 0
   // Extreme Loop (Phase 10)
   extremeLoopEnabled?: boolean; // default false
   extremeLoopSize?: number;     // ms, 1-50, default 10
@@ -181,6 +182,21 @@ interface TrackState {
   snareBodyDecay?: number;    // 0.05-0.3, default 0.1
   hits: number;
   misses: number;
+}
+
+/** Generate a synthetic reversed impulse response for Reverse Reverb */
+function generateReverseIR(ctx: BaseAudioContext, decay: number): AudioBuffer {
+  const sampleRate = ctx.sampleRate;
+  const length = Math.floor(decay * sampleRate);
+  const buffer = ctx.createBuffer(2, length, sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const data = buffer.getChannelData(ch);
+    for (let i = 0; i < length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-3 * i / length);
+    }
+    data.reverse();
+  }
+  return buffer;
 }
 
 const getMesoInsight = (tracks: TrackState[]) => {
@@ -658,6 +674,7 @@ export const EuclideanSequencer = () => {
     reverbBus: Tone.Gain;
     spectralDelayBus: Tone.Gain;
     freezeBus: Tone.Gain;
+    reverseBus: Tone.Gain;
   } | null>(null);
 
   // Spectral Delay global state (Phase 7C)
@@ -668,6 +685,15 @@ export const EuclideanSequencer = () => {
   const [freezeFeedback, setFreezeFeedback] = useState(0.95);
   const [freezeFilterFreq, setFreezeFilterFreq] = useState(6000);
   const freezeRef = useRef<{ bus: Tone.Gain; delay: Tone.Delay; filter: Tone.Filter; feedbackGain: Tone.Gain; out: Tone.Gain } | null>(null);
+
+  // Reverse Reverb global state (Phase 9)
+  const [reverseEnabled, setReverseEnabled] = useState(false);
+  const [reverseDecay, setReverseDecay] = useState(2.5);
+  const reverseRef = useRef<{
+    bus: Tone.Gain;
+    convolver: Tone.Convolver;
+    out: Tone.Gain;
+  } | null>(null);
 
   // Gated Reverb global state (Phase 9)
   const [gatedEnabled, setGatedEnabled] = useState(false);
@@ -908,6 +934,7 @@ export const EuclideanSequencer = () => {
         if (config.freqShift !== undefined) newTrack.freqShift = config.freqShift;
         if ((config as any).spectralDelaySend !== undefined) newTrack.spectralDelaySend = (config as any).spectralDelaySend;
         if ((config as any).freezeSend !== undefined) newTrack.freezeSend = (config as any).freezeSend;
+        if ((config as any).reverseSend !== undefined) newTrack.reverseSend = (config as any).reverseSend;
         if ((config as any).extremeLoopEnabled !== undefined) newTrack.extremeLoopEnabled = (config as any).extremeLoopEnabled;
         if ((config as any).extremeLoopSize !== undefined) newTrack.extremeLoopSize = (config as any).extremeLoopSize;
         if ((config as any).extremeLoopPoint !== undefined) newTrack.extremeLoopPoint = (config as any).extremeLoopPoint;
@@ -1031,6 +1058,7 @@ export const EuclideanSequencer = () => {
           spectralDelaySend: t.spectralDelaySend,
           mode: t.mode,
           freezeSend: t.freezeSend,
+          reverseSend: t.reverseSend,
           extremeLoopEnabled: t.extremeLoopEnabled,
           extremeLoopSize: t.extremeLoopSize,
           extremeLoopPoint: t.extremeLoopPoint,
@@ -1179,6 +1207,7 @@ export const EuclideanSequencer = () => {
         spectralDelaySend: (config as any).spectralDelaySend ?? 0,
         mode: ((config as any).mode ?? t.mode ?? 'TRIGGER') as 'GATE' | 'TRIGGER' | 'ONE-SHOT',
         freezeSend: (config as any).freezeSend ?? 0,
+        reverseSend: (config as any).reverseSend ?? 0,
         extremeLoopEnabled: (config as any).extremeLoopEnabled ?? false,
         extremeLoopSize: (config as any).extremeLoopSize ?? 10,
         extremeLoopPoint: (config as any).extremeLoopPoint ?? 0.5,
@@ -1225,6 +1254,7 @@ export const EuclideanSequencer = () => {
           synthsRef.current[t.id]?.setFreqShift?.((config as any).freqShiftEnabled ? ((config as any).freqShift ?? 0) : 0, (config as any).freqShiftEnabled ?? false);
           synthsRef.current[t.id]?.setSpectralSend?.((config as any).spectralDelaySend ?? 0);
           synthsRef.current[t.id]?.setFreezeSend?.((config as any).freezeSend ?? 0);
+          synthsRef.current[t.id]?.setReverseSend?.((config as any).reverseSend ?? 0);
           // Restore binaural
           synthsRef.current[t.id]?.switchBinaural?.((config as any).binauralEnabled ?? false);
           if ((config as any).binauralEnabled) {
@@ -1337,6 +1367,23 @@ export const EuclideanSequencer = () => {
     gr.gate.threshold = gatedThreshold;
   }, [gatedEnabled, gatedThreshold]);
 
+  // Reverse Reverb sync (Phase 9)
+  useEffect(() => {
+    const rr = reverseRef.current;
+    if (!rr) return;
+    rr.out.gain.rampTo(reverseEnabled ? 1 : 0, 0.1);
+    if (reverseEnabled) {
+      // Recreate convolver with new IR
+      const newIR = generateReverseIR(Tone.getContext().rawContext as BaseAudioContext, reverseDecay);
+      const newConvolver = new Tone.Convolver(newIR);
+      rr.bus.disconnect(rr.convolver);
+      rr.convolver.dispose();
+      rr.bus.connect(newConvolver);
+      newConvolver.connect(rr.out);
+      rr.convolver = newConvolver;
+    }
+  }, [reverseEnabled, reverseDecay]);
+
 
   const stepsKey = tracks.map(t => `${t.id}:${t.steps}`).join('|');
   const mcm = useMemo(() => {
@@ -1425,6 +1472,16 @@ export const EuclideanSequencer = () => {
     freezeOut.connect(compressor);
     freezeRef.current = { bus: freezeBus, delay: freezeDelay, filter: freezeFilter, feedbackGain: freezeFeedbackGain, out: freezeOut };
 
+    // ---- REVERSE REVERB BUS (Phase 9) ----
+    const reverseBus = new Tone.Gain(1);
+    const reverseIR = generateReverseIR(Tone.getContext().rawContext as BaseAudioContext, 2.5);
+    const reverseConvolver = new Tone.Convolver(reverseIR);
+    const reverseOut = new Tone.Gain(0);
+    reverseBus.connect(reverseConvolver);
+    reverseConvolver.connect(reverseOut);
+    reverseOut.connect(compressor);
+    reverseRef.current = { bus: reverseBus, convolver: reverseConvolver, out: reverseOut };
+
     // Spectral Delay Bus (Phase 7C)
     const spectralDelayBus = new Tone.Gain(1);
     const spectralDelayOut = new Tone.Gain(0);
@@ -1452,7 +1509,7 @@ export const EuclideanSequencer = () => {
     };
 
     compressor.chain(limiter, analyser, Tone.getDestination());
-    masterBusRef.current = { compressor, limiter, analyser, delay, reverb, delayFilter, reverbFilter, delayBus, reverbBus, spectralDelayBus, freezeBus };
+    masterBusRef.current = { compressor, limiter, analyser, delay, reverb, delayFilter, reverbFilter, delayBus, reverbBus, spectralDelayBus, freezeBus, reverseBus };
     setGlobalAnalyser(analyser);
 
     // Sidechain Setup (Kick -> Cloud)
@@ -1465,6 +1522,7 @@ export const EuclideanSequencer = () => {
     const kickReverbSend = new Tone.Gain(0).connect(reverbBus);
     const kickSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
     const kickFreezeSend = new Tone.Gain(0).connect(freezeBus);
+    const kickReverseSend = new Tone.Gain(0).connect(reverseBus);
     // EQ filters in series: filter → eqHpf → eqLpf → [pannerGain→panner, panner3DGain→panner3D] → freqShifter → [compressor, sends]
     const kickEqHpf = new Tone.Filter(20, "highpass");
     const kickEqLpf = new Tone.Filter(20000, "lowpass");
@@ -1499,13 +1557,16 @@ export const EuclideanSequencer = () => {
     kickFsDirectGain.connect(kickReverbSend);
     kickFsDirectGain.connect(kickSpectralSend);
     kickFsBypassGain.connect(kickFreezeSend);
+    kickFsBypassGain.connect(kickReverseSend);
     kickFsDirectGain.connect(kickFreezeSend);
+    kickFsDirectGain.connect(kickReverseSend);
     kickFollower.connect(sidechainInverter);
 
     const snareDelaySend = new Tone.Gain(0).connect(delayBus);
     const snareReverbSend = new Tone.Gain(0).connect(reverbBus);
     const snareSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
     const snareFreezeSend = new Tone.Gain(0).connect(freezeBus);
+    const snareReverseSend = new Tone.Gain(0).connect(reverseBus);
     const snareEqHpf = new Tone.Filter(20, "highpass");
     const snareEqLpf = new Tone.Filter(20000, "lowpass");
     const snarePanner = new Tone.Panner(0);
@@ -1536,12 +1597,15 @@ export const EuclideanSequencer = () => {
     snareFsDirectGain.connect(snareReverbSend);
     snareFsDirectGain.connect(snareSpectralSend);
     snareFsBypassGain.connect(snareFreezeSend);
+    snareFsBypassGain.connect(snareReverseSend);
     snareFsDirectGain.connect(snareFreezeSend);
+    snareFsDirectGain.connect(snareReverseSend);
 
     const hatDelaySend = new Tone.Gain(0).connect(delayBus);
     const hatReverbSend = new Tone.Gain(0).connect(reverbBus);
     const hatSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
     const hatFreezeSend = new Tone.Gain(0).connect(freezeBus);
+    const hatReverseSend = new Tone.Gain(0).connect(reverseBus);
     const hatEqHpf = new Tone.Filter(20, "highpass");
     const hatEqLpf = new Tone.Filter(20000, "lowpass");
     const hatPanner = new Tone.Panner(0);
@@ -1572,7 +1636,9 @@ export const EuclideanSequencer = () => {
     hatFsDirectGain.connect(hatReverbSend);
     hatFsDirectGain.connect(hatSpectralSend);
     hatFsBypassGain.connect(hatFreezeSend);
+    hatFsBypassGain.connect(hatReverseSend);
     hatFsDirectGain.connect(hatFreezeSend);
+    hatFsDirectGain.connect(hatReverseSend);
 
     // Layered Kick
     let kickBody = new Tone.MembraneSynth({
@@ -1657,6 +1723,7 @@ export const EuclideanSequencer = () => {
     // Spectral Delay send injection for kick
     synthsRef.current.kick.setSpectralSend = (value: number) => { kickSpectralSend.gain.rampTo(value, 0.05); };
     synthsRef.current.kick.setFreezeSend = (value: number) => { kickFreezeSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.kick.setReverseSend = (value: number) => { kickReverseSend.gain.rampTo(value, 0.05); };
     // Binaural 3D injection for kick
     synthsRef.current.kick.switchBinaural = (binaural: boolean) => {
       kickPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
@@ -1780,6 +1847,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.snare.freqShifter = snareFreqShifter;
     synthsRef.current.snare.setSpectralSend = (value: number) => { snareSpectralSend.gain.rampTo(value, 0.05); };
     synthsRef.current.snare.setFreezeSend = (value: number) => { snareFreezeSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.snare.setReverseSend = (value: number) => { snareReverseSend.gain.rampTo(value, 0.05); };
     synthsRef.current.snare.switchBinaural = (binaural: boolean) => {
       snarePannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
       snarePanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
@@ -1911,6 +1979,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.hat.freqShifter = hatFreqShifter;
     synthsRef.current.hat.setSpectralSend = (value: number) => { hatSpectralSend.gain.rampTo(value, 0.05); };
     synthsRef.current.hat.setFreezeSend = (value: number) => { hatFreezeSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.hat.setReverseSend = (value: number) => { hatReverseSend.gain.rampTo(value, 0.05); };
     synthsRef.current.hat.switchBinaural = (binaural: boolean) => {
       hatPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
       hatPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
@@ -1946,6 +2015,7 @@ export const EuclideanSequencer = () => {
     const cloudReverbSend = new Tone.Gain(0).connect(reverbBus);
     const cloudSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
     const cloudFreezeSend = new Tone.Gain(0).connect(freezeBus);
+    const cloudReverseSend = new Tone.Gain(0).connect(reverseBus);
     const cloudEqHpf = new Tone.Filter(20, "highpass");
     const cloudEqLpf = new Tone.Filter(20000, "lowpass");
     const cloudPanner = new Tone.Panner(0);
@@ -1976,7 +2046,9 @@ export const EuclideanSequencer = () => {
     cloudFsDirectGain.connect(cloudReverbSend);
     cloudFsDirectGain.connect(cloudSpectralSend);
     cloudFsBypassGain.connect(cloudFreezeSend);
+    cloudFsBypassGain.connect(cloudReverseSend);
     cloudFsDirectGain.connect(cloudFreezeSend);
+    cloudFsDirectGain.connect(cloudReverseSend);
 
     // Cloud Analyser for Envelope Crossfeed (Phase 7E)
     const cloudAnalyser = new Tone.Analyser('waveform', 256);
@@ -2039,6 +2111,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.cloud.freqShifter = cloudFreqShifter;
     synthsRef.current.cloud.setSpectralSend = (value: number) => { cloudSpectralSend.gain.rampTo(value, 0.05); };
     synthsRef.current.cloud.setFreezeSend = (value: number) => { cloudFreezeSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.cloud.setReverseSend = (value: number) => { cloudReverseSend.gain.rampTo(value, 0.05); };
     synthsRef.current.cloud.switchBinaural = (binaural: boolean) => {
       cloudPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
       cloudPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
@@ -2078,6 +2151,7 @@ export const EuclideanSequencer = () => {
     const toneReverbSend = new Tone.Gain(0.2).connect(reverbBus);
     const toneSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
     const toneFreezeSend = new Tone.Gain(0).connect(freezeBus);
+    const toneReverseSend = new Tone.Gain(0).connect(reverseBus);
     const toneEqHpf = new Tone.Filter(20, "highpass");
     const toneEqLpf = new Tone.Filter(20000, "lowpass");
     const tonePanner = new Tone.Panner(0);
@@ -2108,7 +2182,9 @@ export const EuclideanSequencer = () => {
     toneFsDirectGain.connect(toneReverbSend);
     toneFsDirectGain.connect(toneSpectralSend);
     toneFsBypassGain.connect(toneFreezeSend);
+    toneFsBypassGain.connect(toneReverseSend);
     toneFsDirectGain.connect(toneFreezeSend);
+    toneFsDirectGain.connect(toneReverseSend);
     toneFilterRef.current = toneFilter;
 
     const toneMonoSynth = new Tone.MonoSynth({
@@ -2168,6 +2244,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.tone.freqShifter = toneFreqShifter;
     synthsRef.current.tone.setSpectralSend = (value: number) => { toneSpectralSend.gain.rampTo(value, 0.05); };
     synthsRef.current.tone.setFreezeSend = (value: number) => { toneFreezeSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.tone.setReverseSend = (value: number) => { toneReverseSend.gain.rampTo(value, 0.05); };
     synthsRef.current.tone.switchBinaural = (binaural: boolean) => {
       tonePannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
       tonePanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
@@ -2871,6 +2948,7 @@ export const EuclideanSequencer = () => {
       const reverbSend = new Tone.Gain(0).connect(master.reverbBus);
       const spectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
       const freezeSendNode = new Tone.Gain(0).connect(master.freezeBus);
+      const reverseSendNode = new Tone.Gain(0).connect(master.reverseBus);
 
       // Create BitCrusher for this track — route through panner→freqShifter if available
       const pannerNode = synthsRef.current[trackId]?.panner;
@@ -2881,6 +2959,7 @@ export const EuclideanSequencer = () => {
       bitCrusher.connect(reverbSend);
       bitCrusher.connect(spectralSend);
       bitCrusher.connect(freezeSendNode);
+      bitCrusher.connect(reverseSendNode);
 
       // Create GrainPlayer
       const grainPlayer = new Tone.GrainPlayer(audioBuffer).connect(bitCrusher);
@@ -3003,6 +3082,9 @@ export const EuclideanSequencer = () => {
       synthObj.setFreezeSend = (value: number) => {
         freezeSendNode.gain.rampTo(value, 0.05);
       };
+      synthObj.setReverseSend = (value: number) => {
+        reverseSendNode.gain.rampTo(value, 0.05);
+      };
       
       // Update initial sends and volume
       const track = tracksRef.current.find(t => t.id === trackId);
@@ -3011,6 +3093,7 @@ export const EuclideanSequencer = () => {
         synthObj.setSends(track.delaySend, track.reverbSend);
         synthObj.setSpectralSend(track.spectralDelaySend ?? 0);
         synthObj.setFreezeSend(track.freezeSend ?? 0);
+        synthObj.setReverseSend(track.reverseSend ?? 0);
       }
 
       // If Cloud in Eno mode, initialize Eno engine after GrainPlayer setup
@@ -3267,6 +3350,10 @@ export const EuclideanSequencer = () => {
       // Freeze Send real-time sync (Phase 9)
       if (param === 'freezeSend') {
         synthObj.setFreezeSend?.(val as number);
+      }
+      // Reverse Send real-time sync (Phase 9)
+      if (param === 'reverseSend') {
+        synthObj.setReverseSend?.(val as number);
       }
       // Binaural real-time sync
       if (param === 'binauralEnabled') {
@@ -3900,6 +3987,7 @@ export const EuclideanSequencer = () => {
     let _fsDirectGainRef: Tone.Gain | null = null;
     let _spectralSendRef: Tone.Gain | null = null;
     let _freezeSendRef: Tone.Gain | null = null;
+    let _reverseSendRef: Tone.Gain | null = null;
     let _pannerGainRef: Tone.Gain | null = null;
     let _panner3DGainRef: Tone.Gain | null = null;
     let _panner3DRef: Tone.Panner3D | null = null;
@@ -3909,6 +3997,7 @@ export const EuclideanSequencer = () => {
       const kickReverbSend = new Tone.Gain(0).connect(master.reverbBus);
       const kickSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
       const kickFreezeSend = new Tone.Gain(0).connect(master.freezeBus);
+      const kickReverseSend = new Tone.Gain(0).connect(master.reverseBus);
       const kickEqHpf = new Tone.Filter(20, "highpass");
       const kickEqLpf = new Tone.Filter(20000, "lowpass");
       const kickPanner = new Tone.Panner(0);
@@ -3940,7 +4029,9 @@ export const EuclideanSequencer = () => {
       kickFsDirectGain.connect(kickReverbSend);
       kickFsDirectGain.connect(kickSpectralSend);
       kickFsBypassGain.connect(kickFreezeSend);
+      kickFsBypassGain.connect(kickReverseSend);
       kickFsDirectGain.connect(kickFreezeSend);
+      kickFsDirectGain.connect(kickReverseSend);
 
       let kickBody = new Tone.MembraneSynth({
         pitchDecay: 0.05, octaves: 10, oscillator: { type: 'sine' },
@@ -4010,6 +4101,7 @@ export const EuclideanSequencer = () => {
       synthsRef.current.kick.freqShifter = kickFreqShifter;
       synthsRef.current.kick.setSpectralSend = (value: number) => { kickSpectralSend.gain.rampTo(value, 0.05); };
       synthsRef.current.kick.setFreezeSend = (value: number) => { kickFreezeSend.gain.rampTo(value, 0.05); };
+      synthsRef.current.kick.setReverseSend = (value: number) => { kickReverseSend.gain.rampTo(value, 0.05); };
       synthsRef.current.kick.switchBinaural = (binaural: boolean) => {
         kickPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
         kickPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
@@ -4036,6 +4128,7 @@ export const EuclideanSequencer = () => {
       const snareReverbSend = new Tone.Gain(0).connect(master.reverbBus);
       const snareSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
       const snareFreezeSend = new Tone.Gain(0).connect(master.freezeBus);
+      const snareReverseSend = new Tone.Gain(0).connect(master.reverseBus);
       const snareEqHpf = new Tone.Filter(20, "highpass");
       const snareEqLpf = new Tone.Filter(20000, "lowpass");
       const snarePanner = new Tone.Panner(0);
@@ -4066,7 +4159,9 @@ export const EuclideanSequencer = () => {
       snareFsDirectGain.connect(snareReverbSend);
       snareFsDirectGain.connect(snareSpectralSend);
       snareFsBypassGain.connect(snareFreezeSend);
+      snareFsBypassGain.connect(snareReverseSend);
       snareFsDirectGain.connect(snareFreezeSend);
+      snareFsDirectGain.connect(snareReverseSend);
 
       let snareSynth = new Tone.NoiseSynth({
         noise: { type: 'white' as any },
@@ -4142,6 +4237,7 @@ export const EuclideanSequencer = () => {
       synthsRef.current.snare.freqShifter = snareFreqShifter;
       synthsRef.current.snare.setSpectralSend = (value: number) => { snareSpectralSend.gain.rampTo(value, 0.05); };
       synthsRef.current.snare.setFreezeSend = (value: number) => { snareFreezeSend.gain.rampTo(value, 0.05); };
+      synthsRef.current.snare.setReverseSend = (value: number) => { snareReverseSend.gain.rampTo(value, 0.05); };
       synthsRef.current.snare.switchBinaural = (binaural: boolean) => { snarePannerGain.gain.rampTo(binaural ? 0 : 1, 0.1); snarePanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1); };
       synthsRef.current.snare.updateBinaural = (azimuth: number, distance: number) => {
         const rad = (azimuth * Math.PI) / 180;
@@ -4159,6 +4255,7 @@ export const EuclideanSequencer = () => {
       const hatReverbSend = new Tone.Gain(0).connect(master.reverbBus);
       const hatSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
       const hatFreezeSend = new Tone.Gain(0).connect(master.freezeBus);
+      const hatReverseSend = new Tone.Gain(0).connect(master.reverseBus);
       const hatEqHpf = new Tone.Filter(20, "highpass");
       const hatEqLpf = new Tone.Filter(20000, "lowpass");
       const hatPanner = new Tone.Panner(0);
@@ -4189,7 +4286,9 @@ export const EuclideanSequencer = () => {
       hatFsDirectGain.connect(hatReverbSend);
       hatFsDirectGain.connect(hatSpectralSend);
       hatFsBypassGain.connect(hatFreezeSend);
+      hatFsBypassGain.connect(hatReverseSend);
       hatFsDirectGain.connect(hatFreezeSend);
+      hatFsDirectGain.connect(hatReverseSend);
 
       let hatSynth: Tone.NoiseSynth | null = new Tone.NoiseSynth({ noise: { type: 'white' as any }, envelope: { attack: 0.001, decay: 0.05, sustain: 0 }, volume: -2 }).connect(hatFilter);
       let hatMetalSynth: Tone.MetalSynth | null = null;
@@ -4256,6 +4355,7 @@ export const EuclideanSequencer = () => {
       synthsRef.current.hat.freqShifter = hatFreqShifter;
       synthsRef.current.hat.setSpectralSend = (value: number) => { hatSpectralSend.gain.rampTo(value, 0.05); };
       synthsRef.current.hat.setFreezeSend = (value: number) => { hatFreezeSend.gain.rampTo(value, 0.05); };
+      synthsRef.current.hat.setReverseSend = (value: number) => { hatReverseSend.gain.rampTo(value, 0.05); };
       synthsRef.current.hat.switchBinaural = (binaural: boolean) => { hatPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1); hatPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1); };
       synthsRef.current.hat.updateBinaural = (azimuth: number, distance: number) => {
         const rad = (azimuth * Math.PI) / 180;
@@ -4278,6 +4378,7 @@ export const EuclideanSequencer = () => {
       const toneReverbSend = new Tone.Gain(0.2).connect(master.reverbBus);
       const toneSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
       const toneFreezeSend = new Tone.Gain(0).connect(master.freezeBus);
+      const toneReverseSend = new Tone.Gain(0).connect(master.reverseBus);
       const toneEqHpf = new Tone.Filter(20, "highpass");
       const toneEqLpf = new Tone.Filter(20000, "lowpass");
       const tonePanner = new Tone.Panner(0);
@@ -4308,7 +4409,9 @@ export const EuclideanSequencer = () => {
       toneFsDirectGain.connect(toneReverbSend);
       toneFsDirectGain.connect(toneSpectralSend);
       toneFsBypassGain.connect(toneFreezeSend);
+      toneFsBypassGain.connect(toneReverseSend);
       toneFsDirectGain.connect(toneFreezeSend);
+      toneFsDirectGain.connect(toneReverseSend);
       toneFilterRef.current = toneFilter;
       _eqHpfRef = toneEqHpf;
       _eqLpfRef = toneEqLpf;
@@ -4318,6 +4421,7 @@ export const EuclideanSequencer = () => {
       _fsDirectGainRef = toneFsDirectGain;
       _spectralSendRef = toneSpectralSend;
       _freezeSendRef = toneFreezeSend;
+      _reverseSendRef = toneReverseSend;
       _pannerGainRef = tonePannerGain;
       _panner3DGainRef = tonePanner3DGain;
       _panner3DRef = tonePanner3D;
@@ -5059,6 +5163,11 @@ export const EuclideanSequencer = () => {
         const fsRef2 = _freezeSendRef;
         synthsRef.current.tone.setFreezeSend = (value: number) => { fsRef2.gain.rampTo(value, 0.05); };
       }
+      // Reverse send injection for tone rebuild (Phase 9)
+      if (_reverseSendRef) {
+        const rvRef = _reverseSendRef;
+        synthsRef.current.tone.setReverseSend = (value: number) => { rvRef.gain.rampTo(value, 0.05); };
+      }
       // Binaural injection for tone rebuild (Phase 7D)
       if (_pannerGainRef && _panner3DGainRef && _panner3DRef) {
         const pgRef = _pannerGainRef;
@@ -5098,6 +5207,8 @@ export const EuclideanSequencer = () => {
       synthsRef.current[trackId].setSpectralSend?.(track.spectralDelaySend ?? 0);
       // Restore freeze send (Phase 9)
       synthsRef.current[trackId].setFreezeSend?.(track.freezeSend ?? 0);
+      // Restore reverse send (Phase 9)
+      synthsRef.current[trackId].setReverseSend?.(track.reverseSend ?? 0);
       // Restore binaural state (Phase 7D)
       synthsRef.current[trackId].switchBinaural?.(track.binauralEnabled ?? false);
       if (track.binauralEnabled) {
@@ -6440,7 +6551,36 @@ export const EuclideanSequencer = () => {
         )}
       </div>
 
-      {/* Tracks Container with z-index to ensure interactivity */}
+      {/* Reverse Reverb Panel (Phase 9) */}
+      <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
+        <button
+          onClick={() => setReverseEnabled(!reverseEnabled)}
+          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverseEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
+          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
+          className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+            reverseEnabled
+              ? 'bg-system-accent text-white border-system-accent'
+              : 'bg-background text-idm-muted border-border'
+          } ${isStudyMode ? 'cursor-help' : ''}`}
+          title="Reverse Reverb — cola que crece hacia el sonido"
+        >RVR</button>
+        <span className="text-[8px] font-mono text-idm-muted">Reverse</span>
+        {reverseEnabled && (
+          <div className="flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-1"
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverseDecay'); setHoveredGlobalEl(e.currentTarget); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>Decay</span>
+              <input type="range" min={0.5} max={4} step={0.1} value={reverseDecay}
+                onChange={e => setReverseDecay(Number(e.target.value))}
+                className="w-12 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted w-8">{reverseDecay.toFixed(1)}s</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+
       <div className="space-y-6 relative z-10">
         <MesoInsightMonitor tracks={tracks} isStudyMode={isStudyMode} />
         {tracks.map((track, i) => (

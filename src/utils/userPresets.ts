@@ -98,6 +98,7 @@ export interface UserPresetTrack {
   mode?: 'GATE' | 'TRIGGER' | 'ONE-SHOT';
   // Freeze Send (Phase 9)
   freezeSend?: number;
+  reverseSend?: number;
   // Extreme Loop (Phase 10)
   extremeLoopEnabled?: boolean;
   extremeLoopSize?: number;
