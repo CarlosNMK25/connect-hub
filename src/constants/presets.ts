@@ -48,6 +48,10 @@ export interface TrackPreset {
   layer2StretchRate?: number;
   layer2Blend?: number;
   layer2Pitch?: number;
+  // Phase 7A/7B — Panning + Frequency Shifter
+  pan?: number;
+  freqShiftEnabled?: boolean;
+  freqShift?: number;
 }
 
 export interface ScenePreset {

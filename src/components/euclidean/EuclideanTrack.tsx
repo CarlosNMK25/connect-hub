@@ -237,6 +237,10 @@ interface EuclideanTrackProps {
   eqEnabled?: boolean;
   eqHpfFreq?: number;
   eqLpfFreq?: number;
+  // Pan + FreqShifter props
+  pan?: number;
+  freqShiftEnabled?: boolean;
+  freqShift?: number;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
@@ -493,6 +497,10 @@ export const EuclideanTrack = React.memo(({
   eqEnabled,
   eqHpfFreq,
   eqLpfFreq,
+  // Pan + FreqShifter
+  pan,
+  freqShiftEnabled,
+  freqShift,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
@@ -665,7 +673,27 @@ export const EuclideanTrack = React.memo(({
           </div>
           </div>
 
-          {/* Track Name + Solo/Mute + Status */}
+          {/* Pan Control */}
+          <div className="flex flex-col gap-1 flex-none">
+            <div className="flex items-center gap-1">
+              <span className="text-[7px] font-mono text-idm-muted">L</span>
+              <input type="range"
+                min={-1} max={1} step={0.05}
+                value={pan ?? 0}
+                onChange={e => onSamplerParamChange('pan', Number(e.target.value))}
+                className="w-10 h-[7px] accent-system-accent"
+              />
+              <span className="text-[7px] font-mono text-idm-muted">R</span>
+            </div>
+            <span className="text-[7px] font-mono text-idm-muted text-center">
+              {pan === 0 || !pan
+                ? 'C'
+                : (pan ?? 0) > 0
+                  ? `R${Math.round((pan ?? 0) * 100)}`
+                  : `L${Math.round(Math.abs(pan ?? 0) * 100)}`
+              }
+            </span>
+          </div>
           <div className="flex items-center gap-2 flex-none">
             <h3 className="font-mono text-lg font-black uppercase tracking-tighter text-idm-ink leading-none">{name}</h3>
             <div className="flex gap-1">
@@ -809,6 +837,34 @@ export const EuclideanTrack = React.memo(({
                     {((eqLpfFreq ?? 20000) / 1000).toFixed(1)}kHz
                   </span>
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* Frequency Shifter */}
+          <div className="flex items-center gap-1.5 flex-none">
+            <button
+              onClick={() => onSamplerParamChange('freqShiftEnabled', !freqShiftEnabled)}
+              className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+                freqShiftEnabled
+                  ? 'bg-system-accent text-white border-system-accent'
+                  : 'bg-background text-idm-muted border-border'
+              }`}
+              title="Frequency Shifter — desplaza frecuencias (Bode)"
+            >
+              FSH
+            </button>
+            {freqShiftEnabled && (
+              <div className="flex items-center gap-1">
+                <input type="range"
+                  min={-500} max={500} step={5}
+                  value={freqShift ?? 0}
+                  onChange={e => onSamplerParamChange('freqShift', Number(e.target.value))}
+                  className="w-16 h-[7px] accent-system-accent"
+                />
+                <span className="text-[7px] font-mono text-idm-muted w-10 text-right">
+                  {(freqShift ?? 0) > 0 ? '+' : ''}{freqShift ?? 0}Hz
+                </span>
               </div>
             )}
           </div>
@@ -2312,6 +2368,9 @@ export const EuclideanTrack = React.memo(({
     prevProps.stretchRate === nextProps.stretchRate &&
     prevProps.eqEnabled === nextProps.eqEnabled &&
     prevProps.eqHpfFreq === nextProps.eqHpfFreq &&
-    prevProps.eqLpfFreq === nextProps.eqLpfFreq
+    prevProps.eqLpfFreq === nextProps.eqLpfFreq &&
+    prevProps.pan === nextProps.pan &&
+    prevProps.freqShiftEnabled === nextProps.freqShiftEnabled &&
+    prevProps.freqShift === nextProps.freqShift
   );
 });

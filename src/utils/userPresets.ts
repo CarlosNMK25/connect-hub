@@ -88,6 +88,10 @@ export interface UserPresetTrack {
   // Phase 6D — Layer 2 Time Stretch
   layer2StretchEnabled?: boolean;
   layer2StretchRate?: number;
+  // Phase 7A/7B — Panning + Frequency Shifter
+  pan?: number;
+  freqShiftEnabled?: boolean;
+  freqShift?: number;
 }
 
 export interface UserPreset {
