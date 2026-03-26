@@ -2471,7 +2471,10 @@ export const EuclideanSequencer = () => {
             }
 
             if (synth.triggerAttackRelease) {
-              const duration = track.mode === 'GATE' ? "16n" : (track.decay / 1000);
+              const duration = track.mode === 'GATE' ? "16n"
+                : track.mode === 'ONE-SHOT' && track.samplerBuffer
+                  ? Math.max(0.01, (track.sampleEnd - track.sampleStart) * track.samplerBuffer.duration)
+                  : (track.decay / 1000);
               
               if (track.isTonal) {
                 const freq = noteIndexToFreq(track.rootNote, track.scaleId, noteIdx);
