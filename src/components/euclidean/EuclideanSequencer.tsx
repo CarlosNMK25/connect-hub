@@ -437,6 +437,22 @@ export const EuclideanSequencer = () => {
   const temporalityModeRef = useRef<TemporalityMode>('grid');
   useEffect(() => { temporalityModeRef.current = temporalityMode; }, [temporalityMode]);
 
+  // ── Change 2: Track collapse ──
+  const [expandedTrack, setExpandedTrack] = useState<string | null>('kick');
+  const handleToggleTrack = useCallback((trackId: string) => {
+    setExpandedTrack(prev => prev === trackId ? null : trackId);
+  }, []);
+
+  // ── Change 6: Song Mode state ──
+  const [songModeEnabled, setSongModeEnabled] = useState(false);
+  const [songModeView, setSongModeView] = useState<'performance' | 'chain'>('performance');
+  const [syncAllScenes, setSyncAllScenes] = useState(false);
+  const [chain, setChain] = useState<Array<{ scene: number; cycles: number }>>([
+    { scene: 1, cycles: 4 },
+    { scene: 2, cycles: 2 },
+  ]);
+  const [chainPosition, setChainPosition] = useState(0);
+
   const logChange = useCallback((action: string, deltas: string[] = []) => {
     const now = new Date();
     const timestamp = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
