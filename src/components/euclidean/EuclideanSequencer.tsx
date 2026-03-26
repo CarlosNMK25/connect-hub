@@ -3190,6 +3190,10 @@ export const EuclideanSequencer = () => {
     let _pannerRef: Tone.Panner | null = null;
     let _freqShifterRef: Tone.FrequencyShifter | null = null;
     let _spectralSendRef: Tone.Gain | null = null;
+    let _pannerGainRef: Tone.Gain | null = null;
+    let _panner3DGainRef: Tone.Gain | null = null;
+    let _panner3DRef: Tone.Panner3D | null = null;
+    let _toneFilterRef: Tone.Filter | null = null;
     if (trackId === 'kick') {
       const kickDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const kickReverbSend = new Tone.Gain(0).connect(master.reverbBus);
@@ -3444,6 +3448,10 @@ export const EuclideanSequencer = () => {
       _pannerRef = tonePanner;
       _freqShifterRef = toneFreqShifter;
       _spectralSendRef = toneSpectralSend;
+      _pannerGainRef = tonePannerGain;
+      _panner3DGainRef = tonePanner3DGain;
+      _panner3DRef = tonePanner3D;
+      _toneFilterRef = toneFilter;
 
       // Reconectar nodo de captura si existe
       if (recordingDestRef.current) {
@@ -4168,6 +4176,28 @@ export const EuclideanSequencer = () => {
         const ssRef = _spectralSendRef;
         synthsRef.current.tone.setSpectralSend = (value: number) => { ssRef.gain.rampTo(value, 0.05); };
       }
+      // Binaural injection for tone rebuild (Phase 7D)
+      if (_pannerGainRef && _panner3DGainRef && _panner3DRef) {
+        const pgRef = _pannerGainRef;
+        const p3gRef = _panner3DGainRef;
+        const p3dRef = _panner3DRef;
+        synthsRef.current.tone.switchBinaural = (binaural: boolean) => {
+          pgRef.gain.rampTo(binaural ? 0 : 1, 0.1);
+          p3gRef.gain.rampTo(binaural ? 1 : 0, 0.1);
+        };
+        synthsRef.current.tone.updateBinaural = (azimuth: number, distance: number) => {
+          const rad = (azimuth * Math.PI) / 180;
+          try { p3dRef.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) {
+            p3dRef.positionX.value = Math.sin(rad) * distance;
+            p3dRef.positionZ.value = -Math.cos(rad) * distance;
+          }
+        };
+      }
+      // Crossfeed injection for tone rebuild (Phase 7E)
+      if (_toneFilterRef) {
+        const tf = _toneFilterRef;
+        synthsRef.current.tone.setCrossfeedFreq = (hz: number) => { tf.frequency.rampTo(hz, 0.05); };
+      }
     }
     // Apply current volume, sends, EQ, pan, and freqShift
     const track = tracksRef.current.find(t => t.id === trackId);
@@ -4183,6 +4213,11 @@ export const EuclideanSequencer = () => {
       synthsRef.current[trackId].setFreqShift?.(track.freqShiftEnabled ? (track.freqShift ?? 0) : 0);
       // Restore spectral delay send
       synthsRef.current[trackId].setSpectralSend?.(track.spectralDelaySend ?? 0);
+      // Restore binaural state (Phase 7D)
+      synthsRef.current[trackId].switchBinaural?.(track.binauralEnabled ?? false);
+      if (track.binauralEnabled) {
+        synthsRef.current[trackId].updateBinaural?.(track.binauralAzimuth ?? 0, track.binauralDistance ?? 3);
+      }
     }
   };
 
@@ -5415,6 +5450,38 @@ export const EuclideanSequencer = () => {
         )}
       </div>
 
+      {/* Envelope Crossfeed Panel (Phase 7E) */}
+      <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
+        <button
+          onClick={() => setCrossfeedEnabled(!crossfeedEnabled)}
+          className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+            crossfeedEnabled
+              ? 'bg-system-accent text-white border-system-accent'
+              : 'bg-background text-idm-muted border-border'
+          }`}
+          title="Envelope Crossfeed — Cloud modula Tone"
+        >XFD</button>
+        <span className="text-[8px] font-mono text-idm-muted">Cloud → Tone</span>
+        {crossfeedEnabled && (
+          <div className="flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-1">
+              <span className="text-[7px] font-mono text-idm-muted">Base</span>
+              <input type="range" min={200} max={2000} step={50} value={crossfeedBase}
+                onChange={e => setCrossfeedBase(Number(e.target.value))}
+                className="w-12 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted">{crossfeedBase}Hz</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[7px] font-mono text-idm-muted">Depth</span>
+              <input type="range" min={0} max={8000} step={200} value={crossfeedDepth}
+                onChange={e => setCrossfeedDepth(Number(e.target.value))}
+                className="w-12 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted">{crossfeedDepth}Hz</span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Tracks Container with z-index to ensure interactivity */}
       <div className="space-y-6 relative z-10">
         <MesoInsightMonitor tracks={tracks} isStudyMode={isStudyMode} />
@@ -5906,6 +5973,9 @@ export const EuclideanSequencer = () => {
               freqShiftEnabled={track.freqShiftEnabled}
               freqShift={track.freqShift}
               spectralDelaySend={track.spectralDelaySend}
+              binauralEnabled={track.binauralEnabled}
+              binauralAzimuth={track.binauralAzimuth}
+              binauralDistance={track.binauralDistance}
             />
           </div>
         ))}

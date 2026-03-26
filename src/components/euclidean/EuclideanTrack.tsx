@@ -242,6 +242,10 @@ interface EuclideanTrackProps {
   freqShiftEnabled?: boolean;
   freqShift?: number;
   spectralDelaySend?: number;
+  // 3D Audio / Binaural (Phase 7D)
+  binauralEnabled?: boolean;
+  binauralAzimuth?: number;
+  binauralDistance?: number;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
@@ -503,6 +507,10 @@ export const EuclideanTrack = React.memo(({
   freqShiftEnabled,
   freqShift,
   spectralDelaySend,
+  // 3D Audio / Binaural
+  binauralEnabled,
+  binauralAzimuth,
+  binauralDistance,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
@@ -705,6 +713,40 @@ export const EuclideanTrack = React.memo(({
                   : `L${Math.round(Math.abs(pan ?? 0) * 100)}`
               }
             </span>
+          </div>
+          {/* 3D Binaural toggle + controls (Phase 7D) */}
+          <div className="flex items-center gap-1 flex-none">
+            <button
+              onClick={() => onSamplerParamChange('binauralEnabled', !binauralEnabled)}
+              className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+                binauralEnabled
+                  ? 'bg-system-accent text-white border-system-accent'
+                  : 'bg-background text-idm-muted border-border'
+              }`}
+              title="3D Binaural — posicionamiento HRTF"
+            >
+              3D
+            </button>
+            {binauralEnabled && (
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1">
+                  <span className="text-[7px] font-mono text-idm-muted w-5">Az</span>
+                  <input type="range" min={0} max={360} step={5}
+                    value={binauralAzimuth ?? 0}
+                    onChange={e => onSamplerParamChange('binauralAzimuth', Number(e.target.value))}
+                    className="w-14 h-[7px] accent-system-accent" />
+                  <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{binauralAzimuth ?? 0}°</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[7px] font-mono text-idm-muted w-5">Dst</span>
+                  <input type="range" min={1} max={10} step={0.5}
+                    value={binauralDistance ?? 3}
+                    onChange={e => onSamplerParamChange('binauralDistance', Number(e.target.value))}
+                    className="w-14 h-[7px] accent-system-accent" />
+                  <span className="text-[7px] font-mono text-idm-muted w-6 text-right">{(binauralDistance ?? 3).toFixed(1)}</span>
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2 flex-none">
             <h3 className="font-mono text-lg font-black uppercase tracking-tighter text-idm-ink leading-none">{name}</h3>
@@ -2383,6 +2425,9 @@ export const EuclideanTrack = React.memo(({
     prevProps.eqLpfFreq === nextProps.eqLpfFreq &&
     prevProps.pan === nextProps.pan &&
     prevProps.freqShiftEnabled === nextProps.freqShiftEnabled &&
-    prevProps.freqShift === nextProps.freqShift
+    prevProps.freqShift === nextProps.freqShift &&
+    prevProps.binauralEnabled === nextProps.binauralEnabled &&
+    prevProps.binauralAzimuth === nextProps.binauralAzimuth &&
+    prevProps.binauralDistance === nextProps.binauralDistance
   );
 });
