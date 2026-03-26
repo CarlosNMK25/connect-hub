@@ -3813,6 +3813,8 @@ export const EuclideanSequencer = () => {
       hatFsDirectGain.connect(hatDelaySend);
       hatFsDirectGain.connect(hatReverbSend);
       hatFsDirectGain.connect(hatSpectralSend);
+      hatFsBypassGain.connect(hatFreezeSend);
+      hatFsDirectGain.connect(hatFreezeSend);
 
       let hatSynth: Tone.NoiseSynth | null = new Tone.NoiseSynth({ noise: { type: 'white' as any }, envelope: { attack: 0.001, decay: 0.05, sustain: 0 }, volume: -2 }).connect(hatFilter);
       let hatMetalSynth: Tone.MetalSynth | null = null;
