@@ -43,7 +43,7 @@ interface TrackState {
   sampleEnd: number; // 0-1
   attack: number; // ms
   decay: number; // ms
-  mode: 'GATE' | 'TRIGGER';
+  mode: 'GATE' | 'TRIGGER' | 'ONE-SHOT';
   pitch: number; // semitones
   normalize: boolean;
   // Granular Engine (Level 2)
