@@ -32,6 +32,17 @@ export interface TrackPreset {
   markovStyle?: string;
   markovTemperature?: number;
   markovAnchor?: number;
+  // Phase 6B/6C
+  stretchEnabled?: boolean;
+  stretchRate?: number;
+  eqEnabled?: boolean;
+  eqHpfFreq?: number;
+  eqLpfFreq?: number;
+  synthType?: string;
+  cloudMode?: string;
+  grainSize?: number;
+  overlap?: number;
+  spray?: number;
 }
 
 export interface ScenePreset {
