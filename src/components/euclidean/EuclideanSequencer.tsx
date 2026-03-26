@@ -43,7 +43,7 @@ interface TrackState {
   sampleEnd: number; // 0-1
   attack: number; // ms
   decay: number; // ms
-  mode: 'GATE' | 'TRIGGER';
+  mode: 'GATE' | 'TRIGGER' | 'ONE-SHOT';
   pitch: number; // semitones
   normalize: boolean;
   // Granular Engine (Level 2)
@@ -2471,7 +2471,10 @@ export const EuclideanSequencer = () => {
             }
 
             if (synth.triggerAttackRelease) {
-              const duration = track.mode === 'GATE' ? "16n" : (track.decay / 1000);
+              const duration = track.mode === 'GATE' ? "16n"
+                : track.mode === 'ONE-SHOT' && track.samplerBuffer
+                  ? Math.max(0.01, (track.sampleEnd - track.sampleStart) * track.samplerBuffer.duration)
+                  : (track.decay / 1000);
               
               if (track.isTonal) {
                 const freq = noteIndexToFreq(track.rootNote, track.scaleId, noteIdx);
@@ -2488,7 +2491,9 @@ export const EuclideanSequencer = () => {
               const startOffset = track.sampleStart * bufDur;
               const randomOffset = (Math.random() - 0.5) * sprayAmount;
               const finalOffset = Math.max(0, Math.min(bufDur, startOffset + randomOffset));
-              const stepDur = track.mode === 'GATE' ? Tone.Time("16n").toSeconds() : (track.decay / 1000);
+              const stepDur = track.mode === 'GATE' ? Tone.Time("16n").toSeconds()
+                : track.mode === 'ONE-SHOT' ? Math.max(0.01, (track.sampleEnd - track.sampleStart) * bufDur)
+                : (track.decay / 1000);
               const endOffset = track.sampleEnd * bufDur;
               const roiDur = Math.max(0.01, endOffset - finalOffset);
               const dur = Math.max(0.01, Math.min(roiDur, stepDur));
@@ -2511,7 +2516,10 @@ export const EuclideanSequencer = () => {
                 const ratchetVelocity = velocity * Math.pow(0.65, r);
                 try {
                   if (synth.triggerAttackRelease) {
-                    const dur = track.mode === 'GATE' ? "32n" : (track.decay / 2000);
+                    const dur = track.mode === 'GATE' ? "32n"
+                      : track.mode === 'ONE-SHOT' && track.samplerBuffer
+                        ? Math.max(0.01, (track.sampleEnd - track.sampleStart) * track.samplerBuffer.duration / 2)
+                        : (track.decay / 2000);
                     if (track.isTonal) {
                       const freq = noteIndexToFreq(track.rootNote, track.scaleId, noteIdx);
                       synth.triggerAttackRelease(freq, dur, ratchetTime, ratchetVelocity, sliceInfo);
@@ -2527,7 +2535,9 @@ export const EuclideanSequencer = () => {
                     const startOff = track.sampleStart * bufDur;
                     const randomOff = (Math.random() - 0.5) * sprayAmount;
                     const finalOff = Math.max(0, Math.min(bufDur, startOff + randomOff));
-                    const stepDur = track.mode === 'GATE' ? Tone.Time("32n").toSeconds() : (track.decay / 2000);
+                    const stepDur = track.mode === 'GATE' ? Tone.Time("32n").toSeconds()
+                      : track.mode === 'ONE-SHOT' ? Math.max(0.01, (track.sampleEnd - track.sampleStart) * bufDur / 2)
+                      : (track.decay / 2000);
                     const endOff = track.sampleEnd * bufDur;
                     const roiDur = Math.max(0.01, endOff - finalOff);
                     const dur = Math.max(0.01, Math.min(roiDur, stepDur));
