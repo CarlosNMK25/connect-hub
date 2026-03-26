@@ -430,125 +430,7 @@ export const EuclideanTrack = React.memo(({
             <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors" />
           </div>
 
-          {/* FX Sends (Mini-Faders) */}
-          <div className="flex flex-col gap-2 flex-none">
-            <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('delaySend', e)} onMouseLeave={handleParamLeave}>
-              <div className="flex justify-between items-center w-16">
-                <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Dly</span>
-                <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round(delaySend * 100)}%</span>
-              </div>
-              <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
-                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onParamChange(trackId, 'delaySend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
-                <div className="h-full transition-all duration-100" style={{ width: `${delaySend * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
-              </div>
-            </div>
-            <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('reverbSend', e)} onMouseLeave={handleParamLeave}>
-              <div className="flex justify-between items-center w-16">
-                <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rvb</span>
-                <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round(reverbSend * 100)}%</span>
-              </div>
-              <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
-                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onParamChange(trackId, 'reverbSend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
-                <div className="h-full transition-all duration-100" style={{ width: `${reverbSend * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
-              </div>
-            </div>
-            <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('ratchet', e)} onMouseLeave={handleParamLeave}>
-              <div className="flex justify-between items-center w-16">
-                <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rtch</span>
-                <span className="text-[6px] font-mono text-idm-muted leading-none">{ratchet}×</span>
-              </div>
-              <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
-                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onParamChange(trackId, 'ratchet', Math.round(Math.max(0, Math.min(4, ((e.clientX - rect.left) / rect.width) * 4)))); }}>
-                <div className="h-full transition-all duration-100" style={{ width: `${(ratchet / 4) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
-            </div>
-          </div>
-            <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('spectralDelayEnabled', e)} onMouseLeave={handleParamLeave}>
-              <div className="flex justify-between items-center w-16">
-                <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Sdly</span>
-                <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round((spectralDelaySend ?? 0) * 100)}%</span>
-              </div>
-              <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
-                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSamplerParamChange(trackId, 'spectralDelaySend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
-                <div className="h-full transition-all duration-100" style={{ width: `${(spectralDelaySend ?? 0) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
-              </div>
-            </div>
-            <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('freezeSend', e)} onMouseLeave={handleParamLeave}>
-              <div className="flex justify-between items-center w-16">
-                <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Frz</span>
-                <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round((freezeSend ?? 0) * 100)}%</span>
-              </div>
-              <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
-                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSamplerParamChange(trackId, 'freezeSend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
-                <div className="h-full transition-all duration-100" style={{ width: `${(freezeSend ?? 0) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
-              </div>
-            </div>
-            <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('reverseSend', e)} onMouseLeave={handleParamLeave}>
-              <div className="flex justify-between items-center w-16">
-                <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rvr</span>
-                <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round((reverseSend ?? 0) * 100)}%</span>
-              </div>
-              <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
-                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSamplerParamChange(trackId, 'reverseSend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
-                <div className="h-full transition-all duration-100" style={{ width: `${(reverseSend ?? 0) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
-              </div>
-            </div>
-          </div>
-
-          {/* Pan Control */}
-          <div className="flex flex-col gap-1 flex-none" onMouseEnter={(e) => handleParamEnter('pan', e)} onMouseLeave={handleParamLeave}>
-            <div className="flex items-center gap-1">
-              <span className="text-[7px] font-mono text-idm-muted">L</span>
-              <input type="range"
-                min={-1} max={1} step={0.05}
-                value={pan ?? 0}
-                onChange={e => onSamplerParamChange(trackId, 'pan', Number(e.target.value))}
-                className="w-10 h-[7px] accent-system-accent"
-              />
-              <span className="text-[7px] font-mono text-idm-muted">R</span>
-            </div>
-            <span className="text-[7px] font-mono text-idm-muted text-center">
-              {pan === 0 || !pan
-                ? 'C'
-                : (pan ?? 0) > 0
-                  ? `R${Math.round((pan ?? 0) * 100)}`
-                  : `L${Math.round(Math.abs(pan ?? 0) * 100)}`
-              }
-            </span>
-          </div>
-          {/* 3D Binaural toggle + controls (Phase 7D) */}
-          <div className="flex items-center gap-1 flex-none" onMouseEnter={(e) => handleParamEnter('binauralEnabled', e)} onMouseLeave={handleParamLeave}>
-            <button
-              onClick={() => onSamplerParamChange(trackId, 'binauralEnabled', !binauralEnabled)}
-              className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-                binauralEnabled
-                  ? 'bg-system-accent text-white border-system-accent'
-                  : 'bg-background text-idm-muted border-border'
-              }`}
-              title="3D Binaural — posicionamiento HRTF"
-            >
-              3D
-            </button>
-            {binauralEnabled && (
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1" onMouseEnter={(e) => { e.stopPropagation(); handleParamEnter('binauralAzimuth', e); }} onMouseLeave={handleParamLeave}>
-                  <span className="text-[7px] font-mono text-idm-muted w-5">Az</span>
-                  <input type="range" min={0} max={360} step={5}
-                    value={binauralAzimuth ?? 0}
-                    onChange={e => onSamplerParamChange(trackId, 'binauralAzimuth', Number(e.target.value))}
-                    className="w-14 h-[7px] accent-system-accent" />
-                  <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{binauralAzimuth ?? 0}°</span>
-                </div>
-                <div className="flex items-center gap-1" onMouseEnter={(e) => { e.stopPropagation(); handleParamEnter('binauralDistance', e); }} onMouseLeave={handleParamLeave}>
-                  <span className="text-[7px] font-mono text-idm-muted w-5">Dst</span>
-                  <input type="range" min={1} max={10} step={0.5}
-                    value={binauralDistance ?? 3}
-                    onChange={e => onSamplerParamChange(trackId, 'binauralDistance', Number(e.target.value))}
-                    className="w-14 h-[7px] accent-system-accent" />
-                  <span className="text-[7px] font-mono text-idm-muted w-6 text-right">{(binauralDistance ?? 3).toFixed(1)}</span>
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Name + S/M + Status */}
           <div className="flex items-center gap-2 flex-none">
             <h3 className="font-mono text-lg font-black uppercase tracking-tighter text-idm-ink leading-none">{name}</h3>
             <div className="flex gap-1">
@@ -567,11 +449,11 @@ export const EuclideanTrack = React.memo(({
 
           {/* Mode Selector + Formula + Density Badges */}
           <div className="flex items-center gap-3 px-3 py-2 bg-idm-bg rounded-lg border border-black/5 flex-none">
-            {/* Mode selector */}
             <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('patternMode', e)} onMouseLeave={handleParamLeave}>
               <select
                 value={patternMode ?? 'euclidean'}
-                onChange={e => onSequencerAction(trackId, 'patternMode', e.target.value as 'euclidean' | 'lsystem' | 'ca')}
+                onChange={e => { e.stopPropagation(); onSequencerAction(trackId, 'patternMode', e.target.value as 'euclidean' | 'lsystem' | 'ca'); }}
+                onClick={e => e.stopPropagation()}
                 className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent"
               >
                 <option value="euclidean">E</option>
@@ -589,6 +471,19 @@ export const EuclideanTrack = React.memo(({
               <span className="text-[7px] font-mono text-idm-muted uppercase tracking-widest leading-none">Density</span>
               <span className="text-[11px] font-mono font-black leading-tight" style={{ color }}>{Math.round((pulses / steps) * 100)}%</span>
             </div>
+          </div>
+
+          {/* Waveform Display (compact in header) */}
+          <div className="flex-1 min-w-[80px] max-w-[200px] h-10 relative group bg-idm-bg rounded-xl border border-black/5 overflow-hidden waveform-container" data-track-id={id}>
+            <WaveformDisplay 
+              buffer={samplerBuffer}
+              color={color}
+              start={sampleStart}
+              end={sampleEnd}
+            />
+            {slicerEnabled && samplerBuffer && (
+              <SliceBoundaryOverlay buffer={samplerBuffer} sliceCount={sliceCount ?? 16} color={color} />
+            )}
           </div>
 
           {/* Scene Slots (Change 5) */}
@@ -627,422 +522,540 @@ export const EuclideanTrack = React.memo(({
             S{activeScene + 1}
           </span>
           <ChevronDown size={14} className={`text-muted-foreground transition-transform duration-200 flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
-
-          {/* Waveform Display (fills remaining space) */}
-          <div className="flex-1 min-w-[120px] h-14 relative group bg-idm-bg rounded-xl border border-black/5 overflow-hidden waveform-container" data-track-id={id}>
-            <WaveformDisplay 
-              buffer={samplerBuffer}
-              color={color}
-              start={sampleStart}
-              end={sampleEnd}
-            />
-            
-            {samplerStatus === 'IDLE' && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px] group-hover:bg-white/80 transition-all">
-                <button 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border border-black/5 hover:border-system-accent/50 text-idm-ink rounded-lg text-[10px] font-mono uppercase tracking-[0.15em] transition-all shadow-sm active:scale-95"
-                >
-                  <Upload size={12} className="text-system-accent" />
-                  Load Sample
-                </button>
-              </div>
-            )}
-
-            {samplerStatus === 'READY' && (
-              <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => onSamplerParamChange(trackId, 'stretchEnabled', !stretchEnabled)}
-                  className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
-                    stretchEnabled
-                      ? 'bg-system-accent text-white border-system-accent'
-                      : 'bg-background text-foreground/60 border-border hover:border-system-accent/50'
-                  }`}
-                  title="Time Stretch — velocidad sin cambio de pitch"
-                >
-                  STR
-                </button>
-                <button
-                  onClick={() => onSlicerAction(trackId, 'toggle', !slicerEnabled)}
-                  className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
-                    slicerEnabled
-                      ? 'bg-system-accent text-white border-system-accent'
-                      : 'bg-background text-foreground/60 border-border hover:border-system-accent/50'
-                  }`}
-                  title="Sample Slicer"
-                >
-                  SLICE
-                </button>
-                <button onClick={() => onClearSampler(trackId)}
-                  className="p-1 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-md transition-all border border-red-500/20"
-                  title="Clear Sample">
-                  <Trash2 size={10} />
-                </button>
-              </div>
-            )}
-
-            {/* Slice boundary overlay lines */}
-            {slicerEnabled && samplerBuffer && (
-              <SliceBoundaryOverlay buffer={samplerBuffer} sliceCount={sliceCount ?? 16} color={color} />
-            )}
-
-            <input type="file" ref={fileInputRef} className="hidden" accept="audio/*"
-              onChange={(e) => e.target.files?.[0] && onFileUpload(trackId, e.target.files[0])} />
-          </div>
-
-          {/* EQ — visible always */}
-          <div className="flex items-center gap-1.5 flex-none">
-            <button
-              onClick={() => onSamplerParamChange(trackId, 'eqEnabled', !eqEnabled)}
-              className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-                eqEnabled
-                  ? 'bg-system-accent text-white border-system-accent'
-                  : 'bg-background text-idm-muted border-border'
-              }`}
-              title="EQ — filtro de dos bandas HPF + LPF"
-            >
-              EQ
-            </button>
-            {eqEnabled && (
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1">
-                  <span className="text-[7px] font-mono text-idm-muted w-8">HPF</span>
-                  <input type="range"
-                    min={20} max={2000} step={10}
-                    value={eqHpfFreq ?? 20}
-                    onChange={e => onSamplerParamChange(trackId, 'eqHpfFreq', Number(e.target.value))}
-                    className="w-14 h-[7px] accent-system-accent"
-                  />
-                  <span className="text-[7px] font-mono text-idm-muted w-12 text-right">
-                    {eqHpfFreq ?? 20}Hz
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-[7px] font-mono text-idm-muted w-8">LPF</span>
-                  <input type="range"
-                    min={1000} max={20000} step={100}
-                    value={eqLpfFreq ?? 20000}
-                    onChange={e => onSamplerParamChange(trackId, 'eqLpfFreq', Number(e.target.value))}
-                    className="w-14 h-[7px] accent-system-accent"
-                  />
-                  <span className="text-[7px] font-mono text-idm-muted w-14 text-right">
-                    {((eqLpfFreq ?? 20000) / 1000).toFixed(1)}kHz
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Frequency Shifter */}
-          <div className="flex items-center gap-1.5 flex-none" onMouseEnter={(e) => handleParamEnter('freqShiftEnabled', e)} onMouseLeave={handleParamLeave}>
-            <button
-              onClick={() => onSamplerParamChange(trackId, 'freqShiftEnabled', !freqShiftEnabled)}
-              className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-                freqShiftEnabled
-                  ? 'bg-system-accent text-white border-system-accent'
-                  : 'bg-background text-idm-muted border-border'
-              }`}
-              title="Frequency Shifter — desplaza frecuencias (Bode)"
-            >
-              FSH
-            </button>
-            {freqShiftEnabled && (
-              <div className="flex items-center gap-1" onMouseEnter={(e) => { e.stopPropagation(); handleParamEnter('freqShift', e); }} onMouseLeave={handleParamLeave}>
-                <input type="range"
-                  min={-500} max={500} step={5}
-                  value={freqShift ?? 0}
-                  onChange={e => onSamplerParamChange(trackId, 'freqShift', Number(e.target.value))}
-                  className="w-16 h-[7px] accent-system-accent"
-                />
-                <span className="text-[7px] font-mono text-idm-muted w-10 text-right">
-                  {(freqShift ?? 0) > 0 ? '+' : ''}{freqShift ?? 0}Hz
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* RR + PHD + LRZ + NLF controls — exclusive panels with LEDs (Change 3) */}
-          <div className="flex flex-col gap-1 flex-none">
-            {/* Round Robin */}
-            <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('roundRobin', e)} onMouseLeave={handleParamLeave}>
-              <button
-                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'rrEnabled', !rrEnabled); }}
-                className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
-                  activeAdvancedPanel === 'RR' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : rrEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-white text-idm-muted border-black/10'
-                }`}
-                title="Round Robin — micro-variación por hit"
-              >
-                RR
-                {rrEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'RR' ? null : 'RR'); }}
-                className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
-                title="Abrir/cerrar panel RR"
-              >⊙</button>
-              {activeAdvancedPanel === 'RR' && rrEnabled && (
-                <>
-                  <input type="range" min={0} max={100} step={1} value={rrAmount ?? 30}
-                    onChange={e => onParamChange(trackId, 'rrAmount', Number(e.target.value))}
-                    className="w-12 h-[7px] accent-system-accent" title={`RR Amount: ${rrAmount ?? 30}%`} />
-                  <span className="text-[7px] font-mono text-idm-muted">{rrAmount ?? 30}</span>
-                </>
-              )}
-            </div>
-            {/* Phase Drift */}
-            <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('phaseDrift', e)} onMouseLeave={handleParamLeave}>
-              <button
-                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'driftEnabled', !driftEnabled); }}
-                className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
-                  activeAdvancedPanel === 'PHD' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : driftEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-white text-idm-muted border-black/10'
-                }`}
-                title="Phase Drift — desfase progresivo estilo Reich"
-              >
-                PHD
-                {driftEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'PHD' ? null : 'PHD'); }}
-                className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
-                title="Abrir/cerrar panel PHD"
-              >⊙</button>
-              {activeAdvancedPanel === 'PHD' && driftEnabled && (
-                <>
-                  <input type="range" min={-0.05} max={0.05} step={0.001} value={driftRate ?? 0.01}
-                    onChange={e => onParamChange(trackId, 'driftRate', Number(e.target.value))}
-                    className="w-12 h-[7px] accent-system-accent" title={`Drift Rate: ${(driftRate ?? 0.01).toFixed(3)}`} />
-                  <span className="text-[7px] font-mono text-idm-muted">{(driftRate ?? 0.01) > 0 ? '+' : ''}{(driftRate ?? 0.01).toFixed(3)}</span>
-                </>
-              )}
-            </div>
-
-            {/* Lorenz Attractor */}
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={(e) => { e.stopPropagation(); onTonalAction(trackId, 'lorenzEnabled', !lorenzEnabled); }}
-                className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-                  activeAdvancedPanel === 'LRZ' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : lorenzEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-background text-idm-muted border-border'
-                }`}
-                title="Lorenz Attractor — modulación caótica del filtro"
-              >
-                LRZ
-                {lorenzEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'LRZ' ? null : 'LRZ'); }}
-                className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
-                title="Abrir/cerrar panel LRZ"
-              >⊙</button>
-              {activeAdvancedPanel === 'LRZ' && lorenzEnabled && (
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex items-center gap-1">
-                    <span className="text-[7px] font-mono text-idm-muted w-6">Dep</span>
-                    <input type="range" min={0} max={5000} step={100}
-                      value={lorenzDepth ?? 1000}
-                      onChange={e => onTonalAction(trackId, 'lorenzDepth', Number(e.target.value))}
-                      className="w-12 h-[7px] accent-system-accent"
-                    />
-                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
-                      {lorenzDepth ?? 1000}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[7px] font-mono text-idm-muted w-6">Spd</span>
-                    <input type="range" min={0.5} max={3.0} step={0.1}
-                      value={lorenzSpeed ?? 1.0}
-                      onChange={e => onTonalAction(trackId, 'lorenzSpeed', Number(e.target.value))}
-                      className="w-12 h-[7px] accent-system-accent"
-                    />
-                    <span className="text-[7px] font-mono text-idm-muted w-6 text-right">
-                      {(lorenzSpeed ?? 1.0).toFixed(1)}×
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[7px] font-mono text-idm-muted w-6">Tgt</span>
-                    <select
-                      value={lorenzTarget ?? 'filter'}
-                      onChange={e => onTonalAction(trackId, 'lorenzTarget', e.target.value)}
-                      className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5 text-foreground focus:outline-none focus:border-system-accent"
-                    >
-                      <option value="filter">Filter</option>
-                      <option value="volume">Volume</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Nested LFO */}
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={(e) => { e.stopPropagation(); onTonalAction(trackId, 'nestedLfoEnabled', !nestedLfoEnabled); }}
-                className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-                  activeAdvancedPanel === 'NLF' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : nestedLfoEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-background text-idm-muted border-border'
-                }`}
-                title="Nested LFO — modulación de la modulación"
-              >
-                NLF
-                {nestedLfoEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'NLF' ? null : 'NLF'); }}
-                className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
-                title="Abrir/cerrar panel NLF"
-              >⊙</button>
-              {activeAdvancedPanel === 'NLF' && nestedLfoEnabled && (
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex items-center gap-1">
-                    <span className="text-[7px] font-mono text-idm-muted w-6">R1</span>
-                    <input type="range" min={0.01} max={2.0} step={0.01}
-                      value={nestedLfoRate1 ?? 0.1}
-                      onChange={e => onTonalAction(trackId, 'nestedLfoRate1', Number(e.target.value))}
-                      className="w-12 h-[7px] accent-system-accent" />
-                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{(nestedLfoRate1 ?? 0.1).toFixed(2)}Hz</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[7px] font-mono text-idm-muted w-6">R2</span>
-                    <input type="range" min={0.5} max={20.0} step={0.5}
-                      value={nestedLfoRate2 ?? 4.0}
-                      onChange={e => onTonalAction(trackId, 'nestedLfoRate2', Number(e.target.value))}
-                      className="w-12 h-[7px] accent-system-accent" />
-                    <span className="text-[7px] font-mono text-idm-muted w-6 text-right">{(nestedLfoRate2 ?? 4.0).toFixed(1)}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[7px] font-mono text-idm-muted w-6">Dep</span>
-                    <input type="range" min={0} max={5000} step={100}
-                      value={nestedLfoDepth ?? 800}
-                      onChange={e => onTonalAction(trackId, 'nestedLfoDepth', Number(e.target.value))}
-                      className="w-12 h-[7px] accent-system-accent" />
-                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{nestedLfoDepth ?? 800}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {samplerStatus === 'READY' && (
-            <div className="flex flex-col gap-1 flex-none border-l border-black/5 pl-2 ml-1">
-              {(!layer2Status || layer2Status === 'empty') ? (
-                <label className="cursor-pointer">
-                  <input
-                    type="file"
-                    accept="audio/*"
-                    ref={layer2InputRef}
-                    className="hidden"
-                    onChange={e => e.target.files?.[0] && onLoadLayer2?.(trackId, e.target.files[0])}
-                  />
-                  <span className="text-[8px] font-mono px-2 py-0.5 rounded border border-black/10 bg-white text-idm-muted hover:border-system-accent hover:text-system-accent transition-colors flex items-center gap-1 cursor-pointer">
-                    + L2
-                  </span>
-                </label>
-              ) : layer2Status === 'loading' ? (
-                <span className="text-[7px] font-mono text-idm-muted animate-pulse">Loading…</span>
-              ) : (
-                <>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[8px] font-mono text-idm-ink truncate max-w-[60px]" title={layer2Filename}>
-                      {layer2Filename ?? 'L2'}
-                    </span>
-                    <button
-                      onClick={() => onClearLayer2?.(trackId)}
-                      className="text-[8px] font-mono text-idm-muted hover:text-red-500 transition-colors"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  {/* BLD */}
-                  <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('layer2Blend', e)} onMouseLeave={handleParamLeave}>
-                    <span className="text-[7px] font-mono text-idm-muted w-6">BLD</span>
-                    <input type="range" min={0} max={1} step={0.01}
-                      value={layer2Blend ?? 0.8}
-                      onChange={e => onLayer2ParamChange?.(trackId, 'layer2Blend', Number(e.target.value))}
-                      className="w-12 h-[7px] accent-system-accent" />
-                    <span className="text-[7px] font-mono text-idm-muted w-5 text-right">
-                      {Math.round((layer2Blend ?? 0.8) * 100)}
-                    </span>
-                  </div>
-                  {/* PCH */}
-                  <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('layer2Pitch', e)} onMouseLeave={handleParamLeave}>
-                    <span className="text-[7px] font-mono text-idm-muted w-6">PCH</span>
-                    <input type="range" min={-24} max={24} step={1}
-                      value={layer2Pitch ?? 0}
-                      onChange={e => onLayer2ParamChange?.(trackId, 'layer2Pitch', Number(e.target.value))}
-                      className="w-12 h-[7px] accent-system-accent" />
-                    <span className="text-[7px] font-mono text-idm-muted w-5 text-right">
-                      {(layer2Pitch ?? 0) > 0 ? '+' : ''}{layer2Pitch ?? 0}
-                    </span>
-                  </div>
-                  {/* OFF */}
-                  <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('layer2Offset', e)} onMouseLeave={handleParamLeave}>
-                    <span className="text-[7px] font-mono text-idm-muted w-6">OFF</span>
-                    <input type="range" min={0} max={500} step={1}
-                      value={layer2Offset ?? 0}
-                      onChange={e => onLayer2ParamChange?.(trackId, 'layer2Offset', Number(e.target.value))}
-                      className="w-12 h-[7px] accent-system-accent" />
-                    <span className="text-[7px] font-mono text-idm-muted w-7 text-right">
-                      {layer2Offset ?? 0}ms
-                    </span>
-                  </div>
-                  {/* FLT */}
-                  <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('layer2Filter', e)} onMouseLeave={handleParamLeave}>
-                    <span className="text-[7px] font-mono text-idm-muted w-6">FLT</span>
-                    <input type="range" min={200} max={8000} step={50}
-                      value={layer2FilterFreq ?? 8000}
-                      onChange={e => onLayer2ParamChange?.(trackId, 'layer2FilterFreq', Number(e.target.value))}
-                      className="w-12 h-[7px] accent-system-accent" />
-                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
-                      {layer2FilterFreq ?? 8000}
-                    </span>
-                  </div>
-                  {/* REV */}
-                  <div className="flex items-center gap-1">
-                    <span className="text-[7px] font-mono text-idm-muted w-6">REV</span>
-                    <button
-                      onClick={() => onLayer2ParamChange?.(trackId, 'layer2Reverse', !(layer2Reverse ?? false))}
-                      className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
-                        layer2Reverse
-                          ? 'bg-system-accent text-white border-system-accent'
-                          : 'bg-background text-idm-muted border-border'
-                      }`}
-                    >
-                      REV
-                    </button>
-                  </div>
-                  {/* Layer 2 Time Stretch (Phase 6D) */}
-                  <div className="flex items-center gap-1">
-                    <span className="text-[7px] font-mono text-idm-muted w-6">STR</span>
-                    <button
-                      onClick={() => onLayer2ParamChange?.(trackId, 'layer2StretchEnabled', !(layer2StretchEnabled ?? false))}
-                      className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
-                        layer2StretchEnabled
-                          ? 'bg-system-accent text-white border-system-accent'
-                          : 'bg-background text-idm-muted border-border'
-                      }`}
-                      title="Time Stretch Layer 2"
-                    >
-                      STR
-                    </button>
-                    {layer2StretchEnabled && (
-                      <>
-                        <input type="range" min={0.25} max={2.0} step={0.05}
-                          value={layer2StretchRate ?? 1.0}
-                          onChange={e => onLayer2ParamChange?.(trackId, 'layer2StretchRate', Number(e.target.value))}
-                          className="w-14 h-[7px] accent-system-accent" />
-                        <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
-                          {(layer2StretchRate ?? 1.0).toFixed(2)}×
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
         </div>
         {/* === END HEADER ROW === */}
 
         {/* === COLLAPSIBLE ZONE (CSS collapse — elements stay in DOM for RAF step highlighting) === */}
         <div className="overflow-hidden transition-all duration-200" style={{ maxHeight: isExpanded ? '4000px' : '0px' }}>
+
+          {/* === Controls: Sends, Pan, 3D, EQ, FSH, RR/PHD/LRZ/NLF, Layer2 === */}
+          <div className="flex items-center gap-4 flex-wrap py-2">
+            {/* FX Sends (Mini-Faders) */}
+            <div className="flex flex-col gap-2 flex-none">
+              <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('delaySend', e)} onMouseLeave={handleParamLeave}>
+                <div className="flex justify-between items-center w-16">
+                  <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Dly</span>
+                  <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round(delaySend * 100)}%</span>
+                </div>
+                <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
+                  onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onParamChange(trackId, 'delaySend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
+                  <div className="h-full transition-all duration-100" style={{ width: `${delaySend * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('reverbSend', e)} onMouseLeave={handleParamLeave}>
+                <div className="flex justify-between items-center w-16">
+                  <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rvb</span>
+                  <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round(reverbSend * 100)}%</span>
+                </div>
+                <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
+                  onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onParamChange(trackId, 'reverbSend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
+                  <div className="h-full transition-all duration-100" style={{ width: `${reverbSend * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('ratchet', e)} onMouseLeave={handleParamLeave}>
+                <div className="flex justify-between items-center w-16">
+                  <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rtch</span>
+                  <span className="text-[6px] font-mono text-idm-muted leading-none">{ratchet}×</span>
+                </div>
+                <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
+                  onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onParamChange(trackId, 'ratchet', Math.round(Math.max(0, Math.min(4, ((e.clientX - rect.left) / rect.width) * 4)))); }}>
+                  <div className="h-full transition-all duration-100" style={{ width: `${(ratchet / 4) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('spectralDelayEnabled', e)} onMouseLeave={handleParamLeave}>
+                <div className="flex justify-between items-center w-16">
+                  <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Sdly</span>
+                  <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round((spectralDelaySend ?? 0) * 100)}%</span>
+                </div>
+                <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
+                  onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSamplerParamChange(trackId, 'spectralDelaySend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
+                  <div className="h-full transition-all duration-100" style={{ width: `${(spectralDelaySend ?? 0) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('freezeSend', e)} onMouseLeave={handleParamLeave}>
+                <div className="flex justify-between items-center w-16">
+                  <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Frz</span>
+                  <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round((freezeSend ?? 0) * 100)}%</span>
+                </div>
+                <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
+                  onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSamplerParamChange(trackId, 'freezeSend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
+                  <div className="h-full transition-all duration-100" style={{ width: `${(freezeSend ?? 0) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('reverseSend', e)} onMouseLeave={handleParamLeave}>
+                <div className="flex justify-between items-center w-16">
+                  <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rvr</span>
+                  <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round((reverseSend ?? 0) * 100)}%</span>
+                </div>
+                <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
+                  onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSamplerParamChange(trackId, 'reverseSend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
+                  <div className="h-full transition-all duration-100" style={{ width: `${(reverseSend ?? 0) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Pan Control */}
+            <div className="flex flex-col gap-1 flex-none" onMouseEnter={(e) => handleParamEnter('pan', e)} onMouseLeave={handleParamLeave}>
+              <div className="flex items-center gap-1">
+                <span className="text-[7px] font-mono text-idm-muted">L</span>
+                <input type="range"
+                  min={-1} max={1} step={0.05}
+                  value={pan ?? 0}
+                  onChange={e => onSamplerParamChange(trackId, 'pan', Number(e.target.value))}
+                  className="w-10 h-[7px] accent-system-accent"
+                />
+                <span className="text-[7px] font-mono text-idm-muted">R</span>
+              </div>
+              <span className="text-[7px] font-mono text-idm-muted text-center">
+                {pan === 0 || !pan
+                  ? 'C'
+                  : (pan ?? 0) > 0
+                    ? `R${Math.round((pan ?? 0) * 100)}`
+                    : `L${Math.round(Math.abs(pan ?? 0) * 100)}`
+                }
+              </span>
+            </div>
+
+            {/* 3D Binaural toggle + controls */}
+            <div className="flex items-center gap-1 flex-none" onMouseEnter={(e) => handleParamEnter('binauralEnabled', e)} onMouseLeave={handleParamLeave}>
+              <button
+                onClick={() => onSamplerParamChange(trackId, 'binauralEnabled', !binauralEnabled)}
+                className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+                  binauralEnabled
+                    ? 'bg-system-accent text-white border-system-accent'
+                    : 'bg-background text-idm-muted border-border'
+                }`}
+                title="3D Binaural — posicionamiento HRTF"
+              >
+                3D
+              </button>
+              {binauralEnabled && (
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-1" onMouseEnter={(e) => { e.stopPropagation(); handleParamEnter('binauralAzimuth', e); }} onMouseLeave={handleParamLeave}>
+                    <span className="text-[7px] font-mono text-idm-muted w-5">Az</span>
+                    <input type="range" min={0} max={360} step={5}
+                      value={binauralAzimuth ?? 0}
+                      onChange={e => onSamplerParamChange(trackId, 'binauralAzimuth', Number(e.target.value))}
+                      className="w-14 h-[7px] accent-system-accent" />
+                    <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{binauralAzimuth ?? 0}°</span>
+                  </div>
+                  <div className="flex items-center gap-1" onMouseEnter={(e) => { e.stopPropagation(); handleParamEnter('binauralDistance', e); }} onMouseLeave={handleParamLeave}>
+                    <span className="text-[7px] font-mono text-idm-muted w-5">Dst</span>
+                    <input type="range" min={1} max={10} step={0.5}
+                      value={binauralDistance ?? 3}
+                      onChange={e => onSamplerParamChange(trackId, 'binauralDistance', Number(e.target.value))}
+                      className="w-14 h-[7px] accent-system-accent" />
+                    <span className="text-[7px] font-mono text-idm-muted w-6 text-right">{(binauralDistance ?? 3).toFixed(1)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Waveform + Sample controls (full size in collapsible) */}
+            <div className="flex-1 min-w-[120px] h-14 relative group bg-idm-bg rounded-xl border border-black/5 overflow-hidden waveform-container" data-track-id={`${id}-full`}>
+              <WaveformDisplay 
+                buffer={samplerBuffer}
+                color={color}
+                start={sampleStart}
+                end={sampleEnd}
+              />
+              
+              {samplerStatus === 'IDLE' && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px] group-hover:bg-white/80 transition-all">
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-black/5 hover:border-system-accent/50 text-idm-ink rounded-lg text-[10px] font-mono uppercase tracking-[0.15em] transition-all shadow-sm active:scale-95"
+                  >
+                    <Upload size={12} className="text-system-accent" />
+                    Load Sample
+                  </button>
+                </div>
+              )}
+
+              {samplerStatus === 'READY' && (
+                <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => onSamplerParamChange(trackId, 'stretchEnabled', !stretchEnabled)}
+                    className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                      stretchEnabled
+                        ? 'bg-system-accent text-white border-system-accent'
+                        : 'bg-background text-foreground/60 border-border hover:border-system-accent/50'
+                    }`}
+                    title="Time Stretch — velocidad sin cambio de pitch"
+                  >
+                    STR
+                  </button>
+                  <button
+                    onClick={() => onSlicerAction(trackId, 'toggle', !slicerEnabled)}
+                    className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                      slicerEnabled
+                        ? 'bg-system-accent text-white border-system-accent'
+                        : 'bg-background text-foreground/60 border-border hover:border-system-accent/50'
+                    }`}
+                    title="Sample Slicer"
+                  >
+                    SLICE
+                  </button>
+                  <button onClick={() => onClearSampler(trackId)}
+                    className="p-1 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-md transition-all border border-red-500/20"
+                    title="Clear Sample">
+                    <Trash2 size={10} />
+                  </button>
+                </div>
+              )}
+
+              {slicerEnabled && samplerBuffer && (
+                <SliceBoundaryOverlay buffer={samplerBuffer} sliceCount={sliceCount ?? 16} color={color} />
+              )}
+
+              <input type="file" ref={fileInputRef} className="hidden" accept="audio/*"
+                onChange={(e) => e.target.files?.[0] && onFileUpload(trackId, e.target.files[0])} />
+            </div>
+
+            {/* EQ */}
+            <div className="flex items-center gap-1.5 flex-none">
+              <button
+                onClick={() => onSamplerParamChange(trackId, 'eqEnabled', !eqEnabled)}
+                className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+                  eqEnabled
+                    ? 'bg-system-accent text-white border-system-accent'
+                    : 'bg-background text-idm-muted border-border'
+                }`}
+                title="EQ — filtro de dos bandas HPF + LPF"
+              >
+                EQ
+              </button>
+              {eqEnabled && (
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] font-mono text-idm-muted w-8">HPF</span>
+                    <input type="range"
+                      min={20} max={2000} step={10}
+                      value={eqHpfFreq ?? 20}
+                      onChange={e => onSamplerParamChange(trackId, 'eqHpfFreq', Number(e.target.value))}
+                      className="w-14 h-[7px] accent-system-accent"
+                    />
+                    <span className="text-[7px] font-mono text-idm-muted w-12 text-right">
+                      {eqHpfFreq ?? 20}Hz
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[7px] font-mono text-idm-muted w-8">LPF</span>
+                    <input type="range"
+                      min={1000} max={20000} step={100}
+                      value={eqLpfFreq ?? 20000}
+                      onChange={e => onSamplerParamChange(trackId, 'eqLpfFreq', Number(e.target.value))}
+                      className="w-14 h-[7px] accent-system-accent"
+                    />
+                    <span className="text-[7px] font-mono text-idm-muted w-14 text-right">
+                      {((eqLpfFreq ?? 20000) / 1000).toFixed(1)}kHz
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Frequency Shifter */}
+            <div className="flex items-center gap-1.5 flex-none" onMouseEnter={(e) => handleParamEnter('freqShiftEnabled', e)} onMouseLeave={handleParamLeave}>
+              <button
+                onClick={() => onSamplerParamChange(trackId, 'freqShiftEnabled', !freqShiftEnabled)}
+                className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+                  freqShiftEnabled
+                    ? 'bg-system-accent text-white border-system-accent'
+                    : 'bg-background text-idm-muted border-border'
+                }`}
+                title="Frequency Shifter — desplaza frecuencias (Bode)"
+              >
+                FSH
+              </button>
+              {freqShiftEnabled && (
+                <div className="flex items-center gap-1" onMouseEnter={(e) => { e.stopPropagation(); handleParamEnter('freqShift', e); }} onMouseLeave={handleParamLeave}>
+                  <input type="range"
+                    min={-500} max={500} step={5}
+                    value={freqShift ?? 0}
+                    onChange={e => onSamplerParamChange(trackId, 'freqShift', Number(e.target.value))}
+                    className="w-16 h-[7px] accent-system-accent"
+                  />
+                  <span className="text-[7px] font-mono text-idm-muted w-10 text-right">
+                    {(freqShift ?? 0) > 0 ? '+' : ''}{freqShift ?? 0}Hz
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* RR + PHD + LRZ + NLF controls — exclusive panels with LEDs */}
+            <div className="flex flex-col gap-1 flex-none">
+              {/* Round Robin */}
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('roundRobin', e)} onMouseLeave={handleParamLeave}>
+                <button
+                  onClick={() => onParamChange(trackId, 'rrEnabled', !rrEnabled)}
+                  className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                    activeAdvancedPanel === 'RR' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : rrEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-white text-idm-muted border-black/10'
+                  }`}
+                  title="Round Robin — micro-variación por hit"
+                >
+                  RR
+                  {rrEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
+                </button>
+                <button
+                  onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'RR' ? null : 'RR')}
+                  className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
+                  title="Abrir/cerrar panel RR"
+                >⊙</button>
+                {activeAdvancedPanel === 'RR' && rrEnabled && (
+                  <>
+                    <input type="range" min={0} max={100} step={1} value={rrAmount ?? 30}
+                      onChange={e => onParamChange(trackId, 'rrAmount', Number(e.target.value))}
+                      className="w-12 h-[7px] accent-system-accent" title={`RR Amount: ${rrAmount ?? 30}%`} />
+                    <span className="text-[7px] font-mono text-idm-muted">{rrAmount ?? 30}</span>
+                  </>
+                )}
+              </div>
+              {/* Phase Drift */}
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('phaseDrift', e)} onMouseLeave={handleParamLeave}>
+                <button
+                  onClick={() => onParamChange(trackId, 'driftEnabled', !driftEnabled)}
+                  className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                    activeAdvancedPanel === 'PHD' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : driftEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-white text-idm-muted border-black/10'
+                  }`}
+                  title="Phase Drift — desfase progresivo estilo Reich"
+                >
+                  PHD
+                  {driftEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
+                </button>
+                <button
+                  onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'PHD' ? null : 'PHD')}
+                  className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
+                  title="Abrir/cerrar panel PHD"
+                >⊙</button>
+                {activeAdvancedPanel === 'PHD' && driftEnabled && (
+                  <>
+                    <input type="range" min={-0.05} max={0.05} step={0.001} value={driftRate ?? 0.01}
+                      onChange={e => onParamChange(trackId, 'driftRate', Number(e.target.value))}
+                      className="w-12 h-[7px] accent-system-accent" title={`Drift Rate: ${(driftRate ?? 0.01).toFixed(3)}`} />
+                    <span className="text-[7px] font-mono text-idm-muted">{(driftRate ?? 0.01) > 0 ? '+' : ''}{(driftRate ?? 0.01).toFixed(3)}</span>
+                  </>
+                )}
+              </div>
+
+              {/* Lorenz Attractor */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => onTonalAction(trackId, 'lorenzEnabled', !lorenzEnabled)}
+                  className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+                    activeAdvancedPanel === 'LRZ' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : lorenzEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-background text-idm-muted border-border'
+                  }`}
+                  title="Lorenz Attractor — modulación caótica del filtro"
+                >
+                  LRZ
+                  {lorenzEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
+                </button>
+                <button
+                  onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'LRZ' ? null : 'LRZ')}
+                  className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
+                  title="Abrir/cerrar panel LRZ"
+                >⊙</button>
+                {activeAdvancedPanel === 'LRZ' && lorenzEnabled && (
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[7px] font-mono text-idm-muted w-6">Dep</span>
+                      <input type="range" min={0} max={5000} step={100}
+                        value={lorenzDepth ?? 1000}
+                        onChange={e => onTonalAction(trackId, 'lorenzDepth', Number(e.target.value))}
+                        className="w-12 h-[7px] accent-system-accent"
+                      />
+                      <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
+                        {lorenzDepth ?? 1000}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[7px] font-mono text-idm-muted w-6">Spd</span>
+                      <input type="range" min={0.5} max={3.0} step={0.1}
+                        value={lorenzSpeed ?? 1.0}
+                        onChange={e => onTonalAction(trackId, 'lorenzSpeed', Number(e.target.value))}
+                        className="w-12 h-[7px] accent-system-accent"
+                      />
+                      <span className="text-[7px] font-mono text-idm-muted w-6 text-right">
+                        {(lorenzSpeed ?? 1.0).toFixed(1)}×
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[7px] font-mono text-idm-muted w-6">Tgt</span>
+                      <select
+                        value={lorenzTarget ?? 'filter'}
+                        onChange={e => onTonalAction(trackId, 'lorenzTarget', e.target.value)}
+                        className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5 text-foreground focus:outline-none focus:border-system-accent"
+                      >
+                        <option value="filter">Filter</option>
+                        <option value="volume">Volume</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Nested LFO */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => onTonalAction(trackId, 'nestedLfoEnabled', !nestedLfoEnabled)}
+                  className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+                    activeAdvancedPanel === 'NLF' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : nestedLfoEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-background text-idm-muted border-border'
+                  }`}
+                  title="Nested LFO — modulación de la modulación"
+                >
+                  NLF
+                  {nestedLfoEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
+                </button>
+                <button
+                  onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'NLF' ? null : 'NLF')}
+                  className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
+                  title="Abrir/cerrar panel NLF"
+                >⊙</button>
+                {activeAdvancedPanel === 'NLF' && nestedLfoEnabled && (
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[7px] font-mono text-idm-muted w-6">R1</span>
+                      <input type="range" min={0.01} max={2.0} step={0.01}
+                        value={nestedLfoRate1 ?? 0.1}
+                        onChange={e => onTonalAction(trackId, 'nestedLfoRate1', Number(e.target.value))}
+                        className="w-12 h-[7px] accent-system-accent" />
+                      <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{(nestedLfoRate1 ?? 0.1).toFixed(2)}Hz</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[7px] font-mono text-idm-muted w-6">R2</span>
+                      <input type="range" min={0.5} max={20.0} step={0.5}
+                        value={nestedLfoRate2 ?? 4.0}
+                        onChange={e => onTonalAction(trackId, 'nestedLfoRate2', Number(e.target.value))}
+                        className="w-12 h-[7px] accent-system-accent" />
+                      <span className="text-[7px] font-mono text-idm-muted w-6 text-right">{(nestedLfoRate2 ?? 4.0).toFixed(1)}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[7px] font-mono text-idm-muted w-6">Dep</span>
+                      <input type="range" min={0} max={5000} step={100}
+                        value={nestedLfoDepth ?? 800}
+                        onChange={e => onTonalAction(trackId, 'nestedLfoDepth', Number(e.target.value))}
+                        className="w-12 h-[7px] accent-system-accent" />
+                      <span className="text-[7px] font-mono text-idm-muted w-8 text-right">{nestedLfoDepth ?? 800}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Layer 2 */}
+            {samplerStatus === 'READY' && (
+              <div className="flex flex-col gap-1 flex-none border-l border-black/5 pl-2 ml-1">
+                {(!layer2Status || layer2Status === 'empty') ? (
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      ref={layer2InputRef}
+                      className="hidden"
+                      onChange={e => e.target.files?.[0] && onLoadLayer2?.(trackId, e.target.files[0])}
+                    />
+                    <span className="text-[8px] font-mono px-2 py-0.5 rounded border border-black/10 bg-white text-idm-muted hover:border-system-accent hover:text-system-accent transition-colors flex items-center gap-1 cursor-pointer">
+                      + L2
+                    </span>
+                  </label>
+                ) : layer2Status === 'loading' ? (
+                  <span className="text-[7px] font-mono text-idm-muted animate-pulse">Loading…</span>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[8px] font-mono text-idm-ink truncate max-w-[60px]" title={layer2Filename}>
+                        {layer2Filename ?? 'L2'}
+                      </span>
+                      <button
+                        onClick={() => onClearLayer2?.(trackId)}
+                        className="text-[8px] font-mono text-idm-muted hover:text-red-500 transition-colors"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('layer2Blend', e)} onMouseLeave={handleParamLeave}>
+                      <span className="text-[7px] font-mono text-idm-muted w-6">BLD</span>
+                      <input type="range" min={0} max={1} step={0.01}
+                        value={layer2Blend ?? 0.8}
+                        onChange={e => onLayer2ParamChange?.(trackId, 'layer2Blend', Number(e.target.value))}
+                        className="w-12 h-[7px] accent-system-accent" />
+                      <span className="text-[7px] font-mono text-idm-muted w-5 text-right">
+                        {Math.round((layer2Blend ?? 0.8) * 100)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('layer2Pitch', e)} onMouseLeave={handleParamLeave}>
+                      <span className="text-[7px] font-mono text-idm-muted w-6">PCH</span>
+                      <input type="range" min={-24} max={24} step={1}
+                        value={layer2Pitch ?? 0}
+                        onChange={e => onLayer2ParamChange?.(trackId, 'layer2Pitch', Number(e.target.value))}
+                        className="w-12 h-[7px] accent-system-accent" />
+                      <span className="text-[7px] font-mono text-idm-muted w-5 text-right">
+                        {(layer2Pitch ?? 0) > 0 ? '+' : ''}{layer2Pitch ?? 0}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('layer2Offset', e)} onMouseLeave={handleParamLeave}>
+                      <span className="text-[7px] font-mono text-idm-muted w-6">OFF</span>
+                      <input type="range" min={0} max={500} step={1}
+                        value={layer2Offset ?? 0}
+                        onChange={e => onLayer2ParamChange?.(trackId, 'layer2Offset', Number(e.target.value))}
+                        className="w-12 h-[7px] accent-system-accent" />
+                      <span className="text-[7px] font-mono text-idm-muted w-7 text-right">
+                        {layer2Offset ?? 0}ms
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('layer2Filter', e)} onMouseLeave={handleParamLeave}>
+                      <span className="text-[7px] font-mono text-idm-muted w-6">FLT</span>
+                      <input type="range" min={200} max={8000} step={50}
+                        value={layer2FilterFreq ?? 8000}
+                        onChange={e => onLayer2ParamChange?.(trackId, 'layer2FilterFreq', Number(e.target.value))}
+                        className="w-12 h-[7px] accent-system-accent" />
+                      <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
+                        {layer2FilterFreq ?? 8000}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[7px] font-mono text-idm-muted w-6">REV</span>
+                      <button
+                        onClick={() => onLayer2ParamChange?.(trackId, 'layer2Reverse', !(layer2Reverse ?? false))}
+                        className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                          layer2Reverse
+                            ? 'bg-system-accent text-white border-system-accent'
+                            : 'bg-background text-idm-muted border-border'
+                        }`}
+                      >
+                        REV
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[7px] font-mono text-idm-muted w-6">STR</span>
+                      <button
+                        onClick={() => onLayer2ParamChange?.(trackId, 'layer2StretchEnabled', !(layer2StretchEnabled ?? false))}
+                        className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
+                          layer2StretchEnabled
+                            ? 'bg-system-accent text-white border-system-accent'
+                            : 'bg-background text-idm-muted border-border'
+                        }`}
+                        title="Time Stretch Layer 2"
+                      >
+                        STR
+                      </button>
+                      {layer2StretchEnabled && (
+                        <>
+                          <input type="range" min={0.25} max={2.0} step={0.05}
+                            value={layer2StretchRate ?? 1.0}
+                            onChange={e => onLayer2ParamChange?.(trackId, 'layer2StretchRate', Number(e.target.value))}
+                            className="w-14 h-[7px] accent-system-accent" />
+                          <span className="text-[7px] font-mono text-idm-muted w-8 text-right">
+                            {(layer2StretchRate ?? 1.0).toFixed(2)}×
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
 
         {/* === ROW 2: Sliders P/S/O + Steps === */}
         <div className="flex items-center gap-4 flex-wrap">
