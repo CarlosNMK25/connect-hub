@@ -4297,7 +4297,7 @@ export const EuclideanSequencer = () => {
       synthsRef.current[trackId].updateEq?.(hpf, lpf);
       // Restore pan and freqShift
       synthsRef.current[trackId].setPan?.(track.pan ?? 0);
-      synthsRef.current[trackId].setFreqShift?.(track.freqShiftEnabled ? (track.freqShift ?? 0) : 0);
+      synthsRef.current[trackId].setFreqShift?.(track.freqShiftEnabled ? (track.freqShift ?? 0) : 0, track.freqShiftEnabled ?? false);
       // Restore spectral delay send
       synthsRef.current[trackId].setSpectralSend?.(track.spectralDelaySend ?? 0);
       // Restore binaural state (Phase 7D)
