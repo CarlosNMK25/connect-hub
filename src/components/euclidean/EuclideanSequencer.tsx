@@ -3940,6 +3940,7 @@ export const EuclideanSequencer = () => {
       _fsBypassGainRef = toneFsBypassGain;
       _fsDirectGainRef = toneFsDirectGain;
       _spectralSendRef = toneSpectralSend;
+      _freezeSendRef = toneFreezeSend;
       _pannerGainRef = tonePannerGain;
       _panner3DGainRef = tonePanner3DGain;
       _panner3DRef = tonePanner3D;
