@@ -5159,6 +5159,11 @@ export const EuclideanSequencer = () => {
         const fsRef2 = _freezeSendRef;
         synthsRef.current.tone.setFreezeSend = (value: number) => { fsRef2.gain.rampTo(value, 0.05); };
       }
+      // Reverse send injection for tone rebuild (Phase 9)
+      if (_reverseSendRef) {
+        const rvRef = _reverseSendRef;
+        synthsRef.current.tone.setReverseSend = (value: number) => { rvRef.gain.rampTo(value, 0.05); };
+      }
       // Binaural injection for tone rebuild (Phase 7D)
       if (_pannerGainRef && _panner3DGainRef && _panner3DRef) {
         const pgRef = _pannerGainRef;
