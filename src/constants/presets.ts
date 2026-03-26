@@ -43,6 +43,11 @@ export interface TrackPreset {
   grainSize?: number;
   overlap?: number;
   spray?: number;
+  // Phase 6D — Layer 2 Time Stretch
+  layer2StretchEnabled?: boolean;
+  layer2StretchRate?: number;
+  layer2Blend?: number;
+  layer2Pitch?: number;
 }
 
 export interface ScenePreset {
@@ -349,6 +354,63 @@ export const PRESETS: ScenePreset[] = [
         reverbSend: 0.9,
         volume: 0.6,
       },
+    }
+  },
+  // --- PHASE 6D: LAYER 2 TIME STRETCH PRESETS ---
+  {
+    id: 'amen-layers',
+    name: 'Amen Layers',
+    type: 'master',
+    category: 'Experimental',
+    description: 'Break Layering: mismo break, dos velocidades, un timbre nuevo. Cargar Amen Break en Hat y en su Layer 2.',
+    bpm: 160,
+    jitter: 1,
+    swing: 0,
+    dynamics: 70,
+    temporalityMode: 'grid',
+    tracks: {
+      kick: { pulses: 4, steps: 16, volume: 0.7 },
+      snare: { pulses: 2, steps: 16, volume: 0.6 },
+      hat: {
+        pulses: 8, steps: 16, volume: 0.8,
+        layer2StretchEnabled: true,
+        layer2StretchRate: 0.5,
+        layer2Blend: 0.5,
+        layer2Pitch: -12,
+        reverbSend: 0.2,
+      },
+      tone: { pulses: 0, steps: 16, volume: 0 },
+      cloud: { volume: 0 },
+    }
+  },
+  {
+    id: 'burial-texture',
+    name: 'Burial Texture',
+    type: 'master',
+    category: 'Experimental',
+    description: 'Break Layering: dos velocidades complementarias crean textura densa estilo Burial.',
+    bpm: 130,
+    jitter: 2,
+    swing: 30,
+    dynamics: 65,
+    temporalityMode: 'dilla',
+    tracks: {
+      kick: { pulses: 3, steps: 16, volume: 0.65 },
+      snare: { pulses: 2, steps: 16, volume: 0.55 },
+      hat: {
+        pulses: 6, steps: 16, volume: 0.7,
+        stretchEnabled: true,
+        stretchRate: 0.75,
+        eqEnabled: true,
+        eqLpfFreq: 8000,
+        layer2StretchEnabled: true,
+        layer2StretchRate: 1.5,
+        layer2Blend: 0.4,
+        layer2Pitch: 7,
+        reverbSend: 0.35,
+      },
+      tone: { pulses: 0, steps: 16, volume: 0 },
+      cloud: { volume: 0 },
     }
   },
 ];

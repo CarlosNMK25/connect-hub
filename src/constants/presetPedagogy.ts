@@ -398,4 +398,48 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
       insight: 'El EQ es el filtro más antiguo y fundamental del audio — predating los sintetizadores por décadas. Aquí lo aplicamos como herramienta compositiva, no correctiva: no buscamos "arreglar" el sonido sino revelarlo.',
     },
   },
+  'amen-layers': {
+    listening: 'Un break sonando a dos velocidades simultáneas. La capa principal reproduce el patrón a tempo normal (160 BPM), mientras Layer 2 lo reproduce a 0.5× — la mitad de velocidad. El pitch de Layer 2 está bajado 12 semitonos para compensar y crear un timbre grave denso. Los transitorios de ambas capas crean un patrón de densidad variable imposible con una sola capa.',
+    structure: 'Hat E(8,16) a 160 BPM con Layer 2 activado. Layer 2: STR 0.5×, Blend 50%, Pitch -12st. La compensación automática de stretch (+1200 cents) sumada al pitch manual (-1200 cents) = pitch neto original. El resultado es el mismo break en dos tiempos simultáneos.',
+    origin: 'Goldie definió esta técnica en "Timeless" (1995): el mismo Amen Break a dos velocidades, sin edición, solo reproducción simultánea. El break rápido proporciona energía y transitorios, el break lento proporciona cuerpo y espacio. Juntos crean el sonido Jungle/DnB primordial.',
+    experiments: [
+      'Carga el Amen Break en Hat y en su Layer 2. Escucha cómo las dos velocidades crean un groove imposible con una sola capa.',
+      'Ajusta el STR de Layer 2 entre 0.25× y 2.0×. A 0.25× el break grave es ultra-lento y casi ambiental. A 2.0× es un buzz frenético que añade textura rítmica.',
+      'Desactiva Layer 2 para escuchar solo la capa principal. Luego reactívala — la diferencia en densidad y profundidad es inmediata.',
+    ],
+    connections: [
+      'Goldie — "Timeless" (1995): el paradigma del break layering',
+      'Photek — "Modus Operandi" (1997): breaks a múltiples velocidades',
+      'Squarepusher — "Feed Me Weird Things" (1996): breaks acelerados y ralentizados',
+    ],
+    listeningGuide: {
+      order: 14,
+      idmRefs: ['§5.3 Break Layering', '§6D Time Stretch Layer 2'],
+      whatToHear: 'El mismo break sonando a dos velocidades simultáneas. La capa principal a 160BPM, Layer 2 a 80BPM (-12st para compensar). Escuchar cómo los transitorios de ambas capas crean un patrón de densidad variable imposible con una sola capa.',
+      experiment: 'Cargar el Amen Break en Hat y en Layer 2. Ajustar Layer 2 STR entre 0.25× y 2.0×. Escuchar cómo cambia la textura del groove.',
+      insight: 'Esto es exactamente lo que hacía Goldie en "Timeless" (1995) — el mismo break a dos velocidades, sin edición, solo reproducción simultánea.',
+    },
+  },
+  'burial-texture': {
+    listening: 'Dos velocidades complementarias (0.75× y 1.5×) con EQ opuesto. La capa principal ralentizada tiene los graves y medios, la capa Layer 2 acelerada aporta los agudos y texturas rápidas. Juntas forman un espectro completo que ninguna tiene por separado.',
+    structure: 'Hat E(6,16) a 130 BPM con temporalidad Dilla. Capa principal: STR 0.75×, EQ con LPF 8kHz. Layer 2: STR 1.5×, Blend 40%, Pitch +7st. La combinación de velocidades complementarias (una más lenta, otra más rápida) crea densidad sin saturar.',
+    origin: 'Burial (William Bevan) definió un sonido entero basándose en capas del mismo material procesado diferente. En "Untrue" (2007), los breaks están enterrados bajo capas de reverb y procesamiento, creando una atmósfera fantasmal donde el ritmo existe como textura, no como estructura.',
+    experiments: [
+      'Activa/desactiva Layer 2 para escuchar la diferencia. Sin Layer 2 el groove es seco y espaciado. Con Layer 2 se llena de textura.',
+      'Ajusta BLD de Layer 2 entre 0 y 1. Notar cómo la textura cambia de "seca" a "densa" sin añadir reverb.',
+      'Sube el swing a 70% para acercarte más al feel de Burial — el groove torcido es esencial para el sonido.',
+    ],
+    connections: [
+      'Burial — "Untrue" (2007): capas de lo mismo procesado diferente',
+      'Four Tet — "Rounds" (2003): texturas orgánicas desde samples procesados',
+      'The Caretaker — "An Empty Bliss Beyond This World" (2011): loops degradados como composición',
+    ],
+    listeningGuide: {
+      order: 15,
+      idmRefs: ['§5.4 Spectral Layering', '§6D Time Stretch Layer 2', '§6C EQ Pipeline'],
+      whatToHear: 'Dos velocidades complementarias (0.75× y 1.5×) con EQ opuesto. La capa lenta tiene los graves, la capa rápida los agudos. Juntas forman un espectro completo que ninguna tiene sola.',
+      experiment: 'Activar/desactivar Layer 2 para escuchar la diferencia. Ajustar BLD de Layer 2 entre 0 y 1. Notar cómo la textura cambia de "seca" a "densa" sin añadir reverb.',
+      insight: 'Burial usaba este principio en sus primeros discos — capas de lo mismo procesado diferente, nunca samples distintos.',
+    },
+  },
 };

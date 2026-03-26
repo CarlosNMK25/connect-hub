@@ -85,6 +85,9 @@ export interface UserPresetTrack {
   eqEnabled?: boolean;
   eqHpfFreq?: number;
   eqLpfFreq?: number;
+  // Phase 6D — Layer 2 Time Stretch
+  layer2StretchEnabled?: boolean;
+  layer2StretchRate?: number;
 }
 
 export interface UserPreset {

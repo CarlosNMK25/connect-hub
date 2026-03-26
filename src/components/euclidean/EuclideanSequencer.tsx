@@ -143,6 +143,9 @@ interface TrackState {
   eqEnabled?: boolean;
   eqHpfFreq?: number;   // 20-2000 Hz, default 20
   eqLpfFreq?: number;   // 1000-20000 Hz, default 20000
+  // Layer 2 Time Stretch (Phase 6D)
+  layer2StretchEnabled?: boolean;
+  layer2StretchRate?: number; // 0.25-2.0, default 1.0
   hits: number;
   misses: number;
 }
@@ -902,6 +905,8 @@ export const EuclideanSequencer = () => {
           layer2Offset: t.layer2Offset,
           layer2FilterFreq: t.layer2FilterFreq,
           layer2Reverse: t.layer2Reverse,
+          layer2StretchEnabled: t.layer2StretchEnabled,
+          layer2StretchRate: t.layer2StretchRate,
           // Lorenz + Nested LFO
           lorenzEnabled: t.lorenzEnabled,
           lorenzDepth: t.lorenzDepth,
@@ -1032,6 +1037,8 @@ export const EuclideanSequencer = () => {
         layer2Offset: config.layer2Offset ?? 0,
         layer2FilterFreq: config.layer2FilterFreq ?? 8000,
         layer2Reverse: config.layer2Reverse ?? false,
+        layer2StretchEnabled: (config as any).layer2StretchEnabled ?? false,
+        layer2StretchRate: (config as any).layer2StretchRate ?? 1.0,
         // Lorenz + Nested LFO
         lorenzEnabled: (config as any).lorenzEnabled ?? false,
         lorenzDepth: (config as any).lorenzDepth ?? 1000,
@@ -2749,7 +2756,13 @@ export const EuclideanSequencer = () => {
       synthObj.triggerLayer2 = (time: number, velocity: number) => {
         const ct = tracksRef.current.find(t => t.id === trackId);
         if (!ct || !layer2Player.buffer) return;
-        layer2Player.detune = (ct.layer2Pitch ?? 0) * 100;
+        // Time Stretch for Layer 2 (Phase 6D)
+        const l2StretchRate = ct.layer2StretchEnabled ? (ct.layer2StretchRate ?? 1.0) : 1.0;
+        layer2Player.playbackRate = l2StretchRate;
+        // Pitch compensation: keep pitch stable when stretch changes
+        const l2StretchCompensation = l2StretchRate !== 1.0 ? -1200 * Math.log2(l2StretchRate) : 0;
+        const l2PitchCents = (ct.layer2Pitch ?? 0) * 100;
+        layer2Player.detune = l2PitchCents + l2StretchCompensation;
         layer2Player.reverse = ct.layer2Reverse ?? false;
         const offsetSec = (ct.layer2Offset ?? 0) / 1000;
         const triggerTime = time + offsetSec;
@@ -5084,6 +5097,8 @@ export const EuclideanSequencer = () => {
               layer2Offset={track.layer2Offset}
               layer2FilterFreq={track.layer2FilterFreq}
               layer2Reverse={track.layer2Reverse}
+              layer2StretchEnabled={track.layer2StretchEnabled}
+              layer2StretchRate={track.layer2StretchRate}
               onLoadLayer2={(file) => handleLoadLayer2(track.id, file)}
               onClearLayer2={() => handleClearLayer2(track.id)}
               onLayer2ParamChange={(param, value) => handleLayer2ParamChange(track.id, param, value)}
