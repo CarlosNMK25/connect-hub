@@ -94,6 +94,8 @@ export interface UserPresetTrack {
   freqShift?: number;
   // Spectral Delay Send (Phase 7C)
   spectralDelaySend?: number;
+  // Sampler mode (Phase 9)
+  mode?: 'GATE' | 'TRIGGER' | 'ONE-SHOT';
   // Freeze Send (Phase 9)
   freezeSend?: number;
   // Extreme Loop (Phase 10)

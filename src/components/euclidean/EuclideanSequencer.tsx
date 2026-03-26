@@ -1177,6 +1177,7 @@ export const EuclideanSequencer = () => {
         freqShiftEnabled: (config as any).freqShiftEnabled ?? false,
         freqShift: (config as any).freqShift ?? 0,
         spectralDelaySend: (config as any).spectralDelaySend ?? 0,
+        mode: ((config as any).mode ?? t.mode ?? 'TRIGGER') as 'GATE' | 'TRIGGER' | 'ONE-SHOT',
         freezeSend: (config as any).freezeSend ?? 0,
         extremeLoopEnabled: (config as any).extremeLoopEnabled ?? false,
         extremeLoopSize: (config as any).extremeLoopSize ?? 10,
