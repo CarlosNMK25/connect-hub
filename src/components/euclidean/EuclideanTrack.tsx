@@ -530,6 +530,9 @@ export const EuclideanTrack = React.memo(({
   freqShift,
   spectralDelaySend,
   freezeSend,
+  extremeLoopEnabled,
+  extremeLoopSize,
+  extremeLoopPoint,
   // 3D Audio / Binaural
   binauralEnabled,
   binauralAzimuth,
