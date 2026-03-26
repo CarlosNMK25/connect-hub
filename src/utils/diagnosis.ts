@@ -41,6 +41,12 @@ export interface DiagnosisContext {
     binauralEnabled?: boolean;
     binauralAzimuth?: number;
     lorenzEnabled?: boolean;
+    // Phase 8 fields
+    hatMode?: string;
+    snareBodyEnabled?: boolean;
+    kickPitchDecay?: number;
+    kickOctaves?: number;
+    samplerStatus?: string;
   }>;
   globalState: {
     bpm: number;
