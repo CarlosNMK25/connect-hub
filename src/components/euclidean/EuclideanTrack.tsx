@@ -164,6 +164,8 @@ interface EuclideanTrackProps {
   layer2Offset?: number;
   layer2FilterFreq?: number;
   layer2Reverse?: boolean;
+  layer2StretchEnabled?: boolean;
+  layer2StretchRate?: number;
   onLoadLayer2?: (file: File) => void;
   onClearLayer2?: () => void;
   // Lorenz Attractor
