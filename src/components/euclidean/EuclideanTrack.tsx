@@ -507,6 +507,10 @@ export const EuclideanTrack = React.memo(({
   freqShiftEnabled,
   freqShift,
   spectralDelaySend,
+  // 3D Audio / Binaural
+  binauralEnabled,
+  binauralAzimuth,
+  binauralDistance,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
