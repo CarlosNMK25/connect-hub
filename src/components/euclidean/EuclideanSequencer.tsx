@@ -3766,6 +3766,7 @@ export const EuclideanSequencer = () => {
       synthsRef.current.snare.panner = snarePanner;
       synthsRef.current.snare.freqShifter = snareFreqShifter;
       synthsRef.current.snare.setSpectralSend = (value: number) => { snareSpectralSend.gain.rampTo(value, 0.05); };
+      synthsRef.current.snare.setFreezeSend = (value: number) => { snareFreezeSend.gain.rampTo(value, 0.05); };
       synthsRef.current.snare.switchBinaural = (binaural: boolean) => { snarePannerGain.gain.rampTo(binaural ? 0 : 1, 0.1); snarePanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1); };
       synthsRef.current.snare.updateBinaural = (azimuth: number, distance: number) => {
         const rad = (azimuth * Math.PI) / 180;
