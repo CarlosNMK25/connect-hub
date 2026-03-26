@@ -1270,6 +1270,11 @@ export const EuclideanSequencer = () => {
       kickEqHpf.frequency.rampTo(hpfFreq, 0.05);
       kickEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
+    // Pan + FreqShifter injection for kick
+    synthsRef.current.kick.setPan = (value: number) => { kickPanner.pan.rampTo(value, 0.05); };
+    synthsRef.current.kick.setFreqShift = (hz: number) => { kickFreqShifter.frequency.rampTo(hz, 0.05); };
+    synthsRef.current.kick.panner = kickPanner;
+    synthsRef.current.kick.freqShifter = kickFreqShifter;
     // Lorenz + Nested LFO injection for kick
     synthsRef.current.kick.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
       if (target === 'filter') {
