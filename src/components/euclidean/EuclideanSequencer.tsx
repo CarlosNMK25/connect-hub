@@ -2892,12 +2892,16 @@ export const EuclideanSequencer = () => {
       const kickReverbSend = new Tone.Gain(0).connect(master.reverbBus);
       const kickEqHpf = new Tone.Filter(20, "highpass");
       const kickEqLpf = new Tone.Filter(20000, "lowpass");
+      const kickPanner = new Tone.Panner(0);
+      const kickFreqShifter = new Tone.FrequencyShifter(0);
       const kickFilter = new Tone.Filter(2000, "lowpass").connect(kickEqHpf);
       kickEqHpf.connect(kickEqLpf);
-      kickEqLpf.connect(master.compressor);
-      kickEqLpf.connect(kickDelaySend);
-      kickEqLpf.connect(kickReverbSend);
+      kickEqLpf.connect(kickPanner);
       if (synthsRef.current.kickFollower) kickEqLpf.connect(synthsRef.current.kickFollower);
+      kickPanner.connect(kickFreqShifter);
+      kickFreqShifter.connect(master.compressor);
+      kickFreqShifter.connect(kickDelaySend);
+      kickFreqShifter.connect(kickReverbSend);
 
       const kickBody = new Tone.MembraneSynth({
         pitchDecay: 0.05, octaves: 10, oscillator: { type: 'sine' },
@@ -2936,6 +2940,8 @@ export const EuclideanSequencer = () => {
           kickFilter.dispose();
           kickEqHpf.dispose();
           kickEqLpf.dispose();
+          kickPanner.dispose();
+          kickFreqShifter.dispose();
           kickDelaySend.dispose();
           kickReverbSend.dispose();
         }
@@ -2945,6 +2951,11 @@ export const EuclideanSequencer = () => {
         kickEqHpf.frequency.rampTo(hpfFreq, 0.05);
         kickEqLpf.frequency.rampTo(lpfFreq, 0.05);
       };
+      // Pan + FreqShifter injection for kick rebuild
+      synthsRef.current.kick.setPan = (value: number) => { kickPanner.pan.rampTo(value, 0.05); };
+      synthsRef.current.kick.setFreqShift = (hz: number) => { kickFreqShifter.frequency.rampTo(hz, 0.05); };
+      synthsRef.current.kick.panner = kickPanner;
+      synthsRef.current.kick.freqShifter = kickFreqShifter;
       // Lorenz + Nested LFO injection for kick rebuild
       synthsRef.current.kick.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
         if (target === 'filter') kickFilter.frequency.rampTo(800 + normalizedValue * depth, 0.05);
