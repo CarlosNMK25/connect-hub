@@ -1730,27 +1730,27 @@ export const EuclideanTrack = React.memo(({
       {id === 'hat' && samplerStatus === 'IDLE' && onPercSynthParamChange && (
         <div className="flex items-center gap-3 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
           <span className="text-[7px] font-mono uppercase text-idm-muted w-8 shrink-0">Hat</span>
-          <select value={hatMode ?? 'noise'} onChange={e => onPercSynthParamChange('hatMode', e.target.value)} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
+          <select value={hatMode ?? 'noise'} onChange={e => onPercSynthParamChange('hatMode', e.target.value)} onMouseEnter={(e) => handleParamEnter('hatMode', e)} onMouseLeave={handleParamLeave} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
             <option value="noise">Noise</option>
             <option value="metal">Metal</option>
           </select>
           {(hatMode ?? 'noise') === 'metal' ? (
             <>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('hatHarmonicity', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted">Harm</span>
                 <input type="range" min={1} max={100} step={1} value={Math.round((hatHarmonicity ?? 5.1) * 10)} onChange={e => onPercSynthParamChange('hatHarmonicity', Number(e.target.value) / 10)} className="w-12 h-1 accent-primary" />
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('hatModIndex', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted">Mod</span>
                 <input type="range" min={1} max={100} step={1} value={hatModIndex ?? 32} onChange={e => onPercSynthParamChange('hatModIndex', Number(e.target.value))} className="w-12 h-1 accent-primary" />
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('hatResonance', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted">Res</span>
                 <input type="range" min={100} max={8000} step={100} value={hatResonance ?? 4000} onChange={e => onPercSynthParamChange('hatResonance', Number(e.target.value))} className="w-12 h-1 accent-primary" />
               </div>
             </>
           ) : (
-            <select value={hatNoiseType ?? 'white'} onChange={e => onPercSynthParamChange('hatNoiseType', e.target.value)} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
+            <select value={hatNoiseType ?? 'white'} onChange={e => onPercSynthParamChange('hatNoiseType', e.target.value)} onMouseEnter={(e) => handleParamEnter('hatNoiseType', e)} onMouseLeave={handleParamLeave} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
               <option value="white">White</option>
               <option value="pink">Pink</option>
               <option value="brown">Brown</option>
