@@ -1029,6 +1029,7 @@ export const EuclideanSequencer = () => {
           freqShiftEnabled: t.freqShiftEnabled,
           freqShift: t.freqShift,
           spectralDelaySend: t.spectralDelaySend,
+          mode: t.mode,
           freezeSend: t.freezeSend,
           extremeLoopEnabled: t.extremeLoopEnabled,
           extremeLoopSize: t.extremeLoopSize,
