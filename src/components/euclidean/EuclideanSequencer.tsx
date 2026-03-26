@@ -3144,6 +3144,7 @@ export const EuclideanSequencer = () => {
     } else if (trackId === 'hat') {
       const hatDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const hatReverbSend = new Tone.Gain(0).connect(master.reverbBus);
+      const hatSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
       const hatEqHpf = new Tone.Filter(20, "highpass");
       const hatEqLpf = new Tone.Filter(20000, "lowpass");
       const hatPanner = new Tone.Panner(0);
@@ -3155,6 +3156,7 @@ export const EuclideanSequencer = () => {
       hatFreqShifter.connect(master.compressor);
       hatFreqShifter.connect(hatDelaySend);
       hatFreqShifter.connect(hatReverbSend);
+      hatFreqShifter.connect(hatSpectralSend);
 
       const hatSynth = new Tone.NoiseSynth({
         noise: { type: 'white' },
@@ -3187,6 +3189,7 @@ export const EuclideanSequencer = () => {
           hatFreqShifter.dispose();
           hatDelaySend.dispose();
           hatReverbSend.dispose();
+          hatSpectralSend.dispose();
         }
       };
       synthsRef.current.hat.updateEq = (hpfFreq: number, lpfFreq: number) => {
@@ -3197,6 +3200,7 @@ export const EuclideanSequencer = () => {
       synthsRef.current.hat.setFreqShift = (hz: number) => { hatFreqShifter.frequency.rampTo(hz, 0.05); };
       synthsRef.current.hat.panner = hatPanner;
       synthsRef.current.hat.freqShifter = hatFreqShifter;
+      synthsRef.current.hat.setSpectralSend = (value: number) => { hatSpectralSend.gain.rampTo(value, 0.05); };
       synthsRef.current.hat.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
         if (target === 'filter') hatFilter.frequency.rampTo(2000 + normalizedValue * depth, 0.05);
       };
