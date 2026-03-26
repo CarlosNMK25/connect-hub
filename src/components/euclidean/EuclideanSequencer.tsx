@@ -2774,6 +2774,17 @@ export const EuclideanSequencer = () => {
         synth.grainPlayer.detune = track.pitch * 100;
         const stretchRate = track.stretchEnabled ? (track.stretchRate ?? 1.0) : 1.0;
         synth.grainPlayer.playbackRate = stretchRate;
+        // XLP sync
+        if (track.extremeLoopEnabled && track.samplerBuffer) {
+          synth.grainPlayer.loop = true;
+          const loopPt = (track.extremeLoopPoint ?? 0.5) * track.samplerBuffer.duration;
+          const loopSz = (track.extremeLoopSize ?? 10) / 1000;
+          synth.grainPlayer.loopStart = loopPt;
+          synth.grainPlayer.loopEnd = loopPt + loopSz;
+          synth.grainPlayer.grainSize = loopSz;
+        } else if (track.id !== 'cloud') {
+          synth.grainPlayer.loop = false;
+        }
       }
         } catch (e) {
           console.warn(`Failed to sync params for track ${track.id}:`, e);
