@@ -1195,6 +1195,7 @@ export const EuclideanSequencer = () => {
 
 
   const stepsKey = tracks.map(t => `${t.id}:${t.steps}`).join('|');
+  const mcm = useMemo(() => {
     const rhythmicTracks = tracks.filter(t => t.id !== 'cloud');
     if (rhythmicTracks.length === 0) return 1;
     return lcmArray(rhythmicTracks.map(t => t.steps));
