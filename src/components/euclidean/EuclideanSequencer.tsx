@@ -931,6 +931,9 @@ export const EuclideanSequencer = () => {
           eqEnabled: t.eqEnabled,
           eqHpfFreq: t.eqHpfFreq,
           eqLpfFreq: t.eqLpfFreq,
+          pan: t.pan,
+          freqShiftEnabled: t.freqShiftEnabled,
+          freqShift: t.freqShift,
         }])
       ),
     };
