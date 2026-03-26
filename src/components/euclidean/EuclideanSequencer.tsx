@@ -3276,6 +3276,8 @@ export const EuclideanSequencer = () => {
     let _eqLpfRef: Tone.Filter | null = null;
     let _pannerRef: Tone.Panner | null = null;
     let _freqShifterRef: Tone.FrequencyShifter | null = null;
+    let _fsBypassGainRef: Tone.Gain | null = null;
+    let _fsDirectGainRef: Tone.Gain | null = null;
     let _spectralSendRef: Tone.Gain | null = null;
     let _pannerGainRef: Tone.Gain | null = null;
     let _panner3DGainRef: Tone.Gain | null = null;
