@@ -959,6 +959,7 @@ export const EuclideanSequencer = () => {
           pan: t.pan,
           freqShiftEnabled: t.freqShiftEnabled,
           freqShift: t.freqShift,
+          spectralDelaySend: t.spectralDelaySend,
         }])
       ),
     };
