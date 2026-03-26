@@ -2921,6 +2921,9 @@ export const EuclideanSequencer = () => {
       synthObj.setSpectralSend = (value: number) => {
         spectralSend.gain.rampTo(value, 0.05);
       };
+      synthObj.setFreezeSend = (value: number) => {
+        freezeSendNode.gain.rampTo(value, 0.05);
+      };
       
       // Update initial sends and volume
       const track = tracksRef.current.find(t => t.id === trackId);
