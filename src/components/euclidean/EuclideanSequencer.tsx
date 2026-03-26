@@ -5570,60 +5570,63 @@ export const EuclideanSequencer = () => {
 
               {/* Controls 2×2 Layout */}
               {showControls && (
-                <div className="grid grid-cols-2 gap-6 items-start animate-in fade-in slide-in-from-top-2 duration-500">
-                  {/* TEMPORALIDAD */}
-                  <div className="flex flex-col gap-3">
-                    <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">Temporalidad</span>
-                    <div className="flex gap-1.5 flex-wrap">
-                      {TEMPORALITY_MODES.map(m => (
-                        <button
-                          key={m.id}
-                          onClick={() => { setTemporalityMode(m.id); logChange(`Temporalidad → ${m.label}`); }}
-                          className={`px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-200 active:scale-95 ${
-                            temporalityMode === m.id
-                              ? 'bg-system-accent text-white shadow-sm'
-                              : 'bg-black/5 text-idm-muted hover:bg-black/10 hover:text-idm-ink'
-                          }`}
-                        >
-                          {m.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* FILTRO GLOBAL */}
-                  <div className="flex flex-col gap-3">
-                    <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">Filtro Global</span>
+                <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                  {/* FILA 1 — TEMPORALIDAD + FILTRO GLOBAL */}
+                  <div className="grid grid-cols-2 gap-6 items-start">
+                    {/* TEMPORALIDAD */}
                     <div className="flex flex-col gap-2">
-                      <div className="flex flex-col gap-1">
-                        <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxHighPass'); setHoveredGlobalEl(e.currentTarget); } }}
-                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                          <span>HPF</span>
-                          <span className="text-system-accent">{Math.round(fxHighPass)}Hz</span>
-                        </div>
-                        <input type="range" min="20" max="2000" value={fxHighPass}
-                          onChange={(e) => setFxHighPass(parseInt(e.target.value))}
-                          className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                      <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">Temporalidad</span>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {TEMPORALITY_MODES.map(m => (
+                          <button
+                            key={m.id}
+                            onClick={() => { setTemporalityMode(m.id); logChange(`Temporalidad → ${m.label}`); }}
+                            className={`px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider transition-all duration-200 active:scale-95 ${
+                              temporalityMode === m.id
+                                ? 'bg-system-accent text-white shadow-sm'
+                                : 'bg-black/5 text-idm-muted hover:bg-black/10 hover:text-idm-ink'
+                            }`}
+                          >
+                            {m.label}
+                          </button>
+                        ))}
                       </div>
-                      <div className="flex flex-col gap-1">
-                        <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxLowPass'); setHoveredGlobalEl(e.currentTarget); } }}
-                          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                          <span>LPF</span>
-                          <span className="text-system-accent">{Math.round(fxLowPass)}Hz</span>
+                    </div>
+
+                    {/* FILTRO GLOBAL */}
+                    <div className="flex flex-col gap-2">
+                      <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">Filtro Global</span>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1">
+                          <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxHighPass'); setHoveredGlobalEl(e.currentTarget); } }}
+                            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                            <span>HPF</span>
+                            <span className="text-system-accent">{Math.round(fxHighPass)}Hz</span>
+                          </div>
+                          <input type="range" min="20" max="2000" value={fxHighPass}
+                            onChange={(e) => setFxHighPass(parseInt(e.target.value))}
+                            className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
                         </div>
-                        <input type="range" min="500" max="20000" value={fxLowPass}
-                          onChange={(e) => setFxLowPass(parseInt(e.target.value))}
-                          className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                        <div className="flex flex-col gap-1">
+                          <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
+                            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxLowPass'); setHoveredGlobalEl(e.currentTarget); } }}
+                            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                            <span>LPF</span>
+                            <span className="text-system-accent">{Math.round(fxLowPass)}Hz</span>
+                          </div>
+                          <input type="range" min="500" max="20000" value={fxLowPass}
+                            onChange={(e) => setFxLowPass(parseInt(e.target.value))}
+                            className="h-1 bg-black/5 appearance-none cursor-pointer accent-system-accent" />
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* RITMO */}
-                  <div className="flex flex-col gap-3">
+                  {/* FILA 2 — RITMO a ancho completo, 4 columnas */}
+                  <div className="flex flex-col gap-2">
                     <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">Ritmo</span>
-                    <div className="flex flex-col gap-2">
+                    <div className="grid grid-cols-4 gap-4">
                       <div className="flex flex-col gap-1">
                         <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
                           onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('bpm'); setHoveredGlobalEl(e.currentTarget); } }}
@@ -5709,10 +5712,10 @@ export const EuclideanSequencer = () => {
                     </div>
                   </div>
 
-                  {/* FX GLOBALES */}
-                  <div className="flex flex-col gap-3">
+                  {/* FILA 3 — FX GLOBALES a ancho completo, 3 columnas */}
+                  <div className="flex flex-col gap-2">
                     <span className="text-[9px] font-mono uppercase tracking-widest text-idm-muted">FX Globales</span>
-                    <div className="flex flex-col gap-2">
+                    <div className="grid grid-cols-3 gap-4">
                       <div className="flex flex-col gap-1">
                         <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
                           onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverbMix'); setHoveredGlobalEl(e.currentTarget); } }}
