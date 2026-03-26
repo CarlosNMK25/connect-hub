@@ -1447,6 +1447,8 @@ export const EuclideanSequencer = () => {
         kickPannerGain.dispose();
         kickPanner3DGain.dispose();
         kickFreqShifter.dispose();
+        kickFsBypassGain.dispose();
+        kickFsDirectGain.dispose();
         kickDelaySend.dispose();
         kickReverbSend.dispose();
         kickSpectralSend.dispose();
@@ -1459,7 +1461,13 @@ export const EuclideanSequencer = () => {
     };
     // Pan + FreqShifter injection for kick
     synthsRef.current.kick.setPan = (value: number) => { kickPanner.pan.rampTo(value, 0.05); };
-    synthsRef.current.kick.setFreqShift = (hz: number) => { kickFreqShifter.frequency.rampTo(hz, 0.05); };
+    synthsRef.current.kick.setFreqShift = (hz: number, enabled?: boolean) => {
+      kickFreqShifter.frequency.rampTo(hz, 0.05);
+      if (enabled !== undefined) {
+        kickFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
+        kickFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
+      }
+    };
     synthsRef.current.kick.panner = kickPanner;
     synthsRef.current.kick.freqShifter = kickFreqShifter;
     // Spectral Delay send injection for kick
