@@ -1259,6 +1259,8 @@ export const EuclideanSequencer = () => {
         kickFilter.dispose();
         kickEqHpf.dispose();
         kickEqLpf.dispose();
+        kickPanner.dispose();
+        kickFreqShifter.dispose();
         kickDelaySend.dispose();
         kickReverbSend.dispose();
       }
