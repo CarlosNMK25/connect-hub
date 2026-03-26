@@ -241,6 +241,7 @@ interface EuclideanTrackProps {
   pan?: number;
   freqShiftEnabled?: boolean;
   freqShift?: number;
+  spectralDelaySend?: number;
 }
 
 const StudyTooltip = ({ content, visible, anchorEl }: { content: string; visible: boolean; anchorEl?: HTMLElement | null }) => {
