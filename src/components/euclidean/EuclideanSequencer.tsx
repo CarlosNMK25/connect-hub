@@ -2950,9 +2950,16 @@ export const EuclideanSequencer = () => {
         dispose: () => {
           hatSynth.dispose();
           hatFilter.dispose();
+          hatEqHpf.dispose();
+          hatEqLpf.dispose();
           hatDelaySend.dispose();
           hatReverbSend.dispose();
         }
+      };
+      // EQ injection for hat rebuild
+      synthsRef.current.hat.updateEq = (hpfFreq: number, lpfFreq: number) => {
+        hatEqHpf.frequency.rampTo(hpfFreq, 0.05);
+        hatEqLpf.frequency.rampTo(lpfFreq, 0.05);
       };
       // Lorenz + Nested LFO injection for hat rebuild
       synthsRef.current.hat.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
