@@ -1700,25 +1700,25 @@ export const EuclideanTrack = React.memo(({
       {id === 'snare' && samplerStatus === 'IDLE' && onPercSynthParamChange && (
         <div className="flex items-center gap-3 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
           <span className="text-[7px] font-mono uppercase text-idm-muted w-8 shrink-0">Snr</span>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('snareDecay', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted">Dec</span>
             <input type="range" min={5} max={50} step={1} value={Math.round((snareDecay ?? 0.2) * 100)} onChange={e => onPercSynthParamChange('snareDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
           </div>
-          <select value={snareNoiseType ?? 'white'} onChange={e => onPercSynthParamChange('snareNoiseType', e.target.value)} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
+          <select value={snareNoiseType ?? 'white'} onChange={e => onPercSynthParamChange('snareNoiseType', e.target.value)} onMouseEnter={(e) => handleParamEnter('snareNoiseType', e)} onMouseLeave={handleParamLeave} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
             <option value="white">White</option>
             <option value="pink">Pink</option>
             <option value="brown">Brown</option>
           </select>
-          <button onClick={() => onPercSynthParamChange('snareBodyEnabled', !(snareBodyEnabled ?? false))} className={`text-[7px] font-mono uppercase px-2 py-0.5 rounded border transition-all ${snareBodyEnabled ? 'bg-primary/10 text-primary border-primary/20' : 'bg-background text-muted-foreground border-border'}`}>
+          <button onClick={() => onPercSynthParamChange('snareBodyEnabled', !(snareBodyEnabled ?? false))} onMouseEnter={(e) => handleParamEnter('snareBodyEnabled', e)} onMouseLeave={handleParamLeave} className={`text-[7px] font-mono uppercase px-2 py-0.5 rounded border transition-all ${snareBodyEnabled ? 'bg-primary/10 text-primary border-primary/20' : 'bg-background text-muted-foreground border-border'}`}>
             Body
           </button>
           {snareBodyEnabled && (
             <>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('snareBodyPitch', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted">Hz</span>
                 <input type="range" min={100} max={400} step={5} value={snareBodyPitch ?? 180} onChange={e => onPercSynthParamChange('snareBodyPitch', Number(e.target.value))} className="w-12 h-1 accent-primary" />
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('snareBodyDecay', e)} onMouseLeave={handleParamLeave}>
                 <span className="text-[7px] font-mono text-idm-muted">BD</span>
                 <input type="range" min={5} max={30} step={1} value={Math.round((snareBodyDecay ?? 0.1) * 100)} onChange={e => onPercSynthParamChange('snareBodyDecay', Number(e.target.value) / 100)} className="w-12 h-1 accent-primary" />
               </div>
