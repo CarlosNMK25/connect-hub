@@ -635,7 +635,7 @@ export const EuclideanSequencer = () => {
       wfAmount: 3, wfSymmetry: 0,
       addPartials: 4, addBrightness: 0.5,
       arRate: 80, arDepth: 0,
-      hits: 0, misses: 0
+      hits: 0, misses: 0, activeScene: 0, scenes: new Array(8).fill(null), activeAdvancedPanel: null
     }),
   ]);
 
