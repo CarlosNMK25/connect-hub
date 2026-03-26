@@ -2834,9 +2834,16 @@ export const EuclideanSequencer = () => {
           kickBody.dispose();
           kickClick.dispose();
           kickFilter.dispose();
+          kickEqHpf.dispose();
+          kickEqLpf.dispose();
           kickDelaySend.dispose();
           kickReverbSend.dispose();
         }
+      };
+      // EQ injection for kick rebuild
+      synthsRef.current.kick.updateEq = (hpfFreq: number, lpfFreq: number) => {
+        kickEqHpf.frequency.rampTo(hpfFreq, 0.05);
+        kickEqLpf.frequency.rampTo(lpfFreq, 0.05);
       };
       // Lorenz + Nested LFO injection for kick rebuild
       synthsRef.current.kick.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
