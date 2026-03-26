@@ -1273,6 +1273,7 @@ export const EuclideanSequencer = () => {
 
     const hatDelaySend = new Tone.Gain(0).connect(delayBus);
     const hatReverbSend = new Tone.Gain(0).connect(reverbBus);
+    const hatSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
     const hatEqHpf = new Tone.Filter(20, "highpass");
     const hatEqLpf = new Tone.Filter(20000, "lowpass");
     const hatPanner = new Tone.Panner(0);
@@ -1284,6 +1285,7 @@ export const EuclideanSequencer = () => {
     hatFreqShifter.connect(compressor);
     hatFreqShifter.connect(hatDelaySend);
     hatFreqShifter.connect(hatReverbSend);
+    hatFreqShifter.connect(hatSpectralSend);
 
     // Layered Kick
     const kickBody = new Tone.MembraneSynth({
