@@ -135,11 +135,17 @@ const DiagnosticSection: React.FC<{ activePresetId: string | null }> = React.mem
       {/* Sections */}
       <div className="space-y-0.5">
         {SECTION_LABELS.map(({ key, label }) => {
-          // Hide listeningGuide section if not available
+          // Hide listeningGuide/listeningGuide2 sections if not available
           if (key === 'listeningGuide' && !pedagogy.listeningGuide) return null;
+          if (key === 'listeningGuide2' && !pedagogy.listeningGuide2) return null;
 
           const isOpen = openSections.has(key);
           const Icon = isOpen ? ChevronDown : ChevronRight;
+
+          // Get the guide data for listeningGuide or listeningGuide2
+          const guideData = key === 'listeningGuide' ? pedagogy.listeningGuide
+            : key === 'listeningGuide2' ? pedagogy.listeningGuide2
+            : null;
 
           return (
             <div key={key}>
@@ -171,30 +177,26 @@ const DiagnosticSection: React.FC<{ activePresetId: string | null }> = React.mem
                         </div>
                       ))}
                     </div>
-                  ) : key === 'listeningGuide' && pedagogy.listeningGuide ? (
+                  ) : (key === 'listeningGuide' || key === 'listeningGuide2') && guideData ? (
                     <div className="space-y-3">
-                      {/* IDM Refs badges */}
                       <div className="flex flex-wrap gap-1.5">
-                        {pedagogy.listeningGuide.idmRefs.map((ref, i) => (
+                        {guideData.idmRefs.map((ref, i) => (
                           <span key={i} className="text-[8px] font-mono px-2 py-0.5 rounded-full bg-system-accent/10 text-system-accent">
                             {ref}
                           </span>
                         ))}
                       </div>
-                      {/* 🎧 Qué escuchar */}
                       <div>
                         <div className="text-[9px] font-mono uppercase tracking-wider text-idm-muted mb-1">🎧 Qué escuchar</div>
-                        <p>{pedagogy.listeningGuide.whatToHear}</p>
+                        <p>{guideData.whatToHear}</p>
                       </div>
-                      {/* 🎛 Qué experimentar */}
                       <div>
                         <div className="text-[9px] font-mono uppercase tracking-wider text-idm-muted mb-1">🎛 Qué experimentar</div>
-                        <p>{pedagogy.listeningGuide.experiment}</p>
+                        <p>{guideData.experiment}</p>
                       </div>
-                      {/* 💡 Lo que aprendiste */}
                       <div>
                         <div className="text-[9px] font-mono uppercase tracking-wider text-idm-muted mb-1">💡 Lo que aprendiste</div>
-                        <p>{pedagogy.listeningGuide.insight}</p>
+                        <p>{guideData.insight}</p>
                       </div>
                     </div>
                   ) : (
