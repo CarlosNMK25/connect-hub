@@ -1488,7 +1488,7 @@ export const EuclideanSequencer = () => {
     };
 
     compressor.chain(limiter, analyser, Tone.getDestination());
-    masterBusRef.current = { compressor, limiter, analyser, delay, reverb, delayFilter, reverbFilter, delayBus, reverbBus, spectralDelayBus, freezeBus };
+    masterBusRef.current = { compressor, limiter, analyser, delay, reverb, delayFilter, reverbFilter, delayBus, reverbBus, spectralDelayBus, freezeBus, reverseBus };
     setGlobalAnalyser(analyser);
 
     // Sidechain Setup (Kick -> Cloud)
