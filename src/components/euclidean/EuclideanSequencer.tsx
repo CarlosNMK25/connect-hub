@@ -157,6 +157,22 @@ interface TrackState {
   binauralEnabled?: boolean;
   binauralAzimuth?: number; // 0-360 degrees, default 0
   binauralDistance?: number; // 1-10, default 3
+  // Phase 8 — Percussive Synthesis
+  kickPitchDecay?: number;    // 0.01-0.5, default 0.05
+  kickOctaves?: number;       // 1-10, default 10
+  kickDecay?: number;         // 0.1-1.0, default 0.4
+  kickClickType?: string;     // 'white'|'pink'|'brown', default 'pink'
+  hatMode?: string;           // 'noise'|'metal', default 'noise'
+  hatHarmonicity?: number;    // 0.1-10, default 5.1
+  hatModIndex?: number;       // 1-100, default 32
+  hatResonance?: number;      // 100-8000, default 4000
+  hatDecay?: number;          // 0.01-0.5, default 0.05
+  hatNoiseType?: string;      // 'white'|'pink'|'brown', default 'white'
+  snareDecay?: number;        // 0.05-0.5, default 0.2
+  snareNoiseType?: string;    // 'white'|'pink'|'brown', default 'white'
+  snareBodyEnabled?: boolean; // default false
+  snareBodyPitch?: number;    // 100-400, default 180
+  snareBodyDecay?: number;    // 0.05-0.3, default 0.1
   hits: number;
   misses: number;
 }
