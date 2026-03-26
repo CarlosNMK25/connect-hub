@@ -33,6 +33,14 @@ export interface DiagnosisContext {
     markovAnchor?: number;
     lsIterations?: number;
     caSpeed?: number;
+    // Phase 7 fields
+    pan?: number;
+    freqShiftEnabled?: boolean;
+    freqShift?: number;
+    spectralDelaySend?: number;
+    binauralEnabled?: boolean;
+    binauralAzimuth?: number;
+    lorenzEnabled?: boolean;
   }>;
   globalState: {
     bpm: number;
@@ -598,6 +606,78 @@ const RULES: DiagnosisRule[] = [
     },
     insight: () => 'Tres filosofías del ritmo coexisten: Euclides distribuye por justicia, el L-System crece por gramática, el autómata evoluciona por vecindad. Ninguna pista \'sabe\' lo que hacen las otras — y sin embargo, producen música juntas. Como tres músicos de tradiciones distintas improvisando sin lingua franca.',
     suggestion: () => 'Observa el PhaseRadar: los tres patrones tienen longitudes distintas y nunca se alinean igual. El MCM de tres números primos entre sí puede superar los 1000 steps — escucharás el mismo ciclo durante minutos.',
+  },
+  // ═══ PHASE 7: PAN, FSH, SDLY, BINAURAL, XFD (6) ═══
+  {
+    id: 'panning-opuesto',
+    category: 'combinacion',
+    icon: '↔',
+    priority: 45,
+    condition: (ctx) => {
+      const active = getActiveTracks(ctx);
+      return active.some(t => (t.pan ?? 0) < -0.3) && active.some(t => (t.pan ?? 0) > 0.3);
+    },
+    insight: () => 'Dos pistas ocupan lados opuestos del campo estéreo. Esta separación crea anchura — la sensación de que el ritmo tiene dimensión horizontal. El cerebro procesa señales separadas espacialmente como información más compleja que señales centradas.',
+    suggestion: () => 'Asegúrate de que las pistas paneadas complementariamente tienen contenido frecuencial diferente. Kick centrado o levemente izquierda, snare levemente derecha, hat muy a la derecha o izquierda — la separación espectral refuerza la separación espacial.',
+  },
+  {
+    id: 'fsh-microtonal',
+    category: 'tonal',
+    icon: '⚡',
+    priority: 65,
+    condition: (ctx) => {
+      const active = getActiveTracks(ctx);
+      const tone = active.find(t => t.isTonal);
+      return active.some(t => t.freqShiftEnabled) && !!tone && ['hijaz24', 'rast', 'bayati'].includes(tone.scaleId ?? '');
+    },
+    insight: () => 'Frequency Shifter sobre escala microtonal: los cuartos de tono de la escala árabe se desplazan por una cantidad fija de Hz, produciendo nuevos intervalos que no pertenecen a ninguna tradición musical. Es la fusión más extrema de la app — IDM occidental y afinación oriental procesados hasta lo irreconocible.',
+    suggestion: () => 'Usa shift pequeños (+20-50Hz) para no destruir completamente el carácter de la escala. Con shifts mayores (+200Hz) obtienes un timbre completamente nuevo que ya no evoca ninguna tradición — solo ruido estructurado.',
+  },
+  {
+    id: 'sdly-euclidiano',
+    category: 'combinacion',
+    icon: '🌊',
+    priority: 50,
+    condition: (ctx) => {
+      const active = getActiveTracks(ctx);
+      return active.some(t => (t.spectralDelaySend ?? 0) > 0.3 && (t.patternMode ?? 'euclidean') === 'euclidean');
+    },
+    insight: () => 'El Spectral Delay despliega el patrón euclidiano en el tiempo espectral. Cada golpe euclidiano llega tres veces: primero los graves, luego los medios, luego los agudos. El ritmo E(k,n) que es matemáticamente uniforme en el tiempo se convierte en una cascada espectral — el mismo patrón viviendo en tres tiempos distintos simultáneamente.',
+    suggestion: () => 'Prueba con Hi=200ms en un patrón de Soleá E(5,12). Los acentos flamencos se convierten en olas espectrales. La regularidad euclidiana genera una textura waterfall que tiene tanto de IDM como de flamenco.',
+  },
+  {
+    id: 'binaural-multipista',
+    category: 'combinacion',
+    icon: '🔊',
+    priority: 55,
+    condition: (ctx) => getActiveTracks(ctx).filter(t => t.binauralEnabled).length >= 2,
+    insight: () => 'Múltiples fuentes en espacio 3D binaural. El cerebro triangula posiciones usando las diferencias de tiempo entre canales y las coloraciones del pabellón auricular. Con dos o más pistas en distintas posiciones azimuth, el ritmo existe en el espacio tridimensional alrededor del oyente.',
+    suggestion: () => 'Con auriculares, coloca el Kick a 0° (frente), el Snare a 180° (detrás) y el Hat a 90° (derecha). La experiencia resultante es completamente distinta a cualquier mezcla estéreo convencional — el cuerpo del oyente se convierte en parte de la instalación sonora.',
+  },
+  {
+    id: 'xfd-cloud-ca',
+    category: 'combinacion',
+    icon: '🔗',
+    priority: 70,
+    condition: (ctx) => {
+      const active = getActiveTracks(ctx);
+      const tone = active.find(t => t.isTonal);
+      return !!tone && (tone.noteMode ?? 'euclidean') === 'markov';
+    },
+    insight: () => 'Triple generatividad: Cloud genera texturas granulares impredecibles, su envolvente modula el filtro de Tone, y Tone elige sus notas por cadenas de Markov. Tres sistemas autónomos en diálogo — ninguno controla a los otros directamente, pero todos se influyen. La música emerge de las relaciones, no de las decisiones.',
+    suggestion: () => 'Esta combinación es la materialización más directa de la tesis del proyecto: sistemas algorítmicos independientes que convergen en algo que suena inevitablemente musical. Usa estilo Markov Flamenco con escala Phrygian Dominant para el resultado más coherente con la tesis.',
+  },
+  {
+    id: 'sdly-lorenz',
+    category: 'combinacion',
+    icon: '∿',
+    priority: 48,
+    condition: (ctx) => {
+      const active = getActiveTracks(ctx);
+      return active.some(t => (t.spectralDelaySend ?? 0) > 0.3 && t.lorenzEnabled);
+    },
+    insight: () => 'El atractor de Lorenz modula el filtro de la pista mientras el Spectral Delay despliega su señal en el tiempo espectral. El caos determinista cambia continuamente qué frecuencias están presentes en cada momento, y el delay espectral las escalona en el tiempo. El resultado es una textura que nunca repite.',
+    suggestion: () => 'Aumenta el Lorenz Depth para mayor modulación. Con Lorenz Speed alto + Spectral Delay Hi=300ms, los agudos modulados caóticamente llegan con 300ms de retraso — creas una textura donde el pasado caótico se superpone al presente caótico.',
   },
 ];
 

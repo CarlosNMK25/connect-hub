@@ -433,4 +433,25 @@ export const PRESETS: ScenePreset[] = [
       cloud: { volume: 0 },
     }
   },
+
+  // --- PHASE 7: DSP ADVANCED PRESET ---
+  {
+    id: 'bode-machine',
+    name: 'Bode Machine',
+    type: 'master',
+    category: 'IDM',
+    description: 'Frequency Shifter en todas las pistas — timbres inarmónicos puros. Markov IDM + Crossfeed. Todo desplazado, nada natural.',
+    bpm: 120,
+    jitter: 4,
+    swing: 0,
+    dynamics: 80,
+    temporalityMode: 'arritmia',
+    tracks: {
+      kick: { pulses: 4, steps: 16, offset: 0, freqShiftEnabled: true, freqShift: 150, volume: 0.85, delaySend: 0.05, reverbSend: 0.15 },
+      snare: { pulses: 3, steps: 16, offset: 4, freqShiftEnabled: true, freqShift: 75, volume: 0.7, delaySend: 0.1, reverbSend: 0.2 },
+      hat: { pulses: 7, steps: 16, offset: 0, pan: 0.7, freqShiftEnabled: true, freqShift: 200, volume: 0.55, delaySend: 0.05, reverbSend: 0.1 },
+      tone: { pulses: 5, steps: 16, offset: 0, noteMode: 'markov', markovStyle: 'idm', markovTemperature: 80, markovAnchor: 0, rootNote: 48, scaleId: 'chromatic', octaveRange: 2, freqShiftEnabled: true, freqShift: 50, noteIndices: [0, 3, 7, 2, 9, 4, 11, 1, 6, 8, 5, 10, 3, 7, 0, 9], volume: 0.6, delaySend: 0.15, reverbSend: 0.3 },
+      cloud: { pulses: 4, steps: 16, offset: 0, cloudMode: 'granular', grainSize: 300, overlap: 0.5, spray: 150, volume: 0.4, delaySend: 0.1, reverbSend: 0.4 },
+    }
+  },
 ];

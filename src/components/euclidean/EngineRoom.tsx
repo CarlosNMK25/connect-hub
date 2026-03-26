@@ -41,6 +41,14 @@ interface TrackSnapshot {
   markovAnchor?: number;
   lsIterations?: number;
   caSpeed?: number;
+  // Phase 7 fields
+  pan?: number;
+  freqShiftEnabled?: boolean;
+  freqShift?: number;
+  spectralDelaySend?: number;
+  binauralEnabled?: boolean;
+  binauralAzimuth?: number;
+  lorenzEnabled?: boolean;
 }
 
 interface EngineRoomProps {
@@ -238,6 +246,13 @@ const DiagnosisPanel: React.FC<{
       markovAnchor: t.markovAnchor,
       lsIterations: t.lsIterations,
       caSpeed: t.caSpeed,
+      pan: t.pan,
+      freqShiftEnabled: t.freqShiftEnabled,
+      freqShift: t.freqShift,
+      spectralDelaySend: t.spectralDelaySend,
+      binauralEnabled: t.binauralEnabled,
+      binauralAzimuth: t.binauralAzimuth,
+      lorenzEnabled: t.lorenzEnabled,
     }));
 
     const mcm = computeMcm(diagTracks);
