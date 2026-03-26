@@ -3434,7 +3434,7 @@ export const EuclideanSequencer = () => {
       }
     }
     setTracks(prev => prev.map(t => t.id === trackId ? { ...t, [param]: value } : t));
-  }, [logChange]);
+  }, [logChange, syncAllScenes]);
 
   // ────── Sequencer Actions ──────
   const handleSequencerAction = useCallback((trackId: string, action: string, value?: any, value2?: any) => {
