@@ -6652,8 +6652,11 @@ export const EuclideanSequencer = () => {
               freqShiftEnabled={track.freqShiftEnabled}
               freqShift={track.freqShift}
               spectralDelaySend={track.spectralDelaySend}
-              freezeSend={track.freezeSend}
-              binauralEnabled={track.binauralEnabled}
+               freezeSend={track.freezeSend}
+               extremeLoopEnabled={track.extremeLoopEnabled}
+               extremeLoopSize={track.extremeLoopSize}
+               extremeLoopPoint={track.extremeLoopPoint}
+               binauralEnabled={track.binauralEnabled}
               binauralAzimuth={track.binauralAzimuth}
               binauralDistance={track.binauralDistance}
               kickPitchDecay={track.kickPitchDecay}
