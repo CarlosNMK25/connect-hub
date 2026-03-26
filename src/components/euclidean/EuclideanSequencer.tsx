@@ -1363,9 +1363,13 @@ export const EuclideanSequencer = () => {
     // Cloud Engine Setup
     const cloudDelaySend = new Tone.Gain(0).connect(delayBus);
     const cloudReverbSend = new Tone.Gain(0).connect(reverbBus);
-    const cloudFilter = new Tone.Filter(1000, "lowpass").connect(compressor);
-    cloudFilter.connect(cloudDelaySend);
-    cloudFilter.connect(cloudReverbSend);
+    const cloudEqHpf = new Tone.Filter(20, "highpass");
+    const cloudEqLpf = new Tone.Filter(20000, "lowpass");
+    const cloudFilter = new Tone.Filter(1000, "lowpass").connect(cloudEqHpf);
+    cloudEqHpf.connect(cloudEqLpf);
+    cloudEqLpf.connect(compressor);
+    cloudEqLpf.connect(cloudDelaySend);
+    cloudEqLpf.connect(cloudReverbSend);
 
     const cloudDucker = new Tone.Gain(1).connect(cloudFilter);
     const cloudLFO = new Tone.LFO({
