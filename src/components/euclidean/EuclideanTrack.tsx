@@ -2432,6 +2432,10 @@ export const EuclideanTrack = React.memo(({
     prevProps.slicerEnabled === nextProps.slicerEnabled &&
     prevProps.sliceCount === nextProps.sliceCount &&
     prevProps.sliceOrder === nextProps.sliceOrder &&
+    prevProps.isExpanded === nextProps.isExpanded &&
+    prevProps.activeScene === nextProps.activeScene &&
+    prevProps.scenes === nextProps.scenes &&
+    prevProps.activeAdvancedPanel === nextProps.activeAdvancedPanel &&
     prevProps.onParamChange === nextProps.onParamChange &&
     prevProps.onSequencerAction === nextProps.onSequencerAction &&
     prevProps.onTonalAction === nextProps.onTonalAction &&
