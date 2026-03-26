@@ -4213,6 +4213,11 @@ export const EuclideanSequencer = () => {
       synthsRef.current[trackId].setFreqShift?.(track.freqShiftEnabled ? (track.freqShift ?? 0) : 0);
       // Restore spectral delay send
       synthsRef.current[trackId].setSpectralSend?.(track.spectralDelaySend ?? 0);
+      // Restore binaural state (Phase 7D)
+      synthsRef.current[trackId].switchBinaural?.(track.binauralEnabled ?? false);
+      if (track.binauralEnabled) {
+        synthsRef.current[trackId].updateBinaural?.(track.binauralAzimuth ?? 0, track.binauralDistance ?? 3);
+      }
     }
   };
 
