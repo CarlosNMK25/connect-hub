@@ -2917,9 +2917,13 @@ export const EuclideanSequencer = () => {
     } else if (trackId === 'hat') {
       const hatDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const hatReverbSend = new Tone.Gain(0).connect(master.reverbBus);
-      const hatFilter = new Tone.Filter(5000, "highpass").connect(master.compressor);
-      hatFilter.connect(hatDelaySend);
-      hatFilter.connect(hatReverbSend);
+      const hatEqHpf = new Tone.Filter(20, "highpass");
+      const hatEqLpf = new Tone.Filter(20000, "lowpass");
+      const hatFilter = new Tone.Filter(5000, "highpass").connect(hatEqHpf);
+      hatEqHpf.connect(hatEqLpf);
+      hatEqLpf.connect(master.compressor);
+      hatEqLpf.connect(hatDelaySend);
+      hatEqLpf.connect(hatReverbSend);
 
       const hatSynth = new Tone.NoiseSynth({
         noise: { type: 'white' },
