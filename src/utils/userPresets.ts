@@ -94,6 +94,10 @@ export interface UserPresetTrack {
   freqShift?: number;
   // Spectral Delay Send (Phase 7C)
   spectralDelaySend?: number;
+  // 3D Audio / Binaural (Phase 7D)
+  binauralEnabled?: boolean;
+  binauralAzimuth?: number;
+  binauralDistance?: number;
 }
 
 export interface UserPreset {

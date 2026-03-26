@@ -3291,11 +3291,19 @@ export const EuclideanSequencer = () => {
       const snareEqHpf = new Tone.Filter(20, "highpass");
       const snareEqLpf = new Tone.Filter(20000, "lowpass");
       const snarePanner = new Tone.Panner(0);
+      const snarePanner3D = new Tone.Panner3D({ panningModel: 'HRTF', distanceModel: 'inverse' });
+      snarePanner3D.positionY.value = 0;
+      const snarePannerGain = new Tone.Gain(1);
+      const snarePanner3DGain = new Tone.Gain(0);
       const snareFreqShifter = new Tone.FrequencyShifter(0);
       const snareFilter = new Tone.Filter(5000, "lowpass").connect(snareEqHpf);
       snareEqHpf.connect(snareEqLpf);
-      snareEqLpf.connect(snarePanner);
+      snareEqLpf.connect(snarePannerGain);
+      snareEqLpf.connect(snarePanner3DGain);
+      snarePannerGain.connect(snarePanner);
+      snarePanner3DGain.connect(snarePanner3D);
       snarePanner.connect(snareFreqShifter);
+      snarePanner3D.connect(snareFreqShifter);
       snareFreqShifter.connect(master.compressor);
       snareFreqShifter.connect(snareDelaySend);
       snareFreqShifter.connect(snareReverbSend);
@@ -3312,47 +3320,35 @@ export const EuclideanSequencer = () => {
           snareSynth.triggerAttackRelease(duration, time, velocity);
           const baseCutoff = 1500;
           const dynamicCutoff = baseCutoff + (velocity * 5000);
-          if (isFinite(dynamicCutoff)) {
-            snareFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
-          }
+          if (isFinite(dynamicCutoff)) { snareFilter.frequency.rampTo(dynamicCutoff, 0.02, time); }
         },
-        setVolume: (vol: number) => {
-          snareSynth.volume.rampTo(Tone.gainToDb(vol) - 4, 0.05);
-        },
+        setVolume: (vol: number) => { snareSynth.volume.rampTo(Tone.gainToDb(vol) - 4, 0.05); },
         setSends: (delayVal: number, reverbVal: number) => {
           snareDelaySend.gain.rampTo(delayVal, 0.05);
           snareReverbSend.gain.rampTo(reverbVal, 0.05);
         },
         dispose: () => {
-          snareSynth.dispose();
-          snareFilter.dispose();
-          snareEqHpf.dispose();
-          snareEqLpf.dispose();
-          snarePanner.dispose();
-          snareFreqShifter.dispose();
-          snareDelaySend.dispose();
-          snareReverbSend.dispose();
-          snareSpectralSend.dispose();
+          snareSynth.dispose(); snareFilter.dispose(); snareEqHpf.dispose(); snareEqLpf.dispose();
+          snarePanner.dispose(); snarePanner3D.dispose(); snarePannerGain.dispose(); snarePanner3DGain.dispose();
+          snareFreqShifter.dispose(); snareDelaySend.dispose(); snareReverbSend.dispose(); snareSpectralSend.dispose();
         }
       };
-      synthsRef.current.snare.updateEq = (hpfFreq: number, lpfFreq: number) => {
-        snareEqHpf.frequency.rampTo(hpfFreq, 0.05);
-        snareEqLpf.frequency.rampTo(lpfFreq, 0.05);
-      };
+      synthsRef.current.snare.updateEq = (hpfFreq: number, lpfFreq: number) => { snareEqHpf.frequency.rampTo(hpfFreq, 0.05); snareEqLpf.frequency.rampTo(lpfFreq, 0.05); };
       synthsRef.current.snare.setPan = (value: number) => { snarePanner.pan.rampTo(value, 0.05); };
       synthsRef.current.snare.setFreqShift = (hz: number) => { snareFreqShifter.frequency.rampTo(hz, 0.05); };
       synthsRef.current.snare.panner = snarePanner;
       synthsRef.current.snare.freqShifter = snareFreqShifter;
       synthsRef.current.snare.setSpectralSend = (value: number) => { snareSpectralSend.gain.rampTo(value, 0.05); };
-      // Lorenz + Nested LFO injection for snare rebuild
+      synthsRef.current.snare.switchBinaural = (binaural: boolean) => { snarePannerGain.gain.rampTo(binaural ? 0 : 1, 0.1); snarePanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1); };
+      synthsRef.current.snare.updateBinaural = (azimuth: number, distance: number) => {
+        const rad = (azimuth * Math.PI) / 180;
+        try { snarePanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) { snarePanner3D.positionX.value = Math.sin(rad) * distance; snarePanner3D.positionZ.value = -Math.cos(rad) * distance; }
+      };
       synthsRef.current.snare.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
         if (target === 'filter') snareFilter.frequency.rampTo(1500 + normalizedValue * depth, 0.05);
       };
       synthsRef.current.snare.nestedLfoInstance = null;
-      synthsRef.current.snare.initNestedLfo = (r1: number, r2: number, d: number) => {
-        synthsRef.current.snare.nestedLfoInstance?.dispose();
-        synthsRef.current.snare.nestedLfoInstance = createNestedLfo(snareFilter, r1, r2, d);
-      };
+      synthsRef.current.snare.initNestedLfo = (r1: number, r2: number, d: number) => { synthsRef.current.snare.nestedLfoInstance?.dispose(); synthsRef.current.snare.nestedLfoInstance = createNestedLfo(snareFilter, r1, r2, d); };
       synthsRef.current.snare.updateNestedLfo = (r1: number, r2: number, d: number) => synthsRef.current.snare.nestedLfoInstance?.update(r1, r2, d);
       synthsRef.current.snare.disposeNestedLfo = () => { synthsRef.current.snare.nestedLfoInstance?.dispose(); synthsRef.current.snare.nestedLfoInstance = null; };
     } else if (trackId === 'hat') {
