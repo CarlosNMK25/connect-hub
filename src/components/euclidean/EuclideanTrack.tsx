@@ -1756,7 +1756,7 @@ export const EuclideanTrack = React.memo(({
               <option value="brown">Brown</option>
             </select>
           )}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('hatDecay', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted">Dec</span>
             <input type="range" min={1} max={50} step={1} value={Math.round((hatDecay ?? 0.05) * 100)} onChange={e => onPercSynthParamChange('hatDecay', Number(e.target.value) / 100)} className="w-12 h-1 accent-primary" />
           </div>
