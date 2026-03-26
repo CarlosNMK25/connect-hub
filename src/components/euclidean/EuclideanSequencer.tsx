@@ -2834,6 +2834,10 @@ export const EuclideanSequencer = () => {
       }
     }
   }, []);
+
+  const startRecordingNow = useCallback(() => {
+    if (!recordingDestRef.current) {
+      if (!toneFilterRef.current) {
         console.warn('REC: No hay toneFilter activo');
         return;
       }
