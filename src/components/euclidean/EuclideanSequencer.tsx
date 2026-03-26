@@ -146,6 +146,11 @@ interface TrackState {
   // Layer 2 Time Stretch (Phase 6D)
   layer2StretchEnabled?: boolean;
   layer2StretchRate?: number; // 0.25-2.0, default 1.0
+  // Panning (Phase 7A)
+  pan?: number; // -1 to +1, default 0
+  // Frequency Shifter (Phase 7B)
+  freqShiftEnabled?: boolean;
+  freqShift?: number; // -500 to +500 Hz, default 0
   hits: number;
   misses: number;
 }
