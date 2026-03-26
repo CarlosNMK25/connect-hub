@@ -905,6 +905,8 @@ export const EuclideanSequencer = () => {
           layer2Offset: t.layer2Offset,
           layer2FilterFreq: t.layer2FilterFreq,
           layer2Reverse: t.layer2Reverse,
+          layer2StretchEnabled: t.layer2StretchEnabled,
+          layer2StretchRate: t.layer2StretchRate,
           // Lorenz + Nested LFO
           lorenzEnabled: t.lorenzEnabled,
           lorenzDepth: t.lorenzDepth,
