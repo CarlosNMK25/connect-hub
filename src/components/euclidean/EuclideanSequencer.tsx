@@ -4679,6 +4679,11 @@ export const EuclideanSequencer = () => {
         const ssRef = _spectralSendRef;
         synthsRef.current.tone.setSpectralSend = (value: number) => { ssRef.gain.rampTo(value, 0.05); };
       }
+      // Freeze send injection for tone rebuild (Phase 9)
+      if (_freezeSendRef) {
+        const fsRef2 = _freezeSendRef;
+        synthsRef.current.tone.setFreezeSend = (value: number) => { fsRef2.gain.rampTo(value, 0.05); };
+      }
       // Binaural injection for tone rebuild (Phase 7D)
       if (_pannerGainRef && _panner3DGainRef && _panner3DRef) {
         const pgRef = _pannerGainRef;
