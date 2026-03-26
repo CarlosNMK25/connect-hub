@@ -2887,6 +2887,8 @@ export const EuclideanSequencer = () => {
     const master = masterBusRef.current!;
     let _eqHpfRef: Tone.Filter | null = null;
     let _eqLpfRef: Tone.Filter | null = null;
+    let _pannerRef: Tone.Panner | null = null;
+    let _freqShifterRef: Tone.FrequencyShifter | null = null;
     if (trackId === 'kick') {
       const kickDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const kickReverbSend = new Tone.Gain(0).connect(master.reverbBus);
