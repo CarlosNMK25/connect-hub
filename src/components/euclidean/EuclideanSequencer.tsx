@@ -1323,6 +1323,7 @@ export const EuclideanSequencer = () => {
   }, [gatedEnabled, gatedThreshold]);
 
 
+  const stepsKey = tracks.map(t => `${t.id}:${t.steps}`).join('|');
   const mcm = useMemo(() => {
     const rhythmicTracks = tracks.filter(t => t.id !== 'cloud');
     if (rhythmicTracks.length === 0) return 1;
