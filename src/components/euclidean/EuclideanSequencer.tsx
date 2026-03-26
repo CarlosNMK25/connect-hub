@@ -1581,6 +1581,7 @@ export const EuclideanSequencer = () => {
     // Tone Synth Setup (MonoSynth)
     const toneDelaySend = new Tone.Gain(0.15).connect(delayBus);
     const toneReverbSend = new Tone.Gain(0.2).connect(reverbBus);
+    const toneSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
     const toneEqHpf = new Tone.Filter(20, "highpass");
     const toneEqLpf = new Tone.Filter(20000, "lowpass");
     const tonePanner = new Tone.Panner(0);
@@ -1592,6 +1593,7 @@ export const EuclideanSequencer = () => {
     toneFreqShifter.connect(compressor);
     toneFreqShifter.connect(toneDelaySend);
     toneFreqShifter.connect(toneReverbSend);
+    toneFreqShifter.connect(toneSpectralSend);
     toneFilterRef.current = toneFilter;
 
     const toneMonoSynth = new Tone.MonoSynth({
@@ -1627,6 +1629,7 @@ export const EuclideanSequencer = () => {
         toneFreqShifter.dispose();
         toneDelaySend.dispose();
         toneReverbSend.dispose();
+        toneSpectralSend.dispose();
       }
     };
     // EQ injection for tone
@@ -1639,6 +1642,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.tone.setFreqShift = (hz: number) => { toneFreqShifter.frequency.rampTo(hz, 0.05); };
     synthsRef.current.tone.panner = tonePanner;
     synthsRef.current.tone.freqShifter = toneFreqShifter;
+    synthsRef.current.tone.setSpectralSend = (value: number) => { toneSpectralSend.gain.rampTo(value, 0.05); };
     // Lorenz + Nested LFO injection for tone
     synthsRef.current.tone.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
       if (target === 'filter') {
