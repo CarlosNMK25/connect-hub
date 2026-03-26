@@ -2681,6 +2681,12 @@ export const EuclideanSequencer = () => {
       if (synthsRef.current.tone?.stop) {
         synthsRef.current.tone.stop();
       }
+      // Stop XLP loops
+      tracksRef.current.forEach(t => {
+        if (t.extremeLoopEnabled && synthsRef.current[t.id]?.grainPlayer) {
+          try { synthsRef.current[t.id].grainPlayer.stop(); } catch {}
+        }
+      });
       // Reset current steps ref
       Object.keys(currentStepsRef.current).forEach(id => currentStepsRef.current[id] = -1);
       
