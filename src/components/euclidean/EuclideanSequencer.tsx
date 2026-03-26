@@ -139,6 +139,10 @@ interface TrackState {
   // Time Stretch (Phase 6B)
   stretchEnabled?: boolean;
   stretchRate?: number; // 0.25-2.0, default 1.0
+  // EQ per-track (Phase 6C)
+  eqEnabled?: boolean;
+  eqHpfFreq?: number;   // 20-2000 Hz, default 20
+  eqLpfFreq?: number;   // 1000-20000 Hz, default 20000
   hits: number;
   misses: number;
 }
