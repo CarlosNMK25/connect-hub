@@ -859,6 +859,7 @@ export const EuclideanSequencer = () => {
         if (config.pan !== undefined) newTrack.pan = config.pan;
         if (config.freqShiftEnabled !== undefined) newTrack.freqShiftEnabled = config.freqShiftEnabled;
         if (config.freqShift !== undefined) newTrack.freqShift = config.freqShift;
+        if ((config as any).spectralDelaySend !== undefined) newTrack.spectralDelaySend = (config as any).spectralDelaySend;
 
         // Tonal fields
         if (config.rootNote !== undefined) newTrack.rootNote = config.rootNote;
