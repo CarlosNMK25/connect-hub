@@ -405,34 +405,40 @@ export const EuclideanTrack = React.memo(({
 
       <div className={`transition-all duration-500 ${isTrackDimmed ? 'grayscale-[0.8]' : ''}`}>
         {/* === HEADER ROW: Identity (always visible, clickable) === */}
-        <div className="flex items-center gap-4 flex-wrap cursor-pointer select-none" onClick={onToggleExpand}>
-          {/* Volume Fader */}
-          <div 
-            ref={volumeBarRef}
-            onMouseDown={(e) => { e.stopPropagation(); handleVolumeMouseDown(e); }}
-            onMouseEnter={(e) => handleParamEnter('volume', e)}
-            onMouseLeave={handleParamLeave}
-            className="w-2.5 h-14 rounded-full bg-idm-bg border border-black/5 shadow-inner transition-all duration-300 relative overflow-hidden cursor-ns-resize group flex-none"
-            title={`Volume: ${Math.round(volume * 100)}%`}
-          >
-            <div 
-              className="absolute bottom-0 left-0 w-full transition-all duration-100 ease-out"
-              style={{ height: `${volume * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: isMuted ? 0.2 : 0.6 }}
-            >
-              <div className="absolute inset-0 bg-white/10 opacity-50" />
-            </div>
-            {isMuted && (
-              <div className="absolute inset-0 opacity-20" style={{ 
-                backgroundImage: 'linear-gradient(45deg, #fff 25%, transparent 25%, transparent 50%, #fff 50%, #fff 75%, transparent 75%, transparent)',
-                backgroundSize: '4px 4px'
-              }} />
-            )}
-            <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors" />
-          </div>
-
-          {/* Name + S/M + Status */}
+        <div className="flex items-center justify-between cursor-pointer select-none" onClick={onToggleExpand}>
+          {/* LEFT GROUP: identity + status */}
           <div className="flex items-center gap-2 flex-none">
+            {/* Volume Fader */}
+            <div 
+              ref={volumeBarRef}
+              onMouseDown={(e) => { e.stopPropagation(); handleVolumeMouseDown(e); }}
+              onMouseEnter={(e) => handleParamEnter('volume', e)}
+              onMouseLeave={handleParamLeave}
+              className="w-2.5 h-14 rounded-full bg-idm-bg border border-black/5 shadow-inner transition-all duration-300 relative overflow-hidden cursor-ns-resize group flex-none"
+              title={`Volume: ${Math.round(volume * 100)}%`}
+            >
+              <div 
+                className="absolute bottom-0 left-0 w-full transition-all duration-100 ease-out"
+                style={{ height: `${volume * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: isMuted ? 0.2 : 0.6 }}
+              >
+                <div className="absolute inset-0 bg-white/10 opacity-50" />
+              </div>
+              {isMuted && (
+                <div className="absolute inset-0 opacity-20" style={{ 
+                  backgroundImage: 'linear-gradient(45deg, #fff 25%, transparent 25%, transparent 50%, #fff 50%, #fff 75%, transparent 75%, transparent)',
+                  backgroundSize: '4px 4px'
+                }} />
+              )}
+              <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors" />
+            </div>
+
+            {/* Status dot */}
+            <div className={`w-1.5 h-1.5 rounded-full flex-none ${isMuted ? 'bg-idm-muted/30' : samplerStatus === 'IDLE' ? 'bg-idm-muted/20' : samplerStatus === 'DECODING' ? 'bg-system-accent animate-pulse' : 'bg-green-600 shadow-sm'}`} />
+
+            {/* Name */}
             <h3 className="font-mono text-lg font-black uppercase tracking-tighter text-idm-ink leading-none">{name}</h3>
+
+            {/* S/M */}
             <div className="flex gap-1">
               <button onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'isSoloed', !isSoloed); }}
                 className={`w-4 h-4 flex items-center justify-center rounded-[2px] text-[8px] font-mono font-bold transition-all border ${isSoloed ? 'bg-system-accent text-white border-system-accent shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
@@ -441,87 +447,89 @@ export const EuclideanTrack = React.memo(({
                 className={`w-4 h-4 flex items-center justify-center rounded-[2px] text-[8px] font-mono font-bold transition-all border ${isMuted ? 'bg-idm-ink text-white border-idm-ink shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:text-idm-ink hover:border-black/10'}`}
                 title="Mute">M</button>
             </div>
-            <div className="flex items-center gap-1.5 ml-1">
-              <div className={`w-1.5 h-1.5 rounded-full ${isMuted ? 'bg-idm-muted/30' : samplerStatus === 'IDLE' ? 'bg-idm-muted/20' : samplerStatus === 'DECODING' ? 'bg-system-accent animate-pulse' : 'bg-green-600 shadow-sm'}`} />
-              <span className="text-[8px] font-mono font-bold uppercase tracking-widest text-idm-muted">{isMuted ? 'MUTED' : samplerStatus}</span>
-            </div>
-          </div>
 
-          {/* Mode Selector + Formula + Density Badges */}
-          <div className="flex items-center gap-3 px-3 py-2 bg-idm-bg rounded-lg border border-black/5 flex-none">
-            <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('patternMode', e)} onMouseLeave={handleParamLeave}>
-              <select
-                value={patternMode ?? 'euclidean'}
-                onChange={e => { e.stopPropagation(); onSequencerAction(trackId, 'patternMode', e.target.value as 'euclidean' | 'lsystem' | 'ca'); }}
-                onClick={e => e.stopPropagation()}
-                className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent"
-              >
-                <option value="euclidean">E</option>
-                <option value="lsystem">LS</option>
-                <option value="ca">CA</option>
-              </select>
-              <span className="text-[11px] font-mono font-black leading-tight" style={{ color }}>
-                {(patternMode ?? 'euclidean') === 'euclidean' && `E(${pulses},${steps})`}
-                {patternMode === 'lsystem' && `LS(${lsIterations ?? 3})`}
-                {patternMode === 'ca' && `CA(${caRule ?? 30})`}
-              </span>
-            </div>
-            <div className="w-px h-6 bg-black/5" />
-            <div className="flex flex-col">
-              <span className="text-[7px] font-mono text-idm-muted uppercase tracking-widest leading-none">Density</span>
-              <span className="text-[11px] font-mono font-black leading-tight" style={{ color }}>{Math.round((pulses / steps) * 100)}%</span>
-            </div>
-          </div>
-
-          {/* Waveform Display (compact in header) */}
-          <div className="flex-1 min-w-[80px] max-w-[200px] h-10 relative group bg-idm-bg rounded-xl border border-black/5 overflow-hidden waveform-container" data-track-id={id}>
-            <WaveformDisplay 
-              buffer={samplerBuffer}
-              color={color}
-              start={sampleStart}
-              end={sampleEnd}
-            />
-            {slicerEnabled && samplerBuffer && (
-              <SliceBoundaryOverlay buffer={samplerBuffer} sliceCount={sliceCount ?? 16} color={color} />
-            )}
-          </div>
-
-          {/* Scene Slots (Change 5) */}
-          <div className="w-px h-3.5 bg-border mx-1 flex-shrink-0" />
-          <div className="flex items-center gap-0.5 flex-shrink-0" onClick={e => e.stopPropagation()}>
-            <span className="text-[7px] text-muted-foreground mr-1 tracking-wide font-mono">ESC</span>
-            {Array.from({ length: 8 }, (_, i) => {
-              const hasContent = scenes[i] !== null;
-              const isActive = activeScene === i;
-              return (
-                <button
-                  key={i}
-                  onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeScene', i); }}
-                  className={`w-3.5 h-3.5 rounded-sm text-[6px] font-medium flex-shrink-0 border transition-all flex items-center justify-center ${
-                    isActive
-                      ? 'text-white border-transparent'
-                      : hasContent
-                      ? 'bg-muted text-muted-foreground border-border'
-                      : 'bg-background text-muted-foreground/30 border-border/50'
-                  }`}
-                  style={isActive ? { background: color, borderColor: color } : {}}
-                  title={`Escena ${i + 1}`}
+            {/* Formula + Density */}
+            <div className="flex items-center gap-3 px-3 py-2 bg-idm-bg rounded-lg border border-black/5 flex-none">
+              <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('patternMode', e)} onMouseLeave={handleParamLeave}>
+                <select
+                  value={patternMode ?? 'euclidean'}
+                  onChange={e => { e.stopPropagation(); onSequencerAction(trackId, 'patternMode', e.target.value as 'euclidean' | 'lsystem' | 'ca'); }}
+                  onClick={e => e.stopPropagation()}
+                  className="text-[8px] font-mono bg-background border border-black/10 rounded px-1 py-0.5 text-idm-ink focus:outline-none focus:border-system-accent"
                 >
-                  {i + 1}
-                </button>
-              );
-            })}
+                  <option value="euclidean">E</option>
+                  <option value="lsystem">LS</option>
+                  <option value="ca">CA</option>
+                </select>
+                <span className="text-[11px] font-mono font-black leading-tight" style={{ color }}>
+                  {(patternMode ?? 'euclidean') === 'euclidean' && `E(${pulses},${steps})`}
+                  {patternMode === 'lsystem' && `LS(${lsIterations ?? 3})`}
+                  {patternMode === 'ca' && `CA(${caRule ?? 30})`}
+                </span>
+              </div>
+              <div className="w-px h-6 bg-black/5" />
+              <div className="flex flex-col">
+                <span className="text-[7px] font-mono text-idm-muted uppercase tracking-widest leading-none">Density</span>
+                <span className="text-[11px] font-mono font-black leading-tight" style={{ color }}>{Math.round((pulses / steps) * 100)}%</span>
+              </div>
+            </div>
           </div>
-          <div className="w-px h-3.5 bg-border mx-1 flex-shrink-0" />
-          
-          {/* Scene badge + Expand chevron */}
-          <span
-            className="text-[7px] border rounded px-0.5 flex-shrink-0 font-mono"
-            style={{ color, borderColor: color, opacity: 0.8 }}
-          >
-            S{activeScene + 1}
-          </span>
-          <ChevronDown size={14} className={`text-muted-foreground transition-transform duration-200 flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+
+          {/* RIGHT GROUP: LOAD SAMPLE + scenes + badge + chevron */}
+          <div className="flex items-center gap-2 ml-auto flex-none">
+            {/* LOAD SAMPLE button (always in header) */}
+            <button
+              onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+              className={`flex items-center gap-1 px-2 py-1 rounded border text-[8px] font-mono uppercase tracking-wider transition-all ${
+                samplerStatus === 'READY'
+                  ? 'border-transparent text-idm-muted hover:text-idm-ink'
+                  : 'border-black/10 bg-white text-idm-muted hover:border-system-accent/50 hover:text-system-accent'
+              }`}
+              title={samplerStatus === 'READY' ? 'Replace sample' : 'Load sample'}
+            >
+              <Upload size={10} />
+              <span>{samplerStatus === 'READY' ? 'SAMPLE' : 'LOAD'}</span>
+            </button>
+
+            <div className="w-px h-3.5 bg-border flex-shrink-0" />
+
+            {/* Scene Slots */}
+            <div className="flex items-center gap-0.5 flex-shrink-0" onClick={e => e.stopPropagation()}>
+              <span className="text-[7px] text-muted-foreground mr-1 tracking-wide font-mono">ESC</span>
+              {Array.from({ length: 8 }, (_, i) => {
+                const hasContent = scenes[i] !== null;
+                const isActive = activeScene === i;
+                return (
+                  <button
+                    key={i}
+                    onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeScene', i); }}
+                    className={`w-3.5 h-3.5 rounded-sm text-[6px] font-medium flex-shrink-0 border transition-all flex items-center justify-center ${
+                      isActive
+                        ? 'text-white border-transparent'
+                        : hasContent
+                        ? 'bg-muted text-muted-foreground border-border'
+                        : 'bg-background text-muted-foreground/30 border-border/50'
+                    }`}
+                    style={isActive ? { background: color, borderColor: color } : {}}
+                    title={`Escena ${i + 1}`}
+                  >
+                    {i + 1}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="w-px h-3.5 bg-border flex-shrink-0" />
+
+            {/* Scene badge + Expand chevron */}
+            <span
+              className="text-[7px] border rounded px-0.5 flex-shrink-0 font-mono"
+              style={{ color, borderColor: color, opacity: 0.8 }}
+            >
+              S{activeScene + 1}
+            </span>
+            <ChevronDown size={14} className={`text-muted-foreground transition-transform duration-200 flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+          </div>
         </div>
         {/* === END HEADER ROW === */}
 
