@@ -728,7 +728,7 @@ export const EuclideanTrack = React.memo(({
           </div>
 
           {/* Pan Control */}
-          <div className="flex flex-col gap-1 flex-none">
+          <div className="flex flex-col gap-1 flex-none" onMouseEnter={(e) => handleParamEnter('pan', e)} onMouseLeave={handleParamLeave}>
             <div className="flex items-center gap-1">
               <span className="text-[7px] font-mono text-idm-muted">L</span>
               <input type="range"
