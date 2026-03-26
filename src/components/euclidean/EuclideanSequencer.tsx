@@ -1170,7 +1170,30 @@ export const EuclideanSequencer = () => {
     sd.midFilter.frequency.rampTo(Math.sqrt(spectralDelayLowFreq * spectralDelayHighFreq), 0.1);
   }, [spectralDelayEnabled, spectralDelayWet, spectralDelayLowTime, spectralDelayMidTime, spectralDelayHighTime, spectralDelayLowFreq, spectralDelayHighFreq]);
 
-  const stepsKey = tracks.map(t => `${t.id}:${t.steps}`).join('|');
+  // Keep crossfeed refs in sync with state
+  useEffect(() => { crossfeedEnabledRef.current = crossfeedEnabled; }, [crossfeedEnabled]);
+  useEffect(() => { crossfeedBaseRef.current = crossfeedBase; }, [crossfeedBase]);
+  useEffect(() => { crossfeedDepthRef.current = crossfeedDepth; }, [crossfeedDepth]);
+
+  // Crossfeed interval: Cloud envelope → Tone filter (Phase 7E)
+  useEffect(() => {
+    if (!crossfeedEnabled) return;
+    const interval = setInterval(() => {
+      if (!crossfeedEnabledRef.current) return;
+      const analyser = cloudAnalyserRef.current;
+      if (!analyser) return;
+      const waveform = analyser.getValue();
+      if (!waveform || waveform.length === 0) return;
+      const arr = waveform as Float32Array;
+      const rms = Math.sqrt(arr.reduce((sum, v) => sum + v * v, 0) / arr.length);
+      const normalizedRms = Math.min(rms / 0.3, 1.0);
+      const targetFreq = Math.min(crossfeedBaseRef.current + normalizedRms * crossfeedDepthRef.current, 20000);
+      synthsRef.current.tone?.setCrossfeedFreq?.(targetFreq);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [crossfeedEnabled]);
+
+
   const mcm = useMemo(() => {
     const rhythmicTracks = tracks.filter(t => t.id !== 'cloud');
     if (rhythmicTracks.length === 0) return 1;
