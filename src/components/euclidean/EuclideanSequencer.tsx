@@ -1082,6 +1082,9 @@ export const EuclideanSequencer = () => {
           const hpf = (config as any).eqEnabled ? ((config as any).eqHpfFreq ?? 20) : 20;
           const lpf = (config as any).eqEnabled ? ((config as any).eqLpfFreq ?? 20000) : 20000;
           synthsRef.current[t.id]?.updateEq?.(hpf, lpf);
+          // Restore pan and freqShift
+          synthsRef.current[t.id]?.setPan?.((config as any).pan ?? 0);
+          synthsRef.current[t.id]?.setFreqShift?.((config as any).freqShiftEnabled ? ((config as any).freqShift ?? 0) : 0);
         }
         // Recalcular matrices Markov para tracks tonales
         if (t.isTonal && (t.noteMode ?? 'euclidean') === 'markov') {
