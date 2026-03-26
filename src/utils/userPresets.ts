@@ -92,6 +92,8 @@ export interface UserPresetTrack {
   pan?: number;
   freqShiftEnabled?: boolean;
   freqShift?: number;
+  // Spectral Delay Send (Phase 7C)
+  spectralDelaySend?: number;
 }
 
 export interface UserPreset {

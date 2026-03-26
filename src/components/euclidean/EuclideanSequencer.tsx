@@ -1144,6 +1144,18 @@ export const EuclideanSequencer = () => {
     if (importInputRef.current) importInputRef.current.value = '';
   }, [userPresets, logChange, applyUserPreset]);
 
+  // Spectral Delay bus real-time sync
+  useEffect(() => {
+    const sd = spectralDelayRef.current;
+    if (!sd) return;
+    sd.out.gain.rampTo(spectralDelayEnabled ? spectralDelayWet : 0, 0.1);
+    sd.lowDelay.delayTime.rampTo(spectralDelayLowTime / 1000, 0.1);
+    sd.midDelay.delayTime.rampTo(spectralDelayMidTime / 1000, 0.1);
+    sd.highDelay.delayTime.rampTo(spectralDelayHighTime / 1000, 0.1);
+    sd.lowFilter.frequency.rampTo(spectralDelayLowFreq, 0.1);
+    sd.highFilter.frequency.rampTo(spectralDelayHighFreq, 0.1);
+    sd.midFilter.frequency.rampTo(Math.sqrt(spectralDelayLowFreq * spectralDelayHighFreq), 0.1);
+  }, [spectralDelayEnabled, spectralDelayWet, spectralDelayLowTime, spectralDelayMidTime, spectralDelayHighTime, spectralDelayLowFreq, spectralDelayHighFreq]);
 
   const stepsKey = tracks.map(t => `${t.id}:${t.steps}`).join('|');
   const mcm = useMemo(() => {
