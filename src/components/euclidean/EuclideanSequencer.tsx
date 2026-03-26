@@ -1385,6 +1385,8 @@ export const EuclideanSequencer = () => {
         hatFilter.dispose();
         hatEqHpf.dispose();
         hatEqLpf.dispose();
+        hatPanner.dispose();
+        hatFreqShifter.dispose();
         hatDelaySend.dispose();
         hatReverbSend.dispose();
       }
@@ -1394,6 +1396,11 @@ export const EuclideanSequencer = () => {
       hatEqHpf.frequency.rampTo(hpfFreq, 0.05);
       hatEqLpf.frequency.rampTo(lpfFreq, 0.05);
     };
+    // Pan + FreqShifter injection for hat
+    synthsRef.current.hat.setPan = (value: number) => { hatPanner.pan.rampTo(value, 0.05); };
+    synthsRef.current.hat.setFreqShift = (hz: number) => { hatFreqShifter.frequency.rampTo(hz, 0.05); };
+    synthsRef.current.hat.panner = hatPanner;
+    synthsRef.current.hat.freqShifter = hatFreqShifter;
     // Lorenz + Nested LFO injection for hat
     synthsRef.current.hat.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
       if (target === 'filter') {
