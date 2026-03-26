@@ -3524,6 +3524,7 @@ export const EuclideanSequencer = () => {
     let _fsBypassGainRef: Tone.Gain | null = null;
     let _fsDirectGainRef: Tone.Gain | null = null;
     let _spectralSendRef: Tone.Gain | null = null;
+    let _freezeSendRef: Tone.Gain | null = null;
     let _pannerGainRef: Tone.Gain | null = null;
     let _panner3DGainRef: Tone.Gain | null = null;
     let _panner3DRef: Tone.Panner3D | null = null;
