@@ -3045,6 +3045,7 @@ export const EuclideanSequencer = () => {
           kickFreqShifter.dispose();
           kickDelaySend.dispose();
           kickReverbSend.dispose();
+          kickSpectralSend.dispose();
         }
       };
       // EQ injection for kick rebuild
@@ -3057,6 +3058,7 @@ export const EuclideanSequencer = () => {
       synthsRef.current.kick.setFreqShift = (hz: number) => { kickFreqShifter.frequency.rampTo(hz, 0.05); };
       synthsRef.current.kick.panner = kickPanner;
       synthsRef.current.kick.freqShifter = kickFreqShifter;
+      synthsRef.current.kick.setSpectralSend = (value: number) => { kickSpectralSend.gain.rampTo(value, 0.05); };
       // Lorenz + Nested LFO injection for kick rebuild
       synthsRef.current.kick.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
         if (target === 'filter') kickFilter.frequency.rampTo(800 + normalizedValue * depth, 0.05);
