@@ -5682,6 +5682,7 @@ export const EuclideanSequencer = () => {
               pan={track.pan}
               freqShiftEnabled={track.freqShiftEnabled}
               freqShift={track.freqShift}
+              spectralDelaySend={track.spectralDelaySend}
             />
           </div>
         ))}
