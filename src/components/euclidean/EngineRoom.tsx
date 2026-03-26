@@ -41,6 +41,14 @@ interface TrackSnapshot {
   markovAnchor?: number;
   lsIterations?: number;
   caSpeed?: number;
+  // Phase 7 fields
+  pan?: number;
+  freqShiftEnabled?: boolean;
+  freqShift?: number;
+  spectralDelaySend?: number;
+  binauralEnabled?: boolean;
+  binauralAzimuth?: number;
+  lorenzEnabled?: boolean;
 }
 
 interface EngineRoomProps {
