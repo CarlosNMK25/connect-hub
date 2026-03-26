@@ -199,6 +199,11 @@ interface TrackState {
   snareBodyDecay?: number;    // 0.05-0.3, default 0.1
   hits: number;
   misses: number;
+  // Song Mode — Scene slots
+  activeScene: number;           // 0-7
+  scenes: (SceneData | null)[];  // array of 8
+  // UI-only: exclusive advanced panel visibility
+  activeAdvancedPanel?: 'RR' | 'PHD' | 'LRZ' | 'NLF' | null;
 }
 
 /** Generate a synthetic reversed impulse response for Reverse Reverb */
