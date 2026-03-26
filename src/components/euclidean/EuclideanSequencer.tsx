@@ -3533,6 +3533,7 @@ export const EuclideanSequencer = () => {
       const kickDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const kickReverbSend = new Tone.Gain(0).connect(master.reverbBus);
       const kickSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
+      const kickFreezeSend = new Tone.Gain(0).connect(master.freezeBus);
       const kickEqHpf = new Tone.Filter(20, "highpass");
       const kickEqLpf = new Tone.Filter(20000, "lowpass");
       const kickPanner = new Tone.Panner(0);
