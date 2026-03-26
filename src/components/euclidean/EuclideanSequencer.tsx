@@ -1207,6 +1207,7 @@ export const EuclideanSequencer = () => {
         spectralDelaySend: (config as any).spectralDelaySend ?? 0,
         mode: ((config as any).mode ?? t.mode ?? 'TRIGGER') as 'GATE' | 'TRIGGER' | 'ONE-SHOT',
         freezeSend: (config as any).freezeSend ?? 0,
+        reverseSend: (config as any).reverseSend ?? 0,
         extremeLoopEnabled: (config as any).extremeLoopEnabled ?? false,
         extremeLoopSize: (config as any).extremeLoopSize ?? 10,
         extremeLoopPoint: (config as any).extremeLoopPoint ?? 0.5,
