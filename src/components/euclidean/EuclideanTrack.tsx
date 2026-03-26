@@ -2232,6 +2232,9 @@ export const EuclideanTrack = React.memo(({
     prevProps.nestedLfoRate2 === nextProps.nestedLfoRate2 &&
     prevProps.nestedLfoDepth === nextProps.nestedLfoDepth &&
     prevProps.stretchEnabled === nextProps.stretchEnabled &&
-    prevProps.stretchRate === nextProps.stretchRate
+    prevProps.stretchRate === nextProps.stretchRate &&
+    prevProps.eqEnabled === nextProps.eqEnabled &&
+    prevProps.eqHpfFreq === nextProps.eqHpfFreq &&
+    prevProps.eqLpfFreq === nextProps.eqLpfFreq
   );
 });

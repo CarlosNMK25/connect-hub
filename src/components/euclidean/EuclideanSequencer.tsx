@@ -5407,6 +5407,10 @@ export const EuclideanSequencer = () => {
               // Time Stretch props
               stretchEnabled={track.stretchEnabled}
               stretchRate={track.stretchRate}
+              // EQ props
+              eqEnabled={track.eqEnabled}
+              eqHpfFreq={track.eqHpfFreq}
+              eqLpfFreq={track.eqLpfFreq}
             />
           </div>
         ))}
