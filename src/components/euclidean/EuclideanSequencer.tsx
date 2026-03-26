@@ -2001,6 +2001,7 @@ export const EuclideanSequencer = () => {
     synthsRef.current.cloud.panner = cloudPanner;
     synthsRef.current.cloud.freqShifter = cloudFreqShifter;
     synthsRef.current.cloud.setSpectralSend = (value: number) => { cloudSpectralSend.gain.rampTo(value, 0.05); };
+    synthsRef.current.cloud.setFreezeSend = (value: number) => { cloudFreezeSend.gain.rampTo(value, 0.05); };
     synthsRef.current.cloud.switchBinaural = (binaural: boolean) => {
       cloudPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
       cloudPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
