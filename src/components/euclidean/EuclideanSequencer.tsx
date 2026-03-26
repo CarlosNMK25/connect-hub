@@ -3564,6 +3564,8 @@ export const EuclideanSequencer = () => {
       kickFsDirectGain.connect(kickDelaySend);
       kickFsDirectGain.connect(kickReverbSend);
       kickFsDirectGain.connect(kickSpectralSend);
+      kickFsBypassGain.connect(kickFreezeSend);
+      kickFsDirectGain.connect(kickFreezeSend);
 
       let kickBody = new Tone.MembraneSynth({
         pitchDecay: 0.05, octaves: 10, oscillator: { type: 'sine' },
