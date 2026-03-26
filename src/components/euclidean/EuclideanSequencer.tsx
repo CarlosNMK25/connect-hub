@@ -2859,9 +2859,13 @@ export const EuclideanSequencer = () => {
     } else if (trackId === 'snare') {
       const snareDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const snareReverbSend = new Tone.Gain(0).connect(master.reverbBus);
-      const snareFilter = new Tone.Filter(5000, "lowpass").connect(master.compressor);
-      snareFilter.connect(snareDelaySend);
-      snareFilter.connect(snareReverbSend);
+      const snareEqHpf = new Tone.Filter(20, "highpass");
+      const snareEqLpf = new Tone.Filter(20000, "lowpass");
+      const snareFilter = new Tone.Filter(5000, "lowpass").connect(snareEqHpf);
+      snareEqHpf.connect(snareEqLpf);
+      snareEqLpf.connect(master.compressor);
+      snareEqLpf.connect(snareDelaySend);
+      snareEqLpf.connect(snareReverbSend);
 
       const snareSynth = new Tone.NoiseSynth({
         noise: { type: 'white' },
