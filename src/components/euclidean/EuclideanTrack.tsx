@@ -538,8 +538,8 @@ export const EuclideanTrack = React.memo(({
 
           {/* === Controls: Sends, Pan, 3D, EQ, FSH, RR/PHD/LRZ/NLF, Layer2 === */}
           <div className="flex items-center gap-4 flex-wrap py-2">
-            {/* FX Sends (Mini-Faders) */}
-            <div className="flex flex-col gap-2 flex-none">
+            {/* FX Sends (2-column grid) */}
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 flex-none">
               <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('delaySend', e)} onMouseLeave={handleParamLeave}>
                 <div className="flex justify-between items-center w-16">
                   <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Dly</span>
@@ -548,26 +548,6 @@ export const EuclideanTrack = React.memo(({
                 <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
                   onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onParamChange(trackId, 'delaySend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
                   <div className="h-full transition-all duration-100" style={{ width: `${delaySend * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('reverbSend', e)} onMouseLeave={handleParamLeave}>
-                <div className="flex justify-between items-center w-16">
-                  <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rvb</span>
-                  <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round(reverbSend * 100)}%</span>
-                </div>
-                <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
-                  onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onParamChange(trackId, 'reverbSend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
-                  <div className="h-full transition-all duration-100" style={{ width: `${reverbSend * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('ratchet', e)} onMouseLeave={handleParamLeave}>
-                <div className="flex justify-between items-center w-16">
-                  <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rtch</span>
-                  <span className="text-[6px] font-mono text-idm-muted leading-none">{ratchet}×</span>
-                </div>
-                <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
-                  onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onParamChange(trackId, 'ratchet', Math.round(Math.max(0, Math.min(4, ((e.clientX - rect.left) / rect.width) * 4)))); }}>
-                  <div className="h-full transition-all duration-100" style={{ width: `${(ratchet / 4) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
                 </div>
               </div>
               <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('spectralDelayEnabled', e)} onMouseLeave={handleParamLeave}>
@@ -580,6 +560,16 @@ export const EuclideanTrack = React.memo(({
                   <div className="h-full transition-all duration-100" style={{ width: `${(spectralDelaySend ?? 0) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
                 </div>
               </div>
+              <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('reverbSend', e)} onMouseLeave={handleParamLeave}>
+                <div className="flex justify-between items-center w-16">
+                  <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rvb</span>
+                  <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round(reverbSend * 100)}%</span>
+                </div>
+                <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
+                  onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onParamChange(trackId, 'reverbSend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
+                  <div className="h-full transition-all duration-100" style={{ width: `${reverbSend * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
+                </div>
+              </div>
               <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('freezeSend', e)} onMouseLeave={handleParamLeave}>
                 <div className="flex justify-between items-center w-16">
                   <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Frz</span>
@@ -588,6 +578,16 @@ export const EuclideanTrack = React.memo(({
                 <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
                   onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSamplerParamChange(trackId, 'freezeSend', Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}>
                   <div className="h-full transition-all duration-100" style={{ width: `${(freezeSend ?? 0) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('ratchet', e)} onMouseLeave={handleParamLeave}>
+                <div className="flex justify-between items-center w-16">
+                  <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rtch</span>
+                  <span className="text-[6px] font-mono text-idm-muted leading-none">{ratchet}×</span>
+                </div>
+                <div className="w-16 h-1 bg-idm-bg rounded-full overflow-hidden cursor-pointer relative border border-black/5"
+                  onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onParamChange(trackId, 'ratchet', Math.round(Math.max(0, Math.min(4, ((e.clientX - rect.left) / rect.width) * 4)))); }}>
+                  <div className="h-full transition-all duration-100" style={{ width: `${(ratchet / 4) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
                 </div>
               </div>
               <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('reverseSend', e)} onMouseLeave={handleParamLeave}>
