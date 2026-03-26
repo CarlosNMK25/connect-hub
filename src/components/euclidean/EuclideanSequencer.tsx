@@ -5450,6 +5450,38 @@ export const EuclideanSequencer = () => {
         )}
       </div>
 
+      {/* Envelope Crossfeed Panel (Phase 7E) */}
+      <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
+        <button
+          onClick={() => setCrossfeedEnabled(!crossfeedEnabled)}
+          className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
+            crossfeedEnabled
+              ? 'bg-system-accent text-white border-system-accent'
+              : 'bg-background text-idm-muted border-border'
+          }`}
+          title="Envelope Crossfeed — Cloud modula Tone"
+        >XFD</button>
+        <span className="text-[8px] font-mono text-idm-muted">Cloud → Tone</span>
+        {crossfeedEnabled && (
+          <div className="flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-1">
+              <span className="text-[7px] font-mono text-idm-muted">Base</span>
+              <input type="range" min={200} max={2000} step={50} value={crossfeedBase}
+                onChange={e => setCrossfeedBase(Number(e.target.value))}
+                className="w-12 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted">{crossfeedBase}Hz</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[7px] font-mono text-idm-muted">Depth</span>
+              <input type="range" min={0} max={8000} step={200} value={crossfeedDepth}
+                onChange={e => setCrossfeedDepth(Number(e.target.value))}
+                className="w-12 h-[7px] accent-system-accent" />
+              <span className="text-[6px] font-mono text-idm-muted">{crossfeedDepth}Hz</span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Tracks Container with z-index to ensure interactivity */}
       <div className="space-y-6 relative z-10">
         <MesoInsightMonitor tracks={tracks} isStudyMode={isStudyMode} />
