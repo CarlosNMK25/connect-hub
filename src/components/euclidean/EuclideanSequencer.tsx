@@ -1209,6 +1209,7 @@ export const EuclideanSequencer = () => {
           synthsRef.current[t.id]?.setPan?.((config as any).pan ?? 0);
           synthsRef.current[t.id]?.setFreqShift?.((config as any).freqShiftEnabled ? ((config as any).freqShift ?? 0) : 0, (config as any).freqShiftEnabled ?? false);
           synthsRef.current[t.id]?.setSpectralSend?.((config as any).spectralDelaySend ?? 0);
+          synthsRef.current[t.id]?.setFreezeSend?.((config as any).freezeSend ?? 0);
           // Restore binaural
           synthsRef.current[t.id]?.switchBinaural?.((config as any).binauralEnabled ?? false);
           if ((config as any).binauralEnabled) {
