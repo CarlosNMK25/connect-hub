@@ -3148,6 +3148,10 @@ export const EuclideanSequencer = () => {
       if (param === 'spectralDelaySend') {
         synthObj.setSpectralSend?.(val as number);
       }
+      // Freeze Send real-time sync (Phase 9)
+      if (param === 'freezeSend') {
+        synthObj.setFreezeSend?.(val as number);
+      }
       // Binaural real-time sync
       if (param === 'binauralEnabled') {
         synthObj.switchBinaural?.(val as boolean);
