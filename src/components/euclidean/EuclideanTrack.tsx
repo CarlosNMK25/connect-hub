@@ -1705,6 +1705,7 @@ export const EuclideanTrack = React.memo(({
       {samplerStatus === 'READY' && id !== 'cloud' && (
         <div className="flex items-center gap-3 mt-2 p-3 bg-idm-bg rounded-2xl border border-border">
           <button
+            onMouseEnter={(e) => handleParamEnter('extremeLoopEnabled', e)} onMouseLeave={handleParamLeave}
             onClick={() => onSamplerParamChange('extremeLoopEnabled', !extremeLoopEnabled)}
             className={`text-[8px] font-mono font-bold px-2 py-1 rounded border transition-colors ${
               extremeLoopEnabled
