@@ -715,7 +715,7 @@ export const EuclideanTrack = React.memo(({
                 <div className="h-full transition-all duration-100" style={{ width: `${(ratchet / 4) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
             </div>
           </div>
-            <div className="flex flex-col gap-1 relative">
+            <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('spectralDelayEnabled', e)} onMouseLeave={handleParamLeave}>
               <div className="flex justify-between items-center w-16">
                 <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Sdly</span>
                 <span className="text-[6px] font-mono text-idm-muted leading-none">{Math.round((spectralDelaySend ?? 0) * 100)}%</span>
