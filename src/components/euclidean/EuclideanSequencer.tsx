@@ -2389,6 +2389,15 @@ export const EuclideanSequencer = () => {
             const synth = synthsRef.current[track.id];
             if (!synth) return;
 
+            // XLP: skip step trigger when extreme loop is active
+            if (track.extremeLoopEnabled && track.samplerStatus === 'READY' && synth.grainPlayer) {
+              // Still count the hit visually
+              Tone.Draw.schedule(() => {
+                setLastHit({ offset, color: track.color, velocity, id: Math.random() });
+              }, Tone.now());
+              return;
+            }
+
             let scheduledTime = Math.max(baseTime + offset, now + 0.02);
             const lastTime = lastScheduledTimesRef.current[track.id] || 0;
             if (scheduledTime <= lastTime) scheduledTime = lastTime + 0.005;
