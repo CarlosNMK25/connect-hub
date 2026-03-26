@@ -3551,29 +3551,65 @@ export const EuclideanSequencer = () => {
       snareFsDirectGain.connect(snareReverbSend);
       snareFsDirectGain.connect(snareSpectralSend);
 
-      const snareSynth = new Tone.NoiseSynth({
-        noise: { type: 'white' },
+      let snareSynth = new Tone.NoiseSynth({
+        noise: { type: 'white' as any },
         envelope: { attack: 0.001, decay: 0.2, sustain: 0 },
         volume: -4
       }).connect(snareFilter);
+      let snareBody: Tone.MembraneSynth | null = null;
 
       synthsRef.current.snare = {
         triggerAttackRelease: (duration: any, time: number, velocity: number) => {
           snareSynth.triggerAttackRelease(duration, time, velocity);
+          if (snareBody) {
+            try { snareBody.triggerAttackRelease("C2", duration, time, velocity * 0.6); } catch(e) {}
+          }
           const baseCutoff = 1500;
           const dynamicCutoff = baseCutoff + (velocity * 5000);
           if (isFinite(dynamicCutoff)) { snareFilter.frequency.rampTo(dynamicCutoff, 0.02, time); }
         },
-        setVolume: (vol: number) => { snareSynth.volume.rampTo(Tone.gainToDb(vol) - 4, 0.05); },
+        setVolume: (vol: number) => {
+          snareSynth.volume.rampTo(Tone.gainToDb(vol) - 4, 0.05);
+          if (snareBody) snareBody.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
+        },
         setSends: (delayVal: number, reverbVal: number) => {
           snareDelaySend.gain.rampTo(delayVal, 0.05);
           snareReverbSend.gain.rampTo(reverbVal, 0.05);
         },
         dispose: () => {
-          snareSynth.dispose(); snareFilter.dispose(); snareEqHpf.dispose(); snareEqLpf.dispose();
+          snareSynth.dispose(); snareBody?.dispose(); snareFilter.dispose(); snareEqHpf.dispose(); snareEqLpf.dispose();
           snarePanner.dispose(); snarePanner3D.dispose(); snarePannerGain.dispose(); snarePanner3DGain.dispose();
           snareFreqShifter.dispose(); snareFsBypassGain.dispose(); snareFsDirectGain.dispose();
           snareDelaySend.dispose(); snareReverbSend.dispose(); snareSpectralSend.dispose();
+        }
+      };
+      // Phase 8 — Snare synth params setter (rebuild)
+      synthsRef.current.snare.setSnareParams = (decay: number, noiseType: string) => {
+        snareSynth.envelope.decay = decay;
+        const currentType = (snareSynth as any).noise?.type || 'white';
+        if (noiseType !== currentType) {
+          snareSynth.dispose();
+          snareSynth = new Tone.NoiseSynth({
+            noise: { type: noiseType as any },
+            envelope: { attack: 0.001, decay, sustain: 0 },
+            volume: -4
+          }).connect(snareFilter);
+        }
+      };
+      synthsRef.current.snare.setSnareBody = (enabled: boolean, pitch: number, bodyDecay: number) => {
+        if (enabled && !snareBody) {
+          snareBody = new Tone.MembraneSynth({
+            pitchDecay: 0.08, octaves: 4, oscillator: { type: 'sine' },
+            envelope: { attack: 0.001, decay: bodyDecay, sustain: 0.01, release: 0.5 },
+            volume: -6
+          }).connect(snareFilter);
+          snareBody.frequency.value = pitch;
+        } else if (!enabled && snareBody) {
+          snareBody.dispose();
+          snareBody = null;
+        } else if (enabled && snareBody) {
+          snareBody.frequency.value = pitch;
+          snareBody.set({ envelope: { decay: bodyDecay } });
         }
       };
       synthsRef.current.snare.updateEq = (hpfFreq: number, lpfFreq: number) => { snareEqHpf.frequency.rampTo(hpfFreq, 0.05); snareEqLpf.frequency.rampTo(lpfFreq, 0.05); };
@@ -3634,20 +3670,56 @@ export const EuclideanSequencer = () => {
       hatFsDirectGain.connect(hatReverbSend);
       hatFsDirectGain.connect(hatSpectralSend);
 
-      const hatSynth = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.001, decay: 0.05, sustain: 0 }, volume: -2 }).connect(hatFilter);
+      let hatSynth: Tone.NoiseSynth | null = new Tone.NoiseSynth({ noise: { type: 'white' as any }, envelope: { attack: 0.001, decay: 0.05, sustain: 0 }, volume: -2 }).connect(hatFilter);
+      let hatMetalSynth: Tone.MetalSynth | null = null;
+      let currentHatMode = 'noise';
       synthsRef.current.hat = {
         triggerAttackRelease: (duration: any, time: number, velocity: number) => {
-          hatSynth.triggerAttackRelease(duration, time, velocity);
+          if (currentHatMode === 'metal' && hatMetalSynth) {
+            const trackState = tracksRef.current.find(t => t.id === 'hat');
+            const decay = trackState?.hatDecay ?? 0.05;
+            hatMetalSynth.triggerAttackRelease(200, decay, time, velocity);
+          } else if (hatSynth) {
+            hatSynth.triggerAttackRelease(duration, time, velocity);
+          }
           const dynamicCutoff = 2000 + (velocity * 8000);
           if (isFinite(dynamicCutoff)) hatFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
         },
-        setVolume: (vol: number) => { hatSynth.volume.rampTo(Tone.gainToDb(vol) - 2, 0.05); },
+        setVolume: (vol: number) => {
+          const db = Tone.gainToDb(vol) - 2;
+          if (hatSynth) hatSynth.volume.rampTo(db, 0.05);
+          if (hatMetalSynth) hatMetalSynth.volume.rampTo(db, 0.05);
+        },
         setSends: (delayVal: number, reverbVal: number) => { hatDelaySend.gain.rampTo(delayVal, 0.05); hatReverbSend.gain.rampTo(reverbVal, 0.05); },
         dispose: () => {
-          hatSynth.dispose(); hatFilter.dispose(); hatEqHpf.dispose(); hatEqLpf.dispose();
+          hatSynth?.dispose(); hatMetalSynth?.dispose(); hatFilter.dispose(); hatEqHpf.dispose(); hatEqLpf.dispose();
           hatPanner.dispose(); hatPanner3D.dispose(); hatPannerGain.dispose(); hatPanner3DGain.dispose();
           hatFreqShifter.dispose(); hatFsBypassGain.dispose(); hatFsDirectGain.dispose();
           hatDelaySend.dispose(); hatReverbSend.dispose(); hatSpectralSend.dispose();
+        }
+      };
+      // Phase 8 — Hat mode switcher (rebuild)
+      synthsRef.current.hat.setHatMode = (mode: string, harmonicity: number, modIndex: number, resonance: number, decay: number, noiseType: string) => {
+        if (mode === 'metal' && currentHatMode !== 'metal') {
+          hatSynth?.dispose(); hatSynth = null;
+          hatMetalSynth = new Tone.MetalSynth({
+            harmonicity, modulationIndex: modIndex, resonance,
+            envelope: { attack: 0.001, decay, release: 0.1 }, volume: -2
+          }).connect(hatFilter);
+          currentHatMode = 'metal';
+        } else if (mode === 'noise' && currentHatMode !== 'noise') {
+          hatMetalSynth?.dispose(); hatMetalSynth = null;
+          hatSynth = new Tone.NoiseSynth({ noise: { type: noiseType as any }, envelope: { attack: 0.001, decay, sustain: 0 }, volume: -2 }).connect(hatFilter);
+          currentHatMode = 'noise';
+        } else if (mode === 'metal' && hatMetalSynth) {
+          hatMetalSynth.set({ harmonicity, modulationIndex: modIndex, resonance, envelope: { decay } });
+        } else if (mode === 'noise' && hatSynth) {
+          hatSynth.envelope.decay = decay;
+          const curType = (hatSynth as any).noise?.type || 'white';
+          if (noiseType !== curType) {
+            hatSynth.dispose();
+            hatSynth = new Tone.NoiseSynth({ noise: { type: noiseType as any }, envelope: { attack: 0.001, decay, sustain: 0 }, volume: -2 }).connect(hatFilter);
+          }
         }
       };
       synthsRef.current.hat.updateEq = (hpfFreq: number, lpfFreq: number) => { hatEqHpf.frequency.rampTo(hpfFreq, 0.05); hatEqLpf.frequency.rampTo(lpfFreq, 0.05); };
