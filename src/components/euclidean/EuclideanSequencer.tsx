@@ -3959,8 +3959,8 @@ export const EuclideanSequencer = () => {
         synthsRef.current.tone.freqShifter = fsRef;
       }
       // Spectral send injection for tone rebuild
-      if (toneSpectralSend) {
-        const ssRef = toneSpectralSend;
+      if (_spectralSendRef) {
+        const ssRef = _spectralSendRef;
         synthsRef.current.tone.setSpectralSend = (value: number) => { ssRef.gain.rampTo(value, 0.05); };
       }
     }
