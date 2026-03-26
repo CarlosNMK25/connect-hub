@@ -3932,6 +3932,8 @@ export const EuclideanSequencer = () => {
       toneFsDirectGain.connect(toneDelaySend);
       toneFsDirectGain.connect(toneReverbSend);
       toneFsDirectGain.connect(toneSpectralSend);
+      toneFsBypassGain.connect(toneFreezeSend);
+      toneFsDirectGain.connect(toneFreezeSend);
       toneFilterRef.current = toneFilter;
       _eqHpfRef = toneEqHpf;
       _eqLpfRef = toneEqLpf;
