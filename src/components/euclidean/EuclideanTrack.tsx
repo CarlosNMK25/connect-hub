@@ -1673,6 +1673,95 @@ export const EuclideanTrack = React.memo(({
           </div>
         </div>
       )}
+      {/* Phase 8 — Kick Synthesis Controls */}
+      {id === 'kick' && samplerStatus === 'IDLE' && onPercSynthParamChange && (
+        <div className="flex items-center gap-3 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
+          <span className="text-[7px] font-mono uppercase text-idm-muted w-8 shrink-0">Kick</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[7px] font-mono text-idm-muted">PD</span>
+            <input type="range" min={1} max={50} step={1} value={Math.round((kickPitchDecay ?? 0.05) * 100)} onChange={e => onPercSynthParamChange('kickPitchDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[7px] font-mono text-idm-muted">Oct</span>
+            <input type="range" min={1} max={10} step={1} value={kickOctaves ?? 10} onChange={e => onPercSynthParamChange('kickOctaves', Number(e.target.value))} className="w-14 h-1 accent-primary" />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[7px] font-mono text-idm-muted">Dec</span>
+            <input type="range" min={10} max={100} step={1} value={Math.round((kickDecay ?? 0.4) * 100)} onChange={e => onPercSynthParamChange('kickDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
+          </div>
+          <select value={kickClickType ?? 'pink'} onChange={e => onPercSynthParamChange('kickClickType', e.target.value)} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
+            <option value="white">White</option>
+            <option value="pink">Pink</option>
+            <option value="brown">Brown</option>
+          </select>
+        </div>
+      )}
+      {/* Phase 8 — Snare Synthesis Controls */}
+      {id === 'snare' && samplerStatus === 'IDLE' && onPercSynthParamChange && (
+        <div className="flex items-center gap-3 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
+          <span className="text-[7px] font-mono uppercase text-idm-muted w-8 shrink-0">Snr</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[7px] font-mono text-idm-muted">Dec</span>
+            <input type="range" min={5} max={50} step={1} value={Math.round((snareDecay ?? 0.2) * 100)} onChange={e => onPercSynthParamChange('snareDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
+          </div>
+          <select value={snareNoiseType ?? 'white'} onChange={e => onPercSynthParamChange('snareNoiseType', e.target.value)} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
+            <option value="white">White</option>
+            <option value="pink">Pink</option>
+            <option value="brown">Brown</option>
+          </select>
+          <button onClick={() => onPercSynthParamChange('snareBodyEnabled', !(snareBodyEnabled ?? false))} className={`text-[7px] font-mono uppercase px-2 py-0.5 rounded border transition-all ${snareBodyEnabled ? 'bg-primary/10 text-primary border-primary/20' : 'bg-background text-muted-foreground border-border'}`}>
+            Body
+          </button>
+          {snareBodyEnabled && (
+            <>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[7px] font-mono text-idm-muted">Hz</span>
+                <input type="range" min={100} max={400} step={5} value={snareBodyPitch ?? 180} onChange={e => onPercSynthParamChange('snareBodyPitch', Number(e.target.value))} className="w-12 h-1 accent-primary" />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[7px] font-mono text-idm-muted">BD</span>
+                <input type="range" min={5} max={30} step={1} value={Math.round((snareBodyDecay ?? 0.1) * 100)} onChange={e => onPercSynthParamChange('snareBodyDecay', Number(e.target.value) / 100)} className="w-12 h-1 accent-primary" />
+              </div>
+            </>
+          )}
+        </div>
+      )}
+      {/* Phase 8 — Hat Synthesis Controls */}
+      {id === 'hat' && samplerStatus === 'IDLE' && onPercSynthParamChange && (
+        <div className="flex items-center gap-3 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
+          <span className="text-[7px] font-mono uppercase text-idm-muted w-8 shrink-0">Hat</span>
+          <select value={hatMode ?? 'noise'} onChange={e => onPercSynthParamChange('hatMode', e.target.value)} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
+            <option value="noise">Noise</option>
+            <option value="metal">Metal</option>
+          </select>
+          {(hatMode ?? 'noise') === 'metal' ? (
+            <>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[7px] font-mono text-idm-muted">Harm</span>
+                <input type="range" min={1} max={100} step={1} value={Math.round((hatHarmonicity ?? 5.1) * 10)} onChange={e => onPercSynthParamChange('hatHarmonicity', Number(e.target.value) / 10)} className="w-12 h-1 accent-primary" />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[7px] font-mono text-idm-muted">Mod</span>
+                <input type="range" min={1} max={100} step={1} value={hatModIndex ?? 32} onChange={e => onPercSynthParamChange('hatModIndex', Number(e.target.value))} className="w-12 h-1 accent-primary" />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[7px] font-mono text-idm-muted">Res</span>
+                <input type="range" min={100} max={8000} step={100} value={hatResonance ?? 4000} onChange={e => onPercSynthParamChange('hatResonance', Number(e.target.value))} className="w-12 h-1 accent-primary" />
+              </div>
+            </>
+          ) : (
+            <select value={hatNoiseType ?? 'white'} onChange={e => onPercSynthParamChange('hatNoiseType', e.target.value)} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
+              <option value="white">White</option>
+              <option value="pink">Pink</option>
+              <option value="brown">Brown</option>
+            </select>
+          )}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[7px] font-mono text-idm-muted">Dec</span>
+            <input type="range" min={1} max={50} step={1} value={Math.round((hatDecay ?? 0.05) * 100)} onChange={e => onPercSynthParamChange('hatDecay', Number(e.target.value) / 100)} className="w-12 h-1 accent-primary" />
+          </div>
+        </div>
+      )}
       {/* Tonal Controls */}
       {isTonal && (
         <div className="flex items-end gap-4 p-3 bg-idm-bg rounded-2xl border border-black/5 mt-2">
