@@ -1363,6 +1363,23 @@ export const EuclideanSequencer = () => {
     gr.gate.threshold = gatedThreshold;
   }, [gatedEnabled, gatedThreshold]);
 
+  // Reverse Reverb sync (Phase 9)
+  useEffect(() => {
+    const rr = reverseRef.current;
+    if (!rr) return;
+    rr.out.gain.rampTo(reverseEnabled ? 1 : 0, 0.1);
+    if (reverseEnabled) {
+      // Recreate convolver with new IR
+      const newIR = generateReverseIR(Tone.getContext().rawContext as BaseAudioContext, reverseDecay);
+      const newConvolver = new Tone.Convolver(newIR);
+      rr.bus.disconnect(rr.convolver);
+      rr.convolver.dispose();
+      rr.bus.connect(newConvolver);
+      newConvolver.connect(rr.out);
+      rr.convolver = newConvolver;
+    }
+  }, [reverseEnabled, reverseDecay]);
+
 
   const stepsKey = tracks.map(t => `${t.id}:${t.steps}`).join('|');
   const mcm = useMemo(() => {
