@@ -1113,6 +1113,7 @@ export const EuclideanSequencer = () => {
           // Restore pan and freqShift
           synthsRef.current[t.id]?.setPan?.((config as any).pan ?? 0);
           synthsRef.current[t.id]?.setFreqShift?.((config as any).freqShiftEnabled ? ((config as any).freqShift ?? 0) : 0);
+          synthsRef.current[t.id]?.setSpectralSend?.((config as any).spectralDelaySend ?? 0);
         }
         // Recalcular matrices Markov para tracks tonales
         if (t.isTonal && (t.noteMode ?? 'euclidean') === 'markov') {
