@@ -3832,8 +3832,13 @@ export const EuclideanSequencer = () => {
           eqL.frequency.rampTo(lpfFreq, 0.05);
         };
       }
+      // Pan + FreqShifter injection for tone rebuild
+      synthsRef.current.tone.setPan = (value: number) => { tonePanner.pan.rampTo(value, 0.05); };
+      synthsRef.current.tone.setFreqShift = (hz: number) => { toneFreqShifter.frequency.rampTo(hz, 0.05); };
+      synthsRef.current.tone.panner = tonePanner;
+      synthsRef.current.tone.freqShifter = toneFreqShifter;
     }
-    // Apply current volume, sends, and EQ
+    // Apply current volume, sends, EQ, pan, and freqShift
     const track = tracksRef.current.find(t => t.id === trackId);
     if (track && synthsRef.current[trackId]) {
       synthsRef.current[trackId].setVolume(track.volume);
@@ -3842,6 +3847,9 @@ export const EuclideanSequencer = () => {
       const hpf = track.eqEnabled ? (track.eqHpfFreq ?? 20) : 20;
       const lpf = track.eqEnabled ? (track.eqLpfFreq ?? 20000) : 20000;
       synthsRef.current[trackId].updateEq?.(hpf, lpf);
+      // Restore pan and freqShift
+      synthsRef.current[trackId].setPan?.(track.pan ?? 0);
+      synthsRef.current[trackId].setFreqShift?.(track.freqShiftEnabled ? (track.freqShift ?? 0) : 0);
     }
   };
 
