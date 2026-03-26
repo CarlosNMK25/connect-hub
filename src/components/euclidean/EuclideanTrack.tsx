@@ -179,6 +179,14 @@ interface EuclideanTrackProps {
   snareBodyEnabled?: boolean;
   snareBodyPitch?: number;
   snareBodyDecay?: number;
+  // ═══ Change 2: Collapse ═══
+  isExpanded: boolean;
+  onToggleExpand: () => void;
+  // ═══ Change 5: Scene slots ═══
+  activeScene: number;
+  scenes: (any | null)[];
+  // ═══ Change 3: Exclusive advanced panel ═══
+  activeAdvancedPanel?: 'RR' | 'PHD' | 'LRZ' | 'NLF' | null;
   // ═══════ UNIVERSAL CALLBACKS (stable references) ═══════
   onParamChange: (trackId: string, param: string, value: any) => void;
   onSequencerAction: (trackId: string, action: string, value?: any, value2?: any) => void;
