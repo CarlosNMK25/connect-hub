@@ -3190,6 +3190,10 @@ export const EuclideanSequencer = () => {
     let _pannerRef: Tone.Panner | null = null;
     let _freqShifterRef: Tone.FrequencyShifter | null = null;
     let _spectralSendRef: Tone.Gain | null = null;
+    let _pannerGainRef: Tone.Gain | null = null;
+    let _panner3DGainRef: Tone.Gain | null = null;
+    let _panner3DRef: Tone.Panner3D | null = null;
+    let _toneFilterRef: Tone.Filter | null = null;
     if (trackId === 'kick') {
       const kickDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const kickReverbSend = new Tone.Gain(0).connect(master.reverbBus);
