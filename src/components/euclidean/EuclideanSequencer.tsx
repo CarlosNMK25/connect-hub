@@ -155,6 +155,7 @@ interface TrackState {
   spectralDelaySend?: number; // 0-1, default 0
   // Freeze Send (Phase 9)
   freezeSend?: number; // 0-1, default 0
+  reverseSend?: number; // 0-1, default 0
   // Extreme Loop (Phase 10)
   extremeLoopEnabled?: boolean; // default false
   extremeLoopSize?: number;     // ms, 1-50, default 10
