@@ -528,6 +528,23 @@ export const EuclideanTrack = React.memo(({
   binauralEnabled,
   binauralAzimuth,
   binauralDistance,
+  // Phase 8 — Percussive Synthesis
+  kickPitchDecay,
+  kickOctaves,
+  kickDecay,
+  kickClickType,
+  hatMode,
+  hatHarmonicity,
+  hatModIndex,
+  hatResonance,
+  hatDecay,
+  hatNoiseType,
+  snareDecay,
+  snareNoiseType,
+  snareBodyEnabled,
+  snareBodyPitch,
+  snareBodyDecay,
+  onPercSynthParamChange,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
   const voice = studyVoice;
