@@ -47,6 +47,13 @@ export interface DiagnosisContext {
     kickPitchDecay?: number;
     kickOctaves?: number;
     samplerStatus?: string;
+    // Phase 9 fields
+    freezeSend?: number;
+    // Phase 10 fields
+    extremeLoopEnabled?: boolean;
+    extremeLoopSize?: number;
+    mode?: string;
+    pulseCount?: number;
   }>;
   globalState: {
     bpm: number;
