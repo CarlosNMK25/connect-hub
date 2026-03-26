@@ -1498,6 +1498,8 @@ export const EuclideanSequencer = () => {
     snareFsDirectGain.connect(snareDelaySend);
     snareFsDirectGain.connect(snareReverbSend);
     snareFsDirectGain.connect(snareSpectralSend);
+    snareFsBypassGain.connect(snareFreezeSend);
+    snareFsDirectGain.connect(snareFreezeSend);
 
     const hatDelaySend = new Tone.Gain(0).connect(delayBus);
     const hatReverbSend = new Tone.Gain(0).connect(reverbBus);
