@@ -305,4 +305,50 @@ export const PRESETS: ScenePreset[] = [
       tone: { pulses: 5, steps: 12, offset: 0, noteMode: 'markov', markovStyle: 'flamenco', markovTemperature: 25, markovAnchor: 4, rootNote: 52, scaleId: 'phrygianDominant', octaveRange: 2, noteIndices: [0, 1, 4, 3, 0, 5, 2, 4, 1, 0, 3, 2], volume: 0.65, delaySend: 0.2, reverbSend: 0.7 },
     }
   },
+
+  // --- PHASE 6C: FIELD RECORDING PRESET ---
+  {
+    id: 'field-recording',
+    name: 'Lluvia Granular',
+    type: 'master',
+    category: 'Experimental',
+    description: 'Pipeline Field Recording: carga un sample de campo y esculpe textura ambient con EQ, stretch y granular.',
+    bpm: 72,
+    jitter: 1,
+    swing: 0,
+    dynamics: 40,
+    temporalityMode: 'grid',
+    tracks: {
+      kick: { pulses: 1, steps: 16, volume: 0 },
+      snare: { pulses: 1, steps: 16, volume: 0 },
+      hat: { pulses: 1, steps: 16, volume: 0 },
+      tone: {
+        pulses: 3, steps: 16, offset: 0,
+        synthType: 'ambient',
+        rootNote: 48,
+        scaleId: 'minor',
+        octaveRange: 2,
+        stretchEnabled: true,
+        stretchRate: 0.5,
+        eqEnabled: true,
+        eqHpfFreq: 120,
+        eqLpfFreq: 6000,
+        reverbSend: 0.85,
+        delaySend: 0.3,
+        volume: 0.7,
+      },
+      cloud: {
+        pulses: 4, steps: 16, offset: 0,
+        cloudMode: 'granular',
+        grainSize: 400,
+        overlap: 0.6,
+        spray: 200,
+        eqEnabled: true,
+        eqHpfFreq: 80,
+        eqLpfFreq: 8000,
+        reverbSend: 0.9,
+        volume: 0.6,
+      },
+    }
+  },
 ];

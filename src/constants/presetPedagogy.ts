@@ -376,4 +376,26 @@ export const PRESET_PEDAGOGY: PresetPedagogyMap = {
       insight: 'La cadena de Markov no \'entiende\' el flamenco — solo maximiza ciertas transiciones sobre otras. Pero el resultado es culturalmente reconocible. Esto plantea una pregunta que la app te deja responder con los oídos: ¿es el estilo musical una propiedad de la música, o de las probabilidades de transición entre sus notas?',
     },
   },
+  'field-recording': {
+    listening: 'Un paisaje sonoro que emerge del silencio. La pista Tone usa síntesis ambient con Time Stretch a 0.5× — todo suena a la mitad de velocidad sin cambiar el pitch. Cloud granular añade textura con granos largos (400ms) y spray alto. El EQ esculpe: HPF elimina los sub-graves indeseados, LPF suaviza los agudos hasta crear una nube cálida.',
+    structure: 'Tres pistas silenciadas (Kick, Snare, Hat) dejan espacio total para las texturas. Tone en ambient con 3 pulses en 16 steps crea eventos espaciados. Cloud en granular con 4 pulses proporciona una base continua de textura. El pipeline: sample → EQ (120Hz HPF, 6kHz LPF) → Stretch (0.5×) → Reverb (85%) = ambient instantáneo.',
+    origin: 'El pipeline materializa la metodología de grabación de campo académica: capturar sonido → filtrar → procesar → componer. Los field recordists como Chris Watson o Francisco López usan exactamente esta cadena. La app la pone al alcance de un click.',
+    experiments: [
+      'Carga un sample de campo real (lluvia, tráfico, bosque) en Cloud y ajusta HPF/LPF para encontrar la zona de frecuencias que te interesa.',
+      'Mueve el Rate del Time Stretch entre 0.25× y 2.0× para encontrar la velocidad perfecta — el pitch se mantiene intacto.',
+      'Desactiva el EQ para escuchar la diferencia: sin filtrado, el sonido es crudo; con EQ, es escultura.',
+    ],
+    connections: [
+      'Chris Watson — grabación de campo como arte sonoro',
+      'Francisco López — escucha profunda y filtrado como composición',
+      'Hildegard Westerkamp — soundscape composition',
+    ],
+    listeningGuide: {
+      order: 13,
+      idmRefs: ['§7.1 Field Recording', '§8.2 Granular Synthesis', '§6C EQ Pipeline'],
+      whatToHear: 'El EQ de dos bandas (HPF + LPF) actúa como un microscopio sónico: selecciona la banda de frecuencias donde vive la textura interesante. El Time Stretch ralentiza sin alterar el tono. Juntos, transforman cualquier grabación en paisaje sonoro.',
+      experiment: 'Activa el EQ en cualquier otra pista (Kick, Snare) y observa cómo el HPF a 500Hz elimina los graves y el LPF a 2000Hz elimina los agudos. Es escultura sonora sustractiva en tiempo real.',
+      insight: 'El EQ es el filtro más antiguo y fundamental del audio — predating los sintetizadores por décadas. Aquí lo aplicamos como herramienta compositiva, no correctiva: no buscamos "arreglar" el sonido sino revelarlo.',
+    },
+  },
 };
