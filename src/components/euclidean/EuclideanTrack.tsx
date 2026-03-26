@@ -157,6 +157,7 @@ interface EuclideanTrackProps {
   freqShift?: number;
   spectralDelaySend?: number;
   freezeSend?: number;
+  reverseSend?: number;
   extremeLoopEnabled?: boolean;
   extremeLoopSize?: number;
   extremeLoopPoint?: number;
