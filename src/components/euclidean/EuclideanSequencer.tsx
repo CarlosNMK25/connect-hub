@@ -151,6 +151,8 @@ interface TrackState {
   // Frequency Shifter (Phase 7B)
   freqShiftEnabled?: boolean;
   freqShift?: number; // -500 to +500 Hz, default 0
+  // Spectral Delay Send (Phase 7C)
+  spectralDelaySend?: number; // 0-1, default 0
   hits: number;
   misses: number;
 }
