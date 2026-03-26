@@ -2790,10 +2790,14 @@ export const EuclideanSequencer = () => {
     if (trackId === 'kick') {
       const kickDelaySend = new Tone.Gain(0).connect(master.delayBus);
       const kickReverbSend = new Tone.Gain(0).connect(master.reverbBus);
-      const kickFilter = new Tone.Filter(2000, "lowpass").connect(master.compressor);
-      kickFilter.connect(kickDelaySend);
-      kickFilter.connect(kickReverbSend);
-      if (synthsRef.current.kickFollower) kickFilter.connect(synthsRef.current.kickFollower);
+      const kickEqHpf = new Tone.Filter(20, "highpass");
+      const kickEqLpf = new Tone.Filter(20000, "lowpass");
+      const kickFilter = new Tone.Filter(2000, "lowpass").connect(kickEqHpf);
+      kickEqHpf.connect(kickEqLpf);
+      kickEqLpf.connect(master.compressor);
+      kickEqLpf.connect(kickDelaySend);
+      kickEqLpf.connect(kickReverbSend);
+      if (synthsRef.current.kickFollower) kickEqLpf.connect(synthsRef.current.kickFollower);
 
       const kickBody = new Tone.MembraneSynth({
         pitchDecay: 0.05, octaves: 10, oscillator: { type: 'sine' },
