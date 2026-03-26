@@ -5872,25 +5872,31 @@ export const EuclideanSequencer = () => {
       <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-background relative z-10">
         <button
           onClick={() => setCrossfeedEnabled(!crossfeedEnabled)}
+          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('crossfeedEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
+          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
           className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
             crossfeedEnabled
               ? 'bg-system-accent text-white border-system-accent'
               : 'bg-background text-idm-muted border-border'
-          }`}
+          } ${isStudyMode ? 'cursor-help' : ''}`}
           title="Envelope Crossfeed — Cloud modula Tone"
         >XFD</button>
         <span className="text-[8px] font-mono text-idm-muted">Cloud → Tone</span>
         {crossfeedEnabled && (
           <div className="flex items-center gap-3 ml-auto">
-            <div className="flex items-center gap-1">
-              <span className="text-[7px] font-mono text-idm-muted">Base</span>
+            <div className="flex items-center gap-1"
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('crossfeedBase'); setHoveredGlobalEl(e.currentTarget); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>Base</span>
               <input type="range" min={200} max={2000} step={50} value={crossfeedBase}
                 onChange={e => setCrossfeedBase(Number(e.target.value))}
                 className="w-12 h-[7px] accent-system-accent" />
               <span className="text-[6px] font-mono text-idm-muted">{crossfeedBase}Hz</span>
             </div>
-            <div className="flex items-center gap-1">
-              <span className="text-[7px] font-mono text-idm-muted">Depth</span>
+            <div className="flex items-center gap-1"
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('crossfeedDepth'); setHoveredGlobalEl(e.currentTarget); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              <span className={`text-[7px] font-mono text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}>Depth</span>
               <input type="range" min={0} max={8000} step={200} value={crossfeedDepth}
                 onChange={e => setCrossfeedDepth(Number(e.target.value))}
                 className="w-12 h-[7px] accent-system-accent" />
