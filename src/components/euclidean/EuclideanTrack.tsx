@@ -1676,6 +1676,7 @@ export const EuclideanTrack = React.memo(({
             <div className="space-y-2">
               <div className="flex gap-2">
                 <button 
+                  onMouseEnter={(e) => handleParamEnter('oneShotMode', e)} onMouseLeave={handleParamLeave}
                   onClick={() => {
                     const hasSample = samplerStatus === 'READY';
                     const cycle = hasSample
