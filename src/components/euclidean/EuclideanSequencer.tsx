@@ -1654,16 +1654,23 @@ export const EuclideanSequencer = () => {
       synthsRef.current.snare.nestedLfoInstance = null;
     };
 
-    const hatSynth = new Tone.NoiseSynth({
-      noise: { type: 'white' },
+    let hatSynth: Tone.NoiseSynth | null = new Tone.NoiseSynth({
+      noise: { type: 'white' as any },
       envelope: { attack: 0.001, decay: 0.05, sustain: 0 },
       volume: -2
     }).connect(hatFilter);
+    let hatMetalSynth: Tone.MetalSynth | null = null;
+    let currentHatMode = 'noise';
 
     synthsRef.current.hat = {
       triggerAttackRelease: (duration: string, time: number, velocity: number) => {
-        hatSynth.triggerAttackRelease(duration, time, velocity);
-        // Dynamic Timbre: Brighter = Higher Highpass Cutoff
+        if (currentHatMode === 'metal' && hatMetalSynth) {
+          const trackState = tracksRef.current.find(t => t.id === 'hat');
+          const decay = trackState?.hatDecay ?? 0.05;
+          hatMetalSynth.triggerAttackRelease(200, decay, time, velocity);
+        } else if (hatSynth) {
+          hatSynth.triggerAttackRelease(duration, time, velocity);
+        }
         const baseCutoff = 2000;
         const dynamicCutoff = baseCutoff + (velocity * 8000);
         if (isFinite(dynamicCutoff)) {
@@ -1671,14 +1678,17 @@ export const EuclideanSequencer = () => {
         }
       },
       setVolume: (vol: number) => {
-        hatSynth.volume.rampTo(Tone.gainToDb(vol) - 2, 0.05);
+        const db = Tone.gainToDb(vol) - 2;
+        if (hatSynth) hatSynth.volume.rampTo(db, 0.05);
+        if (hatMetalSynth) hatMetalSynth.volume.rampTo(db, 0.05);
       },
       setSends: (delayVal: number, reverbVal: number) => {
         hatDelaySend.gain.rampTo(delayVal, 0.05);
         hatReverbSend.gain.rampTo(reverbVal, 0.05);
       },
       dispose: () => {
-        hatSynth.dispose();
+        hatSynth?.dispose();
+        hatMetalSynth?.dispose();
         hatFilter.dispose();
         hatEqHpf.dispose();
         hatEqLpf.dispose();
@@ -1692,6 +1702,41 @@ export const EuclideanSequencer = () => {
         hatDelaySend.dispose();
         hatReverbSend.dispose();
         hatSpectralSend.dispose();
+      }
+    };
+    // Phase 8 — Hat mode switcher + params
+    synthsRef.current.hat.setHatMode = (mode: string, harmonicity: number, modIndex: number, resonance: number, decay: number, noiseType: string) => {
+      if (mode === 'metal' && currentHatMode !== 'metal') {
+        hatSynth?.dispose();
+        hatSynth = null;
+        hatMetalSynth = new Tone.MetalSynth({
+          harmonicity, modulationIndex: modIndex, resonance,
+          envelope: { attack: 0.001, decay, release: 0.1 },
+          volume: -2
+        }).connect(hatFilter);
+        currentHatMode = 'metal';
+      } else if (mode === 'noise' && currentHatMode !== 'noise') {
+        hatMetalSynth?.dispose();
+        hatMetalSynth = null;
+        hatSynth = new Tone.NoiseSynth({
+          noise: { type: noiseType as any },
+          envelope: { attack: 0.001, decay, sustain: 0 },
+          volume: -2
+        }).connect(hatFilter);
+        currentHatMode = 'noise';
+      } else if (mode === 'metal' && hatMetalSynth) {
+        hatMetalSynth.set({ harmonicity, modulationIndex: modIndex, resonance, envelope: { decay } });
+      } else if (mode === 'noise' && hatSynth) {
+        hatSynth.envelope.decay = decay;
+        const curType = (hatSynth as any).noise?.type || 'white';
+        if (noiseType !== curType) {
+          hatSynth.dispose();
+          hatSynth = new Tone.NoiseSynth({
+            noise: { type: noiseType as any },
+            envelope: { attack: 0.001, decay, sustain: 0 },
+            volume: -2
+          }).connect(hatFilter);
+        }
       }
     };
     synthsRef.current.hat.updateEq = (hpfFreq: number, lpfFreq: number) => {
