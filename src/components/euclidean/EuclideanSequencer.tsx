@@ -3488,18 +3488,27 @@ export const EuclideanSequencer = () => {
       const hatPannerGain = new Tone.Gain(1);
       const hatPanner3DGain = new Tone.Gain(0);
       const hatFreqShifter = new Tone.FrequencyShifter(0);
+      const hatFsBypassGain = new Tone.Gain(0);
+      const hatFsDirectGain = new Tone.Gain(1);
       const hatFilter = new Tone.Filter(5000, "highpass").connect(hatEqHpf);
       hatEqHpf.connect(hatEqLpf);
       hatEqLpf.connect(hatPannerGain);
       hatEqLpf.connect(hatPanner3DGain);
       hatPannerGain.connect(hatPanner);
       hatPanner3DGain.connect(hatPanner3D);
-      hatPanner.connect(hatFreqShifter);
-      hatPanner3D.connect(hatFreqShifter);
+      hatPanner.connect(hatFsBypassGain);
+      hatPanner3D.connect(hatFsBypassGain);
+      hatFsBypassGain.connect(hatFreqShifter);
       hatFreqShifter.connect(master.compressor);
       hatFreqShifter.connect(hatDelaySend);
       hatFreqShifter.connect(hatReverbSend);
       hatFreqShifter.connect(hatSpectralSend);
+      hatPanner.connect(hatFsDirectGain);
+      hatPanner3D.connect(hatFsDirectGain);
+      hatFsDirectGain.connect(master.compressor);
+      hatFsDirectGain.connect(hatDelaySend);
+      hatFsDirectGain.connect(hatReverbSend);
+      hatFsDirectGain.connect(hatSpectralSend);
 
       const hatSynth = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.001, decay: 0.05, sustain: 0 }, volume: -2 }).connect(hatFilter);
       synthsRef.current.hat = {
@@ -3513,12 +3522,19 @@ export const EuclideanSequencer = () => {
         dispose: () => {
           hatSynth.dispose(); hatFilter.dispose(); hatEqHpf.dispose(); hatEqLpf.dispose();
           hatPanner.dispose(); hatPanner3D.dispose(); hatPannerGain.dispose(); hatPanner3DGain.dispose();
-          hatFreqShifter.dispose(); hatDelaySend.dispose(); hatReverbSend.dispose(); hatSpectralSend.dispose();
+          hatFreqShifter.dispose(); hatFsBypassGain.dispose(); hatFsDirectGain.dispose();
+          hatDelaySend.dispose(); hatReverbSend.dispose(); hatSpectralSend.dispose();
         }
       };
       synthsRef.current.hat.updateEq = (hpfFreq: number, lpfFreq: number) => { hatEqHpf.frequency.rampTo(hpfFreq, 0.05); hatEqLpf.frequency.rampTo(lpfFreq, 0.05); };
       synthsRef.current.hat.setPan = (value: number) => { hatPanner.pan.rampTo(value, 0.05); };
-      synthsRef.current.hat.setFreqShift = (hz: number) => { hatFreqShifter.frequency.rampTo(hz, 0.05); };
+      synthsRef.current.hat.setFreqShift = (hz: number, enabled?: boolean) => {
+        hatFreqShifter.frequency.rampTo(hz, 0.05);
+        if (enabled !== undefined) {
+          hatFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
+          hatFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
+        }
+      };
       synthsRef.current.hat.panner = hatPanner;
       synthsRef.current.hat.freqShifter = hatFreqShifter;
       synthsRef.current.hat.setSpectralSend = (value: number) => { hatSpectralSend.gain.rampTo(value, 0.05); };
