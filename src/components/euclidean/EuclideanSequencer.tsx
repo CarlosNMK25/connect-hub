@@ -2413,12 +2413,16 @@ export const EuclideanSequencer = () => {
         delaySend.gain.rampTo(delayVal, 0.05);
         reverbSend.gain.rampTo(reverbVal, 0.05);
       };
+      synthObj.setSpectralSend = (value: number) => {
+        spectralSend.gain.rampTo(value, 0.05);
+      };
       
       // Update initial sends and volume
       const track = tracksRef.current.find(t => t.id === trackId);
       if (track) {
         synthObj.setVolume(track.volume);
         synthObj.setSends(track.delaySend, track.reverbSend);
+        synthObj.setSpectralSend(track.spectralDelaySend ?? 0);
       }
 
       // If Cloud in Eno mode, initialize Eno engine after GrainPlayer setup
