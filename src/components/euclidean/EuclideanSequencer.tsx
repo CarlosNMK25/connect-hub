@@ -2931,6 +2931,7 @@ export const EuclideanSequencer = () => {
         synthObj.setVolume(track.volume);
         synthObj.setSends(track.delaySend, track.reverbSend);
         synthObj.setSpectralSend(track.spectralDelaySend ?? 0);
+        synthObj.setFreezeSend(track.freezeSend ?? 0);
       }
 
       // If Cloud in Eno mode, initialize Eno engine after GrainPlayer setup
