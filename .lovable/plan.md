@@ -27,10 +27,16 @@
 - 13 refs internos movidos: caState, caEvolveCycle, pendingCA, pendingMutations, rrNoteIndex, markovLast/Anchor/Matrix/Notes, driftAccumulator, sliceBoundaries
 - Build limpio, sin errores nuevos
 
-## Paso 4: `useAudioEngine` — PENDIENTE (ALTO RIESGO)
-- useEffect de inicialización (~884 líneas) + initializeOriginalSynth (~1670 líneas)
-- Todos los refs de audio + sync effects
-- Dependencia: tracksRef, tracks (para sync effects)
+## Paso 4: `audioRouting.ts` + deduplicación de `initializeOriginalSynth` ✅ COMPLETADO (Fase A)
+- Creado `src/utils/audioRouting.ts` (~253 líneas) con:
+  - `createTrackRouting()`: factory que crea la cadena Filter→EQ→Panner→FreqShifter→Compressor+Sends
+  - `injectCommonMethods()`: inyecta updateEq, setPan, setFreqShift, switchBinaural, updateBinaural, updateLorenz, nestedLfo en synthsRef
+  - `restoreTrackState()`: restaura volumen, sends, EQ, pan, binaural tras rebuild
+  - `createNestedLfo()`: extraído del monolito como utilidad pura
+- `initializeOriginalSynth` refactorizado de ~1240 líneas a ~250 líneas usando la factory
+- Monolito reducido de 5156 a 4242 líneas (-914 líneas, -18%)
+- Build limpio TypeScript
+- **Pendiente Fase B**: extraer init useEffect + sync effects a `useAudioEngine` hook (el init useEffect aún usa cadenas manuales — puede refactorizarse con la factory en una segunda pasada)
 
 ## Paso 5: `useSequencer` — PENDIENTE
 - Tone.Loop (~361 líneas), togglePlay, handlePhaseSync
