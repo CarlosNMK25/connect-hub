@@ -5770,34 +5770,36 @@ export const EuclideanSequencer = () => {
                         <button
                           key={fx.id}
                           onClick={() => {
-                            const newEnabled = !fx.enabled;
-                            fx.setEnabled(newEnabled);
-                            if (newEnabled) {
-                              setActiveFxPanel(fx.id);
-                            } else if (activeFxPanel === fx.id) {
-                              setActiveFxPanel(null);
-                            }
+                            setActiveFxPanel(activeFxPanel === fx.id ? null : fx.id);
                           }}
                           onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam(fx.id === 'GRV' ? 'gatedEnabled' : fx.id === 'RVR' ? 'reverseEnabled' : fx.id === 'FRZ' ? 'freezeEnabled' : fx.id === 'XFD' ? 'crossfeedEnabled' : 'spectralDelayEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
                           onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
                           className={`text-[8px] font-mono px-2 py-1 rounded border transition-colors ${
-                            fx.enabled
+                            activeFxPanel === fx.id
                               ? 'bg-system-accent text-white border-system-accent'
-                              : 'bg-background text-idm-muted border-border hover:border-system-accent'
-                          } ${activeFxPanel === fx.id ? 'ring-1 ring-system-accent/50' : ''}`}
+                              : fx.enabled
+                                ? 'bg-system-accent/20 text-system-accent border-system-accent/50'
+                                : 'bg-background text-idm-muted border-border hover:border-system-accent'
+                          }`}
                           title={fx.title}
                         >
                           {fx.label}
+                          {fx.enabled && <span className="ml-0.5 inline-block w-1 h-1 rounded-full bg-orange-400 align-middle" />}
                         </button>
                       ))}
                     </div>
 
                     {/* Shared param zone */}
                     <AnimatePresence mode="wait">
-                      {activeFxPanel === 'GRV' && gatedEnabled && (
+                      {activeFxPanel === 'GRV' && (
                         <motion.div key="grv" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }}
                           className="flex flex-col gap-2 p-3 border border-border rounded-lg bg-background overflow-hidden">
-                          <span className="text-[8px] font-mono text-idm-muted uppercase">Gated Reverb</span>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[8px] font-mono text-idm-muted uppercase">Gated Reverb</span>
+                            <button onClick={() => setGatedEnabled(!gatedEnabled)} className={`w-6 h-3 rounded-full transition-colors ${gatedEnabled ? 'bg-orange-400' : 'bg-muted'}`}>
+                              <span className={`block w-2.5 h-2.5 rounded-full bg-white shadow transition-transform ${gatedEnabled ? 'translate-x-3' : 'translate-x-0.5'}`} />
+                            </button>
+                          </div>
                           <div className="flex items-center gap-2">
                             <span className="text-[8px] font-mono text-idm-muted w-6">Thr</span>
                             <input type="range" min={-60} max={-10} step={1} value={gatedThreshold}
@@ -5807,10 +5809,15 @@ export const EuclideanSequencer = () => {
                           </div>
                         </motion.div>
                       )}
-                      {activeFxPanel === 'RVR' && reverseEnabled && (
+                      {activeFxPanel === 'RVR' && (
                         <motion.div key="rvr" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }}
                           className="flex flex-col gap-2 p-3 border border-border rounded-lg bg-background overflow-hidden">
-                          <span className="text-[8px] font-mono text-idm-muted uppercase">Reverse Reverb</span>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[8px] font-mono text-idm-muted uppercase">Reverse Reverb</span>
+                            <button onClick={() => setReverseEnabled(!reverseEnabled)} className={`w-6 h-3 rounded-full transition-colors ${reverseEnabled ? 'bg-orange-400' : 'bg-muted'}`}>
+                              <span className={`block w-2.5 h-2.5 rounded-full bg-white shadow transition-transform ${reverseEnabled ? 'translate-x-3' : 'translate-x-0.5'}`} />
+                            </button>
+                          </div>
                           <div className="flex items-center gap-2">
                             <span className="text-[8px] font-mono text-idm-muted w-10">Decay</span>
                             <input type="range" min={0.5} max={4} step={0.1} value={reverseDecay}
@@ -5820,10 +5827,15 @@ export const EuclideanSequencer = () => {
                           </div>
                         </motion.div>
                       )}
-                      {activeFxPanel === 'FRZ' && freezeEnabled && (
+                      {activeFxPanel === 'FRZ' && (
                         <motion.div key="frz" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }}
                           className="flex flex-col gap-2 p-3 border border-border rounded-lg bg-background overflow-hidden">
-                          <span className="text-[8px] font-mono text-idm-muted uppercase">Freeze</span>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[8px] font-mono text-idm-muted uppercase">Freeze</span>
+                            <button onClick={() => setFreezeEnabled(!freezeEnabled)} className={`w-6 h-3 rounded-full transition-colors ${freezeEnabled ? 'bg-orange-400' : 'bg-muted'}`}>
+                              <span className={`block w-2.5 h-2.5 rounded-full bg-white shadow transition-transform ${freezeEnabled ? 'translate-x-3' : 'translate-x-0.5'}`} />
+                            </button>
+                          </div>
                           <div className="flex items-center gap-2">
                             <span className="text-[8px] font-mono text-idm-muted w-6">FB</span>
                             <input type="range" min={0.5} max={0.99} step={0.01} value={freezeFeedback}
@@ -5840,10 +5852,15 @@ export const EuclideanSequencer = () => {
                           </div>
                         </motion.div>
                       )}
-                      {activeFxPanel === 'XFD' && crossfeedEnabled && (
+                      {activeFxPanel === 'XFD' && (
                         <motion.div key="xfd" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }}
                           className="flex flex-col gap-2 p-3 border border-border rounded-lg bg-background overflow-hidden">
-                          <span className="text-[8px] font-mono text-idm-muted uppercase">Cloud → Tone</span>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[8px] font-mono text-idm-muted uppercase">Cloud → Tone</span>
+                            <button onClick={() => setCrossfeedEnabled(!crossfeedEnabled)} className={`w-6 h-3 rounded-full transition-colors ${crossfeedEnabled ? 'bg-orange-400' : 'bg-muted'}`}>
+                              <span className={`block w-2.5 h-2.5 rounded-full bg-white shadow transition-transform ${crossfeedEnabled ? 'translate-x-3' : 'translate-x-0.5'}`} />
+                            </button>
+                          </div>
                           <div className="flex items-center gap-2">
                             <span className="text-[8px] font-mono text-idm-muted w-10">Base</span>
                             <input type="range" min={200} max={2000} step={50} value={crossfeedBase}
@@ -5860,10 +5877,15 @@ export const EuclideanSequencer = () => {
                           </div>
                         </motion.div>
                       )}
-                      {activeFxPanel === 'SDLY' && spectralDelayEnabled && (
+                      {activeFxPanel === 'SDLY' && (
                         <motion.div key="sdly" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }}
                           className="flex flex-col gap-2 p-3 border border-border rounded-lg bg-background overflow-hidden">
-                          <span className="text-[8px] font-mono text-idm-muted uppercase">Spectral Delay</span>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[8px] font-mono text-idm-muted uppercase">Spectral Delay</span>
+                            <button onClick={() => setSpectralDelayEnabled(!spectralDelayEnabled)} className={`w-6 h-3 rounded-full transition-colors ${spectralDelayEnabled ? 'bg-orange-400' : 'bg-muted'}`}>
+                              <span className={`block w-2.5 h-2.5 rounded-full bg-white shadow transition-transform ${spectralDelayEnabled ? 'translate-x-3' : 'translate-x-0.5'}`} />
+                            </button>
+                          </div>
                           <div className="flex items-center gap-2">
                             <span className="text-[8px] font-mono text-idm-muted w-8">Wet</span>
                             <input type="range" min={0} max={1} step={0.05} value={spectralDelayWet}
