@@ -18,7 +18,8 @@ import { lcmArray, calculateLcmImpact } from '../../utils/math';
 import { evaluateDiagnosis, computeMcm, computeEclipseTime, type DiagnosisContext, type DiagnosisInsight } from '../../utils/diagnosis';
 import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
-import { UserPreset, loadUserPresets, saveUserPresets, exportPresetAsJson, importPresetFromFile, userPresetToScenePreset } from '../../utils/userPresets';
+import { UserPreset, userPresetToScenePreset, exportPresetAsJson } from '../../utils/userPresets';
+import { usePresetManager } from '../../hooks/usePresetManager';
 import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../../utils/temporality';
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals, getScaleDetune, midiAndDetuneToFreq, noteIndexToFreq, isNonOctaveScale } from '../../utils/scales';
 import { buildWavefoldCurve, vactrolfiltFreq } from '../../utils/waveshaping';
@@ -417,7 +418,6 @@ export const EuclideanSequencer = () => {
   } = usePedagogy();
   const [globalStep, setGlobalStep] = useState(0);
   const [lastHit, setLastHit] = useState<{ offset: number; color: string; velocity: number; id?: number } | null>(null);
-  const [hoveredPreset, setHoveredPreset] = useState<ScenePreset | null>(null);
   const [eclipseFlash, setEclipseFlash] = useState(false);
   const eclipseRef = useRef(false);
   const [syncAnalysisOpen, setSyncAnalysisOpen] = useState(false);
@@ -427,15 +427,9 @@ export const EuclideanSequencer = () => {
   const phaseBufferHeadRef = useRef(0);
   const [showEngine, setShowEngine] = useState(false);
   const [showPatternSpace, setShowPatternSpace] = useState(false);
-  const [activePresetId, setActivePresetId] = useState<string | null>(null);
   const engineLogRef = useRef<LogEntry[]>([]);
   const [engineLog, setEngineLog] = useState<LogEntry[]>([]);
   const sliderDragRef = useRef<{ [key: string]: { value: number; timer: ReturnType<typeof setTimeout> | null } }>({});
-  const [userPresets, setUserPresets] = useState<UserPreset[]>(() => loadUserPresets());
-  const [isSavingPreset, setIsSavingPreset] = useState(false);
-  const [newPresetName, setNewPresetName] = useState('');
-  const [importError, setImportError] = useState<string | null>(null);
-  const importInputRef = useRef<HTMLInputElement>(null);
   const [temporalityMode, setTemporalityMode] = useState<TemporalityMode>('grid');
   const temporalityModeRef = useRef<TemporalityMode>('grid');
   useEffect(() => { temporalityModeRef.current = temporalityMode; }, [temporalityMode]);
@@ -883,479 +877,8 @@ export const EuclideanSequencer = () => {
     }
   }, [fxHighPass, fxLowPass]);
 
-  const previewPatterns = useMemo(() => {
-    if (!hoveredPreset) return null;
-    const previews: Record<string, number[]> = {};
-    
-    if (hoveredPreset.type === 'master' && hoveredPreset.tracks) {
-      Object.entries(hoveredPreset.tracks).forEach(([id, config]) => {
-        const track = tracks.find(t => t.id === id);
-        if (track) {
-          const trackConfig = config as TrackPreset;
-          const steps = trackConfig.steps ?? track.steps;
-          const pulses = trackConfig.pulses ?? track.pulses;
-          const offset = trackConfig.offset ?? track.offset;
-          previews[id] = rotate(bjorklund(pulses, steps), offset);
-        }
-      });
-    } else if (hoveredPreset.type === 'atomic' && hoveredPreset.config) {
-      // For atomic presets, show the preview on all tracks to visualize geometry
-      const { pulses, steps, offset } = hoveredPreset.config;
-      const pattern = rotate(bjorklund(pulses || 0, steps || 16), offset || 0);
-      tracks.forEach(track => {
-        previews[track.id] = pattern;
-      });
-    }
-    
-    return previews;
-  }, [hoveredPreset, tracks]);
 
-  const applyPreset = (preset: ScenePreset) => {
-    setActivePresetId(preset.id);
-    if (preset.type === 'master' && preset.tracks) {
-      // Compute MCM for the new preset
-      const newSteps = Object.entries(preset.tracks)
-        .filter(([id]) => id !== 'cloud')
-        .map(([id, config]) => {
-          const tc = config as TrackPreset;
-          const t = tracks.find(tr => tr.id === id);
-          return tc.steps ?? t?.steps ?? 16;
-        });
-      const newMcm = newSteps.length > 0 ? lcmArray(newSteps) : mcm;
-      const deltas = [`MCM:${newMcm}`];
-      if (preset.bpm) deltas.push(`BPM:${preset.bpm}`);
-      logChange(`Preset: ${preset.name}`, deltas);
 
-      if (preset.bpm) setBpm(preset.bpm);
-      setMmHistory([]);
-      
-      // Macro Interpolation (50ms ramp)
-      if (preset.jitter !== undefined) setJitter(preset.jitter);
-      if (preset.swing !== undefined) setSwing(preset.swing);
-      if (preset.dynamics !== undefined) setDynamics(preset.dynamics);
-
-      // Temporality mode: reset to grid for presets that don't specify
-      if (preset.temporalityMode) {
-        setTemporalityMode(preset.temporalityMode as TemporalityMode);
-      } else {
-        setTemporalityMode('grid');
-      }
-
-      setTracks(prev => prev.map(t => {
-        const config = preset.tracks![t.id];
-        if (!config) return t;
-
-        let newTrack = { ...t };
-        if (config.steps !== undefined) newTrack.steps = config.steps;
-        if (config.pulses !== undefined) newTrack.pulses = config.pulses;
-        if (config.offset !== undefined) newTrack.offset = config.offset;
-
-        // Ratchet
-        if (config.ratchet !== undefined) newTrack.ratchet = config.ratchet;
-
-        // Chaos
-        if (config.chaosEnabled !== undefined) newTrack.chaosEnabled = config.chaosEnabled;
-        else newTrack.chaosEnabled = false;
-        if (config.entropy !== undefined) newTrack.entropy = config.entropy;
-
-        // Evolve
-        if (config.evolveEnabled !== undefined) newTrack.evolveEnabled = config.evolveEnabled;
-        else newTrack.evolveEnabled = false;
-        if (config.mutationRate !== undefined) newTrack.mutationRate = config.mutationRate;
-        if (config.mutationSpeed !== undefined) newTrack.mutationSpeed = config.mutationSpeed;
-
-        // Base probability → fill all steps
-        if (config.baseProbability !== undefined) {
-          newTrack.probabilities = new Array(64).fill(config.baseProbability);
-        }
-
-        // Volume & sends
-        if (config.volume !== undefined) newTrack.volume = config.volume;
-        if (config.delaySend !== undefined) newTrack.delaySend = config.delaySend;
-        if (config.reverbSend !== undefined) newTrack.reverbSend = config.reverbSend;
-        if (config.pan !== undefined) newTrack.pan = config.pan;
-        if (config.freqShiftEnabled !== undefined) newTrack.freqShiftEnabled = config.freqShiftEnabled;
-        if (config.freqShift !== undefined) newTrack.freqShift = config.freqShift;
-        if ((config as any).spectralDelaySend !== undefined) newTrack.spectralDelaySend = (config as any).spectralDelaySend;
-        if ((config as any).freezeSend !== undefined) newTrack.freezeSend = (config as any).freezeSend;
-        if ((config as any).reverseSend !== undefined) newTrack.reverseSend = (config as any).reverseSend;
-        if ((config as any).extremeLoopEnabled !== undefined) newTrack.extremeLoopEnabled = (config as any).extremeLoopEnabled;
-        if ((config as any).extremeLoopSize !== undefined) newTrack.extremeLoopSize = (config as any).extremeLoopSize;
-        if ((config as any).extremeLoopPoint !== undefined) newTrack.extremeLoopPoint = (config as any).extremeLoopPoint;
-
-        // Tonal fields
-        if (config.rootNote !== undefined) newTrack.rootNote = config.rootNote;
-        if (config.scaleId !== undefined) newTrack.scaleId = config.scaleId;
-        if (config.octaveRange !== undefined) newTrack.octaveRange = config.octaveRange;
-        if (config.noteIndices !== undefined) newTrack.noteIndices = [...config.noteIndices];
-        
-        // Phase 8 — Percussive Synthesis fields
-        if (config.kickPitchDecay !== undefined) newTrack.kickPitchDecay = config.kickPitchDecay;
-        if (config.kickOctaves !== undefined) newTrack.kickOctaves = config.kickOctaves;
-        if (config.kickDecay !== undefined) newTrack.kickDecay = config.kickDecay;
-        if (config.kickClickType !== undefined) newTrack.kickClickType = config.kickClickType;
-        if (config.hatMode !== undefined) newTrack.hatMode = config.hatMode;
-        if (config.hatHarmonicity !== undefined) newTrack.hatHarmonicity = config.hatHarmonicity;
-        if (config.hatModIndex !== undefined) newTrack.hatModIndex = config.hatModIndex;
-        if (config.hatResonance !== undefined) newTrack.hatResonance = config.hatResonance;
-        if (config.hatDecay !== undefined) newTrack.hatDecay = config.hatDecay;
-        if (config.hatNoiseType !== undefined) newTrack.hatNoiseType = config.hatNoiseType;
-        if (config.snareDecay !== undefined) newTrack.snareDecay = config.snareDecay;
-        if (config.snareNoiseType !== undefined) newTrack.snareNoiseType = config.snareNoiseType;
-        if (config.snareBodyEnabled !== undefined) newTrack.snareBodyEnabled = config.snareBodyEnabled;
-        if (config.snareBodyPitch !== undefined) newTrack.snareBodyPitch = config.snareBodyPitch;
-        if (config.snareBodyDecay !== undefined) newTrack.snareBodyDecay = config.snareBodyDecay;
-
-        // Reset counters for fresh start
-        newTrack.hits = 0;
-        newTrack.misses = 0;
-
-        return updateTrackPattern(newTrack);
-      }));
-    }
-  };
-
-  const injectPattern = (trackId: string, config: TrackPreset) => {
-    setTracks(prev => prev.map(t => {
-      if (t.id !== trackId) return t;
-      
-      let newTrack = { ...t };
-      if (config.steps !== undefined) newTrack.steps = config.steps;
-      if (config.pulses !== undefined) newTrack.pulses = config.pulses;
-      if (config.offset !== undefined) newTrack.offset = config.offset;
-      
-      // Reset counters for the injected track
-      newTrack.hits = 0;
-      newTrack.misses = 0;
-      
-      return updateTrackPattern(newTrack);
-    }));
-  };
-
-  // === User Presets ===
-  const captureCurrentConfig = useCallback((name: string): UserPreset => {
-    return {
-      id: crypto.randomUUID(),
-      name,
-      createdAt: new Date().toISOString(),
-      bpm, jitter, swing, dynamics, temporalityMode,
-      tracks: Object.fromEntries(
-        tracks.map(t => [t.id, {
-          pulses: t.pulses, steps: t.steps, offset: t.offset,
-          probabilities: [...t.probabilities],
-          chaosEnabled: t.chaosEnabled, entropy: t.entropy,
-          evolveEnabled: t.evolveEnabled, mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed,
-          volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend, ratchet: t.ratchet,
-          ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices], synthType: t.synthType, fmRatio: t.fmRatio, fmIndex: t.fmIndex, wfAmount: t.wfAmount, wfSymmetry: t.wfSymmetry, addPartials: t.addPartials, addBrightness: t.addBrightness, arRate: t.arRate, arDepth: t.arDepth, padVoices: t.padVoices, padDetune: t.padDetune, padAttack: t.padAttack, droneFeedback: t.droneFeedback, droneFilterFreq: t.droneFilterFreq, ksDecay: t.ksDecay, ksBrightness: t.ksBrightness, modalBody: t.modalBody, modalDecay: t.modalDecay, ambientVolume: t.ambientVolume, ambientSpeed: t.ambientSpeed } : {}),
-          ...(t.id === 'cloud' ? { cloudMode: t.cloudMode, enoSpeed: t.enoSpeed } : {}),
-          rrEnabled: t.rrEnabled,
-          rrAmount: t.rrAmount,
-          driftEnabled: t.driftEnabled,
-          driftRate: t.driftRate,
-          // Markov
-          noteMode: t.noteMode,
-          markovStyle: t.markovStyle,
-          markovTemperature: t.markovTemperature,
-          markovMemory: t.markovMemory,
-          markovAnchor: t.markovAnchor,
-          // Pattern mode
-          patternMode: t.patternMode,
-          lsSeed: t.lsSeed,
-          lsRuleA: t.lsRuleA,
-          lsIterations: t.lsIterations,
-          lsRotation: t.lsRotation,
-          caRule: t.caRule,
-          caSeed: t.caSeed,
-          caDensity: t.caDensity,
-          caSpeed: t.caSpeed,
-          // Layer 2 (solo parámetros, no buffer)
-          layer2Filename: t.layer2Filename,
-          layer2Blend: t.layer2Blend,
-          layer2Pitch: t.layer2Pitch,
-          layer2Offset: t.layer2Offset,
-          layer2FilterFreq: t.layer2FilterFreq,
-          layer2Reverse: t.layer2Reverse,
-          layer2StretchEnabled: t.layer2StretchEnabled,
-          layer2StretchRate: t.layer2StretchRate,
-          // Lorenz + Nested LFO
-          lorenzEnabled: t.lorenzEnabled,
-          lorenzDepth: t.lorenzDepth,
-          lorenzTarget: t.lorenzTarget,
-          lorenzSpeed: t.lorenzSpeed,
-          nestedLfoEnabled: t.nestedLfoEnabled,
-          nestedLfoRate1: t.nestedLfoRate1,
-          nestedLfoRate2: t.nestedLfoRate2,
-          nestedLfoDepth: t.nestedLfoDepth,
-          // Slicer
-          slicerEnabled: t.slicerEnabled,
-          sliceCount: t.sliceCount,
-          // Time Stretch
-          stretchEnabled: t.stretchEnabled,
-          stretchRate: t.stretchRate,
-          // EQ
-          eqEnabled: t.eqEnabled,
-          eqHpfFreq: t.eqHpfFreq,
-          eqLpfFreq: t.eqLpfFreq,
-          pan: t.pan,
-          freqShiftEnabled: t.freqShiftEnabled,
-          freqShift: t.freqShift,
-          spectralDelaySend: t.spectralDelaySend,
-          mode: t.mode,
-          freezeSend: t.freezeSend,
-          reverseSend: t.reverseSend,
-          extremeLoopEnabled: t.extremeLoopEnabled,
-          extremeLoopSize: t.extremeLoopSize,
-          extremeLoopPoint: t.extremeLoopPoint,
-          binauralEnabled: t.binauralEnabled,
-          binauralAzimuth: t.binauralAzimuth,
-          binauralDistance: t.binauralDistance,
-          // Phase 8 — Percussive Synthesis
-          ...(t.id === 'kick' ? { kickPitchDecay: t.kickPitchDecay, kickOctaves: t.kickOctaves, kickDecay: t.kickDecay, kickClickType: t.kickClickType } : {}),
-          ...(t.id === 'hat' ? { hatMode: t.hatMode, hatHarmonicity: t.hatHarmonicity, hatModIndex: t.hatModIndex, hatResonance: t.hatResonance, hatDecay: t.hatDecay, hatNoiseType: t.hatNoiseType } : {}),
-          ...(t.id === 'snare' ? { snareDecay: t.snareDecay, snareNoiseType: t.snareNoiseType, snareBodyEnabled: t.snareBodyEnabled, snareBodyPitch: t.snareBodyPitch, snareBodyDecay: t.snareBodyDecay } : {}),
-        }])
-      ),
-    };
-  }, [bpm, jitter, swing, dynamics, temporalityMode, tracks]);
-
-  const handleSaveUserPreset = useCallback(() => {
-    if (!newPresetName.trim()) return;
-    const preset = captureCurrentConfig(newPresetName.trim());
-    const updated = [...userPresets, preset];
-    setUserPresets(updated);
-    saveUserPresets(updated);
-    setNewPresetName('');
-    setIsSavingPreset(false);
-    logChange(`User Preset guardado: ${preset.name}`);
-  }, [newPresetName, captureCurrentConfig, userPresets, logChange]);
-
-  const handleDeleteUserPreset = useCallback((id: string) => {
-    const updated = userPresets.filter(p => p.id !== id);
-    setUserPresets(updated);
-    saveUserPresets(updated);
-  }, [userPresets]);
-
-  const handleExportCurrent = useCallback(() => {
-    const preset = captureCurrentConfig('current-config');
-    exportPresetAsJson(preset);
-  }, [captureCurrentConfig]);
-
-  const applyUserPreset = useCallback((up: UserPreset) => {
-    setActivePresetId(up.id);
-    setBpm(up.bpm);
-    setMmHistory([]);
-    setJitter(up.jitter);
-    setSwing(up.swing);
-    setDynamics(up.dynamics);
-    if (up.temporalityMode) setTemporalityMode(up.temporalityMode as TemporalityMode);
-    logChange(`User Preset: ${up.name}`, [`BPM:${up.bpm}`]);
-
-    setTracks(prev => prev.map(t => {
-      const config = up.tracks[t.id];
-      if (!config) return t;
-      return updateTrackPattern({
-        ...t,
-        pulses: config.pulses,
-        steps: config.steps,
-        offset: config.offset,
-        probabilities: [...config.probabilities],
-        chaosEnabled: config.chaosEnabled,
-        entropy: config.entropy,
-        evolveEnabled: config.evolveEnabled,
-        mutationRate: config.mutationRate,
-        mutationSpeed: config.mutationSpeed,
-        volume: config.volume,
-        delaySend: config.delaySend,
-        reverbSend: config.reverbSend,
-        ratchet: config.ratchet ?? 0,
-        ...(t.isTonal ? {
-          rootNote: config.rootNote ?? t.rootNote,
-          scaleId: config.scaleId ?? t.scaleId,
-          octaveRange: config.octaveRange ?? t.octaveRange,
-          noteIndices: config.noteIndices ? [...config.noteIndices] : t.noteIndices,
-          synthType: config.synthType ?? t.synthType,
-          fmRatio: config.fmRatio ?? t.fmRatio,
-          fmIndex: config.fmIndex ?? t.fmIndex,
-          wfAmount: config.wfAmount ?? t.wfAmount,
-          wfSymmetry: config.wfSymmetry ?? t.wfSymmetry,
-          addPartials: config.addPartials ?? t.addPartials,
-          addBrightness: config.addBrightness ?? t.addBrightness,
-          arRate: config.arRate ?? t.arRate,
-          arDepth: config.arDepth ?? t.arDepth,
-          padVoices: config.padVoices ?? t.padVoices,
-          padDetune: config.padDetune ?? t.padDetune,
-          padAttack: config.padAttack ?? t.padAttack,
-          droneFeedback: config.droneFeedback ?? t.droneFeedback,
-          droneFilterFreq: config.droneFilterFreq ?? t.droneFilterFreq,
-          ksDecay: config.ksDecay ?? t.ksDecay,
-          ksBrightness: config.ksBrightness ?? t.ksBrightness,
-          modalBody: config.modalBody ?? t.modalBody,
-          modalDecay: config.modalDecay ?? t.modalDecay,
-          ambientVolume: config.ambientVolume ?? t.ambientVolume,
-          ambientSpeed: config.ambientSpeed ?? t.ambientSpeed,
-        } : {}),
-        ...(t.id === 'cloud' ? {
-          cloudMode: (config.cloudMode as 'granular' | 'eno') ?? t.cloudMode,
-          enoSpeed: config.enoSpeed ?? t.enoSpeed,
-        } : {}),
-        rrEnabled: config.rrEnabled ?? false,
-        rrAmount: config.rrAmount ?? 30,
-        driftEnabled: config.driftEnabled ?? false,
-        driftRate: config.driftRate ?? 0.01,
-        // Markov
-        noteMode: ((config as any).noteMode ?? 'euclidean') as 'euclidean' | 'markov',
-        markovStyle: ((config as any).markovStyle ?? 'scale') as MarkovStyle,
-        markovTemperature: (config as any).markovTemperature ?? 40,
-        markovMemory: (config as any).markovMemory ?? 1,
-        markovAnchor: (config as any).markovAnchor ?? 0,
-        // Pattern mode
-        patternMode: (config as any).patternMode ?? 'euclidean',
-        lsSeed: (config as any).lsSeed ?? 'X',
-        lsRuleA: (config as any).lsRuleA ?? 'XO',
-        lsIterations: (config as any).lsIterations ?? 3,
-        lsRotation: (config as any).lsRotation ?? 0,
-        caRule: (config as any).caRule ?? 30,
-        caSeed: (config as any).caSeed ?? 'center',
-        caDensity: (config as any).caDensity ?? 50,
-        caSpeed: (config as any).caSpeed ?? 1,
-        // Layer 2 params (buffer NOT restored from preset)
-        layer2Blend: config.layer2Blend ?? 0.8,
-        layer2Pitch: config.layer2Pitch ?? 0,
-        layer2Offset: config.layer2Offset ?? 0,
-        layer2FilterFreq: config.layer2FilterFreq ?? 8000,
-        layer2Reverse: config.layer2Reverse ?? false,
-        layer2StretchEnabled: (config as any).layer2StretchEnabled ?? false,
-        layer2StretchRate: (config as any).layer2StretchRate ?? 1.0,
-        // Lorenz + Nested LFO
-        lorenzEnabled: (config as any).lorenzEnabled ?? false,
-        lorenzDepth: (config as any).lorenzDepth ?? 1000,
-        lorenzTarget: (config as any).lorenzTarget ?? 'filter',
-        lorenzSpeed: (config as any).lorenzSpeed ?? 1.0,
-        nestedLfoEnabled: (config as any).nestedLfoEnabled ?? false,
-        nestedLfoRate1: (config as any).nestedLfoRate1 ?? 0.1,
-        nestedLfoRate2: (config as any).nestedLfoRate2 ?? 4.0,
-        nestedLfoDepth: (config as any).nestedLfoDepth ?? 800,
-        // Slicer: restore enabled/count only — order/reverse/pitch depend on buffer
-        slicerEnabled: (config as any).slicerEnabled ?? false,
-        sliceCount: (config as any).sliceCount ?? 16,
-        // Time Stretch
-        stretchEnabled: (config as any).stretchEnabled ?? false,
-        stretchRate: (config as any).stretchRate ?? 1.0,
-        // EQ
-        eqEnabled: (config as any).eqEnabled ?? false,
-        eqHpfFreq: (config as any).eqHpfFreq ?? 20,
-        eqLpfFreq: (config as any).eqLpfFreq ?? 20000,
-        pan: (config as any).pan ?? 0,
-        freqShiftEnabled: (config as any).freqShiftEnabled ?? false,
-        freqShift: (config as any).freqShift ?? 0,
-        spectralDelaySend: (config as any).spectralDelaySend ?? 0,
-        mode: ((config as any).mode ?? t.mode ?? 'TRIGGER') as 'GATE' | 'TRIGGER' | 'ONE-SHOT',
-        freezeSend: (config as any).freezeSend ?? 0,
-        reverseSend: (config as any).reverseSend ?? 0,
-        extremeLoopEnabled: (config as any).extremeLoopEnabled ?? false,
-        extremeLoopSize: (config as any).extremeLoopSize ?? 10,
-        extremeLoopPoint: (config as any).extremeLoopPoint ?? 0.5,
-        binauralEnabled: (config as any).binauralEnabled ?? false,
-        binauralAzimuth: (config as any).binauralAzimuth ?? 0,
-        binauralDistance: (config as any).binauralDistance ?? 3,
-        // Phase 8 — Percussive Synthesis
-        ...(t.id === 'kick' ? {
-          kickPitchDecay: (config as any).kickPitchDecay ?? 0.05,
-          kickOctaves: (config as any).kickOctaves ?? 10,
-          kickDecay: (config as any).kickDecay ?? 0.4,
-          kickClickType: (config as any).kickClickType ?? 'pink',
-        } : {}),
-        ...(t.id === 'hat' ? {
-          hatMode: (config as any).hatMode ?? 'noise',
-          hatHarmonicity: (config as any).hatHarmonicity ?? 5.1,
-          hatModIndex: (config as any).hatModIndex ?? 32,
-          hatResonance: (config as any).hatResonance ?? 4000,
-          hatDecay: (config as any).hatDecay ?? 0.05,
-          hatNoiseType: (config as any).hatNoiseType ?? 'white',
-        } : {}),
-        ...(t.id === 'snare' ? {
-          snareDecay: (config as any).snareDecay ?? 0.2,
-          snareNoiseType: (config as any).snareNoiseType ?? 'white',
-          snareBodyEnabled: (config as any).snareBodyEnabled ?? false,
-          snareBodyPitch: (config as any).snareBodyPitch ?? 180,
-          snareBodyDecay: (config as any).snareBodyDecay ?? 0.1,
-        } : {}),
-        hits: 0,
-        misses: 0,
-      });
-    }));
-    // Apply EQ and Markov after state update
-    setTimeout(() => {
-      tracksRef.current.forEach(t => {
-        // Restore EQ
-        const config = up.tracks[t.id];
-        if (config) {
-          const hpf = (config as any).eqEnabled ? ((config as any).eqHpfFreq ?? 20) : 20;
-          const lpf = (config as any).eqEnabled ? ((config as any).eqLpfFreq ?? 20000) : 20000;
-          synthsRef.current[t.id]?.updateEq?.(hpf, lpf);
-          // Restore pan and freqShift
-          synthsRef.current[t.id]?.setPan?.((config as any).pan ?? 0);
-          synthsRef.current[t.id]?.setFreqShift?.((config as any).freqShiftEnabled ? ((config as any).freqShift ?? 0) : 0, (config as any).freqShiftEnabled ?? false);
-          synthsRef.current[t.id]?.setSpectralSend?.((config as any).spectralDelaySend ?? 0);
-          synthsRef.current[t.id]?.setFreezeSend?.((config as any).freezeSend ?? 0);
-          synthsRef.current[t.id]?.setReverseSend?.((config as any).reverseSend ?? 0);
-          // Restore binaural
-          synthsRef.current[t.id]?.switchBinaural?.((config as any).binauralEnabled ?? false);
-          if ((config as any).binauralEnabled) {
-            synthsRef.current[t.id]?.updateBinaural?.((config as any).binauralAzimuth ?? 0, (config as any).binauralDistance ?? 3);
-          }
-          // Phase 8 — Restore percussive synth params
-          if (t.id === 'kick') {
-            synthsRef.current.kick?.setKickParams?.(
-              (config as any).kickPitchDecay ?? 0.05,
-              (config as any).kickOctaves ?? 10,
-              (config as any).kickDecay ?? 0.4,
-              (config as any).kickClickType ?? 'pink'
-            );
-          }
-          if (t.id === 'snare') {
-            synthsRef.current.snare?.setSnareParams?.((config as any).snareDecay ?? 0.2, (config as any).snareNoiseType ?? 'white');
-            synthsRef.current.snare?.setSnareBody?.((config as any).snareBodyEnabled ?? false, (config as any).snareBodyPitch ?? 180, (config as any).snareBodyDecay ?? 0.1);
-          }
-          if (t.id === 'hat') {
-            synthsRef.current.hat?.setHatMode?.(
-              (config as any).hatMode ?? 'noise',
-              (config as any).hatHarmonicity ?? 5.1,
-              (config as any).hatModIndex ?? 32,
-              (config as any).hatResonance ?? 4000,
-              (config as any).hatDecay ?? 0.05,
-              (config as any).hatNoiseType ?? 'white'
-            );
-          }
-        }
-        // Recalcular matrices Markov para tracks tonales
-        if (t.isTonal && (t.noteMode ?? 'euclidean') === 'markov') {
-          updateMarkovMatrix(t);
-        }
-      });
-    }, 0);
-  }, [logChange, updateTrackPattern, updateMarkovMatrix]);
-
-  const handleImportPreset = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    setImportError(null);
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const preset = await importPresetFromFile(file);
-      const updated = [preset, ...userPresets];
-      setUserPresets(updated);
-      saveUserPresets(updated);
-      setIsSavingPreset(false);
-      applyUserPreset(preset);
-      logChange(`User Preset importado y aplicado: ${preset.name}`);
-    } catch (err: any) {
-      setImportError(err.message || 'Error de importación');
-    }
-
-    // Reset input so same file can be re-imported
-    if (importInputRef.current) importInputRef.current.value = '';
-  }, [userPresets, logChange, applyUserPreset]);
 
   // Spectral Delay bus real-time sync
   useEffect(() => {
@@ -1436,7 +959,22 @@ export const EuclideanSequencer = () => {
     return lcmArray(rhythmicTracks.map(t => t.steps));
   }, [stepsKey]);
 
-  // Entropy Label
+  // Preset manager hook (extracted from monolith)
+  const {
+    userPresets, activePresetId, hoveredPreset, setHoveredPreset,
+    previewPatterns, isSavingPreset, setIsSavingPreset,
+    newPresetName, setNewPresetName, importError, importInputRef,
+    applyPreset, injectPattern, captureCurrentConfig,
+    applyUserPreset, handleSaveUserPreset, handleDeleteUserPreset,
+    handleExportCurrent, handleImportPreset,
+  } = usePresetManager({
+    tracks, setTracks,
+    bpm, setBpm, jitter, setJitter, swing, setSwing,
+    dynamics, setDynamics, temporalityMode, setTemporalityMode,
+    setMmHistory, logChange, updateTrackPattern, updateMarkovMatrix,
+    synthsRef, tracksRef, mcm,
+  });
+
   const getEntropyLabel = (val: number) => {
     if (val <= 16) return { label: "SYNCHRONIZED / MINIMAL", color: "text-orange-500" };
     if (val <= 64) return { label: "PERIODIC / STRUCTURED", color: "text-idm-ink/80" };
@@ -6359,7 +5897,7 @@ export const EuclideanSequencer = () => {
                 {/* Action buttons */}
                 <div className="flex gap-1 mb-2">
                   <button
-                    onClick={() => { setIsSavingPreset(true); setImportError(null); }}
+                    onClick={() => { setIsSavingPreset(true); }}
                     className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md border border-dashed border-system-accent/30 text-system-accent text-[9px] font-mono hover:bg-system-accent/5 transition-all"
                   >
                     <Save size={10} /> Save
