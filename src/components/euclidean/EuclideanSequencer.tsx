@@ -18,7 +18,7 @@ import { lcmArray, calculateLcmImpact } from '../../utils/math';
 import { evaluateDiagnosis, computeMcm, computeEclipseTime, type DiagnosisContext, type DiagnosisInsight } from '../../utils/diagnosis';
 import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
-import { UserPreset, userPresetToScenePreset } from '../../utils/userPresets';
+import { UserPreset, userPresetToScenePreset, exportPresetAsJson } from '../../utils/userPresets';
 import { usePresetManager } from '../../hooks/usePresetManager';
 import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../../utils/temporality';
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals, getScaleDetune, midiAndDetuneToFreq, noteIndexToFreq, isNonOctaveScale } from '../../utils/scales';
