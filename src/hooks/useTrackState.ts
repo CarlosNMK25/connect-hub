@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import * as Tone from 'tone';
-import type { TrackState } from '../types/track';
+import type { TrackState, SceneData } from '../types/track';
 import type { MarkovStyle } from '../utils/markovGenerator';
 import { bjorklund } from '../utils/bjorklund';
 import { generateLSystem, generateCAPattern } from '../utils/patternGenerators';
