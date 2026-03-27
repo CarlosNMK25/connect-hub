@@ -2472,6 +2472,7 @@ export const EuclideanTrack = React.memo(({
     prevProps.isExpanded === nextProps.isExpanded &&
     prevProps.activeScene === nextProps.activeScene &&
     prevProps.scenes === nextProps.scenes &&
+    prevProps.onSaveScene === nextProps.onSaveScene &&
     prevProps.activeAdvancedPanel === nextProps.activeAdvancedPanel &&
     prevProps.onParamChange === nextProps.onParamChange &&
     prevProps.onSequencerAction === nextProps.onSequencerAction &&
