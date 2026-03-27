@@ -959,7 +959,22 @@ export const EuclideanSequencer = () => {
     return lcmArray(rhythmicTracks.map(t => t.steps));
   }, [stepsKey]);
 
-  // Entropy Label
+  // Preset manager hook (extracted from monolith)
+  const {
+    userPresets, activePresetId, hoveredPreset, setHoveredPreset,
+    previewPatterns, isSavingPreset, setIsSavingPreset,
+    newPresetName, setNewPresetName, importError, importInputRef,
+    applyPreset, injectPattern, captureCurrentConfig,
+    applyUserPreset, handleSaveUserPreset, handleDeleteUserPreset,
+    handleExportCurrent, handleImportPreset,
+  } = usePresetManager({
+    tracks, setTracks,
+    bpm, setBpm, jitter, setJitter, swing, setSwing,
+    dynamics, setDynamics, temporalityMode, setTemporalityMode,
+    setMmHistory, logChange, updateTrackPattern, updateMarkovMatrix,
+    synthsRef, tracksRef, mcm,
+  });
+
   const getEntropyLabel = (val: number) => {
     if (val <= 16) return { label: "SYNCHRONIZED / MINIMAL", color: "text-orange-500" };
     if (val <= 64) return { label: "PERIODIC / STRUCTURED", color: "text-idm-ink/80" };
