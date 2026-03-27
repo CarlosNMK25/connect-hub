@@ -4,6 +4,11 @@ import * as Tone from 'tone';
 import { Play, Square, Sliders, Activity, Zap, Eye, EyeOff, Disc, ChevronLeft, ChevronRight, Info, HelpCircle, X, ChevronDown, ChevronUp, Layers, Target, Atom, Power, Settings, Save, Upload, Download, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import { EuclideanTrack } from './EuclideanTrack';
+import { SongModePanel } from './SongModePanel';
+import { SequencerFooter } from './SequencerFooter';
+import { StudyTooltipPortal } from './StudyTooltipPortal';
+import { LibraryPanel } from './LibraryPanel';
+import { SyncPanel } from './SyncPanel';
 import { SpectrumAnalyzer } from './SpectrumAnalyzer';
 import { JitterMonitor } from './JitterMonitor';
 import { EnergyMonitor } from './EnergyMonitor';
@@ -1110,592 +1115,60 @@ export const EuclideanSequencer = () => {
 
       {/* Pattern Synchrony & Phase Radar */}
       {showSync && (
-        <div className="mb-8 bg-white p-6 rounded-2xl border border-black/5 flex flex-col lg:flex-row items-start gap-8 relative overflow-hidden transition-all duration-500 animate-in fade-in slide-in-from-top-2 duration-500 opacity-100 shadow-sm">
-          <div className="flex-1 space-y-4 w-full">
-            <div className="flex justify-between items-end">
-              <div className="space-y-1">
-                <div className={`flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('patternSync'); setHoveredGlobalEl(e.currentTarget); } }}
-                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-                  <Zap size={12} className={mcm > 1000 ? "text-red-500 animate-pulse" : "text-system-accent"} />
-                  Sincronía del Patrón
-                </div>
-                <div className={`text-xs font-mono font-bold ${mcm > 1000 ? "text-red-500" : ""}`}>
-                  {mcm > 1000 ? "ZONA DE EVOLUCIÓN INFINITA" : `REINICIO CADA ${mcm} PASOS`}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className={`text-[9px] font-mono uppercase text-idm-ink/40 mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
-                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('rhythmicEntropy'); setHoveredGlobalEl(e.currentTarget); } }}
-                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>Entropía Rítmica</div>
-                <div className={`text-[10px] font-mono font-bold tracking-tighter ${entropy.color}`}>
-                  {entropy.label}
-                </div>
-              </div>
-            </div>
-            
-            {/* Progress Bar */}
-            <div className="h-1 w-full bg-black/5 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-system-accent transition-all duration-100 ease-linear"
-                style={{ width: `${progress * 100}%` }}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-              <div className="bg-black/5 p-3 rounded-lg border border-black/5">
-                <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
-                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('mcmValue'); setHoveredGlobalEl(e.currentTarget); } }}
-                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>MCM</div>
-                <div className="text-xl font-mono text-system-accent tracking-tighter">{mcm}</div>
-              </div>
-              <div className="bg-black/5 p-3 rounded-lg border border-black/5">
-                <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
-                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('syncImpact'); setHoveredGlobalEl(e.currentTarget); } }}
-                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>Impacto</div>
-                <div className="text-xl font-mono text-system-accent tracking-tighter">
-                  {Math.round(syncImpacts.reduce((a, b) => a + b, 0) / Math.max(1, tracks.filter(t => t.id !== 'cloud').length))}%
-                </div>
-              </div>
-              <div className="bg-black/5 p-3 rounded-lg border border-black/5">
-                <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
-                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('eclipseCountdown'); setHoveredGlobalEl(e.currentTarget); } }}
-                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>ECLIPSE</div>
-                <div className={`text-xl font-mono tracking-tighter transition-colors duration-300 ${eclipseFlash ? 'text-system-accent animate-pulse' : 'text-system-accent'}`}>
-                  {eclipseDisplay}
-                </div>
-              </div>
-              <div className="bg-black/5 p-3 rounded-lg border border-black/5">
-                <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
-                  onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('hitRate'); setHoveredGlobalEl(e.currentTarget); } }}
-                  onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>HIT RATE</div>
-                <div className={`text-xl font-mono tracking-tighter ${hitRateColor}`}>
-                  {hitRateData.rate !== null ? `${hitRateData.rate}%` : '—'}
-                </div>
-              </div>
-            </div>
-            {/* Coincidence Row */}
-            <CoincidenceRow
-              tracks={tracks.map(t => ({
-                id: t.id,
-                pattern: t.pattern,
-                steps: t.steps,
-                offset: t.offset,
-                color: t.color,
-                isMuted: t.isMuted,
-              }))}
-              globalStep={globalStep}
-              maxSteps={Math.max(...tracks.map(t => t.steps))}
-              driftOffsets={driftOffsets}
-            />
-
-            {/* Expanded Analysis — Left Column */}
-            <AnimatePresence>
-            {syncAnalysisOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden mt-4 pt-4 border-t border-idm-ink/10 space-y-4"
-              >
-                {/* Bloque A — Impacto por pista */}
-                <div>
-                  <div className="text-[8px] font-mono uppercase tracking-widest text-idm-muted mb-2">
-                    Impacto en MCM por pista
-                  </div>
-                  {tracks.filter(t => t.id !== 'cloud').every((_, i) => (syncImpacts[i] || 0) < 1) ? (
-                    <div className="text-[9px] font-mono text-idm-muted/60 italic leading-relaxed">
-                      Todos los ciclos comparten el mismo número de steps — sin interferencia entre ciclos. Cambia un track a steps diferente para ver el impacto.
-                    </div>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {tracks.filter(t => t.id !== 'cloud').map((track, i) => (
-                        <div key={track.id} className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: track.color }} />
-                          <span className="text-[9px] font-mono text-idm-ink/70 w-20 truncate">{track.name}</span>
-                          <span className="text-[8px] font-mono text-idm-muted w-16">{`E(${track.pulses},${track.steps})`}</span>
-                          <div className="flex-1 h-1.5 bg-idm-ink/5 rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-500"
-                              style={{
-                                width: `${Math.min(100, syncImpacts[i] || 0)}%`,
-                                background: track.color,
-                                opacity: 0.7
-                              }}
-                            />
-                          </div>
-                          <span className={`text-[9px] font-mono w-8 text-right ${(syncImpacts[i] || 0) > 30 ? 'text-system-accent' : 'text-idm-muted'}`}>
-                            {Math.round(syncImpacts[i] || 0)}%
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Bloque B — Velocidad relativa (cycleCount) */}
-                <div>
-                  <div className="text-[8px] font-mono uppercase tracking-widest text-idm-muted mb-2">
-                    Ciclos completados por pista
-                  </div>
-                  <div className="space-y-1.5">
-                    {(() => {
-                      const rhythmic = tracks.filter(t => t.id !== 'cloud');
-                      const maxCycles = Math.max(...rhythmic.map(t => uiStats[t.id]?.cycleCount || 0), 1);
-                      return rhythmic.map(track => {
-                        const cycles = uiStats[track.id]?.cycleCount || 0;
-                        return (
-                          <div key={track.id} className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: track.color }} />
-                            <span className="text-[9px] font-mono text-idm-ink/70 w-20 truncate">{track.name}</span>
-                            <div className="flex-1 h-1.5 bg-idm-ink/5 rounded-full overflow-hidden">
-                              <div
-                                className="h-full rounded-full transition-all duration-500"
-                                style={{
-                                  width: `${(cycles / maxCycles) * 100}%`,
-                                  background: track.color,
-                                  opacity: 0.6
-                                }}
-                              />
-                            </div>
-                            <span className="text-[9px] font-mono text-idm-muted w-16 text-right">
-                              {cycles} ciclos
-                            </span>
-                          </div>
-                        );
-                      });
-                    })()}
-                  </div>
-                  <div className="text-[7px] font-mono text-idm-muted/60 mt-1.5">
-                    Más ciclos = ciclo más corto = gira más rápido
-                  </div>
-                </div>
-
-                {/* Bloque C — Probabilidad media por pista */}
-                <div>
-                  <div className="text-[8px] font-mono uppercase tracking-widest text-idm-muted mb-2">
-                    Probabilidad media por pista
-                  </div>
-                  <div className="space-y-1.5">
-                    {tracks.filter(t => t.id !== 'cloud').map(track => {
-                      const activeProbs = track.probabilities.slice(0, track.steps);
-                      const avgProb = activeProbs.length > 0
-                        ? Math.round(activeProbs.reduce((s, p) => s + p, 0) / activeProbs.length * 100)
-                        : 100;
-                      const hitRate = (() => {
-                        const s = uiStats[track.id];
-                        if (!s || (s.hits + s.misses) === 0) return null;
-                        return Math.round(s.hits / (s.hits + s.misses) * 100);
-                      })();
-                      return (
-                        <div key={track.id} className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: track.color }} />
-                          <span className="text-[9px] font-mono text-idm-ink/70 w-20 truncate">{track.name}</span>
-                          <div className="flex-1 h-1.5 bg-idm-ink/5 rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-500"
-                              style={{
-                                width: `${avgProb}%`,
-                                background: track.color,
-                                opacity: 0.6
-                              }}
-                            />
-                          </div>
-                          <span className="text-[9px] font-mono w-8 text-right text-idm-muted">
-                            {avgProb}%
-                          </span>
-                          {hitRate !== null && avgProb !== hitRate && (
-                            <span className={`text-[8px] font-mono w-12 text-right ${hitRate < avgProb ? 'text-system-accent' : 'text-idm-muted'}`}>
-                              hit {hitRate}%
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="text-[7px] font-mono text-idm-muted/60 mt-1.5">
-                    Prob. programada vs hit rate real — diferencia = efecto Chaos
-                  </div>
-                </div>
-
-                {/* Bloque D — Historial de eclipses */}
-                <div>
-                  <div className="text-[8px] font-mono uppercase tracking-widest text-idm-muted mb-2">
-                    Historial de eclipses
-                  </div>
-                  {eclipseHistoryRef.current.length === 0 ? (
-                    <div className="text-[9px] font-mono text-idm-muted/50 italic">
-                      Sin eclipses registrados aún
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      {eclipseHistoryRef.current.map((e, i) => (
-                        <div key={i} className="flex items-center gap-3 text-[9px] font-mono">
-                          <span className={`${i === 0 ? 'text-system-accent' : 'text-idm-muted/50'}`}>
-                            {i === 0 ? '✦' : '·'}
-                          </span>
-                          <span className={`${i === 0 ? 'text-idm-ink/70' : 'text-idm-muted/50'}`}>
-                            {e.time}
-                          </span>
-                          <span className={`${i === 0 ? 'text-system-accent' : 'text-idm-muted/40'}`}>
-                            MCM {e.mcm}
-                          </span>
-                          <span className={`${i === 0 ? 'text-idm-muted' : 'text-idm-muted/40'}`}>
-                            {e.bpm} BPM
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Bloque E — Sparkline de convergencia temporal */}
-                <PhaseSparkline
-                  buffer={phaseBufferRef.current}
-                  head={phaseBufferHeadRef.current}
-                  capacity={PHASE_BUFFER_SIZE}
-                />
-
-                {/* Bloque F — Insight de diagnóstico principal */}
-                {(() => {
-                  const diagTracks = tracks.filter(t => t.id !== 'cloud').map(t => ({
-                    id: t.id, name: t.name, steps: t.steps, pulses: t.pulses, offset: t.offset,
-                    chaosEnabled: t.chaosEnabled, entropy: t.entropy, evolveEnabled: t.evolveEnabled,
-                    mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed, ratchet: t.ratchet,
-                    isMuted: t.isMuted, isTonal: t.isTonal, scaleId: t.scaleId,
-                    synthType: t.synthType, arRate: t.arRate, arDepth: t.arDepth,
-                    wfAmount: t.wfAmount, wfSymmetry: t.wfSymmetry,
-                    addPartials: t.addPartials, addBrightness: t.addBrightness,
-                  }));
-                  const diagMcm = computeMcm(diagTracks);
-                  const ctx: DiagnosisContext = {
-                    tracks: diagTracks,
-                    globalState: { bpm, temporalityMode, jitter, swing, mmHistoryLength: mmHistory.length, mmLastRatio: mmHistory.length > 0 ? mmHistory[0].label : undefined, mmOriginalBpm: mmHistory.length > 0 ? mmHistory[mmHistory.length - 1].fromBpm : undefined },
-                    computed: { mcm: diagMcm, eclipseTime: computeEclipseTime(diagMcm, bpm), hitRate: hitRateData.rate },
-                  };
-                  const insights = evaluateDiagnosis(ctx);
-                  if (insights.length === 0) return null;
-                  const top = insights[0];
-                  return (
-                    <div className="border-l-2 border-system-accent/40 pl-2 bg-system-accent/[0.02] py-1.5">
-                      <div className="text-[7px] font-mono uppercase tracking-widest text-system-accent mb-1">Diagnóstico</div>
-                      <div className="flex items-start gap-2 text-[10px] font-mono leading-relaxed text-idm-ink/80">
-                        <span className="shrink-0 text-sm">{top.icon}</span>
-                        <span>{top.insight}</span>
-                      </div>
-                      <div className="mt-1 pl-6 text-[9px] font-mono leading-relaxed text-idm-muted">
-                        {top.suggestion}
-                      </div>
-                    </div>
-                  );
-                })()}
-              </motion.div>
-            )}
-            </AnimatePresence>
-          </div>
-
-          <div className={isStudyMode ? 'cursor-help' : ''}
-            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('phaseRadar'); setHoveredGlobalEl(e.currentTarget); } }}
-            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
-            <PhaseRadar 
-              tracks={tracks.map(t => ({ id: t.id, name: t.name, steps: t.steps, pulses: t.pulses, color: t.color, offset: t.offset, chaosEnabled: (t as any).chaosEnabled, evolveEnabled: (t as any).evolveEnabled, entropy: (t as any).entropy, mutationRate: (t as any).mutationRate }))}
-              globalStep={globalStep}
-              onSync={handlePhaseSync}
-              isDjMode={isDjMode}
-              onDjModeToggle={() => setIsDjMode(!isDjMode)}
-              uiStats={uiStats}
-              syncImpacts={syncImpacts}
-              entropyLabel={entropy.label}
-              bpm={bpm}
-              onAnalysisToggle={(open) => setSyncAnalysisOpen(open)}
-              driftOffsets={driftOffsets}
-            />
-          </div>
-
-          {/* Subtle background glow when cycle resets */}
-          {isPlaying && (globalStep % mcm === 0) && (
-            <div className="absolute inset-0 bg-system-accent/5 animate-pulse pointer-events-none" />
-          )}
-        </div>
+        <SyncPanel
+          tracks={tracks}
+          globalStep={globalStep}
+          isPlaying={isPlaying}
+          mcm={mcm}
+          progress={progress}
+          entropy={entropy}
+          syncImpacts={syncImpacts}
+          eclipseDisplay={eclipseDisplay}
+          eclipseFlash={eclipseFlash}
+          hitRateData={hitRateData}
+          hitRateColor={hitRateColor}
+          uiStats={uiStats}
+          driftOffsets={driftOffsets}
+          syncAnalysisOpen={syncAnalysisOpen}
+          setSyncAnalysisOpen={setSyncAnalysisOpen}
+          isDjMode={isDjMode}
+          setIsDjMode={setIsDjMode}
+          handlePhaseSync={handlePhaseSync}
+          phaseBufferRef={phaseBufferRef}
+          phaseBufferHeadRef={phaseBufferHeadRef}
+          PHASE_BUFFER_SIZE={PHASE_BUFFER_SIZE}
+          eclipseHistoryRef={eclipseHistoryRef}
+          bpm={bpm}
+          temporalityMode={temporalityMode}
+          jitter={jitter}
+          swing={swing}
+          mmHistory={mmHistory}
+          isStudyMode={isStudyMode}
+          setHoveredGlobalParam={setHoveredGlobalParam}
+          setHoveredGlobalEl={setHoveredGlobalEl}
+        />
       )}
 
       {/* Library Panel */}
       {showLibrary && (
-        <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
-          <div className="md:col-span-1 bg-white border border-black/5 rounded-2xl p-4 shadow-sm max-h-[450px] overflow-y-auto custom-scrollbar">
-            <h2 className="text-[10px] font-mono uppercase tracking-[0.3em] text-system-accent mb-4 flex items-center gap-2 sticky top-0 bg-white/90 py-2 z-10">
-              <Disc size={12} />
-              Librería EPL
-            </h2>
-            
-            <div className="space-y-6">
-              {/* Master Scenes Section */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="h-px flex-1 bg-system-accent/10"></div>
-                  <span className="text-[8px] font-mono text-system-accent/60 uppercase tracking-widest">Escenas Maestras</span>
-                  <div className="h-px flex-1 bg-system-accent/10"></div>
-                </div>
-                <div className="flex flex-col gap-1">
-                  {PRESETS.filter(p => p.type === 'master').map(preset => (
-                    <button
-                      key={preset.id}
-                      onClick={() => applyPreset(preset)}
-                      onMouseEnter={() => setHoveredPreset(preset)}
-                      onMouseLeave={() => setHoveredPreset(null)}
-                      className="text-left px-3 py-2 rounded-lg text-[10px] font-mono border border-transparent hover:border-system-accent/20 hover:bg-system-accent/5 transition-all group flex justify-between items-center"
-                    >
-                      <div className="flex flex-col">
-                        <span className="text-idm-ink group-hover:text-system-accent font-bold">{preset.name}</span>
-                        <span className="text-[8px] text-idm-muted">{preset.bpm} BPM</span>
-                      </div>
-                      <Zap size={10} className="opacity-0 group-hover:opacity-100 text-system-accent transition-opacity" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Atomic Patterns Section */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="h-px flex-1 bg-black/5"></div>
-                  <span className="text-[8px] font-mono text-idm-muted uppercase tracking-widest">Patrones Atómicos</span>
-                  <div className="h-px flex-1 bg-black/5"></div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  {PRESETS.filter(p => p.type === 'atomic').map(preset => (
-                    <div 
-                      key={preset.id}
-                      onMouseEnter={() => setHoveredPreset(preset)}
-                      onMouseLeave={() => setHoveredPreset(null)}
-                      className="flex flex-col gap-2 p-2 rounded-xl border border-transparent hover:border-black/5 hover:bg-black/5 transition-all"
-                    >
-                      <div className="flex justify-between items-center px-1">
-                        <span className="text-[10px] font-mono text-idm-ink font-bold">{preset.name}</span>
-                        <span className="text-[8px] font-mono text-system-accent/50">E({preset.config?.pulses}, {preset.config?.steps})</span>
-                      </div>
-                      <div className="flex gap-1">
-                        {[
-                          { id: 'kick', label: 'K' },
-                          { id: 'snare', label: 'S' },
-                          { id: 'hat', label: 'H' }
-                        ].map(track => (
-                          <button
-                            key={track.id}
-                            onClick={() => injectPattern(track.id, preset.config!)}
-                            className="flex-1 py-1 rounded-md bg-black/5 hover:bg-system-accent hover:text-white text-[9px] font-mono font-bold text-idm-muted border border-black/5 transition-all uppercase"
-                            title={`Inyectar en ${track.id}`}
-                          >
-                            {track.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* User Presets Section */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="h-px flex-1 bg-system-accent/10"></div>
-                  <span className="text-[8px] font-mono text-system-accent/60 uppercase tracking-widest">Mis Presets</span>
-                  <div className="h-px flex-1 bg-system-accent/10"></div>
-                </div>
-
-                {/* Action buttons */}
-                <div className="flex gap-1 mb-2">
-                  <button
-                    onClick={() => { setIsSavingPreset(true); }}
-                    className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md border border-dashed border-system-accent/30 text-system-accent text-[9px] font-mono hover:bg-system-accent/5 transition-all"
-                  >
-                    <Save size={10} /> Save
-                  </button>
-                  <button
-                    onClick={handleExportCurrent}
-                    className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md border border-dashed border-system-accent/30 text-system-accent text-[9px] font-mono hover:bg-system-accent/5 transition-all"
-                  >
-                    <Download size={10} /> Export
-                  </button>
-                  <button
-                    onClick={() => importInputRef.current?.click()}
-                    className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md border border-dashed border-system-accent/30 text-system-accent text-[9px] font-mono hover:bg-system-accent/5 transition-all"
-                  >
-                    <Upload size={10} /> Import
-                  </button>
-                  <input
-                    ref={importInputRef}
-                    type="file"
-                    accept=".json,application/json"
-                    style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', opacity: 0 }}
-                    onChange={handleImportPreset}
-                  />
-                </div>
-
-                {/* Save inline input */}
-                {isSavingPreset && (
-                  <div className="flex gap-1 items-center mb-2 animate-in fade-in duration-200">
-                    <input
-                      autoFocus
-                      value={newPresetName}
-                      onChange={e => setNewPresetName(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') handleSaveUserPreset(); if (e.key === 'Escape') setIsSavingPreset(false); }}
-                      placeholder="Mi preset..."
-                      className="flex-1 bg-transparent border-b border-system-accent/30 text-[10px] font-mono text-idm-ink py-1 px-1 outline-none focus:border-system-accent placeholder:text-idm-muted/50"
-                    />
-                    <button onClick={handleSaveUserPreset} className="text-system-accent hover:text-system-accent/80 p-1">
-                      <Save size={12} />
-                    </button>
-                    <button onClick={() => setIsSavingPreset(false)} className="text-idm-muted hover:text-idm-ink p-1">
-                      <X size={12} />
-                    </button>
-                  </div>
-                )}
-
-                {/* Import error */}
-                {importError && (
-                  <div className="text-[9px] font-mono text-red-500 mb-2 animate-in fade-in duration-200">
-                    {importError}
-                  </div>
-                )}
-
-                {/* User preset list */}
-                <div className="flex flex-col gap-1">
-                  {userPresets.length === 0 && !isSavingPreset ? (
-                    <p className="text-idm-muted text-[9px] font-mono text-center py-3">Guarda tu primera configuración</p>
-                  ) : (
-                    userPresets.map(up => (
-                      <button
-                        key={up.id}
-                        onClick={() => applyUserPreset(up)}
-                        onMouseEnter={() => setHoveredPreset(userPresetToScenePreset(up))}
-                        onMouseLeave={() => setHoveredPreset(null)}
-                        className="text-left px-3 py-2 rounded-lg text-[10px] font-mono border border-transparent hover:border-black/10 hover:bg-black/[0.03] transition-all group flex justify-between items-center"
-                      >
-                        <div className="flex flex-col">
-                          <span className="text-idm-ink group-hover:text-idm-ink font-bold">{up.name}</span>
-                          <span className="text-[8px] text-idm-muted">{up.bpm} BPM · {new Date(up.createdAt).toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <span
-                            role="button"
-                            onClick={e => { e.stopPropagation(); exportPresetAsJson(up); }}
-                            className="p-1 text-idm-muted hover:text-system-accent"
-                          >
-                            <Download size={10} />
-                          </span>
-                          <span
-                            role="button"
-                            onClick={e => { e.stopPropagation(); handleDeleteUserPreset(up.id); }}
-                            className="p-1 text-idm-muted hover:text-red-500"
-                          >
-                            <Trash2 size={10} />
-                          </span>
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="md:col-span-3 bg-white border border-black/5 rounded-2xl p-8 flex flex-col justify-center relative overflow-hidden shadow-sm">
-            {hoveredPreset ? (
-              <div className="animate-in fade-in slide-in-from-left-4 duration-500">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className={`w-2 h-2 rounded-full ${hoveredPreset.type === 'master' ? 'bg-system-accent shadow-[0_0_10px_rgba(249,115,22,0.3)]' : 'bg-idm-muted'}`}></div>
-                  <h3 className="text-system-accent font-mono font-bold text-2xl uppercase tracking-tighter">{hoveredPreset.name}</h3>
-                  <span className={`px-3 py-1 rounded-full text-[9px] font-mono uppercase tracking-widest border ${hoveredPreset.type === 'master' ? 'bg-system-accent/5 border-system-accent/20 text-system-accent' : 'bg-idm-bg border-black/5 text-idm-muted'}`}>
-                    {hoveredPreset.type === 'master' ? 'Escena Maestra' : 'Patrón Atómico'}
-                  </span>
-                </div>
-                
-                <div className="max-w-xl">
-                  <p className="text-idm-ink/70 font-mono text-xs uppercase leading-relaxed mb-8 border-l-2 border-system-accent/30 pl-4">
-                    {hoveredPreset.description}
-                  </p>
-                  
-                  <div className="grid grid-cols-3 gap-8">
-                    {hoveredPreset.type === 'master' ? (
-                      <>
-                        <div className="flex flex-col">
-                          <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-2">Configuración Global</span>
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[10px] font-mono">
-                              <span className="text-idm-muted">TEMPO</span>
-                              <span className="text-system-accent">{hoveredPreset.bpm} BPM</span>
-                            </div>
-                            <div className="flex justify-between text-[10px] font-mono">
-                              <span className="text-idm-muted">JITTER</span>
-                              <span className="text-system-accent">{hoveredPreset.jitter}ms</span>
-                            </div>
-                            <div className="flex justify-between text-[10px] font-mono">
-                              <span className="text-idm-muted">SWING</span>
-                              <span className="text-system-accent">{hoveredPreset.swing}%</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="col-span-2 flex flex-col">
-                          <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-2">Geometría de Pistas</span>
-                          <div className="grid grid-cols-3 gap-4">
-                            {Object.entries(hoveredPreset.tracks || {}).map(([id, config]) => {
-                              const trackConfig = config as TrackPreset;
-                              return (
-                                <div key={id} className="bg-black/5 p-2 rounded border border-black/5">
-                                  <div className="text-[8px] text-idm-muted uppercase mb-1">{id}</div>
-                                  <div className="text-xs font-mono text-system-accent">E({trackConfig.pulses}, {trackConfig.steps})</div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex flex-col">
-                          <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-2">Fórmula Bjorklund</span>
-                          <div className="text-2xl font-mono text-system-accent tracking-tighter">
-                            E({hoveredPreset.config?.pulses}, {hoveredPreset.config?.steps})
-                          </div>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-2">Densidad</span>
-                          <div className="text-2xl font-mono text-system-accent tracking-tighter">
-                            {Math.round((hoveredPreset.config?.pulses! / hoveredPreset.config?.steps!) * 100)}%
-                          </div>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-2">Offset</span>
-                          <div className="text-2xl font-mono text-system-accent tracking-tighter">
-                            {hoveredPreset.config?.offset}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center text-center opacity-10">
-                <Atom size={48} className="mb-4 text-system-accent animate-spin-slow" />
-                <p className="text-xs font-mono uppercase tracking-[0.4em] leading-loose">
-                  Surgical Read-Only Mode<br/>
-                  <span className="text-[10px] opacity-60">Selecciona un preset para previsualizar su topografía</span>
-                </p>
-              </div>
-            )}
-            
-            {/* Ghost Preview Active Indicator */}
-            {hoveredPreset && (
-              <div className="absolute top-6 right-6 flex items-center gap-2 text-[9px] font-mono text-system-accent/80 animate-pulse">
-                <Zap size={12} />
-                GHOST PREVIEW ACTIVE
-              </div>
-            )}
-          </div>
-        </div>
+        <LibraryPanel
+          userPresets={userPresets}
+          hoveredPreset={hoveredPreset}
+          setHoveredPreset={setHoveredPreset}
+          isSavingPreset={isSavingPreset}
+          setIsSavingPreset={setIsSavingPreset}
+          newPresetName={newPresetName}
+          setNewPresetName={setNewPresetName}
+          importError={importError}
+          importInputRef={importInputRef}
+          applyPreset={applyPreset}
+          injectPattern={injectPattern}
+          applyUserPreset={applyUserPreset}
+          handleSaveUserPreset={handleSaveUserPreset}
+          handleDeleteUserPreset={handleDeleteUserPreset}
+          handleExportCurrent={handleExportCurrent}
+          handleImportPreset={handleImportPreset}
+        />
       )}
 
       {/* Engine Room Panel */}
@@ -1783,149 +1256,29 @@ export const EuclideanSequencer = () => {
 
       {/* ═══ SONG MODE CHAIN PANEL ═══ */}
       {songModeEnabled && (
-        <div className="border border-border rounded-lg bg-background overflow-hidden">
-          <div className="flex items-center gap-2 px-3 py-2 bg-system-accent/5 border-b border-border">
-            <span className="text-xs font-medium text-system-accent">Song Mode</span>
-            <button
-              onClick={() => setSongModeView('performance')}
-              className={`text-[9px] px-2 py-0.5 rounded-full border transition-all ${
-                songModeView === 'performance'
-                  ? 'bg-system-accent text-white border-system-accent'
-                  : 'bg-background text-muted-foreground border-border'
-              }`}
-            >
-              Performance
-            </button>
-            <button
-              onClick={() => setSongModeView('chain')}
-              className={`text-[9px] px-2 py-0.5 rounded-full border transition-all ${
-                songModeView === 'chain'
-                  ? 'bg-system-accent text-white border-system-accent'
-                  : 'bg-background text-muted-foreground border-border'
-              }`}
-            >
-              Auto Chain
-            </button>
-            <div className="flex-1" />
-            <button
-              onClick={() => setSyncAllScenes(prev => !prev)}
-              className={`text-[9px] px-2 py-0.5 rounded-full border transition-all ${
-                syncAllScenes
-                  ? 'bg-green-800 text-white border-green-800'
-                  : 'bg-background text-muted-foreground border-border'
-              }`}
-            >
-              SYNC ALL{syncAllScenes ? ' ✓' : ''}
-            </button>
-          </div>
-          <div className="px-3 py-2 flex items-center gap-2 flex-wrap">
-            {chain.map((step, i) => (
-              <React.Fragment key={i}>
-                <div
-                  className={`flex items-center gap-1 px-2 py-1 rounded border cursor-pointer transition-all ${
-                    i === chainPosition
-                      ? 'bg-system-accent/10 border-system-accent/30'
-                      : 'bg-background border-border'
-                  }`}
-                  onClick={() => setChainPosition(i)}
-                >
-                  <span className={`text-xs font-medium ${i === chainPosition ? 'text-system-accent' : 'text-muted-foreground'}`}>
-                    {step.scene}
-                  </span>
-                  <div className="flex gap-0.5">
-                    {Array.from({ length: step.cycles }, (_, j) => (
-                      <span
-                        key={j}
-                        className={`w-1.5 h-1.5 rounded-sm inline-block ${
-                          i === chainPosition ? 'bg-system-accent' : 'bg-muted-foreground/20'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-                {i < chain.length - 1
-                  ? <span className="text-muted-foreground text-xs">›</span>
-                  : <span className="text-system-accent text-xs">↺</span>
-                }
-              </React.Fragment>
-            ))}
-            <button
-              onClick={() => setChain(prev => [...prev, { scene: 1, cycles: 2 }])}
-              className="text-[9px] text-muted-foreground hover:text-foreground cursor-pointer"
-            >
-              + añadir
-            </button>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 border-t border-border text-[9px] text-muted-foreground">
-            <div className="w-1.5 h-1.5 rounded-full bg-system-accent flex-shrink-0" />
-            <span>Escena {chain[chainPosition]?.scene} · Ciclo 1/{chain[chainPosition]?.cycles}</span>
-            <div className="flex-1" />
-            <span className="text-[8px]">Lógica de reproducción → fase posterior</span>
-          </div>
-        </div>
+        <SongModePanel
+          songModeView={songModeView}
+          setSongModeView={setSongModeView}
+          syncAllScenes={syncAllScenes}
+          setSyncAllScenes={setSyncAllScenes}
+          chain={chain}
+          setChain={setChain}
+          chainPosition={chainPosition}
+          setChainPosition={setChainPosition}
+        />
       )}
 
 
 
 
-      {/* ═══ FOOTER ═══ */}
-      <div className="mt-8 pt-4 border-t border-idm-muted/30 flex justify-between items-center text-[10px] font-mono text-idm-ink/40 uppercase tracking-widest">
-        <div className="flex gap-4">
-          <span>KICK: Membrane</span>
-          <span>SNARE: Noise</span>
-          <span>HAT: Metal</span>
-          <span>TONE: {tracks.find(t => t.id === 'tone')?.synthType?.toUpperCase() || 'MONO'}</span>
-        </div>
-        <div>{isPlaying ? "Engine: Running" : "Engine: Idle"}</div>
-      </div>
+      <SequencerFooter tracks={tracks} isPlaying={isPlaying} />
       <ThesisDrawer isOpen={isThesisOpen} onClose={() => setIsThesisOpen(false)} />
-      {/* Global StudyTooltip Portal */}
-      {(() => {
-        const pos = (() => {
-          if (!hoveredGlobalParam || !hoveredGlobalEl) return { top: 0, left: 0, flip: false };
-          const rect = hoveredGlobalEl.getBoundingClientRect();
-          const spaceAbove = rect.top;
-          const flip = spaceAbove < 120;
-          return {
-            top: flip ? rect.bottom + 8 : rect.top - 8,
-            left: Math.min(Math.max(rect.left + rect.width / 2, 144), window.innerWidth - 144),
-            flip
-          };
-        })();
-        return createPortal(
-          <AnimatePresence>
-            {isStudyMode && hoveredGlobalParam && hoveredGlobalEl && (
-              <motion.div
-                key={hoveredGlobalParam}
-                initial={{ opacity: 0, y: pos.flip ? -5 : 5, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: pos.flip ? -5 : 5, scale: 0.95 }}
-                transition={{ duration: 0.15 }}
-                style={{
-                  position: 'fixed',
-                  top: pos.top,
-                  left: pos.left,
-                  transform: pos.flip ? 'translateX(-50%)' : 'translate(-50%, -100%)',
-                  zIndex: 99999
-                }}
-                className="w-72 p-3 bg-white border border-system-accent/40 rounded-xl shadow-2xl pointer-events-none"
-              >
-                <div className="text-[10px] font-mono leading-relaxed text-idm-ink uppercase">
-                  {getMicroText(hoveredGlobalParam, studyVoice)}
-                </div>
-                <div
-                  className="absolute left-1/2 -translate-x-1/2 w-2 h-2 bg-white border-system-accent/40 rotate-45"
-                  style={pos.flip
-                    ? { top: '-4px', borderTop: '1px solid', borderLeft: '1px solid' }
-                    : { bottom: '-4px', borderRight: '1px solid', borderBottom: '1px solid' }
-                  }
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>,
-          document.body
-        );
-      })()}
+      <StudyTooltipPortal
+        isStudyMode={isStudyMode}
+        hoveredGlobalParam={hoveredGlobalParam}
+        hoveredGlobalEl={hoveredGlobalEl}
+        studyVoice={studyVoice}
+      />
     </div>
   );
 };
