@@ -356,6 +356,7 @@ export const EuclideanSequencer = () => {
     handleSamplerParamChange, handlePercSynthParamChange,
     handleFileUploadCb, handleClearSamplerCb, handleLoadLayer2Cb, handleClearLayer2Cb,
     handleLayer2ParamChange, handleCloudModeChange, handleGetMarkovMatrix, initCloudEno,
+    extractSceneData, applySceneData, handleSaveScene,
   } = useTrackState({
     synthsRef, masterBusRef, logChange, syncAllScenes, isPlaying,
   });
