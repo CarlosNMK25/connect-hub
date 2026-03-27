@@ -352,7 +352,6 @@ export const EuclideanSequencer = () => {
 
   const synthsRef = useRef<{ [key: string]: any }>({});
   const loopRef = useRef<Tone.Loop | null>(null);
-  const tracksRef = useRef(tracks);
   const jitterRef = useRef(jitter);
   const swingRef = useRef(swing);
   const dynamicsRef = useRef(dynamics);
