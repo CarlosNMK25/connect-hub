@@ -25,6 +25,7 @@ import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals, getScaleDetune, midiAndDetuneToFreq, noteIndexToFreq, isNonOctaveScale } from '../../utils/scales';
 import { buildWavefoldCurve, vactrolfiltFreq } from '../../utils/waveshaping';
 import { markovNextNote } from '../../utils/markovGenerator';
+import { createTrackRouting, injectCommonMethods, restoreTrackState, createNestedLfo } from '../../utils/audioRouting';
 import { LorenzAttractor } from '../../utils/lorenzAttractor';
 import { usePedagogy } from '../../hooks/usePedagogy';
 import type { TrackState, SceneData } from '../../types/track';
@@ -2007,39 +2008,7 @@ export const EuclideanSequencer = () => {
     lorenzRafRef.current = requestAnimationFrame(tick);
   }, []);
 
-  // --- Nested LFO helper ---
-  const createNestedLfo = useCallback((
-    filter: any,
-    rate1: number,
-    rate2: number,
-    depth: number
-  ) => {
-    const lfo1 = new Tone.Oscillator({ type: 'sine', frequency: rate1 });
-    const lfo2 = new Tone.Oscillator({ type: 'sine', frequency: rate2 });
-    const lfo1ModGain = new Tone.Gain(rate2 * 0.5);
-    lfo1.connect(lfo1ModGain);
-    lfo1ModGain.connect(lfo2.frequency);
-    const lfo2DepthGain = new Tone.Gain(depth);
-    lfo2.connect(lfo2DepthGain);
-    if (filter) lfo2DepthGain.connect(filter.frequency);
-    lfo1.start();
-    lfo2.start();
-    return {
-      lfo1, lfo2, lfo1ModGain, lfo2DepthGain,
-      update: (r1: number, r2: number, d: number) => {
-        lfo1.frequency.rampTo(r1, 0.1);
-        lfo2.frequency.rampTo(r2, 0.1);
-        lfo1ModGain.gain.rampTo(r2 * 0.5, 0.1);
-        lfo2DepthGain.gain.rampTo(d, 0.1);
-      },
-      dispose: () => {
-        lfo1.stop(); lfo1.dispose();
-        lfo2.stop(); lfo2.dispose();
-        lfo1ModGain.dispose();
-        lfo2DepthGain.dispose();
-      }
-    };
-  }, []);
+  // createNestedLfo → imported from utils/audioRouting
 
   const togglePlay = async () => {
     if (Tone.getContext().state !== 'running') await Tone.start();
@@ -2401,457 +2370,141 @@ export const EuclideanSequencer = () => {
 
   const initializeOriginalSynth = (trackId: string, overrideSynthType?: string) => {
     const master = masterBusRef.current!;
-    let _eqHpfRef: Tone.Filter | null = null;
-    let _eqLpfRef: Tone.Filter | null = null;
-    let _pannerRef: Tone.Panner | null = null;
-    let _freqShifterRef: Tone.FrequencyShifter | null = null;
-    let _fsBypassGainRef: Tone.Gain | null = null;
-    let _fsDirectGainRef: Tone.Gain | null = null;
-    let _spectralSendRef: Tone.Gain | null = null;
-    let _freezeSendRef: Tone.Gain | null = null;
-    let _reverseSendRef: Tone.Gain | null = null;
-    let _pannerGainRef: Tone.Gain | null = null;
-    let _panner3DGainRef: Tone.Gain | null = null;
-    let _panner3DRef: Tone.Panner3D | null = null;
-    let _toneFilterRef: Tone.Filter | null = null;
+
     if (trackId === 'kick') {
-      const kickDelaySend = new Tone.Gain(0).connect(master.delayBus);
-      const kickReverbSend = new Tone.Gain(0).connect(master.reverbBus);
-      const kickSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
-      const kickFreezeSend = new Tone.Gain(0).connect(master.freezeBus);
-      const kickReverseSend = new Tone.Gain(0).connect(master.reverseBus);
-      const kickEqHpf = new Tone.Filter(20, "highpass");
-      const kickEqLpf = new Tone.Filter(20000, "lowpass");
-      const kickPanner = new Tone.Panner(0);
-      const kickPanner3D = new Tone.Panner3D({ panningModel: 'HRTF', distanceModel: 'inverse' });
-      kickPanner3D.positionY.value = 0;
-      const kickPannerGain = new Tone.Gain(1);
-      const kickPanner3DGain = new Tone.Gain(0);
-      const kickFreqShifter = new Tone.FrequencyShifter(0);
-      const kickFsBypassGain = new Tone.Gain(0);
-      const kickFsDirectGain = new Tone.Gain(1);
-      const kickFilter = new Tone.Filter(2000, "lowpass").connect(kickEqHpf);
-      kickEqHpf.connect(kickEqLpf);
-      kickEqLpf.connect(kickPannerGain);
-      kickEqLpf.connect(kickPanner3DGain);
-      if (synthsRef.current.kickFollower) kickEqLpf.connect(synthsRef.current.kickFollower);
-      kickPannerGain.connect(kickPanner);
-      kickPanner3DGain.connect(kickPanner3D);
-      kickPanner.connect(kickFsBypassGain);
-      kickPanner3D.connect(kickFsBypassGain);
-      kickFsBypassGain.connect(kickFreqShifter);
-      kickFreqShifter.connect(master.compressor);
-      kickFreqShifter.connect(kickDelaySend);
-      kickFreqShifter.connect(kickReverbSend);
-      kickFreqShifter.connect(kickSpectralSend);
-      kickPanner.connect(kickFsDirectGain);
-      kickPanner3D.connect(kickFsDirectGain);
-      kickFsDirectGain.connect(master.compressor);
-      kickFsDirectGain.connect(kickDelaySend);
-      kickFsDirectGain.connect(kickReverbSend);
-      kickFsDirectGain.connect(kickSpectralSend);
-      kickFsBypassGain.connect(kickFreezeSend);
-      kickFsBypassGain.connect(kickReverseSend);
-      kickFsDirectGain.connect(kickFreezeSend);
-      kickFsDirectGain.connect(kickReverseSend);
+      const routing = createTrackRouting({
+        filterFreq: 2000, filterType: 'lowpass',
+        compressor: master.compressor, delayBus: master.delayBus, reverbBus: master.reverbBus,
+        spectralDelayBus: master.spectralDelayBus, freezeBus: master.freezeBus, reverseBus: master.reverseBus,
+      });
+      if (synthsRef.current.kickFollower) routing.eqLpf.connect(synthsRef.current.kickFollower);
 
       let kickBody = new Tone.MembraneSynth({
         pitchDecay: 0.05, octaves: 10, oscillator: { type: 'sine' },
-        envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 },
-        volume: -2
-      }).connect(kickFilter);
-
+        envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }, volume: -2
+      }).connect(routing.filter);
       let kickClick = new Tone.NoiseSynth({
         noise: { type: 'pink' as any },
-        envelope: { attack: 0.001, decay: 0.01, sustain: 0 },
-        volume: -10
-      }).connect(kickFilter);
+        envelope: { attack: 0.001, decay: 0.01, sustain: 0 }, volume: -10
+      }).connect(routing.filter);
 
       synthsRef.current.kick = {
         triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
           kickBody.triggerAttackRelease("C1", duration, time, velocity);
           kickClick.triggerAttackRelease(duration, time, velocity * 0.5);
-          const baseCutoff = 800;
-          const dynamicCutoff = baseCutoff + (velocity * 3000);
-          if (isFinite(dynamicCutoff)) {
-            kickFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
-          }
+          const dc = 800 + (velocity * 3000);
+          if (isFinite(dc)) routing.filter.frequency.rampTo(dc, 0.02, time);
         },
-        setVolume: (vol: number) => {
-          const db = Tone.gainToDb(vol);
-          kickBody.volume.rampTo(db - 2, 0.05);
-          kickClick.volume.rampTo(db - 10, 0.05);
-        },
-        setSends: (delayVal: number, reverbVal: number) => {
-          kickDelaySend.gain.rampTo(delayVal, 0.05);
-          kickReverbSend.gain.rampTo(reverbVal, 0.05);
-        },
-        dispose: () => {
-          kickBody.dispose(); kickClick.dispose(); kickFilter.dispose();
-          kickEqHpf.dispose(); kickEqLpf.dispose();
-          kickPanner.dispose(); kickPanner3D.dispose(); kickPannerGain.dispose(); kickPanner3DGain.dispose();
-          kickFreqShifter.dispose(); kickFsBypassGain.dispose(); kickFsDirectGain.dispose();
-          kickDelaySend.dispose(); kickReverbSend.dispose(); kickSpectralSend.dispose();
-        }
+        setVolume: (vol: number) => { const db = Tone.gainToDb(vol); kickBody.volume.rampTo(db - 2, 0.05); kickClick.volume.rampTo(db - 10, 0.05); },
+        setSends: (d: number, r: number) => { routing.delaySend.gain.rampTo(d, 0.05); routing.reverbSend.gain.rampTo(r, 0.05); },
+        dispose: () => { kickBody.dispose(); kickClick.dispose(); routing.dispose(); }
       };
-      // Phase 8 — Kick synth params setter (rebuild)
       synthsRef.current.kick.setKickParams = (pitchDecay: number, octaves: number, decay: number, clickType: string) => {
         kickBody.set({ pitchDecay, octaves, envelope: { decay } });
         const currentType = (kickClick as any).noise?.type || 'pink';
         if (clickType !== currentType) {
           kickClick.dispose();
-          kickClick = new Tone.NoiseSynth({
-            noise: { type: clickType as any },
-            envelope: { attack: 0.001, decay: 0.01, sustain: 0 },
-            volume: -10
-          }).connect(kickFilter);
+          kickClick = new Tone.NoiseSynth({ noise: { type: clickType as any }, envelope: { attack: 0.001, decay: 0.01, sustain: 0 }, volume: -10 }).connect(routing.filter);
         }
       };
-      synthsRef.current.kick.updateEq = (hpfFreq: number, lpfFreq: number) => {
-        kickEqHpf.frequency.rampTo(hpfFreq, 0.05);
-        kickEqLpf.frequency.rampTo(lpfFreq, 0.05);
-      };
-      synthsRef.current.kick.setPan = (value: number) => { kickPanner.pan.rampTo(value, 0.05); };
-      synthsRef.current.kick.setFreqShift = (hz: number, enabled?: boolean) => {
-        kickFreqShifter.frequency.rampTo(hz, 0.05);
-        if (enabled !== undefined) {
-          kickFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
-          kickFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
-        }
-      };
-      synthsRef.current.kick.panner = kickPanner;
-      synthsRef.current.kick.freqShifter = kickFreqShifter;
-      synthsRef.current.kick.setSpectralSend = (value: number) => { kickSpectralSend.gain.rampTo(value, 0.05); };
-      synthsRef.current.kick.setFreezeSend = (value: number) => { kickFreezeSend.gain.rampTo(value, 0.05); };
-      synthsRef.current.kick.setReverseSend = (value: number) => { kickReverseSend.gain.rampTo(value, 0.05); };
-      synthsRef.current.kick.switchBinaural = (binaural: boolean) => {
-        kickPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
-        kickPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
-      };
-      synthsRef.current.kick.updateBinaural = (azimuth: number, distance: number) => {
-        const rad = (azimuth * Math.PI) / 180;
-        try { kickPanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) {
-          kickPanner3D.positionX.value = Math.sin(rad) * distance;
-          kickPanner3D.positionZ.value = -Math.cos(rad) * distance;
-        }
-      };
-      synthsRef.current.kick.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
-        if (target === 'filter') kickFilter.frequency.rampTo(800 + normalizedValue * depth, 0.05);
-      };
-      synthsRef.current.kick.nestedLfoInstance = null;
-      synthsRef.current.kick.initNestedLfo = (r1: number, r2: number, d: number) => {
-        synthsRef.current.kick.nestedLfoInstance?.dispose();
-        synthsRef.current.kick.nestedLfoInstance = createNestedLfo(kickFilter, r1, r2, d);
-      };
-      synthsRef.current.kick.updateNestedLfo = (r1: number, r2: number, d: number) => synthsRef.current.kick.nestedLfoInstance?.update(r1, r2, d);
-      synthsRef.current.kick.disposeNestedLfo = () => { synthsRef.current.kick.nestedLfoInstance?.dispose(); synthsRef.current.kick.nestedLfoInstance = null; };
-    } else if (trackId === 'snare') {
-      const snareDelaySend = new Tone.Gain(0).connect(master.delayBus);
-      const snareReverbSend = new Tone.Gain(0).connect(master.reverbBus);
-      const snareSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
-      const snareFreezeSend = new Tone.Gain(0).connect(master.freezeBus);
-      const snareReverseSend = new Tone.Gain(0).connect(master.reverseBus);
-      const snareEqHpf = new Tone.Filter(20, "highpass");
-      const snareEqLpf = new Tone.Filter(20000, "lowpass");
-      const snarePanner = new Tone.Panner(0);
-      const snarePanner3D = new Tone.Panner3D({ panningModel: 'HRTF', distanceModel: 'inverse' });
-      snarePanner3D.positionY.value = 0;
-      const snarePannerGain = new Tone.Gain(1);
-      const snarePanner3DGain = new Tone.Gain(0);
-      const snareFreqShifter = new Tone.FrequencyShifter(0);
-      const snareFsBypassGain = new Tone.Gain(0);
-      const snareFsDirectGain = new Tone.Gain(1);
-      const snareFilter = new Tone.Filter(5000, "lowpass").connect(snareEqHpf);
-      snareEqHpf.connect(snareEqLpf);
-      snareEqLpf.connect(snarePannerGain);
-      snareEqLpf.connect(snarePanner3DGain);
-      snarePannerGain.connect(snarePanner);
-      snarePanner3DGain.connect(snarePanner3D);
-      snarePanner.connect(snareFsBypassGain);
-      snarePanner3D.connect(snareFsBypassGain);
-      snareFsBypassGain.connect(snareFreqShifter);
-      snareFreqShifter.connect(master.compressor);
-      snareFreqShifter.connect(snareDelaySend);
-      snareFreqShifter.connect(snareReverbSend);
-      snareFreqShifter.connect(snareSpectralSend);
-      snarePanner.connect(snareFsDirectGain);
-      snarePanner3D.connect(snareFsDirectGain);
-      snareFsDirectGain.connect(master.compressor);
-      snareFsDirectGain.connect(snareDelaySend);
-      snareFsDirectGain.connect(snareReverbSend);
-      snareFsDirectGain.connect(snareSpectralSend);
-      snareFsBypassGain.connect(snareFreezeSend);
-      snareFsBypassGain.connect(snareReverseSend);
-      snareFsDirectGain.connect(snareFreezeSend);
-      snareFsDirectGain.connect(snareReverseSend);
+      injectCommonMethods(synthsRef.current.kick, routing, 800, createNestedLfo);
 
+    } else if (trackId === 'snare') {
+      const routing = createTrackRouting({
+        filterFreq: 5000, filterType: 'lowpass',
+        compressor: master.compressor, delayBus: master.delayBus, reverbBus: master.reverbBus,
+        spectralDelayBus: master.spectralDelayBus, freezeBus: master.freezeBus, reverseBus: master.reverseBus,
+      });
       let snareSynth = new Tone.NoiseSynth({
-        noise: { type: 'white' as any },
-        envelope: { attack: 0.001, decay: 0.2, sustain: 0 },
-        volume: -4
-      }).connect(snareFilter);
+        noise: { type: 'white' as any }, envelope: { attack: 0.001, decay: 0.2, sustain: 0 }, volume: -4
+      }).connect(routing.filter);
       let snareBody: Tone.MembraneSynth | null = null;
 
       synthsRef.current.snare = {
         triggerAttackRelease: (duration: any, time: number, velocity: number) => {
           snareSynth.triggerAttackRelease(duration, time, velocity);
-          if (snareBody) {
-            try { snareBody.triggerAttackRelease("C2", duration, time, velocity * 0.6); } catch(e) {}
-          }
-          const baseCutoff = 1500;
-          const dynamicCutoff = baseCutoff + (velocity * 5000);
-          if (isFinite(dynamicCutoff)) { snareFilter.frequency.rampTo(dynamicCutoff, 0.02, time); }
+          if (snareBody) { try { snareBody.triggerAttackRelease("C2", duration, time, velocity * 0.6); } catch(e) {} }
+          const dc = 1500 + (velocity * 5000);
+          if (isFinite(dc)) routing.filter.frequency.rampTo(dc, 0.02, time);
         },
-        setVolume: (vol: number) => {
-          snareSynth.volume.rampTo(Tone.gainToDb(vol) - 4, 0.05);
-          if (snareBody) snareBody.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
-        },
-        setSends: (delayVal: number, reverbVal: number) => {
-          snareDelaySend.gain.rampTo(delayVal, 0.05);
-          snareReverbSend.gain.rampTo(reverbVal, 0.05);
-        },
-        dispose: () => {
-          snareSynth.dispose(); snareBody?.dispose(); snareFilter.dispose(); snareEqHpf.dispose(); snareEqLpf.dispose();
-          snarePanner.dispose(); snarePanner3D.dispose(); snarePannerGain.dispose(); snarePanner3DGain.dispose();
-          snareFreqShifter.dispose(); snareFsBypassGain.dispose(); snareFsDirectGain.dispose();
-          snareDelaySend.dispose(); snareReverbSend.dispose(); snareSpectralSend.dispose();
-        }
+        setVolume: (vol: number) => { snareSynth.volume.rampTo(Tone.gainToDb(vol) - 4, 0.05); if (snareBody) snareBody.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05); },
+        setSends: (d: number, r: number) => { routing.delaySend.gain.rampTo(d, 0.05); routing.reverbSend.gain.rampTo(r, 0.05); },
+        dispose: () => { snareSynth.dispose(); snareBody?.dispose(); routing.dispose(); }
       };
-      // Phase 8 — Snare synth params setter (rebuild)
       synthsRef.current.snare.setSnareParams = (decay: number, noiseType: string) => {
         snareSynth.envelope.decay = decay;
         const currentType = (snareSynth as any).noise?.type || 'white';
         if (noiseType !== currentType) {
           snareSynth.dispose();
-          snareSynth = new Tone.NoiseSynth({
-            noise: { type: noiseType as any },
-            envelope: { attack: 0.001, decay, sustain: 0 },
-            volume: -4
-          }).connect(snareFilter);
+          snareSynth = new Tone.NoiseSynth({ noise: { type: noiseType as any }, envelope: { attack: 0.001, decay, sustain: 0 }, volume: -4 }).connect(routing.filter);
         }
       };
       synthsRef.current.snare.setSnareBody = (enabled: boolean, pitch: number, bodyDecay: number) => {
         if (enabled && !snareBody) {
-          snareBody = new Tone.MembraneSynth({
-            pitchDecay: 0.08, octaves: 4, oscillator: { type: 'sine' },
-            envelope: { attack: 0.001, decay: bodyDecay, sustain: 0.01, release: 0.5 },
-            volume: -6
-          }).connect(snareFilter);
+          snareBody = new Tone.MembraneSynth({ pitchDecay: 0.08, octaves: 4, oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: bodyDecay, sustain: 0.01, release: 0.5 }, volume: -6 }).connect(routing.filter);
           snareBody.frequency.value = pitch;
-        } else if (!enabled && snareBody) {
-          snareBody.dispose();
-          snareBody = null;
-        } else if (enabled && snareBody) {
-          snareBody.frequency.value = pitch;
-          snareBody.set({ envelope: { decay: bodyDecay } });
-        }
+        } else if (!enabled && snareBody) { snareBody.dispose(); snareBody = null; }
+        else if (enabled && snareBody) { snareBody.frequency.value = pitch; snareBody.set({ envelope: { decay: bodyDecay } }); }
       };
-      synthsRef.current.snare.updateEq = (hpfFreq: number, lpfFreq: number) => { snareEqHpf.frequency.rampTo(hpfFreq, 0.05); snareEqLpf.frequency.rampTo(lpfFreq, 0.05); };
-      synthsRef.current.snare.setPan = (value: number) => { snarePanner.pan.rampTo(value, 0.05); };
-      synthsRef.current.snare.setFreqShift = (hz: number, enabled?: boolean) => {
-        snareFreqShifter.frequency.rampTo(hz, 0.05);
-        if (enabled !== undefined) {
-          snareFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
-          snareFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
-        }
-      };
-      synthsRef.current.snare.panner = snarePanner;
-      synthsRef.current.snare.freqShifter = snareFreqShifter;
-      synthsRef.current.snare.setSpectralSend = (value: number) => { snareSpectralSend.gain.rampTo(value, 0.05); };
-      synthsRef.current.snare.setFreezeSend = (value: number) => { snareFreezeSend.gain.rampTo(value, 0.05); };
-      synthsRef.current.snare.setReverseSend = (value: number) => { snareReverseSend.gain.rampTo(value, 0.05); };
-      synthsRef.current.snare.switchBinaural = (binaural: boolean) => { snarePannerGain.gain.rampTo(binaural ? 0 : 1, 0.1); snarePanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1); };
-      synthsRef.current.snare.updateBinaural = (azimuth: number, distance: number) => {
-        const rad = (azimuth * Math.PI) / 180;
-        try { snarePanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) { snarePanner3D.positionX.value = Math.sin(rad) * distance; snarePanner3D.positionZ.value = -Math.cos(rad) * distance; }
-      };
-      synthsRef.current.snare.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
-        if (target === 'filter') snareFilter.frequency.rampTo(1500 + normalizedValue * depth, 0.05);
-      };
-      synthsRef.current.snare.nestedLfoInstance = null;
-      synthsRef.current.snare.initNestedLfo = (r1: number, r2: number, d: number) => { synthsRef.current.snare.nestedLfoInstance?.dispose(); synthsRef.current.snare.nestedLfoInstance = createNestedLfo(snareFilter, r1, r2, d); };
-      synthsRef.current.snare.updateNestedLfo = (r1: number, r2: number, d: number) => synthsRef.current.snare.nestedLfoInstance?.update(r1, r2, d);
-      synthsRef.current.snare.disposeNestedLfo = () => { synthsRef.current.snare.nestedLfoInstance?.dispose(); synthsRef.current.snare.nestedLfoInstance = null; };
-    } else if (trackId === 'hat') {
-      const hatDelaySend = new Tone.Gain(0).connect(master.delayBus);
-      const hatReverbSend = new Tone.Gain(0).connect(master.reverbBus);
-      const hatSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
-      const hatFreezeSend = new Tone.Gain(0).connect(master.freezeBus);
-      const hatReverseSend = new Tone.Gain(0).connect(master.reverseBus);
-      const hatEqHpf = new Tone.Filter(20, "highpass");
-      const hatEqLpf = new Tone.Filter(20000, "lowpass");
-      const hatPanner = new Tone.Panner(0);
-      const hatPanner3D = new Tone.Panner3D({ panningModel: 'HRTF', distanceModel: 'inverse' });
-      hatPanner3D.positionY.value = 0;
-      const hatPannerGain = new Tone.Gain(1);
-      const hatPanner3DGain = new Tone.Gain(0);
-      const hatFreqShifter = new Tone.FrequencyShifter(0);
-      const hatFsBypassGain = new Tone.Gain(0);
-      const hatFsDirectGain = new Tone.Gain(1);
-      const hatFilter = new Tone.Filter(5000, "highpass").connect(hatEqHpf);
-      hatEqHpf.connect(hatEqLpf);
-      hatEqLpf.connect(hatPannerGain);
-      hatEqLpf.connect(hatPanner3DGain);
-      hatPannerGain.connect(hatPanner);
-      hatPanner3DGain.connect(hatPanner3D);
-      hatPanner.connect(hatFsBypassGain);
-      hatPanner3D.connect(hatFsBypassGain);
-      hatFsBypassGain.connect(hatFreqShifter);
-      hatFreqShifter.connect(master.compressor);
-      hatFreqShifter.connect(hatDelaySend);
-      hatFreqShifter.connect(hatReverbSend);
-      hatFreqShifter.connect(hatSpectralSend);
-      hatPanner.connect(hatFsDirectGain);
-      hatPanner3D.connect(hatFsDirectGain);
-      hatFsDirectGain.connect(master.compressor);
-      hatFsDirectGain.connect(hatDelaySend);
-      hatFsDirectGain.connect(hatReverbSend);
-      hatFsDirectGain.connect(hatSpectralSend);
-      hatFsBypassGain.connect(hatFreezeSend);
-      hatFsBypassGain.connect(hatReverseSend);
-      hatFsDirectGain.connect(hatFreezeSend);
-      hatFsDirectGain.connect(hatReverseSend);
+      injectCommonMethods(synthsRef.current.snare, routing, 1500, createNestedLfo);
 
-      let hatSynth: Tone.NoiseSynth | null = new Tone.NoiseSynth({ noise: { type: 'white' as any }, envelope: { attack: 0.001, decay: 0.05, sustain: 0 }, volume: -2 }).connect(hatFilter);
+    } else if (trackId === 'hat') {
+      const routing = createTrackRouting({
+        filterFreq: 5000, filterType: 'highpass',
+        compressor: master.compressor, delayBus: master.delayBus, reverbBus: master.reverbBus,
+        spectralDelayBus: master.spectralDelayBus, freezeBus: master.freezeBus, reverseBus: master.reverseBus,
+      });
+      let hatSynth: Tone.NoiseSynth | null = new Tone.NoiseSynth({ noise: { type: 'white' as any }, envelope: { attack: 0.001, decay: 0.05, sustain: 0 }, volume: -2 }).connect(routing.filter);
       let hatMetalSynth: Tone.MetalSynth | null = null;
       let currentHatMode = 'noise';
+
       synthsRef.current.hat = {
         triggerAttackRelease: (duration: any, time: number, velocity: number) => {
           if (currentHatMode === 'metal' && hatMetalSynth) {
             const trackState = tracksRef.current.find(t => t.id === 'hat');
-            const decay = trackState?.hatDecay ?? 0.05;
-            hatMetalSynth.triggerAttackRelease(200, decay, time, velocity);
-          } else if (hatSynth) {
-            hatSynth.triggerAttackRelease(duration, time, velocity);
-          }
-          const dynamicCutoff = 2000 + (velocity * 8000);
-          if (isFinite(dynamicCutoff)) hatFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
+            hatMetalSynth.triggerAttackRelease(200, trackState?.hatDecay ?? 0.05, time, velocity);
+          } else if (hatSynth) { hatSynth.triggerAttackRelease(duration, time, velocity); }
+          const dc = 2000 + (velocity * 8000);
+          if (isFinite(dc)) routing.filter.frequency.rampTo(dc, 0.02, time);
         },
-        setVolume: (vol: number) => {
-          const db = Tone.gainToDb(vol) - 2;
-          if (hatSynth) hatSynth.volume.rampTo(db, 0.05);
-          if (hatMetalSynth) hatMetalSynth.volume.rampTo(db, 0.05);
-        },
-        setSends: (delayVal: number, reverbVal: number) => { hatDelaySend.gain.rampTo(delayVal, 0.05); hatReverbSend.gain.rampTo(reverbVal, 0.05); },
-        dispose: () => {
-          hatSynth?.dispose(); hatMetalSynth?.dispose(); hatFilter.dispose(); hatEqHpf.dispose(); hatEqLpf.dispose();
-          hatPanner.dispose(); hatPanner3D.dispose(); hatPannerGain.dispose(); hatPanner3DGain.dispose();
-          hatFreqShifter.dispose(); hatFsBypassGain.dispose(); hatFsDirectGain.dispose();
-          hatDelaySend.dispose(); hatReverbSend.dispose(); hatSpectralSend.dispose();
-        }
+        setVolume: (vol: number) => { const db = Tone.gainToDb(vol) - 2; if (hatSynth) hatSynth.volume.rampTo(db, 0.05); if (hatMetalSynth) hatMetalSynth.volume.rampTo(db, 0.05); },
+        setSends: (d: number, r: number) => { routing.delaySend.gain.rampTo(d, 0.05); routing.reverbSend.gain.rampTo(r, 0.05); },
+        dispose: () => { hatSynth?.dispose(); hatMetalSynth?.dispose(); routing.dispose(); }
       };
-      // Phase 8 — Hat mode switcher (rebuild)
       synthsRef.current.hat.setHatMode = (mode: string, harmonicity: number, modIndex: number, resonance: number, decay: number, noiseType: string) => {
         if (mode === 'metal' && currentHatMode !== 'metal') {
           hatSynth?.dispose(); hatSynth = null;
-          hatMetalSynth = new Tone.MetalSynth({
-            harmonicity, modulationIndex: modIndex, resonance,
-            envelope: { attack: 0.001, decay, release: 0.1 }, volume: -2
-          }).connect(hatFilter);
+          hatMetalSynth = new Tone.MetalSynth({ harmonicity, modulationIndex: modIndex, resonance, envelope: { attack: 0.001, decay, release: 0.1 }, volume: -2 }).connect(routing.filter);
           currentHatMode = 'metal';
         } else if (mode === 'noise' && currentHatMode !== 'noise') {
           hatMetalSynth?.dispose(); hatMetalSynth = null;
-          hatSynth = new Tone.NoiseSynth({ noise: { type: noiseType as any }, envelope: { attack: 0.001, decay, sustain: 0 }, volume: -2 }).connect(hatFilter);
+          hatSynth = new Tone.NoiseSynth({ noise: { type: noiseType as any }, envelope: { attack: 0.001, decay, sustain: 0 }, volume: -2 }).connect(routing.filter);
           currentHatMode = 'noise';
         } else if (mode === 'metal' && hatMetalSynth) {
           hatMetalSynth.set({ harmonicity, modulationIndex: modIndex, resonance, envelope: { decay } });
         } else if (mode === 'noise' && hatSynth) {
           hatSynth.envelope.decay = decay;
           const curType = (hatSynth as any).noise?.type || 'white';
-          if (noiseType !== curType) {
-            hatSynth.dispose();
-            hatSynth = new Tone.NoiseSynth({ noise: { type: noiseType as any }, envelope: { attack: 0.001, decay, sustain: 0 }, volume: -2 }).connect(hatFilter);
-          }
+          if (noiseType !== curType) { hatSynth.dispose(); hatSynth = new Tone.NoiseSynth({ noise: { type: noiseType as any }, envelope: { attack: 0.001, decay, sustain: 0 }, volume: -2 }).connect(routing.filter); }
         }
       };
-      synthsRef.current.hat.updateEq = (hpfFreq: number, lpfFreq: number) => { hatEqHpf.frequency.rampTo(hpfFreq, 0.05); hatEqLpf.frequency.rampTo(lpfFreq, 0.05); };
-      synthsRef.current.hat.setPan = (value: number) => { hatPanner.pan.rampTo(value, 0.05); };
-      synthsRef.current.hat.setFreqShift = (hz: number, enabled?: boolean) => {
-        hatFreqShifter.frequency.rampTo(hz, 0.05);
-        if (enabled !== undefined) {
-          hatFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
-          hatFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
-        }
-      };
-      synthsRef.current.hat.panner = hatPanner;
-      synthsRef.current.hat.freqShifter = hatFreqShifter;
-      synthsRef.current.hat.setSpectralSend = (value: number) => { hatSpectralSend.gain.rampTo(value, 0.05); };
-      synthsRef.current.hat.setFreezeSend = (value: number) => { hatFreezeSend.gain.rampTo(value, 0.05); };
-      synthsRef.current.hat.setReverseSend = (value: number) => { hatReverseSend.gain.rampTo(value, 0.05); };
-      synthsRef.current.hat.switchBinaural = (binaural: boolean) => { hatPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1); hatPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1); };
-      synthsRef.current.hat.updateBinaural = (azimuth: number, distance: number) => {
-        const rad = (azimuth * Math.PI) / 180;
-        try { hatPanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) { hatPanner3D.positionX.value = Math.sin(rad) * distance; hatPanner3D.positionZ.value = -Math.cos(rad) * distance; }
-      };
-      synthsRef.current.hat.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
-        if (target === 'filter') hatFilter.frequency.rampTo(2000 + normalizedValue * depth, 0.05);
-      };
-      synthsRef.current.hat.nestedLfoInstance = null;
-      synthsRef.current.hat.initNestedLfo = (r1: number, r2: number, d: number) => { synthsRef.current.hat.nestedLfoInstance?.dispose(); synthsRef.current.hat.nestedLfoInstance = createNestedLfo(hatFilter, r1, r2, d); };
-      synthsRef.current.hat.updateNestedLfo = (r1: number, r2: number, d: number) => synthsRef.current.hat.nestedLfoInstance?.update(r1, r2, d);
-      synthsRef.current.hat.disposeNestedLfo = () => { synthsRef.current.hat.nestedLfoInstance?.dispose(); synthsRef.current.hat.nestedLfoInstance = null; };
+      injectCommonMethods(synthsRef.current.hat, routing, 2000, createNestedLfo);
+
     } else if (trackId === 'tone') {
       if (toneRecordingState === 'recording' && mediaRecorderRef.current?.state === 'recording') {
         mediaRecorderRef.current.stop();
         setToneRecordingState('idle');
       }
 
-      const toneDelaySend = new Tone.Gain(0.15).connect(master.delayBus);
-      const toneReverbSend = new Tone.Gain(0.2).connect(master.reverbBus);
-      const toneSpectralSend = new Tone.Gain(0).connect(master.spectralDelayBus);
-      const toneFreezeSend = new Tone.Gain(0).connect(master.freezeBus);
-      const toneReverseSend = new Tone.Gain(0).connect(master.reverseBus);
-      const toneEqHpf = new Tone.Filter(20, "highpass");
-      const toneEqLpf = new Tone.Filter(20000, "lowpass");
-      const tonePanner = new Tone.Panner(0);
-      const tonePanner3D = new Tone.Panner3D({ panningModel: 'HRTF', distanceModel: 'inverse' });
-      tonePanner3D.positionY.value = 0;
-      const tonePannerGain = new Tone.Gain(1);
-      const tonePanner3DGain = new Tone.Gain(0);
-      const toneFreqShifter = new Tone.FrequencyShifter(0);
-      const toneFsBypassGain = new Tone.Gain(0);
-      const toneFsDirectGain = new Tone.Gain(1);
-      const toneFilter = new Tone.Filter(2000, "lowpass").connect(toneEqHpf);
-      toneEqHpf.connect(toneEqLpf);
-      toneEqLpf.connect(tonePannerGain);
-      toneEqLpf.connect(tonePanner3DGain);
-      tonePannerGain.connect(tonePanner);
-      tonePanner3DGain.connect(tonePanner3D);
-      tonePanner.connect(toneFsBypassGain);
-      tonePanner3D.connect(toneFsBypassGain);
-      toneFsBypassGain.connect(toneFreqShifter);
-      toneFreqShifter.connect(master.compressor);
-      toneFreqShifter.connect(toneDelaySend);
-      toneFreqShifter.connect(toneReverbSend);
-      toneFreqShifter.connect(toneSpectralSend);
-      tonePanner.connect(toneFsDirectGain);
-      tonePanner3D.connect(toneFsDirectGain);
-      toneFsDirectGain.connect(master.compressor);
-      toneFsDirectGain.connect(toneDelaySend);
-      toneFsDirectGain.connect(toneReverbSend);
-      toneFsDirectGain.connect(toneSpectralSend);
-      toneFsBypassGain.connect(toneFreezeSend);
-      toneFsBypassGain.connect(toneReverseSend);
-      toneFsDirectGain.connect(toneFreezeSend);
-      toneFsDirectGain.connect(toneReverseSend);
-      toneFilterRef.current = toneFilter;
-      _eqHpfRef = toneEqHpf;
-      _eqLpfRef = toneEqLpf;
-      _pannerRef = tonePanner;
-      _freqShifterRef = toneFreqShifter;
-      _fsBypassGainRef = toneFsBypassGain;
-      _fsDirectGainRef = toneFsDirectGain;
-      _spectralSendRef = toneSpectralSend;
-      _freezeSendRef = toneFreezeSend;
-      _reverseSendRef = toneReverseSend;
-      _pannerGainRef = tonePannerGain;
-      _panner3DGainRef = tonePanner3DGain;
-      _panner3DRef = tonePanner3D;
-      _toneFilterRef = toneFilter;
-
-      // Reconectar nodo de captura si existe
+      const routing = createTrackRouting({
+        filterFreq: 2000, filterType: 'lowpass',
+        compressor: master.compressor, delayBus: master.delayBus, reverbBus: master.reverbBus,
+        spectralDelayBus: master.spectralDelayBus, freezeBus: master.freezeBus, reverseBus: master.reverseBus,
+        delaySendInit: 0.15, reverbSendInit: 0.2,
+      });
+      toneFilterRef.current = routing.filter;
       if (recordingDestRef.current) {
-        toneFilter.connect(recordingDestRef.current as unknown as Tone.ToneAudioNode);
+        routing.filter.connect(recordingDestRef.current as unknown as Tone.ToneAudioNode);
       }
 
       const toneTrack = tracksRef.current.find(t => t.id === 'tone');
@@ -2862,781 +2515,214 @@ export const EuclideanSequencer = () => {
       const wfSymmetry = toneTrack?.wfSymmetry ?? 0;
       const addPartials = toneTrack?.addPartials ?? 4;
       const addBrightness = toneTrack?.addBrightness ?? 0.5;
-
       let toneSynth: any;
 
       if (currentSynthType === 'fm') {
-        toneSynth = new Tone.FMSynth({
-          harmonicity: fmRatio,
-          modulationIndex: fmIndex,
-          oscillator: { type: 'sawtooth' },
-          modulation: { type: 'square' },
-          envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 },
-          modulationEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8 },
-          volume: -6
-        }).connect(toneFilter);
-
+        toneSynth = new Tone.FMSynth({ harmonicity: fmRatio, modulationIndex: fmIndex, oscillator: { type: 'sawtooth' }, modulation: { type: 'square' }, envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 }, modulationEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8 }, volume: -6 }).connect(routing.filter);
         synthsRef.current.tone = {
-          triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
-            toneSynth.triggerAttackRelease(note, duration, time, velocity);
-            const baseCutoff = 600;
-            const dynamicCutoff = baseCutoff + (velocity * 4000);
-            if (isFinite(dynamicCutoff)) {
-              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
-            }
-          },
-          setVolume: (vol: number) => {
-            toneSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
-          },
-          setSends: (delayVal: number, reverbVal: number) => {
-            toneDelaySend.gain.rampTo(delayVal, 0.05);
-            toneReverbSend.gain.rampTo(reverbVal, 0.05);
-          },
-          updateFmParams: (ratio: number, index: number) => {
-            (toneSynth as Tone.FMSynth).harmonicity.value = ratio;
-            (toneSynth as Tone.FMSynth).modulationIndex.value = index;
-          },
-          dispose: () => {
-            toneSynth.dispose();
-            toneFilter.dispose();
-            toneDelaySend.dispose();
-            toneReverbSend.dispose();
-          }
+          triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => { toneSynth.triggerAttackRelease(note, duration, time, velocity); const dc = 600 + (velocity * 4000); if (isFinite(dc)) routing.filter.frequency.rampTo(dc, 0.02, time); },
+          setVolume: (vol: number) => { toneSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05); },
+          setSends: (d: number, r: number) => { routing.delaySend.gain.rampTo(d, 0.05); routing.reverbSend.gain.rampTo(r, 0.05); },
+          updateFmParams: (ratio: number, index: number) => { (toneSynth as Tone.FMSynth).harmonicity.value = ratio; (toneSynth as Tone.FMSynth).modulationIndex.value = index; },
+          dispose: () => { toneSynth.dispose(); routing.dispose(); }
         };
       } else if (currentSynthType === 'add') {
-        // Síntesis aditiva: suma de parciales armónicos
         const oscillators: Tone.Oscillator[] = [];
         const gains: Tone.Gain[] = [];
-        const outputGain = new Tone.Gain(0.6).connect(toneFilter);
+        const outputGain = new Tone.Gain(0.6).connect(routing.filter);
         let currentFreq = 220;
-
         const buildPartials = (freq: number, nPartials: number, brightness: number) => {
           oscillators.forEach(o => { try { o.stop(); o.dispose(); } catch(e) {} });
-          gains.forEach(g => g.dispose());
-          oscillators.length = 0;
-          gains.length = 0;
-
+          gains.forEach(g => g.dispose()); oscillators.length = 0; gains.length = 0;
           for (let i = 1; i <= nPartials; i++) {
-            const osc = new Tone.Oscillator({
-              type: 'sine',
-              frequency: freq * i,
-              volume: -60
-            });
+            const osc = new Tone.Oscillator({ type: 'sine', frequency: freq * i, volume: -60 });
             const gain = new Tone.Gain(0);
-            const naturalAmp = 1 / i;
-            const flatAmp = 1 / nPartials;
-            gain.gain.value = naturalAmp + (flatAmp - naturalAmp) * brightness;
-            osc.connect(gain);
-            gain.connect(outputGain);
-            oscillators.push(osc);
-            gains.push(gain);
+            gain.gain.value = (1/i) + ((1/nPartials) - (1/i)) * brightness;
+            osc.connect(gain); gain.connect(outputGain); oscillators.push(osc); gains.push(gain);
           }
         };
-
         buildPartials(currentFreq, addPartials, addBrightness);
-
         synthsRef.current.tone = {
           triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
-            const freq = Tone.Frequency(note).toFrequency();
-            currentFreq = freq;
-
-            const attackTime = 0.01;
-            const decayTime = typeof duration === 'number'
-              ? duration
-              : Tone.Time(duration).toSeconds();
-
-            oscillators.forEach((osc, i) => {
-              osc.frequency.setValueAtTime(freq * (i + 1), time);
-              try { osc.start(time); } catch(e) {}
-            });
-
-            outputGain.gain.cancelScheduledValues(time);
-            outputGain.gain.setValueAtTime(0, time);
-            outputGain.gain.linearRampToValueAtTime(
-              0.6 * velocity, time + attackTime
-            );
-            outputGain.gain.exponentialRampToValueAtTime(
-              0.001, time + attackTime + decayTime
-            );
-
-            oscillators.forEach(osc => {
-              try { osc.stop(time + attackTime + decayTime + 0.05); } catch(e) {}
-            });
-
-            const dynamicCutoff = 600 + velocity * 4000;
-            if (isFinite(dynamicCutoff)) {
-              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
-            }
+            const freq = Tone.Frequency(note).toFrequency(); currentFreq = freq;
+            const at = 0.01; const dt = typeof duration === 'number' ? duration : Tone.Time(duration).toSeconds();
+            oscillators.forEach((osc, i) => { osc.frequency.setValueAtTime(freq * (i + 1), time); try { osc.start(time); } catch(e) {} });
+            outputGain.gain.cancelScheduledValues(time); outputGain.gain.setValueAtTime(0, time);
+            outputGain.gain.linearRampToValueAtTime(0.6 * velocity, time + at);
+            outputGain.gain.exponentialRampToValueAtTime(0.001, time + at + dt);
+            oscillators.forEach(osc => { try { osc.stop(time + at + dt + 0.05); } catch(e) {} });
+            const dc = 600 + velocity * 4000; if (isFinite(dc)) routing.filter.frequency.rampTo(dc, 0.02, time);
           },
-          setVolume: (vol: number) => {
-            outputGain.gain.rampTo(vol * 0.6, 0.05);
-          },
-          setSends: (delayVal: number, reverbVal: number) => {
-            toneDelaySend.gain.rampTo(delayVal, 0.05);
-            toneReverbSend.gain.rampTo(reverbVal, 0.05);
-          },
+          setVolume: (vol: number) => { outputGain.gain.rampTo(vol * 0.6, 0.05); },
+          setSends: (d: number, r: number) => { routing.delaySend.gain.rampTo(d, 0.05); routing.reverbSend.gain.rampTo(r, 0.05); },
           updateAddParams: (nPartials: number, brightness: number) => {
-            if (nPartials !== oscillators.length) {
-              buildPartials(currentFreq, nPartials, brightness);
-            } else {
-              gains.forEach((g, i) => {
-                const naturalAmp = 1 / (i + 1);
-                const flatAmp = 1 / nPartials;
-                g.gain.rampTo(naturalAmp + (flatAmp - naturalAmp) * brightness, 0.05);
-              });
-            }
+            if (nPartials !== oscillators.length) { buildPartials(currentFreq, nPartials, brightness); }
+            else { gains.forEach((g, i) => { g.gain.rampTo((1/(i+1)) + ((1/nPartials) - (1/(i+1))) * brightness, 0.05); }); }
           },
-          dispose: () => {
-            oscillators.forEach(o => { try { o.stop(); o.dispose(); } catch(e) {} });
-            gains.forEach(g => g.dispose());
-            outputGain.dispose();
-            toneFilter.dispose();
-            toneDelaySend.dispose();
-            toneReverbSend.dispose();
-          }
+          dispose: () => { oscillators.forEach(o => { try { o.stop(); o.dispose(); } catch(e) {} }); gains.forEach(g => g.dispose()); outputGain.dispose(); routing.dispose(); }
         };
-
-        const track = tracksRef.current.find(t => t.id === 'tone');
-        if (track && synthsRef.current.tone) {
-          synthsRef.current.tone.setVolume(track.volume);
-          synthsRef.current.tone.setSends(track.delaySend, track.reverbSend);
-        }
+        if (toneTrack && synthsRef.current.tone) { synthsRef.current.tone.setVolume(toneTrack.volume); synthsRef.current.tone.setSends(toneTrack.delaySend, toneTrack.reverbSend); }
       } else if (currentSynthType === 'pad') {
-        // Pad synthesis: N osciladores sawtooth desafinados → chorus natural
-        const toneTrackPad = tracksRef.current.find(t => t.id === 'tone');
-        const voices = toneTrackPad?.padVoices ?? 5;
-        const detuneAmount = toneTrackPad?.padDetune ?? 30;
-        const attackTime = toneTrackPad?.padAttack ?? 0.3;
-
-        const padOscillators: Tone.Oscillator[] = [];
-        const padVoiceGains: Tone.Gain[] = [];
-        const padMasterGain = new Tone.Gain(1 / voices);
-        padMasterGain.connect(toneFilter);
-
+        const voices = toneTrack?.padVoices ?? 5; const detuneAmount = toneTrack?.padDetune ?? 30; const atkTime = toneTrack?.padAttack ?? 0.3;
+        const padOscs: Tone.Oscillator[] = []; const padGains: Tone.Gain[] = [];
+        const padMaster = new Tone.Gain(1 / voices).connect(routing.filter);
         for (let i = 0; i < voices; i++) {
-          const osc = new Tone.Oscillator({ type: 'sawtooth', frequency: 220, volume: -6 });
-          const g = new Tone.Gain(0);
-          // Spread de detune simétrico
+          const osc = new Tone.Oscillator({ type: 'sawtooth', frequency: 220, volume: -6 }); const g = new Tone.Gain(0);
           const spread = voices > 1 ? (i - (voices - 1) / 2) / ((voices - 1) / 2) : 0;
-          osc.detune.value = spread * detuneAmount; // detuneAmount ya está en cents
-          osc.connect(g);
-          g.connect(padMasterGain);
-          osc.start();
-          padOscillators.push(osc);
-          padVoiceGains.push(g);
+          osc.detune.value = spread * detuneAmount; osc.connect(g); g.connect(padMaster); osc.start(); padOscs.push(osc); padGains.push(g);
         }
-
-        let currentPadAttack = attackTime;
-
+        let curPadAtk = atkTime;
         synthsRef.current.tone = {
           triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
-            const freq = Tone.Frequency(note).toFrequency();
-            const dur = typeof duration === 'number' ? duration : Tone.Time(duration).toSeconds();
-            padOscillators.forEach(osc => {
-              osc.frequency.setValueAtTime(freq, time);
-            });
-            padVoiceGains.forEach(g => {
-              g.gain.cancelScheduledValues(time);
-              g.gain.setValueAtTime(0, time);
-              g.gain.linearRampToValueAtTime(velocity, time + currentPadAttack);
-              g.gain.setValueAtTime(velocity, time + Math.max(dur - 0.05, currentPadAttack));
-              g.gain.linearRampToValueAtTime(0, time + dur);
-            });
-            const dynamicCutoff = 600 + velocity * 4000;
-            if (isFinite(dynamicCutoff)) {
-              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
-            }
+            const freq = Tone.Frequency(note).toFrequency(); const dur = typeof duration === 'number' ? duration : Tone.Time(duration).toSeconds();
+            padOscs.forEach(o => o.frequency.setValueAtTime(freq, time));
+            padGains.forEach(g => { g.gain.cancelScheduledValues(time); g.gain.setValueAtTime(0, time); g.gain.linearRampToValueAtTime(velocity, time + curPadAtk); g.gain.setValueAtTime(velocity, time + Math.max(dur - 0.05, curPadAtk)); g.gain.linearRampToValueAtTime(0, time + dur); });
+            const dc = 600 + velocity * 4000; if (isFinite(dc)) routing.filter.frequency.rampTo(dc, 0.02, time);
           },
-          setVolume: (vol: number) => {
-            padMasterGain.gain.rampTo((1 / padOscillators.length) * vol, 0.05);
-          },
-          setSends: (delayVal: number, reverbVal: number) => {
-            toneDelaySend.gain.rampTo(delayVal, 0.05);
-            toneReverbSend.gain.rampTo(reverbVal, 0.05);
-          },
-          updatePadParams: (newVoices: number, newDetune: number, newAttack: number) => {
-            // Update detune spread on existing voices
-            padOscillators.forEach((osc, i) => {
-              const spread = padOscillators.length > 1
-                ? (i - (padOscillators.length - 1) / 2) / ((padOscillators.length - 1) / 2) : 0;
-              osc.detune.rampTo(spread * newDetune, 0.05);
-            });
-            currentPadAttack = newAttack;
-          },
-          dispose: () => {
-            padOscillators.forEach(osc => { try { osc.stop(); osc.dispose(); } catch(e) {} });
-            padVoiceGains.forEach(g => g.dispose());
-            padMasterGain.dispose();
-            toneFilter.dispose();
-            toneDelaySend.dispose();
-            toneReverbSend.dispose();
-          }
+          setVolume: (vol: number) => { padMaster.gain.rampTo((1 / padOscs.length) * vol, 0.05); },
+          setSends: (d: number, r: number) => { routing.delaySend.gain.rampTo(d, 0.05); routing.reverbSend.gain.rampTo(r, 0.05); },
+          updatePadParams: (nv: number, nd: number, na: number) => { padOscs.forEach((o, i) => { const sp = padOscs.length > 1 ? (i - (padOscs.length - 1) / 2) / ((padOscs.length - 1) / 2) : 0; o.detune.rampTo(sp * nd, 0.05); }); curPadAtk = na; },
+          dispose: () => { padOscs.forEach(o => { try { o.stop(); o.dispose(); } catch(e) {} }); padGains.forEach(g => g.dispose()); padMaster.dispose(); routing.dispose(); }
         };
       } else if (currentSynthType === 'drone') {
-        // Drone synthesis: sine → inject gain → feedback delay → filter → output
-        const toneTrackDrone = tracksRef.current.find(t => t.id === 'tone');
-        const feedbackAmount = toneTrackDrone?.droneFeedback ?? 0.88;
-        const filterFreq = toneTrackDrone?.droneFilterFreq ?? 2000;
-
+        const fb = toneTrack?.droneFeedback ?? 0.88; const ff = toneTrack?.droneFilterFreq ?? 2000;
         const droneOsc = new Tone.Oscillator({ type: 'sine', frequency: 220, volume: -6 });
-        const injectGain = new Tone.Gain(0);
-        const droneMasterGain = new Tone.Gain(0.7); // nodo separado para setVolume
-        const feedbackDelay = new Tone.FeedbackDelay({
-          delayTime: 0.5,
-          feedback: feedbackAmount,
-          wet: 1
-        });
-        const loopFilter = new Tone.Filter({
-          frequency: filterFreq,
-          type: 'lowpass',
-          rolloff: -12
-        });
-        const droneLimiter = new Tone.Limiter(-3); // protección contra acumulación
-
-        droneOsc.connect(injectGain);
-        injectGain.connect(feedbackDelay);
-        feedbackDelay.connect(loopFilter);
-        loopFilter.connect(droneLimiter);
-        droneLimiter.connect(droneMasterGain);
-        droneMasterGain.connect(toneFilter);
-        droneOsc.start();
-
+        const injectGain = new Tone.Gain(0); const droneMasterGain = new Tone.Gain(0.7);
+        const feedbackDelay = new Tone.FeedbackDelay({ delayTime: 0.5, feedback: fb, wet: 1 });
+        const loopFilter = new Tone.Filter({ frequency: ff, type: 'lowpass', rolloff: -12 });
+        const droneLimiter = new Tone.Limiter(-3);
+        droneOsc.connect(injectGain); injectGain.connect(feedbackDelay); feedbackDelay.connect(loopFilter);
+        loopFilter.connect(droneLimiter); droneLimiter.connect(droneMasterGain); droneMasterGain.connect(routing.filter); droneOsc.start();
         synthsRef.current.tone = {
-          triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
-            const freq = Tone.Frequency(note).toFrequency();
-            droneOsc.frequency.setValueAtTime(freq, time);
-            // Inyectar burst corto de energía en el loop
-            injectGain.gain.cancelScheduledValues(time);
-            injectGain.gain.setValueAtTime(0, time);
-            injectGain.gain.linearRampToValueAtTime(velocity, time + 0.01);
-            injectGain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
-            const dynamicCutoff = 600 + velocity * 4000;
-            if (isFinite(dynamicCutoff)) {
-              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
-            }
+          triggerAttackRelease: (note: string, _d: any, time: number, velocity: number) => {
+            droneOsc.frequency.setValueAtTime(Tone.Frequency(note).toFrequency(), time);
+            injectGain.gain.cancelScheduledValues(time); injectGain.gain.setValueAtTime(0, time);
+            injectGain.gain.linearRampToValueAtTime(velocity, time + 0.01); injectGain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
+            const dc = 600 + velocity * 4000; if (isFinite(dc)) routing.filter.frequency.rampTo(dc, 0.02, time);
           },
-          setVolume: (vol: number) => {
-            droneMasterGain.gain.rampTo(vol * 0.7, 0.05);
-          },
-          setSends: (delayVal: number, reverbVal: number) => {
-            toneDelaySend.gain.rampTo(delayVal, 0.05);
-            toneReverbSend.gain.rampTo(reverbVal, 0.05);
-          },
-          updateDroneParams: (newFeedback: number, newFilterFreq: number) => {
-            feedbackDelay.feedback.rampTo(newFeedback, 0.1);
-            loopFilter.frequency.rampTo(newFilterFreq, 0.1);
-          },
-          dispose: () => {
-            droneOsc.stop();
-            droneOsc.dispose();
-            injectGain.dispose();
-            droneMasterGain.dispose();
-            feedbackDelay.dispose();
-            loopFilter.dispose();
-            droneLimiter.dispose();
-            toneFilter.dispose();
-            toneDelaySend.dispose();
-            toneReverbSend.dispose();
-          }
+          setVolume: (vol: number) => { droneMasterGain.gain.rampTo(vol * 0.7, 0.05); },
+          setSends: (d: number, r: number) => { routing.delaySend.gain.rampTo(d, 0.05); routing.reverbSend.gain.rampTo(r, 0.05); },
+          updateDroneParams: (nf: number, nff: number) => { feedbackDelay.feedback.rampTo(nf, 0.1); loopFilter.frequency.rampTo(nff, 0.1); },
+          dispose: () => { droneOsc.stop(); droneOsc.dispose(); injectGain.dispose(); droneMasterGain.dispose(); feedbackDelay.dispose(); loopFilter.dispose(); droneLimiter.dispose(); routing.dispose(); }
         };
       } else if (currentSynthType === 'ks') {
-        // Karplus-Strong: noise burst → delay loop → filter
-        const toneTrackKs = tracksRef.current.find(t => t.id === 'tone');
-        const ksDecayAmount = toneTrackKs?.ksDecay ?? 0.97;
-        const ksBrightnessFreq = toneTrackKs?.ksBrightness ?? 5000;
-
-        const ksMasterGain = new Tone.Gain(1);
-        ksMasterGain.connect(toneFilter);
-
+        const ksDecayAmt = toneTrack?.ksDecay ?? 0.97; const ksBright = toneTrack?.ksBrightness ?? 5000;
+        const ksMaster = new Tone.Gain(1).connect(routing.filter);
         const ksDelay = new Tone.Delay({ delayTime: 0.01, maxDelay: 0.05 });
-        const ksFilter = new Tone.Filter({ frequency: ksBrightnessFreq, type: 'lowpass', rolloff: -12 });
-        const ksLimiter = new Tone.Limiter(-3);
-        const ksFeedback = new Tone.Gain(ksDecayAmount);
-
-        // Loop: ksDelay → ksFilter → ksLimiter → ksFeedback → ksDelay
-        ksDelay.connect(ksFilter);
-        ksFilter.connect(ksLimiter);
-        ksLimiter.connect(ksFeedback);
-        ksFeedback.connect(ksDelay);
-        // Output from loop
-        ksFilter.connect(ksMasterGain);
-
+        const ksFilter = new Tone.Filter({ frequency: ksBright, type: 'lowpass', rolloff: -12 });
+        const ksLimiter = new Tone.Limiter(-3); const ksFb = new Tone.Gain(ksDecayAmt);
+        ksDelay.connect(ksFilter); ksFilter.connect(ksLimiter); ksLimiter.connect(ksFb); ksFb.connect(ksDelay); ksFilter.connect(ksMaster);
         synthsRef.current.tone = {
-          triggerAttackRelease: (note: string, _duration: string | number, time: number, velocity = 0.8) => {
-            const freq = Tone.Frequency(note).toFrequency();
-            const delayTime = 1 / freq;
-            ksDelay.delayTime.setValueAtTime(delayTime, time);
-
-            // Noise burst excitation (~50ms)
-            const rawCtx = Tone.context.rawContext as AudioContext;
-            const bufferSize = Math.ceil(rawCtx.sampleRate * 0.05);
-            const noiseBuffer = rawCtx.createBuffer(1, bufferSize, rawCtx.sampleRate);
-            const data = noiseBuffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-              data[i] = (Math.random() - 0.5) * 2 * velocity;
-            }
-            const noiseSource = rawCtx.createBufferSource();
-            noiseSource.buffer = noiseBuffer;
-            noiseSource.connect((ksDelay as any).input);
-            noiseSource.start(time);
-            noiseSource.stop(time + 0.05);
-
-            // Dynamic filter
-            const dynamicCutoff = 600 + velocity * 4000;
-            if (isFinite(dynamicCutoff)) {
-              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
-            }
+          triggerAttackRelease: (note: string, _dur: string | number, time: number, velocity = 0.8) => {
+            const freq = Tone.Frequency(note).toFrequency(); ksDelay.delayTime.setValueAtTime(1 / freq, time);
+            const rawCtx = Tone.context.rawContext as AudioContext; const bsz = Math.ceil(rawCtx.sampleRate * 0.05);
+            const nb = rawCtx.createBuffer(1, bsz, rawCtx.sampleRate); const data = nb.getChannelData(0);
+            for (let i = 0; i < bsz; i++) data[i] = (Math.random() - 0.5) * 2 * velocity;
+            const ns = rawCtx.createBufferSource(); ns.buffer = nb; ns.connect((ksDelay as any).input); ns.start(time); ns.stop(time + 0.05);
+            const dc = 600 + velocity * 4000; if (isFinite(dc)) routing.filter.frequency.rampTo(dc, 0.02, time);
           },
-          setVolume: (vol: number) => {
-            ksMasterGain.gain.rampTo(Tone.dbToGain(vol) * 0.8, 0.05);
-          },
-          setSends: (delayVal: number, reverbVal: number) => {
-            toneDelaySend.gain.rampTo(delayVal, 0.05);
-            toneReverbSend.gain.rampTo(reverbVal, 0.05);
-          },
-          updateKsParams: (newDecay: number, newBrightness: number) => {
-            ksFeedback.gain.rampTo(newDecay, 0.1);
-            ksFilter.frequency.rampTo(newBrightness, 0.1);
-          },
-          dispose: () => {
-            ksDelay.dispose();
-            ksFilter.dispose();
-            ksLimiter.dispose();
-            ksFeedback.dispose();
-            ksMasterGain.dispose();
-            toneFilter.dispose();
-            toneDelaySend.dispose();
-            toneReverbSend.dispose();
-          }
+          setVolume: (vol: number) => { ksMaster.gain.rampTo(Tone.dbToGain(vol) * 0.8, 0.05); },
+          setSends: (d: number, r: number) => { routing.delaySend.gain.rampTo(d, 0.05); routing.reverbSend.gain.rampTo(r, 0.05); },
+          updateKsParams: (nd: number, nb: number) => { ksFb.gain.rampTo(nd, 0.1); ksFilter.frequency.rampTo(nb, 0.1); },
+          dispose: () => { ksDelay.dispose(); ksFilter.dispose(); ksLimiter.dispose(); ksFb.dispose(); ksMaster.dispose(); routing.dispose(); }
         };
       } else if (currentSynthType === 'modal') {
-        // Modal synthesis: banco de resonadores
         const MODAL_BODIES = {
-          bell: [
-            { ratio: 1.000, decay: 3.0, amp: 1.00 },
-            { ratio: 2.756, decay: 2.0, amp: 0.67 },
-            { ratio: 5.404, decay: 1.5, amp: 0.45 },
-            { ratio: 8.933, decay: 1.0, amp: 0.28 },
-          ],
-          plate: [
-            { ratio: 1.000, decay: 2.0, amp: 1.00 },
-            { ratio: 1.414, decay: 1.5, amp: 0.80 },
-            { ratio: 2.000, decay: 1.2, amp: 0.60 },
-            { ratio: 2.449, decay: 0.8, amp: 0.40 },
-            { ratio: 3.000, decay: 0.5, amp: 0.25 },
-          ],
-          string: [
-            { ratio: 1.0, decay: 2.5, amp: 1.00 },
-            { ratio: 2.0, decay: 2.0, amp: 0.50 },
-            { ratio: 3.0, decay: 1.5, amp: 0.33 },
-            { ratio: 4.0, decay: 1.0, amp: 0.25 },
-            { ratio: 5.0, decay: 0.8, amp: 0.20 },
-          ],
+          bell: [{ ratio: 1, decay: 3, amp: 1 }, { ratio: 2.756, decay: 2, amp: 0.67 }, { ratio: 5.404, decay: 1.5, amp: 0.45 }, { ratio: 8.933, decay: 1, amp: 0.28 }],
+          plate: [{ ratio: 1, decay: 2, amp: 1 }, { ratio: 1.414, decay: 1.5, amp: 0.8 }, { ratio: 2, decay: 1.2, amp: 0.6 }, { ratio: 2.449, decay: 0.8, amp: 0.4 }, { ratio: 3, decay: 0.5, amp: 0.25 }],
+          string: [{ ratio: 1, decay: 2.5, amp: 1 }, { ratio: 2, decay: 2, amp: 0.5 }, { ratio: 3, decay: 1.5, amp: 0.33 }, { ratio: 4, decay: 1, amp: 0.25 }, { ratio: 5, decay: 0.8, amp: 0.2 }],
         } as const;
-
-        const modalMasterGain = new Tone.Gain(1);
-        modalMasterGain.connect(toneFilter);
-
+        const modalMaster = new Tone.Gain(1).connect(routing.filter);
         synthsRef.current.tone = {
-          triggerAttackRelease: (note: string, _duration: string | number, time: number, velocity = 0.8) => {
+          triggerAttackRelease: (note: string, _dur: string | number, time: number, velocity = 0.8) => {
             const freq = Tone.Frequency(note).toFrequency();
-            const toneTrackModal = tracksRef.current.find(t => t.id === 'tone');
-            const bodyKey = (toneTrackModal?.modalBody ?? 'bell') as keyof typeof MODAL_BODIES;
+            const tm = tracksRef.current.find(t => t.id === 'tone');
+            const bodyKey = (tm?.modalBody ?? 'bell') as keyof typeof MODAL_BODIES;
             const body = MODAL_BODIES[bodyKey] || MODAL_BODIES.bell;
-            const decayMult = toneTrackModal?.modalDecay ?? 1.0;
-
+            const dm = tm?.modalDecay ?? 1.0;
             body.forEach(mode => {
-              const osc = new Tone.Oscillator({ type: 'sine' });
-              const env = new Tone.Gain(0);
-              const totalDecay = mode.decay * decayMult;
-
+              const osc = new Tone.Oscillator({ type: 'sine' }); const env = new Tone.Gain(0);
+              const td = mode.decay * dm;
               osc.frequency.value = freq * mode.ratio;
               env.gain.setValueAtTime(mode.amp * velocity, time);
-              env.gain.exponentialRampToValueAtTime(0.0001, time + totalDecay);
-
-              osc.connect(env);
-              env.connect(modalMasterGain);
-              osc.start(time);
-              osc.stop(time + totalDecay + 0.1);
-
-              // Cleanup env after decay to prevent memory leak
-              const cleanupMs = (totalDecay + 0.2) * 1000;
-              setTimeout(() => {
-                try { env.dispose(); } catch {}
-              }, cleanupMs);
+              env.gain.exponentialRampToValueAtTime(0.0001, time + td);
+              osc.connect(env); env.connect(modalMaster); osc.start(time); osc.stop(time + td + 0.1);
+              setTimeout(() => { try { env.dispose(); } catch {} }, (td + 0.2) * 1000);
             });
-
-            // Dynamic filter
-            const dynamicCutoff = 600 + velocity * 4000;
-            if (isFinite(dynamicCutoff)) {
-              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
-            }
+            const dc = 600 + velocity * 4000; if (isFinite(dc)) routing.filter.frequency.rampTo(dc, 0.02, time);
           },
-          setVolume: (vol: number) => {
-            modalMasterGain.gain.rampTo(Tone.dbToGain(vol) * 0.8, 0.05);
-          },
-          setSends: (delayVal: number, reverbVal: number) => {
-            toneDelaySend.gain.rampTo(delayVal, 0.05);
-            toneReverbSend.gain.rampTo(reverbVal, 0.05);
-          },
-          dispose: () => {
-            modalMasterGain.dispose();
-            toneFilter.dispose();
-            toneDelaySend.dispose();
-            toneReverbSend.dispose();
-          }
+          setVolume: (vol: number) => { modalMaster.gain.rampTo(Tone.dbToGain(vol) * 0.8, 0.05); },
+          setSends: (d: number, r: number) => { routing.delaySend.gain.rampTo(d, 0.05); routing.reverbSend.gain.rampTo(r, 0.05); },
+          dispose: () => { modalMaster.dispose(); routing.dispose(); }
         };
       } else if (currentSynthType === 'ambient') {
-        // Ambient synthesis: Eno-style asynchronous sine loops
-        const BASE_DURATIONS = [2.3, 3.7, 5.1, 7.3];
-        const NUM_LOOPS = BASE_DURATIONS.length;
-        const toneTrackAmb = tracksRef.current.find(t => t.id === 'tone');
-        const ambientMasterGain = new Tone.Gain(toneTrackAmb?.ambientVolume ?? 0.6);
-        ambientMasterGain.connect(toneFilter);
-
-        const ambientOscs: Tone.Oscillator[] = [];
-        const ambientGains: Tone.Gain[] = [];
-        const ambientRepeatIds: number[] = [];
-        let ambientStarted = false;
-
-        for (let i = 0; i < NUM_LOOPS; i++) {
-          const osc = new Tone.Oscillator({ type: 'sine' });
-          const g = new Tone.Gain(0);
-          osc.connect(g);
-          g.connect(ambientMasterGain);
-          osc.start();
-          ambientOscs.push(osc);
-          ambientGains.push(g);
-        }
-
-        const assignAmbientFreqs = () => {
-          const currentTrack = tracksRef.current.find(t => t.id === 'tone');
-          if (!currentTrack?.noteIndices?.length) return;
-          const scaleIntervals = getScaleIntervals(currentTrack.scaleId);
-          for (let i = 0; i < NUM_LOOPS; i++) {
-            const noteIdx = currentTrack.noteIndices[
-              Math.floor(Math.random() * currentTrack.noteIndices.length)
-            ];
-            ambientOscs[i].frequency.value = noteIndexToFreq(currentTrack.rootNote, currentTrack.scaleId, noteIdx);
-          }
-        };
-
-        const scheduleAmbientLoop = (loopIdx: number) => {
-          const currentTrack = tracksRef.current.find(t => t.id === 'tone');
-          const speedMult = currentTrack?.ambientSpeed ?? 1.0;
-          const dur = BASE_DURATIONS[loopIdx] * speedMult;
-
-          const id = Tone.getTransport().scheduleRepeat((time) => {
-            if (!ambientStarted) return;
-            // Fade in
-            ambientGains[loopIdx].gain.cancelScheduledValues(time);
-            ambientGains[loopIdx].gain.setValueAtTime(0, time);
-            ambientGains[loopIdx].gain.linearRampToValueAtTime(0.7, time + 0.15);
-            // Sustain then fade out
-            ambientGains[loopIdx].gain.setValueAtTime(0.7, time + dur - 0.3);
-            ambientGains[loopIdx].gain.linearRampToValueAtTime(0, time + dur);
-          }, dur, Tone.now() + loopIdx * 0.3);
-          ambientRepeatIds.push(id);
-        };
-
-        const stopAmbientLoops = () => {
-          ambientStarted = false;
-          ambientRepeatIds.forEach(id => Tone.getTransport().clear(id));
-          ambientRepeatIds.length = 0;
-          ambientGains.forEach(g => {
-            g.gain.cancelScheduledValues(Tone.now());
-            g.gain.rampTo(0, 0.1);
-          });
-        };
-
+        const BASE_DURATIONS = [2.3, 3.7, 5.1, 7.3]; const NL = BASE_DURATIONS.length;
+        const ambMaster = new Tone.Gain(toneTrack?.ambientVolume ?? 0.6).connect(routing.filter);
+        const ambOscs: Tone.Oscillator[] = []; const ambGains: Tone.Gain[] = [];
+        const ambRepeatIds: number[] = []; let ambStarted = false;
+        for (let i = 0; i < NL; i++) { const o = new Tone.Oscillator({ type: 'sine' }); const g = new Tone.Gain(0); o.connect(g); g.connect(ambMaster); o.start(); ambOscs.push(o); ambGains.push(g); }
+        const assignFreqs = () => { const ct = tracksRef.current.find(t => t.id === 'tone'); if (!ct?.noteIndices?.length) return; for (let i = 0; i < NL; i++) { const ni = ct.noteIndices[Math.floor(Math.random() * ct.noteIndices.length)]; ambOscs[i].frequency.value = noteIndexToFreq(ct.rootNote, ct.scaleId, ni); } };
+        const schedLoop = (li: number) => { const ct = tracksRef.current.find(t => t.id === 'tone'); const dur = BASE_DURATIONS[li] * (ct?.ambientSpeed ?? 1.0); const id = Tone.getTransport().scheduleRepeat((time) => { if (!ambStarted) return; ambGains[li].gain.cancelScheduledValues(time); ambGains[li].gain.setValueAtTime(0, time); ambGains[li].gain.linearRampToValueAtTime(0.7, time + 0.15); ambGains[li].gain.setValueAtTime(0.7, time + dur - 0.3); ambGains[li].gain.linearRampToValueAtTime(0, time + dur); }, dur, Tone.now() + li * 0.3); ambRepeatIds.push(id); };
+        const stopLoops = () => { ambStarted = false; ambRepeatIds.forEach(id => Tone.getTransport().clear(id)); ambRepeatIds.length = 0; ambGains.forEach(g => { g.gain.cancelScheduledValues(Tone.now()); g.gain.rampTo(0, 0.1); }); };
         synthsRef.current.tone = {
-          triggerAttackRelease: (_note: string, _duration: string | number, _time: number, _velocity = 0.8) => {
-            if (!ambientStarted) {
-              ambientStarted = true;
-              assignAmbientFreqs();
-              for (let i = 0; i < NUM_LOOPS; i++) {
-                scheduleAmbientLoop(i);
-              }
-            } else {
-              // Subsequent triggers: modulate notes
-              assignAmbientFreqs();
-            }
-          },
-          setVolume: (db: number) => {
-            ambientMasterGain.gain.rampTo(Tone.dbToGain(db) * 0.6, 0.05);
-          },
-          setSends: (delayVal: number, reverbVal: number) => {
-            toneDelaySend.gain.rampTo(delayVal, 0.05);
-            toneReverbSend.gain.rampTo(reverbVal, 0.05);
-          },
-          stop: () => {
-            stopAmbientLoops();
-          },
-          dispose: () => {
-            stopAmbientLoops();
-            ambientOscs.forEach(osc => { osc.stop(); osc.dispose(); });
-            ambientGains.forEach(g => g.dispose());
-            ambientMasterGain.dispose();
-            toneFilter.dispose();
-            toneDelaySend.dispose();
-            toneReverbSend.dispose();
-          }
+          triggerAttackRelease: (_n: string, _d: string | number, _t: number, _v = 0.8) => { if (!ambStarted) { ambStarted = true; assignFreqs(); for (let i = 0; i < NL; i++) schedLoop(i); } else { assignFreqs(); } },
+          setVolume: (db: number) => { ambMaster.gain.rampTo(Tone.dbToGain(db) * 0.6, 0.05); },
+          setSends: (d: number, r: number) => { routing.delaySend.gain.rampTo(d, 0.05); routing.reverbSend.gain.rampTo(r, 0.05); },
+          stop: () => { stopLoops(); },
+          dispose: () => { stopLoops(); ambOscs.forEach(o => { o.stop(); o.dispose(); }); ambGains.forEach(g => g.dispose()); ambMaster.dispose(); routing.dispose(); }
         };
       } else if (currentSynthType === 'wf') {
-        // West Coast synthesis: oscillator → wavefolder → LPG
-        const wfOsc = new Tone.Oscillator({
-          type: 'triangle',
-          frequency: 220,
-          volume: -6
-        });
-
-        const waveFolder = new Tone.WaveShaper(
-          buildWavefoldCurve(wfAmount, wfSymmetry),
-          65536
-        );
-
+        const wfOsc = new Tone.Oscillator({ type: 'triangle', frequency: 220, volume: -6 });
+        const waveFolder = new Tone.WaveShaper(buildWavefoldCurve(wfAmount, wfSymmetry), 65536);
         const preFoldGain = new Tone.Gain(1 + wfAmount * 0.3);
-
-        // Low Pass Gate: filtro + VCA acoplados (comportamiento Vactrol)
-        const lpgFilter = new Tone.Filter({
-          type: 'lowpass',
-          frequency: 200,
-          Q: 3,
-          rolloff: -24
-        });
+        const lpgFilter = new Tone.Filter({ type: 'lowpass', frequency: 200, Q: 3, rolloff: -24 });
         const lpgVca = new Tone.Gain(0);
-
-        // Routing: osc → gain → wavefolder → LPG filter → LPG vca → toneFilter
-        wfOsc.connect(preFoldGain);
-        preFoldGain.connect(waveFolder);
-        waveFolder.connect(lpgFilter);
-        lpgFilter.connect(lpgVca);
-        lpgVca.connect(toneFilter);
-
+        wfOsc.connect(preFoldGain); preFoldGain.connect(waveFolder); waveFolder.connect(lpgFilter); lpgFilter.connect(lpgVca); lpgVca.connect(routing.filter);
         synthsRef.current.tone = {
           triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
-            const freq = Tone.Frequency(note).toFrequency();
-            wfOsc.frequency.setValueAtTime(freq, time);
-
-            const attackTime = 0.005;
-            const decayTime = typeof duration === 'number'
-              ? duration * 1.2
-              : Tone.Time(duration).toSeconds() * 1.2;
-
-            // Start/stop oscillator per note
-            wfOsc.start(time);
-            wfOsc.stop(time + attackTime + decayTime + 0.05);
-
-            // VCA envelope
-            lpgVca.gain.cancelScheduledValues(time);
-            lpgVca.gain.setValueAtTime(0, time);
-            lpgVca.gain.linearRampToValueAtTime(velocity, time + attackTime);
-            lpgVca.gain.exponentialRampToValueAtTime(
-              0.001, time + attackTime + decayTime
-            );
-
-            // Filter envelope — más lento que VCA (característica Vactrol)
-            const filterFreq = vactrolfiltFreq(velocity);
-            lpgFilter.frequency.cancelScheduledValues(time);
-            lpgFilter.frequency.setValueAtTime(200, time);
-            lpgFilter.frequency.exponentialRampToValueAtTime(
-              filterFreq, time + attackTime * 1.5
-            );
-            lpgFilter.frequency.exponentialRampToValueAtTime(
-              200, time + attackTime * 1.5 + decayTime * 1.3
-            );
-
-            // Filtro dinámico global también responde a velocity
-            const dynamicCutoff = 600 + velocity * 4000;
-            if (isFinite(dynamicCutoff)) {
-              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
-            }
+            wfOsc.frequency.setValueAtTime(Tone.Frequency(note).toFrequency(), time);
+            const at = 0.005; const dt = typeof duration === 'number' ? duration * 1.2 : Tone.Time(duration).toSeconds() * 1.2;
+            wfOsc.start(time); wfOsc.stop(time + at + dt + 0.05);
+            lpgVca.gain.cancelScheduledValues(time); lpgVca.gain.setValueAtTime(0, time); lpgVca.gain.linearRampToValueAtTime(velocity, time + at); lpgVca.gain.exponentialRampToValueAtTime(0.001, time + at + dt);
+            const fFreq = vactrolfiltFreq(velocity); lpgFilter.frequency.cancelScheduledValues(time); lpgFilter.frequency.setValueAtTime(200, time); lpgFilter.frequency.exponentialRampToValueAtTime(fFreq, time + at * 1.5); lpgFilter.frequency.exponentialRampToValueAtTime(200, time + at * 1.5 + dt * 1.3);
+            const dc = 600 + velocity * 4000; if (isFinite(dc)) routing.filter.frequency.rampTo(dc, 0.02, time);
           },
-          setVolume: (vol: number) => {
-            wfOsc.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
-          },
-          setSends: (delayVal: number, reverbVal: number) => {
-            toneDelaySend.gain.rampTo(delayVal, 0.05);
-            toneReverbSend.gain.rampTo(reverbVal, 0.05);
-          },
-          updateWfParams: (amount: number, symmetry: number) => {
-            waveFolder.curve = buildWavefoldCurve(amount, symmetry);
-            preFoldGain.gain.rampTo(1 + amount * 0.3, 0.05);
-          },
-          dispose: () => {
-            wfOsc.stop().dispose();
-            waveFolder.dispose();
-            preFoldGain.dispose();
-            lpgFilter.dispose();
-            lpgVca.dispose();
-            toneFilter.dispose();
-            toneDelaySend.dispose();
-            toneReverbSend.dispose();
-          }
+          setVolume: (vol: number) => { wfOsc.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05); },
+          setSends: (d: number, r: number) => { routing.delaySend.gain.rampTo(d, 0.05); routing.reverbSend.gain.rampTo(r, 0.05); },
+          updateWfParams: (a: number, s: number) => { waveFolder.curve = buildWavefoldCurve(a, s); preFoldGain.gain.rampTo(1 + a * 0.3, 0.05); },
+          dispose: () => { wfOsc.stop().dispose(); waveFolder.dispose(); preFoldGain.dispose(); lpgFilter.dispose(); lpgVca.dispose(); routing.dispose(); }
         };
       } else {
-        toneSynth = new Tone.MonoSynth({
-          oscillator: { type: 'sawtooth' },
-          filter: { Q: 6, type: 'lowpass', rolloff: -24 },
-          envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 },
-          filterEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8, baseFrequency: 200, octaves: 4 },
-          volume: -6
-        }).connect(toneFilter);
-
+        toneSynth = new Tone.MonoSynth({ oscillator: { type: 'sawtooth' }, filter: { Q: 6, type: 'lowpass', rolloff: -24 }, envelope: { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.8 }, filterEnvelope: { attack: 0.06, decay: 0.2, sustain: 0.5, release: 0.8, baseFrequency: 200, octaves: 4 }, volume: -6 }).connect(routing.filter);
         synthsRef.current.tone = {
-          triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
-            toneSynth.triggerAttackRelease(note, duration, time, velocity);
-            const baseCutoff = 600;
-            const dynamicCutoff = baseCutoff + (velocity * 4000);
-            if (isFinite(dynamicCutoff)) {
-              toneFilter.frequency.rampTo(dynamicCutoff, 0.02, time);
-            }
-          },
-          setVolume: (vol: number) => {
-            toneSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
-          },
-          setSends: (delayVal: number, reverbVal: number) => {
-            toneDelaySend.gain.rampTo(delayVal, 0.05);
-            toneReverbSend.gain.rampTo(reverbVal, 0.05);
-          },
-          dispose: () => {
-            toneSynth.dispose();
-            toneFilter.dispose();
-            toneDelaySend.dispose();
-            toneReverbSend.dispose();
-          }
+          triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => { toneSynth.triggerAttackRelease(note, duration, time, velocity); const dc = 600 + (velocity * 4000); if (isFinite(dc)) routing.filter.frequency.rampTo(dc, 0.02, time); },
+          setVolume: (vol: number) => { toneSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05); },
+          setSends: (d: number, r: number) => { routing.delaySend.gain.rampTo(d, 0.05); routing.reverbSend.gain.rampTo(r, 0.05); },
+          dispose: () => { toneSynth.dispose(); routing.dispose(); }
         };
       }
-      // Audio-Rate Modulation module — disponible en todos los modos de synth tonal
-      const toneTrackCurrent = tracksRef.current.find(t => t.id === 'tone');
-      const arRate = toneTrackCurrent?.arRate ?? 80;
-      const arDepth = toneTrackCurrent?.arDepth ?? 0;
 
-      const arLFO = new Tone.Oscillator({
-        type: 'sine',
-        frequency: arRate
-      });
+      // Audio-Rate Modulation — available for all tonal synth modes
+      const arRate = toneTrack?.arRate ?? 80; const arDepth = toneTrack?.arDepth ?? 0;
+      const arLFO = new Tone.Oscillator({ type: 'sine', frequency: arRate });
       const arGain = new Tone.Gain(arDepth);
-      arLFO.connect(arGain);
-      arGain.connect(toneFilter.frequency);
-      let arRunning = arDepth > 0;
-      if (arRunning) arLFO.start();
-
-      // Extender la interfaz del synth con métodos AR
+      arLFO.connect(arGain); arGain.connect(routing.filter.frequency);
+      let arRunning = arDepth > 0; if (arRunning) arLFO.start();
       const existingDispose = synthsRef.current.tone.dispose;
       synthsRef.current.tone.updateArParams = (rate: number, depth: number) => {
-        arLFO.frequency.rampTo(rate, 0.05);
-        arGain.gain.rampTo(depth, 0.05);
+        arLFO.frequency.rampTo(rate, 0.05); arGain.gain.rampTo(depth, 0.05);
         if (depth > 0 && !arRunning) { arLFO.start(); arRunning = true; }
         if (depth === 0 && arRunning) { arLFO.stop(); arRunning = false; }
       };
-      synthsRef.current.tone.dispose = () => {
-        try { arLFO.stop(); arLFO.dispose(); } catch(e) {}
-        arGain.dispose();
-        existingDispose();
-      };
+      synthsRef.current.tone.dispose = () => { try { arLFO.stop(); arLFO.dispose(); } catch(e) {} arGain.dispose(); existingDispose(); };
+
+      // Common methods + tone-specific
+      injectCommonMethods(synthsRef.current.tone, routing, 600, createNestedLfo);
+      synthsRef.current.tone.setCrossfeedFreq = (hz: number) => { routing.filter.frequency.rampTo(hz, 0.05); };
     }
-    // Lorenz + Nested LFO injection for tone rebuild
-    if (trackId === 'tone' && synthsRef.current.tone) {
-      const tf = toneFilterRef.current;
-      synthsRef.current.tone.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
-        if (target === 'filter' && tf) tf.frequency.rampTo(600 + normalizedValue * depth, 0.05);
-      };
-      synthsRef.current.tone.nestedLfoInstance = null;
-      synthsRef.current.tone.initNestedLfo = (r1: number, r2: number, d: number) => {
-        synthsRef.current.tone.nestedLfoInstance?.dispose();
-        synthsRef.current.tone.nestedLfoInstance = createNestedLfo(tf, r1, r2, d);
-      };
-      synthsRef.current.tone.updateNestedLfo = (r1: number, r2: number, d: number) => synthsRef.current.tone.nestedLfoInstance?.update(r1, r2, d);
-      synthsRef.current.tone.disposeNestedLfo = () => { synthsRef.current.tone.nestedLfoInstance?.dispose(); synthsRef.current.tone.nestedLfoInstance = null; };
-      // EQ injection for tone rebuild
-      if (_eqHpfRef && _eqLpfRef) {
-        const eqH = _eqHpfRef;
-        const eqL = _eqLpfRef;
-        synthsRef.current.tone.updateEq = (hpfFreq: number, lpfFreq: number) => {
-          eqH.frequency.rampTo(hpfFreq, 0.05);
-          eqL.frequency.rampTo(lpfFreq, 0.05);
-        };
-      }
-      // Pan + FreqShifter injection for tone rebuild
-      if (_pannerRef && _freqShifterRef) {
-        const pRef = _pannerRef;
-        const fsRef = _freqShifterRef;
-        const bpRef = _fsBypassGainRef;
-        const drRef = _fsDirectGainRef;
-        synthsRef.current.tone.setPan = (value: number) => { pRef.pan.rampTo(value, 0.05); };
-        synthsRef.current.tone.setFreqShift = (hz: number, enabled?: boolean) => {
-          fsRef.frequency.rampTo(hz, 0.05);
-          if (enabled !== undefined && bpRef && drRef) {
-            bpRef.gain.rampTo(enabled ? 1 : 0, 0.02);
-            drRef.gain.rampTo(enabled ? 0 : 1, 0.02);
-          }
-        };
-        synthsRef.current.tone.panner = pRef;
-        synthsRef.current.tone.freqShifter = fsRef;
-      }
-      // Spectral send injection for tone rebuild
-      if (_spectralSendRef) {
-        const ssRef = _spectralSendRef;
-        synthsRef.current.tone.setSpectralSend = (value: number) => { ssRef.gain.rampTo(value, 0.05); };
-      }
-      // Freeze send injection for tone rebuild (Phase 9)
-      if (_freezeSendRef) {
-        const fsRef2 = _freezeSendRef;
-        synthsRef.current.tone.setFreezeSend = (value: number) => { fsRef2.gain.rampTo(value, 0.05); };
-      }
-      // Reverse send injection for tone rebuild (Phase 9)
-      if (_reverseSendRef) {
-        const rvRef = _reverseSendRef;
-        synthsRef.current.tone.setReverseSend = (value: number) => { rvRef.gain.rampTo(value, 0.05); };
-      }
-      // Binaural injection for tone rebuild (Phase 7D)
-      if (_pannerGainRef && _panner3DGainRef && _panner3DRef) {
-        const pgRef = _pannerGainRef;
-        const p3gRef = _panner3DGainRef;
-        const p3dRef = _panner3DRef;
-        synthsRef.current.tone.switchBinaural = (binaural: boolean) => {
-          pgRef.gain.rampTo(binaural ? 0 : 1, 0.1);
-          p3gRef.gain.rampTo(binaural ? 1 : 0, 0.1);
-        };
-        synthsRef.current.tone.updateBinaural = (azimuth: number, distance: number) => {
-          const rad = (azimuth * Math.PI) / 180;
-          try { p3dRef.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) {
-            p3dRef.positionX.value = Math.sin(rad) * distance;
-            p3dRef.positionZ.value = -Math.cos(rad) * distance;
-          }
-        };
-      }
-      // Crossfeed injection for tone rebuild (Phase 7E)
-      if (_toneFilterRef) {
-        const tf = _toneFilterRef;
-        synthsRef.current.tone.setCrossfeedFreq = (hz: number) => { tf.frequency.rampTo(hz, 0.05); };
-      }
-    }
-    // Apply current volume, sends, EQ, pan, and freqShift
-    const track = tracksRef.current.find(t => t.id === trackId);
-    if (track && synthsRef.current[trackId]) {
-      synthsRef.current[trackId].setVolume(track.volume);
-      synthsRef.current[trackId].setSends(track.delaySend, track.reverbSend);
-      // Restore EQ state
-      const hpf = track.eqEnabled ? (track.eqHpfFreq ?? 20) : 20;
-      const lpf = track.eqEnabled ? (track.eqLpfFreq ?? 20000) : 20000;
-      synthsRef.current[trackId].updateEq?.(hpf, lpf);
-      // Restore pan and freqShift
-      synthsRef.current[trackId].setPan?.(track.pan ?? 0);
-      synthsRef.current[trackId].setFreqShift?.(track.freqShiftEnabled ? (track.freqShift ?? 0) : 0, track.freqShiftEnabled ?? false);
-      // Restore spectral delay send
-      synthsRef.current[trackId].setSpectralSend?.(track.spectralDelaySend ?? 0);
-      // Restore freeze send (Phase 9)
-      synthsRef.current[trackId].setFreezeSend?.(track.freezeSend ?? 0);
-      // Restore reverse send (Phase 9)
-      synthsRef.current[trackId].setReverseSend?.(track.reverseSend ?? 0);
-      // Restore binaural state (Phase 7D)
-      synthsRef.current[trackId].switchBinaural?.(track.binauralEnabled ?? false);
-      if (track.binauralEnabled) {
-        synthsRef.current[trackId].updateBinaural?.(track.binauralAzimuth ?? 0, track.binauralDistance ?? 3);
-      }
-    }
+
+    // Restore persisted state
+    restoreTrackState(synthsRef, tracksRef, trackId);
   };
 
   // Armed→recording cuando arranca play, auto-stop cuando para
