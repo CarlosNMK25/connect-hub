@@ -11,10 +11,13 @@
 - Build limpio, sin errores nuevos
 - MesoInsightMonitor y ThesisDrawer permanecen como componentes en EuclideanSequencer.tsx (se usan inline)
 
-## Paso 2: `usePresetManager` — PENDIENTE
-- userPresets, isSavingPreset, newPresetName, importError, importInputRef, activePresetId, hoveredPreset, previewPatterns
-- captureCurrentConfig, applyPreset, applyUserPreset, handleSave/Delete/Export/Import
-- Dependencia: synthsRef (solo en setTimeout de applyUserPreset)
+## Paso 2: `usePresetManager` ✅ COMPLETADO
+- Extraído a `src/hooks/usePresetManager.ts`
+- 7 useState + 1 useRef + 1 useMemo + 8 funciones movidas
+- Estado: userPresets, isSavingPreset, newPresetName, importError, activePresetId, hoveredPreset
+- Funciones: applyPreset, injectPattern, captureCurrentConfig, applyUserPreset, handleSave/Delete/Export/Import
+- Hook se instancia después de `mcm` para evitar uso antes de declaración
+- Build limpio, sin errores nuevos
 
 ## Paso 3: `useTrackState` — PENDIENTE
 - tracks, setTracks, handleParamChange, handleSequencerAction, handleTonalAction, handleSlicerAction
