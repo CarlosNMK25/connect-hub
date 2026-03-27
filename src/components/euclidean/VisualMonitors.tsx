@@ -4,7 +4,7 @@ import { EnergyMonitor } from './EnergyMonitor';
 
 interface VisualMonitorsProps {
   jitter: number;
-  lastHit: { velocity: number; color: string } | null;
+  lastHit: { velocity: number; color: string; offset: number } | null;
   isStudyMode: boolean;
   setHoveredGlobalParam: (p: string | null) => void;
   setHoveredGlobalEl: (el: HTMLElement | null) => void;
