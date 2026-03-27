@@ -851,6 +851,8 @@ export function useSequencer(params: UseSequencerParams) {
     togglePlay,
     handlePhaseSync,
     phaseBufferRef,
+    phaseBufferHeadRef,
+    PHASE_BUFFER_SIZE,
     toneRecordingState,
     cloudRecordingState,
     globalRecordingState,
