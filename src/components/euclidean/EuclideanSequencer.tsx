@@ -212,7 +212,7 @@ export const EuclideanSequencer = () => {
   const [delayMix, setDelayMix] = useState(0.2);
   const [delayFeedback, setDelayFeedback] = useState(0.3);
   const [reverbMix, setReverbMix] = useState(0.15);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);  
   const [showVisuals, setShowVisuals] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [showSync, setShowSync] = useState(false);
