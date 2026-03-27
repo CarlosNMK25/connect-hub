@@ -7,6 +7,8 @@ import { EuclideanTrack } from './EuclideanTrack';
 import { SongModePanel } from './SongModePanel';
 import { SequencerFooter } from './SequencerFooter';
 import { StudyTooltipPortal } from './StudyTooltipPortal';
+import { LibraryPanel } from './LibraryPanel';
+import { SyncPanel } from './SyncPanel';
 import { SpectrumAnalyzer } from './SpectrumAnalyzer';
 import { JitterMonitor } from './JitterMonitor';
 import { EnergyMonitor } from './EnergyMonitor';
