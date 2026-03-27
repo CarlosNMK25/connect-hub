@@ -805,128 +805,15 @@ export const EuclideanSequencer = () => {
     const sidechainInverter = new Tone.Gain(-0.8); // Pump amount
     const sidechainBias = new Tone.Signal(1);
     
-    // Filters for dynamic timbre
-    const kickDelaySend = new Tone.Gain(0).connect(delayBus);
-    const kickReverbSend = new Tone.Gain(0).connect(reverbBus);
-    const kickSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
-    const kickFreezeSend = new Tone.Gain(0).connect(freezeBus);
-    const kickReverseSend = new Tone.Gain(0).connect(reverseBus);
-    // EQ filters in series: filter → eqHpf → eqLpf → [pannerGain→panner, panner3DGain→panner3D] → freqShifter → [compressor, sends]
-    const kickEqHpf = new Tone.Filter(20, "highpass");
-    const kickEqLpf = new Tone.Filter(20000, "lowpass");
-    const kickPanner = new Tone.Panner(0);
-    const kickPanner3D = new Tone.Panner3D({ panningModel: 'HRTF', distanceModel: 'inverse' });
-    kickPanner3D.positionY.value = 0;
-    const kickPannerGain = new Tone.Gain(1);
-    const kickPanner3DGain = new Tone.Gain(0);
-    const kickFreqShifter = new Tone.FrequencyShifter(0);
-    const kickFsBypassGain = new Tone.Gain(0); // bypass=0: freqShifter path muted by default
-    const kickFsDirectGain = new Tone.Gain(1); // direct=1: clean path active by default
-    const kickFilter = new Tone.Filter(2000, "lowpass").connect(kickEqHpf);
-    kickEqHpf.connect(kickEqLpf);
-    kickEqLpf.connect(kickPannerGain);
-    kickEqLpf.connect(kickPanner3DGain);
-    kickEqLpf.connect(kickFollower); // Follower pre-pan for sidechain independence
-    kickPannerGain.connect(kickPanner);
-    kickPanner3DGain.connect(kickPanner3D);
-    // FreqShifter bypass routing: dual-gain crossfade
-    kickPanner.connect(kickFsBypassGain);
-    kickPanner3D.connect(kickFsBypassGain);
-    kickFsBypassGain.connect(kickFreqShifter);
-    kickFreqShifter.connect(compressor);
-    kickFreqShifter.connect(kickDelaySend);
-    kickFreqShifter.connect(kickReverbSend);
-    kickFreqShifter.connect(kickSpectralSend);
-    // Direct path (bypass freqShifter)
-    kickPanner.connect(kickFsDirectGain);
-    kickPanner3D.connect(kickFsDirectGain);
-    kickFsDirectGain.connect(compressor);
-    kickFsDirectGain.connect(kickDelaySend);
-    kickFsDirectGain.connect(kickReverbSend);
-    kickFsDirectGain.connect(kickSpectralSend);
-    kickFsBypassGain.connect(kickFreezeSend);
-    kickFsBypassGain.connect(kickReverseSend);
-    kickFsDirectGain.connect(kickFreezeSend);
-    kickFsDirectGain.connect(kickReverseSend);
+    // ── Kick routing via factory ──
+    const kickRouting = createTrackRouting({
+      filterFreq: 2000, filterType: 'lowpass',
+      compressor, delayBus, reverbBus, spectralDelayBus, freezeBus, reverseBus,
+    });
+    const kickFilter = kickRouting.filter;
+    // Sidechain: follower taps post-EQ, pre-pan
+    kickRouting.eqLpf.connect(kickFollower);
     kickFollower.connect(sidechainInverter);
-
-    const snareDelaySend = new Tone.Gain(0).connect(delayBus);
-    const snareReverbSend = new Tone.Gain(0).connect(reverbBus);
-    const snareSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
-    const snareFreezeSend = new Tone.Gain(0).connect(freezeBus);
-    const snareReverseSend = new Tone.Gain(0).connect(reverseBus);
-    const snareEqHpf = new Tone.Filter(20, "highpass");
-    const snareEqLpf = new Tone.Filter(20000, "lowpass");
-    const snarePanner = new Tone.Panner(0);
-    const snarePanner3D = new Tone.Panner3D({ panningModel: 'HRTF', distanceModel: 'inverse' });
-    snarePanner3D.positionY.value = 0;
-    const snarePannerGain = new Tone.Gain(1);
-    const snarePanner3DGain = new Tone.Gain(0);
-    const snareFreqShifter = new Tone.FrequencyShifter(0);
-    const snareFsBypassGain = new Tone.Gain(0);
-    const snareFsDirectGain = new Tone.Gain(1);
-    const snareFilter = new Tone.Filter(5000, "lowpass").connect(snareEqHpf);
-    snareEqHpf.connect(snareEqLpf);
-    snareEqLpf.connect(snarePannerGain);
-    snareEqLpf.connect(snarePanner3DGain);
-    snarePannerGain.connect(snarePanner);
-    snarePanner3DGain.connect(snarePanner3D);
-    snarePanner.connect(snareFsBypassGain);
-    snarePanner3D.connect(snareFsBypassGain);
-    snareFsBypassGain.connect(snareFreqShifter);
-    snareFreqShifter.connect(compressor);
-    snareFreqShifter.connect(snareDelaySend);
-    snareFreqShifter.connect(snareReverbSend);
-    snareFreqShifter.connect(snareSpectralSend);
-    snarePanner.connect(snareFsDirectGain);
-    snarePanner3D.connect(snareFsDirectGain);
-    snareFsDirectGain.connect(compressor);
-    snareFsDirectGain.connect(snareDelaySend);
-    snareFsDirectGain.connect(snareReverbSend);
-    snareFsDirectGain.connect(snareSpectralSend);
-    snareFsBypassGain.connect(snareFreezeSend);
-    snareFsBypassGain.connect(snareReverseSend);
-    snareFsDirectGain.connect(snareFreezeSend);
-    snareFsDirectGain.connect(snareReverseSend);
-
-    const hatDelaySend = new Tone.Gain(0).connect(delayBus);
-    const hatReverbSend = new Tone.Gain(0).connect(reverbBus);
-    const hatSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
-    const hatFreezeSend = new Tone.Gain(0).connect(freezeBus);
-    const hatReverseSend = new Tone.Gain(0).connect(reverseBus);
-    const hatEqHpf = new Tone.Filter(20, "highpass");
-    const hatEqLpf = new Tone.Filter(20000, "lowpass");
-    const hatPanner = new Tone.Panner(0);
-    const hatPanner3D = new Tone.Panner3D({ panningModel: 'HRTF', distanceModel: 'inverse' });
-    hatPanner3D.positionY.value = 0;
-    const hatPannerGain = new Tone.Gain(1);
-    const hatPanner3DGain = new Tone.Gain(0);
-    const hatFreqShifter = new Tone.FrequencyShifter(0);
-    const hatFsBypassGain = new Tone.Gain(0);
-    const hatFsDirectGain = new Tone.Gain(1);
-    const hatFilter = new Tone.Filter(5000, "highpass").connect(hatEqHpf);
-    hatEqHpf.connect(hatEqLpf);
-    hatEqLpf.connect(hatPannerGain);
-    hatEqLpf.connect(hatPanner3DGain);
-    hatPannerGain.connect(hatPanner);
-    hatPanner3DGain.connect(hatPanner3D);
-    hatPanner.connect(hatFsBypassGain);
-    hatPanner3D.connect(hatFsBypassGain);
-    hatFsBypassGain.connect(hatFreqShifter);
-    hatFreqShifter.connect(compressor);
-    hatFreqShifter.connect(hatDelaySend);
-    hatFreqShifter.connect(hatReverbSend);
-    hatFreqShifter.connect(hatSpectralSend);
-    hatPanner.connect(hatFsDirectGain);
-    hatPanner3D.connect(hatFsDirectGain);
-    hatFsDirectGain.connect(compressor);
-    hatFsDirectGain.connect(hatDelaySend);
-    hatFsDirectGain.connect(hatReverbSend);
-    hatFsDirectGain.connect(hatSpectralSend);
-    hatFsBypassGain.connect(hatFreezeSend);
-    hatFsBypassGain.connect(hatReverseSend);
-    hatFsDirectGain.connect(hatFreezeSend);
-    hatFsDirectGain.connect(hatReverseSend);
 
     // Layered Kick
     let kickBody = new Tone.MembraneSynth({
@@ -957,31 +844,20 @@ export const EuclideanSequencer = () => {
         kickClick.volume.rampTo(db - 10, 0.05);
       },
       setSends: (delayVal: number, reverbVal: number) => {
-        kickDelaySend.gain.rampTo(delayVal, 0.05);
-        kickReverbSend.gain.rampTo(reverbVal, 0.05);
+        kickRouting.delaySend.gain.rampTo(delayVal, 0.05);
+        kickRouting.reverbSend.gain.rampTo(reverbVal, 0.05);
       },
       dispose: () => {
         kickBody.dispose();
         kickClick.dispose();
-        kickFilter.dispose();
-        kickEqHpf.dispose();
-        kickEqLpf.dispose();
-        kickPanner.dispose();
-        kickPanner3D.dispose();
-        kickPannerGain.dispose();
-        kickPanner3DGain.dispose();
-        kickFreqShifter.dispose();
-        kickFsBypassGain.dispose();
-        kickFsDirectGain.dispose();
-        kickDelaySend.dispose();
-        kickReverbSend.dispose();
-        kickSpectralSend.dispose();
+        kickRouting.dispose();
       }
     };
+    // Inject common methods (EQ, pan, freqShift, binaural, lorenz, nestedLfo, sends)
+    injectCommonMethods(synthsRef.current.kick, kickRouting, 800, createNestedLfo);
     // Phase 8 — Kick synth params setter
     synthsRef.current.kick.setKickParams = (pitchDecay: number, octaves: number, decay: number, clickType: string) => {
       kickBody.set({ pitchDecay, octaves, envelope: { decay } });
-      // NoiseSynth noise type can't be changed in-place; recreate if type changed
       const currentType = (kickClick as any).noise?.type || 'pink';
       if (clickType !== currentType) {
         kickClick.dispose();
@@ -992,57 +868,13 @@ export const EuclideanSequencer = () => {
         }).connect(kickFilter);
       }
     };
-    // EQ injection for kick
-    synthsRef.current.kick.updateEq = (hpfFreq: number, lpfFreq: number) => {
-      kickEqHpf.frequency.rampTo(hpfFreq, 0.05);
-      kickEqLpf.frequency.rampTo(lpfFreq, 0.05);
-    };
-    // Pan + FreqShifter injection for kick
-    synthsRef.current.kick.setPan = (value: number) => { kickPanner.pan.rampTo(value, 0.05); };
-    synthsRef.current.kick.setFreqShift = (hz: number, enabled?: boolean) => {
-      kickFreqShifter.frequency.rampTo(hz, 0.05);
-      if (enabled !== undefined) {
-        kickFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
-        kickFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
-      }
-    };
-    synthsRef.current.kick.panner = kickPanner;
-    synthsRef.current.kick.freqShifter = kickFreqShifter;
-    // Spectral Delay send injection for kick
-    synthsRef.current.kick.setSpectralSend = (value: number) => { kickSpectralSend.gain.rampTo(value, 0.05); };
-    synthsRef.current.kick.setFreezeSend = (value: number) => { kickFreezeSend.gain.rampTo(value, 0.05); };
-    synthsRef.current.kick.setReverseSend = (value: number) => { kickReverseSend.gain.rampTo(value, 0.05); };
-    // Binaural 3D injection for kick
-    synthsRef.current.kick.switchBinaural = (binaural: boolean) => {
-      kickPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
-      kickPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
-    };
-    synthsRef.current.kick.updateBinaural = (azimuth: number, distance: number) => {
-      const rad = (azimuth * Math.PI) / 180;
-      try { kickPanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) {
-        kickPanner3D.positionX.value = Math.sin(rad) * distance;
-        kickPanner3D.positionZ.value = -Math.cos(rad) * distance;
-      }
-    };
-    // Lorenz + Nested LFO injection for kick
-    synthsRef.current.kick.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
-      if (target === 'filter') {
-        const base = 800;
-        kickFilter.frequency.rampTo(base + normalizedValue * depth, 0.05);
-      }
-    };
-    synthsRef.current.kick.nestedLfoInstance = null;
-    synthsRef.current.kick.initNestedLfo = (r1: number, r2: number, d: number) => {
-      synthsRef.current.kick.nestedLfoInstance?.dispose();
-      synthsRef.current.kick.nestedLfoInstance = createNestedLfo(kickFilter, r1, r2, d);
-    };
-    synthsRef.current.kick.updateNestedLfo = (r1: number, r2: number, d: number) => {
-      synthsRef.current.kick.nestedLfoInstance?.update(r1, r2, d);
-    };
-    synthsRef.current.kick.disposeNestedLfo = () => {
-      synthsRef.current.kick.nestedLfoInstance?.dispose();
-      synthsRef.current.kick.nestedLfoInstance = null;
-    };
+
+    // ── Snare routing via factory ──
+    const snareRouting = createTrackRouting({
+      filterFreq: 5000, filterType: 'lowpass',
+      compressor, delayBus, reverbBus, spectralDelayBus, freezeBus, reverseBus,
+    });
+    const snareFilter = snareRouting.filter;
 
     let snareSynth = new Tone.NoiseSynth({
       noise: { type: 'white' as any },
@@ -1068,27 +900,17 @@ export const EuclideanSequencer = () => {
         if (snareBody) snareBody.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
       },
       setSends: (delayVal: number, reverbVal: number) => {
-        snareDelaySend.gain.rampTo(delayVal, 0.05);
-        snareReverbSend.gain.rampTo(reverbVal, 0.05);
+        snareRouting.delaySend.gain.rampTo(delayVal, 0.05);
+        snareRouting.reverbSend.gain.rampTo(reverbVal, 0.05);
       },
       dispose: () => {
         snareSynth.dispose();
         snareBody?.dispose();
-        snareFilter.dispose();
-        snareEqHpf.dispose();
-        snareEqLpf.dispose();
-        snarePanner.dispose();
-        snarePanner3D.dispose();
-        snarePannerGain.dispose();
-        snarePanner3DGain.dispose();
-        snareFreqShifter.dispose();
-        snareFsBypassGain.dispose();
-        snareFsDirectGain.dispose();
-        snareDelaySend.dispose();
-        snareReverbSend.dispose();
-        snareSpectralSend.dispose();
+        snareRouting.dispose();
       }
     };
+    // Inject common methods
+    injectCommonMethods(synthsRef.current.snare, snareRouting, 1500, createNestedLfo);
     // Phase 8 — Snare synth params setter
     synthsRef.current.snare.setSnareParams = (decay: number, noiseType: string) => {
       snareSynth.envelope.decay = decay;
@@ -1119,52 +941,13 @@ export const EuclideanSequencer = () => {
         snareBody.set({ envelope: { decay: bodyDecay } });
       }
     };
-    synthsRef.current.snare.updateEq = (hpfFreq: number, lpfFreq: number) => {
-      snareEqHpf.frequency.rampTo(hpfFreq, 0.05);
-      snareEqLpf.frequency.rampTo(lpfFreq, 0.05);
-    };
-    synthsRef.current.snare.setPan = (value: number) => { snarePanner.pan.rampTo(value, 0.05); };
-    synthsRef.current.snare.setFreqShift = (hz: number, enabled?: boolean) => {
-      snareFreqShifter.frequency.rampTo(hz, 0.05);
-      if (enabled !== undefined) {
-        snareFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
-        snareFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
-      }
-    };
-    synthsRef.current.snare.panner = snarePanner;
-    synthsRef.current.snare.freqShifter = snareFreqShifter;
-    synthsRef.current.snare.setSpectralSend = (value: number) => { snareSpectralSend.gain.rampTo(value, 0.05); };
-    synthsRef.current.snare.setFreezeSend = (value: number) => { snareFreezeSend.gain.rampTo(value, 0.05); };
-    synthsRef.current.snare.setReverseSend = (value: number) => { snareReverseSend.gain.rampTo(value, 0.05); };
-    synthsRef.current.snare.switchBinaural = (binaural: boolean) => {
-      snarePannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
-      snarePanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
-    };
-    synthsRef.current.snare.updateBinaural = (azimuth: number, distance: number) => {
-      const rad = (azimuth * Math.PI) / 180;
-      try { snarePanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) {
-        snarePanner3D.positionX.value = Math.sin(rad) * distance;
-        snarePanner3D.positionZ.value = -Math.cos(rad) * distance;
-      }
-    };
-    // Lorenz + Nested LFO injection for snare
-    synthsRef.current.snare.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
-      if (target === 'filter') {
-        snareFilter.frequency.rampTo(1500 + normalizedValue * depth, 0.05);
-      }
-    };
-    synthsRef.current.snare.nestedLfoInstance = null;
-    synthsRef.current.snare.initNestedLfo = (r1: number, r2: number, d: number) => {
-      synthsRef.current.snare.nestedLfoInstance?.dispose();
-      synthsRef.current.snare.nestedLfoInstance = createNestedLfo(snareFilter, r1, r2, d);
-    };
-    synthsRef.current.snare.updateNestedLfo = (r1: number, r2: number, d: number) => {
-      synthsRef.current.snare.nestedLfoInstance?.update(r1, r2, d);
-    };
-    synthsRef.current.snare.disposeNestedLfo = () => {
-      synthsRef.current.snare.nestedLfoInstance?.dispose();
-      synthsRef.current.snare.nestedLfoInstance = null;
-    };
+
+    // ── Hat routing via factory ──
+    const hatRouting = createTrackRouting({
+      filterFreq: 5000, filterType: 'highpass',
+      compressor, delayBus, reverbBus, spectralDelayBus, freezeBus, reverseBus,
+    });
+    const hatFilter = hatRouting.filter;
 
     let hatSynth: Tone.NoiseSynth | null = new Tone.NoiseSynth({
       noise: { type: 'white' as any },
@@ -1195,27 +978,17 @@ export const EuclideanSequencer = () => {
         if (hatMetalSynth) hatMetalSynth.volume.rampTo(db, 0.05);
       },
       setSends: (delayVal: number, reverbVal: number) => {
-        hatDelaySend.gain.rampTo(delayVal, 0.05);
-        hatReverbSend.gain.rampTo(reverbVal, 0.05);
+        hatRouting.delaySend.gain.rampTo(delayVal, 0.05);
+        hatRouting.reverbSend.gain.rampTo(reverbVal, 0.05);
       },
       dispose: () => {
         hatSynth?.dispose();
         hatMetalSynth?.dispose();
-        hatFilter.dispose();
-        hatEqHpf.dispose();
-        hatEqLpf.dispose();
-        hatPanner.dispose();
-        hatPanner3D.dispose();
-        hatPannerGain.dispose();
-        hatPanner3DGain.dispose();
-        hatFreqShifter.dispose();
-        hatFsBypassGain.dispose();
-        hatFsDirectGain.dispose();
-        hatDelaySend.dispose();
-        hatReverbSend.dispose();
-        hatSpectralSend.dispose();
+        hatRouting.dispose();
       }
     };
+    // Inject common methods
+    injectCommonMethods(synthsRef.current.hat, hatRouting, 2000, createNestedLfo);
     // Phase 8 — Hat mode switcher + params
     synthsRef.current.hat.setHatMode = (mode: string, harmonicity: number, modIndex: number, resonance: number, decay: number, noiseType: string) => {
       if (mode === 'metal' && currentHatMode !== 'metal') {
@@ -1250,52 +1023,6 @@ export const EuclideanSequencer = () => {
           }).connect(hatFilter);
         }
       }
-    };
-    synthsRef.current.hat.updateEq = (hpfFreq: number, lpfFreq: number) => {
-      hatEqHpf.frequency.rampTo(hpfFreq, 0.05);
-      hatEqLpf.frequency.rampTo(lpfFreq, 0.05);
-    };
-    synthsRef.current.hat.setPan = (value: number) => { hatPanner.pan.rampTo(value, 0.05); };
-    synthsRef.current.hat.setFreqShift = (hz: number, enabled?: boolean) => {
-      hatFreqShifter.frequency.rampTo(hz, 0.05);
-      if (enabled !== undefined) {
-        hatFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
-        hatFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
-      }
-    };
-    synthsRef.current.hat.panner = hatPanner;
-    synthsRef.current.hat.freqShifter = hatFreqShifter;
-    synthsRef.current.hat.setSpectralSend = (value: number) => { hatSpectralSend.gain.rampTo(value, 0.05); };
-    synthsRef.current.hat.setFreezeSend = (value: number) => { hatFreezeSend.gain.rampTo(value, 0.05); };
-    synthsRef.current.hat.setReverseSend = (value: number) => { hatReverseSend.gain.rampTo(value, 0.05); };
-    synthsRef.current.hat.switchBinaural = (binaural: boolean) => {
-      hatPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
-      hatPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
-    };
-    synthsRef.current.hat.updateBinaural = (azimuth: number, distance: number) => {
-      const rad = (azimuth * Math.PI) / 180;
-      try { hatPanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) {
-        hatPanner3D.positionX.value = Math.sin(rad) * distance;
-        hatPanner3D.positionZ.value = -Math.cos(rad) * distance;
-      }
-    };
-    // Lorenz + Nested LFO injection for hat
-    synthsRef.current.hat.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
-      if (target === 'filter') {
-        hatFilter.frequency.rampTo(2000 + normalizedValue * depth, 0.05);
-      }
-    };
-    synthsRef.current.hat.nestedLfoInstance = null;
-    synthsRef.current.hat.initNestedLfo = (r1: number, r2: number, d: number) => {
-      synthsRef.current.hat.nestedLfoInstance?.dispose();
-      synthsRef.current.hat.nestedLfoInstance = createNestedLfo(hatFilter, r1, r2, d);
-    };
-    synthsRef.current.hat.updateNestedLfo = (r1: number, r2: number, d: number) => {
-      synthsRef.current.hat.nestedLfoInstance?.update(r1, r2, d);
-    };
-    synthsRef.current.hat.disposeNestedLfo = () => {
-      synthsRef.current.hat.nestedLfoInstance?.dispose();
-      synthsRef.current.hat.nestedLfoInstance = null;
     };
 
     // Cloud Engine Setup
