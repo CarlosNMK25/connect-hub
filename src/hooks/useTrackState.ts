@@ -173,8 +173,9 @@ export function useTrackState(params: UseTrackStateParams) {
 
   // ── initCloudEno ──
   const initCloudEno = useCallback((audioBuffer: AudioBuffer) => {
+    console.log('[ENO-DIAG] initCloudEno called', { bufferDuration: audioBuffer?.duration, bufferLength: audioBuffer?.length });
     const cloudSynth = synthsRef.current.cloud;
-    if (!cloudSynth?.ducker) return;
+    if (!cloudSynth?.ducker) { console.warn('[ENO-DIAG] initCloudEno ABORTED: no cloudSynth.ducker', { hasCloud: !!cloudSynth, hasDucker: !!cloudSynth?.ducker }); return; }
 
     const existingDucker = cloudSynth.ducker;
     const existingDelaySend = cloudSynth.delaySend;
@@ -231,7 +232,8 @@ export function useTrackState(params: UseTrackStateParams) {
     };
 
     const startEno = () => {
-      if (enoActive) return;
+      console.log('[ENO-DIAG] startEno called', { enoActive, numPlayers: enoPlayers.length });
+      if (enoActive) { console.log('[ENO-DIAG] startEno SKIPPED: already active'); return; }
       enoActive = true;
       for (let i = 0; i < NUM_LOOPS; i++) {
         Tone.getTransport().scheduleOnce(() => {
@@ -261,6 +263,7 @@ export function useTrackState(params: UseTrackStateParams) {
     cloudSynth.startEno = startEno;
     cloudSynth.stopEno = stopEno;
     cloudSynth.enoDispose = disposeEno;
+    console.log('[ENO-DIAG] initCloudEno COMPLETE: startEno assigned to cloudSynth');
 
     const originalSetVolume = cloudSynth.setVolume;
     cloudSynth.setVolume = (vol: number) => {
