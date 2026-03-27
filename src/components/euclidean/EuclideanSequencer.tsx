@@ -25,6 +25,7 @@ import { buildWavefoldCurve, vactrolfiltFreq } from '../../utils/waveshaping';
 import { generateMarkovMatrix, markovNextNote, type MarkovStyle } from '../../utils/markovGenerator';
 import { LorenzAttractor } from '../../utils/lorenzAttractor';
 import { calculateSliceBoundaries, defaultSliceOrder, defaultSliceReverse, defaultSlicePitch } from '../../utils/slicerUtils';
+import { usePedagogy } from '../../hooks/usePedagogy';
 
 interface SceneData {
   pulses: number;
@@ -407,11 +408,13 @@ export const EuclideanSequencer = () => {
   const [showSync, setShowSync] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [isDjMode, setIsDjMode] = useState(false);
-  const [isStudyMode, setIsStudyMode] = useState(false);
-  const [studyVoice, setStudyVoice] = useState<PedagogyVoice>('technical');
-  const [isThesisOpen, setIsThesisOpen] = useState(false);
-  const [hoveredGlobalParam, setHoveredGlobalParam] = useState<string | null>(null);
-  const [hoveredGlobalEl, setHoveredGlobalEl] = useState<HTMLElement | null>(null);
+  const {
+    isStudyMode, setIsStudyMode,
+    studyVoice, setStudyVoice,
+    isThesisOpen, setIsThesisOpen,
+    hoveredGlobalParam, setHoveredGlobalParam,
+    hoveredGlobalEl, setHoveredGlobalEl,
+  } = usePedagogy();
   const [globalStep, setGlobalStep] = useState(0);
   const [lastHit, setLastHit] = useState<{ offset: number; color: string; velocity: number; id?: number } | null>(null);
   const [hoveredPreset, setHoveredPreset] = useState<ScenePreset | null>(null);

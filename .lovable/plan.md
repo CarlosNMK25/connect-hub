@@ -1,40 +1,32 @@
 
+# Refactoring EuclideanSequencer.tsx — Plan de Ejecución
 
-# Fase 4 Pedagógica — Confirmación y Plan de Implementación
+## Reglas de oro
+- Criterio de verificación después de cada paso: **build limpio + 60 FPS + audio idéntico + presets funcionan**
+- Si un paso rompe algo, **rollback inmediato** antes de continuar
 
-## Verificación solicitada
+## Paso 1: `usePedagogy` ✅ COMPLETADO
+- Extraído a `src/hooks/usePedagogy.ts`
+- 5 useState movidos: isStudyMode, studyVoice, isThesisOpen, hoveredGlobalParam, hoveredGlobalEl
+- Build limpio, sin errores nuevos
+- MesoInsightMonitor y ThesisDrawer permanecen como componentes en EuclideanSequencer.tsx (se usan inline)
 
-**patternMode** — Present in capture (line ~845) and apply (line ~957) with default `'euclidean'`.
-**noteMode** — Present in capture (line ~840) and apply (line ~953) with default `'euclidean'`.
+## Paso 2: `usePresetManager` — PENDIENTE
+- userPresets, isSavingPreset, newPresetName, importError, importInputRef, activePresetId, hoveredPreset, previewPatterns
+- captureCurrentConfig, applyPreset, applyUserPreset, handleSave/Delete/Export/Import
+- Dependencia: synthsRef (solo en setTimeout de applyUserPreset)
 
-Both fields are already handled. No fix needed.
+## Paso 3: `useTrackState` — PENDIENTE
+- tracks, setTracks, handleParamChange, handleSequencerAction, handleTonalAction, handleSlicerAction
+- handleSamplerParamChange, handleFileUpload, handleLayer2
+- Dependencia: synthsRef, masterBusRef
 
-## Plan: Implement Phase 4 Pedagogy
+## Paso 4: `useAudioEngine` — PENDIENTE (ALTO RIESGO)
+- useEffect de inicialización (~884 líneas) + initializeOriginalSynth (~1670 líneas)
+- Todos los refs de audio + sync effects
+- Dependencia: tracksRef, tracks (para sync effects)
 
-### 1. `src/constants/pedagogy.ts`
-Add 14 new entries to `micro` and `microLiterary` objects covering L-Systems, CA, and Markov parameters. Texts verbatim from PEDAGOGIA_FASE4.md.
-
-### 2. `src/utils/diagnosis.ts`
-- Extend `DiagnosisContext.tracks` with: `patternMode`, `noteMode`, `markovStyle`, `markovTemperature`, `markovAnchor`, `lsIterations`, `caSpeed`
-- Add 7 new rules from the document (ls-con-euclidean, ca-evolucionando, markov-flamenco, entropia-generativa-maxima, ls-iteraciones-altas, markov-anclaje-flamenco, tres-motores-patron)
-
-### 3. `src/components/euclidean/EngineRoom.tsx`
-- Extend `TrackSnapshot` with the new fields
-- Pass them through to `DiagnosisContext` in `DiagnosisPanel`
-
-### 4. `src/constants/presets.ts`
-- Extend `TrackPreset` with Phase 4 fields
-- Add 2 new presets: `fibonacci-tree` and `markov-flamenca`
-
-### 5. `src/constants/presetPedagogy.ts`
-- Add listening guides for `fibonacci-tree` and `markov-flamenca`
-- Update `confield` with CA-focused listening guide
-
-### 6. `src/components/euclidean/EuclideanSequencer.tsx`
-- Pass new TrackState fields into EngineRoom's track snapshots
-
-### Technical notes
-- All texts copied verbatim from reference document
-- New presets use existing `patternMode`/`noteMode` fields already supported by apply logic
-- No structural changes to preset system needed
-
+## Paso 5: `useSequencer` — PENDIENTE
+- Tone.Loop (~361 líneas), togglePlay, handlePhaseSync
+- Refs del sequencer + recording handlers
+- Dependencia: synthsRef, tracksRef, todos los refs de estado
