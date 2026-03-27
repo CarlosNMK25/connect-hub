@@ -1116,6 +1116,10 @@ export function useTrackState(params: UseTrackStateParams) {
     updateTrackPattern,
     updateMarkovMatrix,
     recalculateSlices,
+    // Scene helpers
+    extractSceneData,
+    applySceneData,
+    handleSaveScene,
     // Handlers
     handleParamChange,
     handleSequencerAction,
