@@ -351,9 +351,10 @@ export function useTrackState(params: UseTrackStateParams) {
       const freezeSendNode = new Tone.Gain(0).connect(master.freezeBus);
       const reverseSendNode = new Tone.Gain(0).connect(master.reverseBus);
 
-      const pannerNode = synthsRef.current[trackId]?.panner;
+      // Samplers bypass filter/EQ — connect directly to master compressor (or cloud ducker)
+      // NOTE: pre-existing leak — spectralSend, freezeSendNode, reverseSendNode are not disposed on cleanup (tech debt)
       const bitCrusher = new Tone.BitCrusher(16).connect(
-        pannerNode ?? (trackId === 'cloud' ? synthsRef.current.cloud.ducker : master.compressor)
+        trackId === 'cloud' ? synthsRef.current.cloud?.ducker ?? master.compressor : master.compressor
       );
       bitCrusher.connect(delaySend);
       bitCrusher.connect(reverbSend);
