@@ -5897,7 +5897,7 @@ export const EuclideanSequencer = () => {
                 {/* Action buttons */}
                 <div className="flex gap-1 mb-2">
                   <button
-                    onClick={() => { setIsSavingPreset(true); setImportError(null); }}
+                    onClick={() => { setIsSavingPreset(true); }}
                     className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md border border-dashed border-system-accent/30 text-system-accent text-[9px] font-mono hover:bg-system-accent/5 transition-all"
                   >
                     <Save size={10} /> Save
