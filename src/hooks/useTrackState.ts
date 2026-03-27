@@ -339,8 +339,10 @@ export function useTrackState(params: UseTrackStateParams) {
         return;
       }
 
-      // Cleanup previous engine parts
-      if (synthsRef.current[trackId]?.dispose) {
+      // Cleanup previous sampler parts (not infrastructure for cloud)
+      if (synthsRef.current[trackId]?.disposeSampler) {
+        synthsRef.current[trackId].disposeSampler();
+      } else if (synthsRef.current[trackId]?.dispose) {
         synthsRef.current[trackId].dispose();
       }
 
