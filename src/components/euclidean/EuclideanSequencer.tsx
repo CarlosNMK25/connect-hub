@@ -4184,11 +4184,6 @@ export const EuclideanSequencer = () => {
         </div>
       )}
 
-  // ── Ref injection: wire audio functions into useTrackState ──
-  initOrigSynthRef.current = initializeOriginalSynth;
-  startLorenzRafRef.current = startLorenzRaf;
-
-
 
 
 
