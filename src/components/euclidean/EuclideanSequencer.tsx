@@ -25,7 +25,6 @@ import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals, getScaleDetune, midiAndDetuneToFreq, noteIndexToFreq, isNonOctaveScale } from '../../utils/scales';
 import { useAudioEngine, type MasterBusType } from '../../hooks/useAudioEngine';
 import { useSequencer } from '../../hooks/useSequencer';
-import { useAudioEngine, type MasterBusType } from '../../hooks/useAudioEngine';
 import { usePedagogy } from '../../hooks/usePedagogy';
 import type { TrackState, SceneData } from '../../types/track';
 
