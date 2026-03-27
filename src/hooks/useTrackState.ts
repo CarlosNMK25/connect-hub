@@ -232,7 +232,8 @@ export function useTrackState(params: UseTrackStateParams) {
     };
 
     const startEno = () => {
-      if (enoActive) return;
+      console.log('[ENO-DIAG] startEno called', { enoActive, numPlayers: enoPlayers.length });
+      if (enoActive) { console.log('[ENO-DIAG] startEno SKIPPED: already active'); return; }
       enoActive = true;
       for (let i = 0; i < NUM_LOOPS; i++) {
         Tone.getTransport().scheduleOnce(() => {
