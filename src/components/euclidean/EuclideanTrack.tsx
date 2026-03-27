@@ -185,6 +185,7 @@ interface EuclideanTrackProps {
   // ═══ Change 5: Scene slots ═══
   activeScene: number;
   scenes: (any | null)[];
+  onSaveScene?: (trackId: string) => void;
   // ═══ Change 3: Exclusive advanced panel ═══
   activeAdvancedPanel?: 'RR' | 'PHD' | 'LRZ' | 'NLF' | null;
   // ═══════ UNIVERSAL CALLBACKS (stable references) ═══════
@@ -287,7 +288,7 @@ export const EuclideanTrack = React.memo(({
   kickPitchDecay, kickOctaves, kickDecay, kickClickType,
   hatMode, hatHarmonicity, hatModIndex, hatResonance, hatDecay, hatNoiseType,
   snareDecay, snareNoiseType, snareBodyEnabled, snareBodyPitch, snareBodyDecay,
-  isExpanded, onToggleExpand, activeScene, scenes, activeAdvancedPanel,
+  isExpanded, onToggleExpand, activeScene, scenes, onSaveScene, activeAdvancedPanel,
   onParamChange, onSequencerAction, onTonalAction, onSlicerAction,
   onSamplerParamChange, onPercSynthParamChange,
   onFileUpload, onClearSampler, onLoadLayer2, onClearLayer2, onLayer2ParamChange,
@@ -503,6 +504,7 @@ export const EuclideanTrack = React.memo(({
                   <button
                     key={i}
                     onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeScene', i); }}
+                    onDoubleClick={(e) => { e.stopPropagation(); onSaveScene?.(trackId); }}
                     className={`w-3.5 h-3.5 rounded-sm text-[6px] font-medium flex-shrink-0 border transition-all flex items-center justify-center ${
                       isActive
                         ? 'text-white border-transparent'
@@ -2470,6 +2472,7 @@ export const EuclideanTrack = React.memo(({
     prevProps.isExpanded === nextProps.isExpanded &&
     prevProps.activeScene === nextProps.activeScene &&
     prevProps.scenes === nextProps.scenes &&
+    prevProps.onSaveScene === nextProps.onSaveScene &&
     prevProps.activeAdvancedPanel === nextProps.activeAdvancedPanel &&
     prevProps.onParamChange === nextProps.onParamChange &&
     prevProps.onSequencerAction === nextProps.onSequencerAction &&

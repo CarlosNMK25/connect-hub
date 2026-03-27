@@ -28,7 +28,7 @@ import { useTrackState } from '../../hooks/useTrackState';
 import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../../utils/temporality';
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals, getScaleDetune, midiAndDetuneToFreq, noteIndexToFreq, isNonOctaveScale } from '../../utils/scales';
 import { useAudioEngine, type MasterBusType } from '../../hooks/useAudioEngine';
-import { useSequencer } from '../../hooks/useSequencer';
+import { useSequencer, type SongModeConfig } from '../../hooks/useSequencer';
 import { usePedagogy } from '../../hooks/usePedagogy';
 import type { TrackState, SceneData } from '../../types/track';
 
@@ -356,6 +356,7 @@ export const EuclideanSequencer = () => {
     handleSamplerParamChange, handlePercSynthParamChange,
     handleFileUploadCb, handleClearSamplerCb, handleLoadLayer2Cb, handleClearLayer2Cb,
     handleLayer2ParamChange, handleCloudModeChange, handleGetMarkovMatrix, initCloudEno,
+    extractSceneData, applySceneData, handleSaveScene,
   } = useTrackState({
     synthsRef, masterBusRef, logChange, syncAllScenes, isPlaying,
   });
@@ -388,6 +389,26 @@ export const EuclideanSequencer = () => {
     tracks, tracksRef,
     bpm, delayMix, delayFeedback, reverbMix,
   });
+  // ═══ Song Mode: onChainAdvance callback ═══
+  const onChainAdvance = useCallback(() => {
+    setChainPosition(prev => {
+      const nextPos = (prev + 1) % chain.length;
+      const nextScene = chain[nextPos].scene - 1; // chain uses 1-indexed
+      setTracks(prevTracks => prevTracks.map(t => {
+        // Save current to current slot
+        const newScenes = [...t.scenes];
+        newScenes[t.activeScene] = extractSceneData(t);
+        // Apply new scene
+        let updated = { ...t, scenes: newScenes, activeScene: nextScene };
+        if (newScenes[nextScene]) {
+          updated = applySceneData(updated, newScenes[nextScene]!);
+        }
+        return updated;
+      }));
+      return nextPos;
+    });
+  }, [chain, setTracks, extractSceneData, applySceneData]);
+
   // ═══ Sequencer Hook ═══
   const {
     globalStep, lastHit, uiStats,
@@ -404,6 +425,13 @@ export const EuclideanSequencer = () => {
     startLorenzRaf, logChange,
     toneFilterRef, initializeOriginalSynthBase,
     updateMarkovMatrix,
+    songModeConfig: { enabled: songModeEnabled, view: songModeView, chain, chainPosition },
+    mcm: (() => {
+      const rhythmicTracks = tracks.filter(t => t.id !== 'cloud');
+      if (rhythmicTracks.length === 0) return 1;
+      return lcmArray(rhythmicTracks.map(t => t.steps));
+    })(),
+    onChainAdvance,
     initOrigSynthRef, startLorenzRafRef,
     caStateRef, caEvolveCycleRef, pendingCARef, pendingMutationsRef,
     markovLastNoteRef, markovAnchorCountRef, markovMatrixRef, markovNotesRef,
@@ -804,9 +832,10 @@ export const EuclideanSequencer = () => {
               temporalityMode={temporalityMode}
               bpm={bpm}
               swing={swing}
-              onGetMarkovMatrix={handleGetMarkovMatrix}
-              isExpanded={expandedTrack === track.id}
-              onToggleExpand={() => handleToggleTrack(track.id)}
+               onGetMarkovMatrix={handleGetMarkovMatrix}
+               isExpanded={expandedTrack === track.id}
+               onToggleExpand={() => handleToggleTrack(track.id)}
+               onSaveScene={handleSaveScene}
             />
           </div>
         ))}

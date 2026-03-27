@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import * as Tone from 'tone';
-import type { TrackState } from '../types/track';
+import type { TrackState, SceneData } from '../types/track';
 import type { MarkovStyle } from '../utils/markovGenerator';
 import { bjorklund } from '../utils/bjorklund';
 import { generateLSystem, generateCAPattern } from '../utils/patternGenerators';
@@ -616,13 +616,83 @@ export function useTrackState(params: UseTrackStateParams) {
     }
   }, []);
 
+  // ── Scene helpers ──
+  const extractSceneData = (t: TrackState): SceneData => ({
+    pulses: t.pulses,
+    steps: t.steps,
+    offset: t.offset,
+    probabilities: [...t.probabilities],
+    pattern: [...t.pattern],
+    patternMode: t.patternMode,
+    lsSeed: t.lsSeed,
+    lsRuleA: t.lsRuleA,
+    lsIterations: t.lsIterations,
+    lsRotation: t.lsRotation,
+    caRule: t.caRule,
+    caSeed: t.caSeed,
+    caDensity: t.caDensity,
+    caSpeed: t.caSpeed,
+  });
+
+  const applySceneData = (t: TrackState, scene: SceneData): TrackState => {
+    const merged = {
+      ...t,
+      pulses: scene.pulses,
+      steps: scene.steps,
+      offset: scene.offset,
+      probabilities: [...scene.probabilities],
+      pattern: [...scene.pattern],
+      patternMode: scene.patternMode,
+      lsSeed: scene.lsSeed,
+      lsRuleA: scene.lsRuleA,
+      lsIterations: scene.lsIterations,
+      lsRotation: scene.lsRotation,
+      caRule: scene.caRule,
+      caSeed: scene.caSeed,
+      caDensity: scene.caDensity,
+      caSpeed: scene.caSpeed,
+    };
+    return updateTrackPattern(merged);
+  };
+
+  const switchScene = (t: TrackState, newScene: number): TrackState => {
+    // Save current state to current scene slot
+    const newScenes = [...t.scenes];
+    newScenes[t.activeScene] = extractSceneData(t);
+    // Apply new scene data if it exists
+    let updated = { ...t, scenes: newScenes, activeScene: newScene };
+    if (newScenes[newScene]) {
+      updated = applySceneData(updated, newScenes[newScene]!);
+    }
+    return updated;
+  };
+
+  // ── handleSaveScene (explicit save without changing scene) ──
+  const handleSaveScene = useCallback((trackId: string) => {
+    if (syncAllScenes) {
+      setTracks(prev => prev.map(t => {
+        const newScenes = [...t.scenes];
+        newScenes[t.activeScene] = extractSceneData(t);
+        return { ...t, scenes: newScenes };
+      }));
+    } else {
+      setTracks(prev => prev.map(t => {
+        if (t.id !== trackId) return t;
+        const newScenes = [...t.scenes];
+        newScenes[t.activeScene] = extractSceneData(t);
+        return { ...t, scenes: newScenes };
+      }));
+    }
+  }, [syncAllScenes]);
+
   // ── handleParamChange ──
   const handleParamChange = useCallback((trackId: string, param: string, value: any) => {
     if (param === 'activeScene') {
+      const newScene = value as number;
       if (syncAllScenes) {
-        setTracks(prev => prev.map(t => ({ ...t, activeScene: value as number })));
+        setTracks(prev => prev.map(t => switchScene(t, newScene)));
       } else {
-        setTracks(prev => prev.map(t => t.id === trackId ? { ...t, activeScene: value as number } : t));
+        setTracks(prev => prev.map(t => t.id === trackId ? switchScene(t, newScene) : t));
       }
       return;
     }
@@ -1046,6 +1116,10 @@ export function useTrackState(params: UseTrackStateParams) {
     updateTrackPattern,
     updateMarkovMatrix,
     recalculateSlices,
+    // Scene helpers
+    extractSceneData,
+    applySceneData,
+    handleSaveScene,
     // Handlers
     handleParamChange,
     handleSequencerAction,

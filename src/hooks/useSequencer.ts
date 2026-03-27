@@ -7,6 +7,13 @@ import { markovNextNote } from '../utils/markovGenerator';
 import type { TrackState } from '../types/track';
 import type { MasterBusType } from './useAudioEngine';
 
+export interface SongModeConfig {
+  enabled: boolean;
+  view: string;
+  chain: { scene: number; cycles: number }[];
+  chainPosition: number;
+}
+
 export interface UseSequencerParams {
   synthsRef: React.MutableRefObject<Record<string, any>>;
   masterBusRef: React.MutableRefObject<MasterBusType | null>;
@@ -28,6 +35,10 @@ export interface UseSequencerParams {
   toneFilterRef: React.MutableRefObject<Tone.Filter | null>;
   initializeOriginalSynthBase: (trackId: string, overrideSynthType?: string) => void;
   updateMarkovMatrix: (t: TrackState) => void;
+  // Song Mode
+  songModeConfig: SongModeConfig;
+  mcm: number;
+  onChainAdvance: () => void;
   // Refs from useTrackState
   initOrigSynthRef: React.MutableRefObject<any>;
   startLorenzRafRef: React.MutableRefObject<any>;
@@ -53,6 +64,7 @@ export function useSequencer(params: UseSequencerParams) {
     setTracks, setDriftOffsets,
     startLorenzRaf, logChange,
     toneFilterRef, initializeOriginalSynthBase, updateMarkovMatrix,
+    songModeConfig, mcm, onChainAdvance,
     initOrigSynthRef, startLorenzRafRef,
     caStateRef, caEvolveCycleRef, pendingCARef, pendingMutationsRef,
     markovLastNoteRef, markovAnchorCountRef, markovMatrixRef, markovNotesRef,
@@ -93,11 +105,20 @@ export function useSequencer(params: UseSequencerParams) {
   const phaseBufferRef = useRef<number[]>([]);
   const phaseBufferHeadRef = useRef(0);
 
+  // ═══ Song Mode / Chain Refs ═══
+  const chainCyclesRef = useRef(0);
+  const songModeConfigRef = useRef(songModeConfig);
+  const mcmRef = useRef(mcm);
+  const onChainAdvanceRef = useRef(onChainAdvance);
+
   // ═══ Ref Syncs ═══
   useEffect(() => { jitterRef.current = jitter; }, [jitter]);
   useEffect(() => { swingRef.current = swing; }, [swing]);
   useEffect(() => { dynamicsRef.current = dynamics; }, [dynamics]);
   useEffect(() => { temporalityModeRef.current = temporalityMode; }, [temporalityMode]);
+  useEffect(() => { songModeConfigRef.current = songModeConfig; }, [songModeConfig]);
+  useEffect(() => { mcmRef.current = mcm; }, [mcm]);
+  useEffect(() => { onChainAdvanceRef.current = onChainAdvance; }, [onChainAdvance]);
 
   // Initialize refs for all tracks
   useEffect(() => {
@@ -508,7 +529,22 @@ export function useSequencer(params: UseSequencerParams) {
         }
       }, baseTime);
 
-      globalStepRef.current = (currentGlobalStep + 1);
+      const nextGlobalStep = currentGlobalStep + 1;
+      globalStepRef.current = nextGlobalStep;
+
+      // ═══ Song Mode: Auto Chain cycle detection ═══
+      const smc = songModeConfigRef.current;
+      if (smc.enabled && smc.view === 'chain' && smc.chain.length > 0) {
+        const currentMcm = mcmRef.current;
+        if (currentMcm > 0 && nextGlobalStep > 0 && nextGlobalStep % currentMcm === 0) {
+          chainCyclesRef.current++;
+          const currentChainStep = smc.chain[smc.chainPosition];
+          if (currentChainStep && chainCyclesRef.current >= currentChainStep.cycles) {
+            chainCyclesRef.current = 0;
+            onChainAdvanceRef.current();
+          }
+        }
+      }
     }, "16n").start(0);
 
     return () => { loopRef.current?.dispose(); };
@@ -549,6 +585,7 @@ export function useSequencer(params: UseSequencerParams) {
       
       globalStepRef.current = 0;
       setGlobalStep(0);
+      chainCyclesRef.current = 0;
       rrNoteIndexRef.current = {};
       markovLastNoteRef.current = {};
       markovAnchorCountRef.current = {};
