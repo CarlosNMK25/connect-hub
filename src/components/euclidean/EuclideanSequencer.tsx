@@ -389,6 +389,26 @@ export const EuclideanSequencer = () => {
     tracks, tracksRef,
     bpm, delayMix, delayFeedback, reverbMix,
   });
+  // ═══ Song Mode: onChainAdvance callback ═══
+  const onChainAdvance = useCallback(() => {
+    setChainPosition(prev => {
+      const nextPos = (prev + 1) % chain.length;
+      const nextScene = chain[nextPos].scene - 1; // chain uses 1-indexed
+      setTracks(prevTracks => prevTracks.map(t => {
+        // Save current to current slot
+        const newScenes = [...t.scenes];
+        newScenes[t.activeScene] = extractSceneData(t);
+        // Apply new scene
+        let updated = { ...t, scenes: newScenes, activeScene: nextScene };
+        if (newScenes[nextScene]) {
+          updated = applySceneData(updated, newScenes[nextScene]!);
+        }
+        return updated;
+      }));
+      return nextPos;
+    });
+  }, [chain, setTracks, extractSceneData, applySceneData]);
+
   // ═══ Sequencer Hook ═══
   const {
     globalStep, lastHit, uiStats,
@@ -405,6 +425,13 @@ export const EuclideanSequencer = () => {
     startLorenzRaf, logChange,
     toneFilterRef, initializeOriginalSynthBase,
     updateMarkovMatrix,
+    songModeConfig: { enabled: songModeEnabled, view: songModeView, chain, chainPosition },
+    mcm: (() => {
+      const rhythmicTracks = tracks.filter(t => t.id !== 'cloud');
+      if (rhythmicTracks.length === 0) return 1;
+      return lcmArray(rhythmicTracks.map(t => t.steps));
+    })(),
+    onChainAdvance,
     initOrigSynthRef, startLorenzRafRef,
     caStateRef, caEvolveCycleRef, pendingCARef, pendingMutationsRef,
     markovLastNoteRef, markovAnchorCountRef, markovMatrixRef, markovNotesRef,
