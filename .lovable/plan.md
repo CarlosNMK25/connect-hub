@@ -19,10 +19,13 @@
 - Hook se instancia después de `mcm` para evitar uso antes de declaración
 - Build limpio, sin errores nuevos
 
-## Paso 3: `useTrackState` — PENDIENTE
-- tracks, setTracks, handleParamChange, handleSequencerAction, handleTonalAction, handleSlicerAction
-- handleSamplerParamChange, handleFileUpload, handleLayer2
-- Dependencia: synthsRef, masterBusRef
+## Paso 3: `useTrackState` ✅ COMPLETADO
+- Interfaces `TrackState`, `SceneData` extraídas a `src/types/track.ts`
+- Hook `src/hooks/useTrackState.ts` creado (~750 líneas)
+- 18 handlers/funciones movidos: tracks state, handleParamChange, handleSequencerAction, handleTonalAction, handleSlicerAction, handleSamplerParamChange, handlePercSynthParamChange, handleFileUpload, handleClearSampler, handleLoadLayer2, handleClearLayer2, handleLayer2ParamChange, initCloudEno, handleCloudModeChange, updateTrackPattern, updateMarkovMatrix, recalculateSlices, handleGetMarkovMatrix
+- Patrón de inyección por ref: `initOrigSynthRef` y `startLorenzRafRef` inyectados desde el monolito
+- 13 refs internos movidos: caState, caEvolveCycle, pendingCA, pendingMutations, rrNoteIndex, markovLast/Anchor/Matrix/Notes, driftAccumulator, sliceBoundaries
+- Build limpio, sin errores nuevos
 
 ## Paso 4: `useAudioEngine` — PENDIENTE (ALTO RIESGO)
 - useEffect de inicialización (~884 líneas) + initializeOriginalSynth (~1670 líneas)
