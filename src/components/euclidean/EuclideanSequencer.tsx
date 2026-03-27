@@ -418,7 +418,17 @@ export const EuclideanSequencer = () => {
   } = usePedagogy();
   const [globalStep, setGlobalStep] = useState(0);
   const [lastHit, setLastHit] = useState<{ offset: number; color: string; velocity: number; id?: number } | null>(null);
-  const [eclipseFlash, setEclipseFlash] = useState(false);
+  const eclipseRef = useRef(false);
+  const [syncAnalysisOpen, setSyncAnalysisOpen] = useState(false);
+  const eclipseHistoryRef = useRef<{ time: string; mcm: number; bpm: number }[]>([]);
+  const PHASE_BUFFER_SIZE = 128;
+  const phaseBufferRef = useRef<number[]>([]);
+  const phaseBufferHeadRef = useRef(0);
+  const [showEngine, setShowEngine] = useState(false);
+  const [showPatternSpace, setShowPatternSpace] = useState(false);
+  const engineLogRef = useRef<LogEntry[]>([]);
+  const [engineLog, setEngineLog] = useState<LogEntry[]>([]);
+  const sliderDragRef = useRef<{ [key: string]: { value: number; timer: ReturnType<typeof setTimeout> | null } }>({});
   const [temporalityMode, setTemporalityMode] = useState<TemporalityMode>('grid');
   const temporalityModeRef = useRef<TemporalityMode>('grid');
   useEffect(() => { temporalityModeRef.current = temporalityMode; }, [temporalityMode]);
