@@ -916,44 +916,8 @@ export const EuclideanSequencer = () => {
     return () => { loopRef.current?.dispose(); };
   }, []);
 
-  // --- Lorenz RAF loop ---
-  const startLorenzRaf = useCallback(() => {
-    if (lorenzRafRef.current) {
-      cancelAnimationFrame(lorenzRafRef.current);
-    }
-    const tick = () => {
-      const currentTracks = tracksRef.current;
-      const anyActive = currentTracks.some(t => t.lorenzEnabled);
-      if (!anyActive) {
-        lorenzRafRef.current = 0;
-        return;
-      }
-      currentTracks.forEach(t => {
-        if (!t.lorenzEnabled) return;
-        if (!lorenzAttractorsRef.current[t.id]) {
-          lorenzAttractorsRef.current[t.id] = new LorenzAttractor();
-        }
-        const attractor = lorenzAttractorsRef.current[t.id];
-        const speedMult = t.lorenzSpeed ?? 1.0;
-        for (let i = 0; i < Math.ceil(speedMult * 2); i++) {
-          attractor.step();
-        }
-        const normalizedValue = attractor.getNormalizedX();
-        const depth = t.lorenzDepth ?? 1000;
-        if (synthsRef.current[t.id]?.updateLorenz) {
-          synthsRef.current[t.id].updateLorenz(
-            normalizedValue,
-            depth,
-            t.lorenzTarget ?? 'filter'
-          );
-        }
-      });
-      lorenzRafRef.current = requestAnimationFrame(tick);
-    };
-    lorenzRafRef.current = requestAnimationFrame(tick);
-  }, []);
 
-  // createNestedLfo → imported from utils/audioRouting
+
 
   const togglePlay = async () => {
     if (Tone.getContext().state !== 'running') await Tone.start();
