@@ -877,21 +877,8 @@ export const EuclideanSequencer = () => {
     }
   }, [fxHighPass, fxLowPass]);
 
-  // Preset manager hook (extracted from monolith)
-  const {
-    userPresets, activePresetId, hoveredPreset, setHoveredPreset,
-    previewPatterns, isSavingPreset, setIsSavingPreset,
-    newPresetName, setNewPresetName, importError, importInputRef,
-    applyPreset, injectPattern, captureCurrentConfig,
-    applyUserPreset, handleSaveUserPreset, handleDeleteUserPreset,
-    handleExportCurrent, handleImportPreset,
-  } = usePresetManager({
-    tracks, setTracks,
-    bpm, setBpm, jitter, setJitter, swing, setSwing,
-    dynamics, setDynamics, temporalityMode, setTemporalityMode,
-    setMmHistory, logChange, updateTrackPattern, updateMarkovMatrix,
-    synthsRef, tracksRef, mcm,
-  });
+
+
 
   // Spectral Delay bus real-time sync
   useEffect(() => {
