@@ -1091,9 +1091,16 @@ export const EuclideanSequencer = () => {
         cloudRouting.delaySend.gain.rampTo(delayVal, 0.05);
         cloudRouting.reverbSend.gain.rampTo(reverbVal, 0.05);
       },
+      disposeSampler: () => {
+        if (synthsRef.current.cloud.grainPlayer) { try { synthsRef.current.cloud.grainPlayer.dispose(); } catch {} synthsRef.current.cloud.grainPlayer = null; }
+        if (synthsRef.current.cloud.bitCrusher) { try { synthsRef.current.cloud.bitCrusher.dispose(); } catch {} synthsRef.current.cloud.bitCrusher = null; }
+        if (synthsRef.current.cloud.enoMaster) { try { synthsRef.current.cloud.enoMaster.dispose(); } catch {} synthsRef.current.cloud.enoMaster = null; }
+        synthsRef.current.cloud.enoPlayers = null;
+        synthsRef.current.cloud.startEno = null;
+        synthsRef.current.cloud.stopEno = null;
+      },
       dispose: () => {
-        if (synthsRef.current.cloud.grainPlayer) synthsRef.current.cloud.grainPlayer.dispose();
-        if (synthsRef.current.cloud.bitCrusher) synthsRef.current.cloud.bitCrusher.dispose();
+        synthsRef.current.cloud?.disposeSampler?.();
         cloudAnalyser.dispose();
         cloudLFO.dispose();
         cloudDucker.dispose();
