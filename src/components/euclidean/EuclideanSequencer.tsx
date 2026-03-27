@@ -1276,27 +1276,8 @@ export const EuclideanSequencer = () => {
     }
   }, [isPlaying]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { Tone.getTransport().bpm.value = bpm; }, [bpm]);
-  
-  // Sync Sampler/GrainPlayer parameters with audio nodes
-  useEffect(() => {
-    tracks.forEach(track => {
-      const synth = synthsRef.current[track.id];
-      if (!synth) return;
 
-      if (synth.grainPlayer) {
-        synth.grainPlayer.grainSize = track.grainSize / 1000;
-        synth.grainPlayer.overlap = track.overlap;
-        synth.grainPlayer.detune = track.pitch * 100;
-        const stretchRate = track.stretchEnabled ? (track.stretchRate ?? 1.0) : 1.0;
-        synth.grainPlayer.playbackRate = stretchRate;
-      }
 
-      if (synth.bitCrusher) {
-        synth.bitCrusher.bits.value = track.bitCrush;
-      }
-    });
-  }, [tracks]);
 
   const progress = (globalStep % mcm) / mcm;
 
