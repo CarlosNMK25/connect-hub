@@ -105,11 +105,20 @@ export function useSequencer(params: UseSequencerParams) {
   const phaseBufferRef = useRef<number[]>([]);
   const phaseBufferHeadRef = useRef(0);
 
+  // ═══ Song Mode / Chain Refs ═══
+  const chainCyclesRef = useRef(0);
+  const songModeConfigRef = useRef(songModeConfig);
+  const mcmRef = useRef(mcm);
+  const onChainAdvanceRef = useRef(onChainAdvance);
+
   // ═══ Ref Syncs ═══
   useEffect(() => { jitterRef.current = jitter; }, [jitter]);
   useEffect(() => { swingRef.current = swing; }, [swing]);
   useEffect(() => { dynamicsRef.current = dynamics; }, [dynamics]);
   useEffect(() => { temporalityModeRef.current = temporalityMode; }, [temporalityMode]);
+  useEffect(() => { songModeConfigRef.current = songModeConfig; }, [songModeConfig]);
+  useEffect(() => { mcmRef.current = mcm; }, [mcm]);
+  useEffect(() => { onChainAdvanceRef.current = onChainAdvance; }, [onChainAdvance]);
 
   // Initialize refs for all tracks
   useEffect(() => {
