@@ -20,13 +20,14 @@ import { PRESETS, ScenePreset, TrackPreset } from '../../constants/presets';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
 import { UserPreset, userPresetToScenePreset, exportPresetAsJson } from '../../utils/userPresets';
 import { usePresetManager } from '../../hooks/usePresetManager';
+import { useTrackState } from '../../hooks/useTrackState';
 import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../../utils/temporality';
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals, getScaleDetune, midiAndDetuneToFreq, noteIndexToFreq, isNonOctaveScale } from '../../utils/scales';
 import { buildWavefoldCurve, vactrolfiltFreq } from '../../utils/waveshaping';
-import { generateMarkovMatrix, markovNextNote, type MarkovStyle } from '../../utils/markovGenerator';
+import { markovNextNote } from '../../utils/markovGenerator';
 import { LorenzAttractor } from '../../utils/lorenzAttractor';
-import { calculateSliceBoundaries, defaultSliceOrder, defaultSliceReverse, defaultSlicePitch } from '../../utils/slicerUtils';
 import { usePedagogy } from '../../hooks/usePedagogy';
+import type { TrackState, SceneData } from '../../types/track';
 
 interface SceneData {
   pulses: number;
