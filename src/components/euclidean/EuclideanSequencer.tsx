@@ -1345,7 +1345,7 @@ export const EuclideanSequencer = () => {
       mediaRecorderRef.current.stop();
       setToneRecordingState('idle');
     }
-    initializeOriginalSynth(trackId, overrideSynthType);
+    initializeOriginalSynthBase(trackId, overrideSynthType);
     if (trackId === 'tone' && recordingDestRef.current && toneFilterRef.current) {
       toneFilterRef.current.connect(recordingDestRef.current as unknown as Tone.ToneAudioNode);
     }
