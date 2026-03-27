@@ -1025,51 +1025,19 @@ export const EuclideanSequencer = () => {
       }
     };
 
-    // Cloud Engine Setup
-    const cloudDelaySend = new Tone.Gain(0).connect(delayBus);
-    const cloudReverbSend = new Tone.Gain(0).connect(reverbBus);
-    const cloudSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
-    const cloudFreezeSend = new Tone.Gain(0).connect(freezeBus);
-    const cloudReverseSend = new Tone.Gain(0).connect(reverseBus);
-    const cloudEqHpf = new Tone.Filter(20, "highpass");
-    const cloudEqLpf = new Tone.Filter(20000, "lowpass");
-    const cloudPanner = new Tone.Panner(0);
-    const cloudPanner3D = new Tone.Panner3D({ panningModel: 'HRTF', distanceModel: 'inverse' });
-    cloudPanner3D.positionY.value = 0;
-    const cloudPannerGain = new Tone.Gain(1);
-    const cloudPanner3DGain = new Tone.Gain(0);
-    const cloudFreqShifter = new Tone.FrequencyShifter(0);
-    const cloudFsBypassGain = new Tone.Gain(0);
-    const cloudFsDirectGain = new Tone.Gain(1);
-    const cloudFilter = new Tone.Filter(1000, "lowpass").connect(cloudEqHpf);
-    cloudEqHpf.connect(cloudEqLpf);
-    cloudEqLpf.connect(cloudPannerGain);
-    cloudEqLpf.connect(cloudPanner3DGain);
-    cloudPannerGain.connect(cloudPanner);
-    cloudPanner3DGain.connect(cloudPanner3D);
-    cloudPanner.connect(cloudFsBypassGain);
-    cloudPanner3D.connect(cloudFsBypassGain);
-    cloudFsBypassGain.connect(cloudFreqShifter);
-    cloudFreqShifter.connect(compressor);
-    cloudFreqShifter.connect(cloudDelaySend);
-    cloudFreqShifter.connect(cloudReverbSend);
-    cloudFreqShifter.connect(cloudSpectralSend);
-    cloudPanner.connect(cloudFsDirectGain);
-    cloudPanner3D.connect(cloudFsDirectGain);
-    cloudFsDirectGain.connect(compressor);
-    cloudFsDirectGain.connect(cloudDelaySend);
-    cloudFsDirectGain.connect(cloudReverbSend);
-    cloudFsDirectGain.connect(cloudSpectralSend);
-    cloudFsBypassGain.connect(cloudFreezeSend);
-    cloudFsBypassGain.connect(cloudReverseSend);
-    cloudFsDirectGain.connect(cloudFreezeSend);
-    cloudFsDirectGain.connect(cloudReverseSend);
+    // ── Cloud routing via factory ──
+    const cloudRouting = createTrackRouting({
+      filterFreq: 1000, filterType: 'lowpass',
+      compressor, delayBus, reverbBus, spectralDelayBus, freezeBus, reverseBus,
+    });
+    const cloudFilter = cloudRouting.filter;
 
     // Cloud Analyser for Envelope Crossfeed (Phase 7E)
     const cloudAnalyser = new Tone.Analyser('waveform', 256);
     cloudFilter.connect(cloudAnalyser);
     cloudAnalyserRef.current = cloudAnalyser;
 
+    // Cloud-specific pre-filter nodes: ducker + LFO
     const cloudDucker = new Tone.Gain(1).connect(cloudFilter);
     const cloudLFO = new Tone.LFO({
       frequency: 0.13,
@@ -1089,117 +1057,32 @@ export const EuclideanSequencer = () => {
         }
       },
       setSends: (delayVal: number, reverbVal: number) => {
-        cloudDelaySend.gain.rampTo(delayVal, 0.05);
-        cloudReverbSend.gain.rampTo(reverbVal, 0.05);
+        cloudRouting.delaySend.gain.rampTo(delayVal, 0.05);
+        cloudRouting.reverbSend.gain.rampTo(reverbVal, 0.05);
       },
       dispose: () => {
         if (synthsRef.current.cloud.grainPlayer) synthsRef.current.cloud.grainPlayer.dispose();
         if (synthsRef.current.cloud.bitCrusher) synthsRef.current.cloud.bitCrusher.dispose();
-        cloudEqHpf.dispose();
-        cloudEqLpf.dispose();
-        cloudPanner.dispose();
-        cloudPanner3D.dispose();
-        cloudPannerGain.dispose();
-        cloudPanner3DGain.dispose();
-        cloudFreqShifter.dispose();
-        cloudFsBypassGain.dispose();
-        cloudFsDirectGain.dispose();
-        cloudDelaySend.dispose();
-        cloudReverbSend.dispose();
-        cloudSpectralSend.dispose();
         cloudAnalyser.dispose();
+        cloudLFO.dispose();
+        cloudDucker.dispose();
+        cloudRouting.dispose();
       }
     };
-    synthsRef.current.cloud.updateEq = (hpfFreq: number, lpfFreq: number) => {
-      cloudEqHpf.frequency.rampTo(hpfFreq, 0.05);
-      cloudEqLpf.frequency.rampTo(lpfFreq, 0.05);
-    };
-    synthsRef.current.cloud.setPan = (value: number) => { cloudPanner.pan.rampTo(value, 0.05); };
-    synthsRef.current.cloud.setFreqShift = (hz: number, enabled?: boolean) => {
-      cloudFreqShifter.frequency.rampTo(hz, 0.05);
-      if (enabled !== undefined) {
-        cloudFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
-        cloudFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
-      }
-    };
-    synthsRef.current.cloud.panner = cloudPanner;
-    synthsRef.current.cloud.freqShifter = cloudFreqShifter;
-    synthsRef.current.cloud.setSpectralSend = (value: number) => { cloudSpectralSend.gain.rampTo(value, 0.05); };
-    synthsRef.current.cloud.setFreezeSend = (value: number) => { cloudFreezeSend.gain.rampTo(value, 0.05); };
-    synthsRef.current.cloud.setReverseSend = (value: number) => { cloudReverseSend.gain.rampTo(value, 0.05); };
-    synthsRef.current.cloud.switchBinaural = (binaural: boolean) => {
-      cloudPannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
-      cloudPanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
-    };
-    synthsRef.current.cloud.updateBinaural = (azimuth: number, distance: number) => {
-      const rad = (azimuth * Math.PI) / 180;
-      try { cloudPanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) {
-        cloudPanner3D.positionX.value = Math.sin(rad) * distance;
-        cloudPanner3D.positionZ.value = -Math.cos(rad) * distance;
-      }
-    };
-    // Lorenz + Nested LFO injection for cloud
-    synthsRef.current.cloud.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
-      if (target === 'filter') {
-        cloudFilter.frequency.rampTo(200 + normalizedValue * depth, 0.05);
-      }
-    };
-    synthsRef.current.cloud.nestedLfoInstance = null;
-    synthsRef.current.cloud.initNestedLfo = (r1: number, r2: number, d: number) => {
-      synthsRef.current.cloud.nestedLfoInstance?.dispose();
-      synthsRef.current.cloud.nestedLfoInstance = createNestedLfo(cloudFilter, r1, r2, d);
-    };
-    synthsRef.current.cloud.updateNestedLfo = (r1: number, r2: number, d: number) => {
-      synthsRef.current.cloud.nestedLfoInstance?.update(r1, r2, d);
-    };
-    synthsRef.current.cloud.disposeNestedLfo = () => {
-      synthsRef.current.cloud.nestedLfoInstance?.dispose();
-      synthsRef.current.cloud.nestedLfoInstance = null;
-    };
+    // Inject common methods (EQ, pan, freqShift, binaural, lorenz, nestedLfo, sends)
+    injectCommonMethods(synthsRef.current.cloud, cloudRouting, 200, createNestedLfo);
 
     // Connect sidechain math to ducker gain
     sidechainInverter.connect(cloudDucker.gain);
     sidechainBias.connect(cloudDucker.gain);
 
-    // Tone Synth Setup (MonoSynth)
-    const toneDelaySend = new Tone.Gain(0.15).connect(delayBus);
-    const toneReverbSend = new Tone.Gain(0.2).connect(reverbBus);
-    const toneSpectralSend = new Tone.Gain(0).connect(spectralDelayBus);
-    const toneFreezeSend = new Tone.Gain(0).connect(freezeBus);
-    const toneReverseSend = new Tone.Gain(0).connect(reverseBus);
-    const toneEqHpf = new Tone.Filter(20, "highpass");
-    const toneEqLpf = new Tone.Filter(20000, "lowpass");
-    const tonePanner = new Tone.Panner(0);
-    const tonePanner3D = new Tone.Panner3D({ panningModel: 'HRTF', distanceModel: 'inverse' });
-    tonePanner3D.positionY.value = 0;
-    const tonePannerGain = new Tone.Gain(1);
-    const tonePanner3DGain = new Tone.Gain(0);
-    const toneFreqShifter = new Tone.FrequencyShifter(0);
-    const toneFsBypassGain = new Tone.Gain(0);
-    const toneFsDirectGain = new Tone.Gain(1);
-    const toneFilter = new Tone.Filter(2000, "lowpass").connect(toneEqHpf);
-    toneEqHpf.connect(toneEqLpf);
-    toneEqLpf.connect(tonePannerGain);
-    toneEqLpf.connect(tonePanner3DGain);
-    tonePannerGain.connect(tonePanner);
-    tonePanner3DGain.connect(tonePanner3D);
-    tonePanner.connect(toneFsBypassGain);
-    tonePanner3D.connect(toneFsBypassGain);
-    toneFsBypassGain.connect(toneFreqShifter);
-    toneFreqShifter.connect(compressor);
-    toneFreqShifter.connect(toneDelaySend);
-    toneFreqShifter.connect(toneReverbSend);
-    toneFreqShifter.connect(toneSpectralSend);
-    tonePanner.connect(toneFsDirectGain);
-    tonePanner3D.connect(toneFsDirectGain);
-    toneFsDirectGain.connect(compressor);
-    toneFsDirectGain.connect(toneDelaySend);
-    toneFsDirectGain.connect(toneReverbSend);
-    toneFsDirectGain.connect(toneSpectralSend);
-    toneFsBypassGain.connect(toneFreezeSend);
-    toneFsBypassGain.connect(toneReverseSend);
-    toneFsDirectGain.connect(toneFreezeSend);
-    toneFsDirectGain.connect(toneReverseSend);
+    // ── Tone routing via factory ──
+    const toneRouting = createTrackRouting({
+      filterFreq: 2000, filterType: 'lowpass',
+      compressor, delayBus, reverbBus, spectralDelayBus, freezeBus, reverseBus,
+      delaySendInit: 0.15, reverbSendInit: 0.2,
+    });
+    const toneFilter = toneRouting.filter;
     toneFilterRef.current = toneFilter;
 
     const toneMonoSynth = new Tone.MonoSynth({
@@ -1223,75 +1106,19 @@ export const EuclideanSequencer = () => {
         toneMonoSynth.volume.rampTo(Tone.gainToDb(vol) - 6, 0.05);
       },
       setSends: (delayVal: number, reverbVal: number) => {
-        toneDelaySend.gain.rampTo(delayVal, 0.05);
-        toneReverbSend.gain.rampTo(reverbVal, 0.05);
+        toneRouting.delaySend.gain.rampTo(delayVal, 0.05);
+        toneRouting.reverbSend.gain.rampTo(reverbVal, 0.05);
       },
       dispose: () => {
         toneMonoSynth.dispose();
-        toneFilter.dispose();
-        toneEqHpf.dispose();
-        toneEqLpf.dispose();
-        tonePanner.dispose();
-        tonePanner3D.dispose();
-        tonePannerGain.dispose();
-        tonePanner3DGain.dispose();
-        toneFreqShifter.dispose();
-        toneFsBypassGain.dispose();
-        toneFsDirectGain.dispose();
-        toneDelaySend.dispose();
-        toneReverbSend.dispose();
-        toneSpectralSend.dispose();
+        toneRouting.dispose();
       }
     };
-    synthsRef.current.tone.updateEq = (hpfFreq: number, lpfFreq: number) => {
-      toneEqHpf.frequency.rampTo(hpfFreq, 0.05);
-      toneEqLpf.frequency.rampTo(lpfFreq, 0.05);
-    };
-    synthsRef.current.tone.setPan = (value: number) => { tonePanner.pan.rampTo(value, 0.05); };
-    synthsRef.current.tone.setFreqShift = (hz: number, enabled?: boolean) => {
-      toneFreqShifter.frequency.rampTo(hz, 0.05);
-      if (enabled !== undefined) {
-        toneFsBypassGain.gain.rampTo(enabled ? 1 : 0, 0.02);
-        toneFsDirectGain.gain.rampTo(enabled ? 0 : 1, 0.02);
-      }
-    };
-    synthsRef.current.tone.panner = tonePanner;
-    synthsRef.current.tone.freqShifter = toneFreqShifter;
-    synthsRef.current.tone.setSpectralSend = (value: number) => { toneSpectralSend.gain.rampTo(value, 0.05); };
-    synthsRef.current.tone.setFreezeSend = (value: number) => { toneFreezeSend.gain.rampTo(value, 0.05); };
-    synthsRef.current.tone.setReverseSend = (value: number) => { toneReverseSend.gain.rampTo(value, 0.05); };
-    synthsRef.current.tone.switchBinaural = (binaural: boolean) => {
-      tonePannerGain.gain.rampTo(binaural ? 0 : 1, 0.1);
-      tonePanner3DGain.gain.rampTo(binaural ? 1 : 0, 0.1);
-    };
-    synthsRef.current.tone.updateBinaural = (azimuth: number, distance: number) => {
-      const rad = (azimuth * Math.PI) / 180;
-      try { tonePanner3D.setPosition(Math.sin(rad) * distance, 0, -Math.cos(rad) * distance); } catch(e) {
-        tonePanner3D.positionX.value = Math.sin(rad) * distance;
-        tonePanner3D.positionZ.value = -Math.cos(rad) * distance;
-      }
-    };
+    // Inject common methods
+    injectCommonMethods(synthsRef.current.tone, toneRouting, 600, createNestedLfo);
     // Envelope Crossfeed injection (Phase 7E) — Cloud modulates Tone's filter
     synthsRef.current.tone.setCrossfeedFreq = (hz: number) => {
       toneFilter.frequency.rampTo(hz, 0.05);
-    };
-    // Lorenz + Nested LFO injection for tone
-    synthsRef.current.tone.updateLorenz = (normalizedValue: number, depth: number, target: string) => {
-      if (target === 'filter') {
-        toneFilter.frequency.rampTo(600 + normalizedValue * depth, 0.05);
-      }
-    };
-    synthsRef.current.tone.nestedLfoInstance = null;
-    synthsRef.current.tone.initNestedLfo = (r1: number, r2: number, d: number) => {
-      synthsRef.current.tone.nestedLfoInstance?.dispose();
-      synthsRef.current.tone.nestedLfoInstance = createNestedLfo(toneFilter, r1, r2, d);
-    };
-    synthsRef.current.tone.updateNestedLfo = (r1: number, r2: number, d: number) => {
-      synthsRef.current.tone.nestedLfoInstance?.update(r1, r2, d);
-    };
-    synthsRef.current.tone.disposeNestedLfo = () => {
-      synthsRef.current.tone.nestedLfoInstance?.dispose();
-      synthsRef.current.tone.nestedLfoInstance = null;
     };
 
     synthsRef.current.kickFollower = kickFollower;
