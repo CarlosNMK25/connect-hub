@@ -23,7 +23,8 @@ import { usePresetManager } from '../../hooks/usePresetManager';
 import { useTrackState } from '../../hooks/useTrackState';
 import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../../utils/temporality';
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals, getScaleDetune, midiAndDetuneToFreq, noteIndexToFreq, isNonOctaveScale } from '../../utils/scales';
-import { markovNextNote } from '../../utils/markovGenerator';
+import { useAudioEngine, type MasterBusType } from '../../hooks/useAudioEngine';
+import { useSequencer } from '../../hooks/useSequencer';
 import { useAudioEngine, type MasterBusType } from '../../hooks/useAudioEngine';
 import { usePedagogy } from '../../hooks/usePedagogy';
 import type { TrackState, SceneData } from '../../types/track';
@@ -211,7 +212,7 @@ export const EuclideanSequencer = () => {
   const [delayMix, setDelayMix] = useState(0.2);
   const [delayFeedback, setDelayFeedback] = useState(0.3);
   const [reverbMix, setReverbMix] = useState(0.15);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);  
   const [showVisuals, setShowVisuals] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [showSync, setShowSync] = useState(false);
@@ -224,15 +225,10 @@ export const EuclideanSequencer = () => {
     hoveredGlobalParam, setHoveredGlobalParam,
     hoveredGlobalEl, setHoveredGlobalEl,
   } = usePedagogy();
-  const [globalStep, setGlobalStep] = useState(0);
-  const [lastHit, setLastHit] = useState<{ offset: number; color: string; velocity: number; id?: number } | null>(null);
   const [eclipseFlash, setEclipseFlash] = useState(false);
   const eclipseRef = useRef(false);
   const [syncAnalysisOpen, setSyncAnalysisOpen] = useState(false);
   const eclipseHistoryRef = useRef<{ time: string; mcm: number; bpm: number }[]>([]);
-  const PHASE_BUFFER_SIZE = 128;
-  const phaseBufferRef = useRef<number[]>([]);
-  const phaseBufferHeadRef = useRef(0);
   const [showEngine, setShowEngine] = useState(false);
   const [showPatternSpace, setShowPatternSpace] = useState(false);
   const engineLogRef = useRef<LogEntry[]>([]);
