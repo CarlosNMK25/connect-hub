@@ -7,6 +7,13 @@ import { markovNextNote } from '../utils/markovGenerator';
 import type { TrackState } from '../types/track';
 import type { MasterBusType } from './useAudioEngine';
 
+export interface SongModeConfig {
+  enabled: boolean;
+  view: string;
+  chain: { scene: number; cycles: number }[];
+  chainPosition: number;
+}
+
 export interface UseSequencerParams {
   synthsRef: React.MutableRefObject<Record<string, any>>;
   masterBusRef: React.MutableRefObject<MasterBusType | null>;
@@ -28,6 +35,10 @@ export interface UseSequencerParams {
   toneFilterRef: React.MutableRefObject<Tone.Filter | null>;
   initializeOriginalSynthBase: (trackId: string, overrideSynthType?: string) => void;
   updateMarkovMatrix: (t: TrackState) => void;
+  // Song Mode
+  songModeConfig: SongModeConfig;
+  mcm: number;
+  onChainAdvance: () => void;
   // Refs from useTrackState
   initOrigSynthRef: React.MutableRefObject<any>;
   startLorenzRafRef: React.MutableRefObject<any>;
