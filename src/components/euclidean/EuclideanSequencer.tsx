@@ -2666,7 +2666,7 @@ export const EuclideanSequencer = () => {
         const stopLoops = () => { ambStarted = false; ambRepeatIds.forEach(id => Tone.getTransport().clear(id)); ambRepeatIds.length = 0; ambGains.forEach(g => { g.gain.cancelScheduledValues(Tone.now()); g.gain.rampTo(0, 0.1); }); };
         synthsRef.current.tone = {
           triggerAttackRelease: (_n: string, _d: string | number, _t: number, _v = 0.8) => { if (!ambStarted) { ambStarted = true; assignFreqs(); for (let i = 0; i < NL; i++) schedLoop(i); } else { assignFreqs(); } },
-          setVolume: (db: number) => { ambMaster.gain.rampTo(Tone.dbToGain(db) * 0.6, 0.05); },
+          setVolume: (vol: number) => { const safeVol = (typeof vol === 'number' && isFinite(vol)) ? vol : 0; ambMaster.gain.rampTo(Tone.dbToGain(safeVol) * 0.6, 0.05); },
           setSends: (d: number, r: number) => { routing.delaySend.gain.rampTo(d, 0.05); routing.reverbSend.gain.rampTo(r, 0.05); },
           stop: () => { stopLoops(); },
           dispose: () => { stopLoops(); ambOscs.forEach(o => { o.stop(); o.dispose(); }); ambGains.forEach(g => g.dispose()); ambMaster.dispose(); routing.dispose(); }
