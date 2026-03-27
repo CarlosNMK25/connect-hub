@@ -504,6 +504,7 @@ export const EuclideanTrack = React.memo(({
                   <button
                     key={i}
                     onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeScene', i); }}
+                    onDoubleClick={(e) => { e.stopPropagation(); onSaveScene?.(trackId); }}
                     className={`w-3.5 h-3.5 rounded-sm text-[6px] font-medium flex-shrink-0 border transition-all flex items-center justify-center ${
                       isActive
                         ? 'text-white border-transparent'
