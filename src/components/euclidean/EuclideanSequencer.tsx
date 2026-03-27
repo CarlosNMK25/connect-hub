@@ -645,18 +645,7 @@ export const EuclideanSequencer = () => {
 
   // Perspective logic simplified (always standard)
 
-  // ── Ref injection: wire audio functions into useTrackState ──
-  initOrigSynthRef.current = (trackId: string, overrideSynthType?: string) => {
-    if (trackId === 'tone' && toneRecordingState === 'recording' && mediaRecorderRef.current?.state === 'recording') {
-      mediaRecorderRef.current.stop();
-      setToneRecordingState('idle');
-    }
-    initializeOriginalSynthBase(trackId, overrideSynthType);
-    if (trackId === 'tone' && recordingDestRef.current && toneFilterRef.current) {
-      toneFilterRef.current.connect(recordingDestRef.current as unknown as Tone.ToneAudioNode);
-    }
-  };
-  startLorenzRafRef.current = startLorenzRaf;
+  // Ref injection → useSequencer
 
   return (
     <div className="p-6 w-full max-w-[1800px] mx-auto bg-idm-bg border border-black/5 rounded-xl relative">
