@@ -349,14 +349,11 @@ export const EuclideanSequencer = () => {
   // pendingMutationsRef, caStateRef, caEvolveCycleRef, pendingCARef, rrNoteIndexRef,
   // markovLastNoteRef, markovAnchorCountRef, markovMatrixRef, markovNotesRef,
   // driftAccumulatorRef, driftOffsets → useTrackState
-  // Lorenz Attractor refs
-  const lorenzAttractorsRef = useRef<Record<string, LorenzAttractor>>({});
   const lorenzRafRef = useRef<number>(0);
   // Refs para grabación en tiempo real del track Tone
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingChunksRef = useRef<Blob[]>([]);
   const recordingDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
-  const toneFilterRef = useRef<Tone.Filter | null>(null);
   const lastRecordedBufferRef = useRef<AudioBuffer | null>(null);
   const globalRecordingDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
   const globalRecordingChunksRef = useRef<Blob[]>([]);
@@ -370,75 +367,10 @@ export const EuclideanSequencer = () => {
     useState<'idle' | 'armed' | 'recording'>('idle');
   const [toneRecordingState, setToneRecordingState] = useState<'idle' | 'armed' | 'recording'>('idle');
 
-  const masterBusRef = useRef<{ 
-    compressor: Tone.Compressor; 
-    limiter: Tone.Limiter; 
-    analyser: Tone.Analyser;
-    delay: Tone.FeedbackDelay;
-    reverb: Tone.Reverb;
-    delayFilter: Tone.Filter;
-    reverbFilter: Tone.Filter;
-    delayBus: Tone.Gain;
-    reverbBus: Tone.Gain;
-    spectralDelayBus: Tone.Gain;
-    freezeBus: Tone.Gain;
-    reverseBus: Tone.Gain;
-  } | null>(null);
-
-  // Spectral Delay global state (Phase 7C)
-  const [spectralDelayEnabled, setSpectralDelayEnabled] = useState(false);
-
-  // Freeze Reverb global state (Phase 9)
-  const [freezeEnabled, setFreezeEnabled] = useState(false);
-  const [freezeFeedback, setFreezeFeedback] = useState(0.95);
-  const [freezeFilterFreq, setFreezeFilterFreq] = useState(6000);
-  const freezeRef = useRef<{ bus: Tone.Gain; delay: Tone.Delay; filter: Tone.Filter; feedbackGain: Tone.Gain; out: Tone.Gain } | null>(null);
-
-  // Reverse Reverb global state (Phase 9)
-  const [reverseEnabled, setReverseEnabled] = useState(false);
-  const [reverseDecay, setReverseDecay] = useState(2.5);
-  const reverseRef = useRef<{
-    bus: Tone.Gain;
-    convolver: Tone.Convolver;
-    out: Tone.Gain;
-  } | null>(null);
-
-  // Gated Reverb global state (Phase 9)
-  const [gatedEnabled, setGatedEnabled] = useState(false);
-  const [gatedThreshold, setGatedThreshold] = useState(-40);
-  const gatedRef = useRef<{ gate: Tone.Gate; out: Tone.Gain; reverbNormalOut: Tone.Gain } | null>(null);
-  const [spectralDelayWet, setSpectralDelayWet] = useState(0.5);
-  const [spectralDelayLowTime, setSpectralDelayLowTime] = useState(0);
-  const [spectralDelayMidTime, setSpectralDelayMidTime] = useState(80);
-  const [spectralDelayHighTime, setSpectralDelayHighTime] = useState(160);
-  const [spectralDelayLowFreq, setSpectralDelayLowFreq] = useState(200);
-  const [spectralDelayHighFreq, setSpectralDelayHighFreq] = useState(4000);
+  const masterBusRef = useRef<MasterBusType | null>(null);
 
   // Active FX panel in Controls column (only one visible at a time)
   const [activeFxPanel, setActiveFxPanel] = useState<'GRV' | 'RVR' | 'FRZ' | 'XFD' | 'SDLY' | null>(null);
-
-  // Envelope Crossfeed global state (Phase 7E)
-  const [crossfeedEnabled, setCrossfeedEnabled] = useState(false);
-  const [crossfeedDepth, setCrossfeedDepth] = useState(2000);
-  const [crossfeedBase, setCrossfeedBase] = useState(400);
-  const cloudAnalyserRef = useRef<Tone.Analyser | null>(null);
-  const crossfeedEnabledRef = useRef(false);
-  const crossfeedBaseRef = useRef(400);
-  const crossfeedDepthRef = useRef(2000);
-  const spectralDelayRef = useRef<{
-    bus: Tone.Gain;
-    out: Tone.Gain;
-    lowFilter: Tone.Filter;
-    midFilter: Tone.Filter;
-    highFilter: Tone.Filter;
-    lowDelay: Tone.Delay;
-    midDelay: Tone.Delay;
-    highDelay: Tone.Delay;
-  } | null>(null);
-
-  const [globalAnalyser, setGlobalAnalyser] = useState<Tone.Analyser | null>(null);
-  const [fxHighPass, setFxHighPass] = useState(20); // Low-cut
-  const [fxLowPass, setFxLowPass] = useState(20000); // High-cut
 
   // ═══ Track State Hook ═══
   const {
