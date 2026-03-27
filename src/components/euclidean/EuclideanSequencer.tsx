@@ -454,9 +454,26 @@ export const EuclideanSequencer = () => {
   const [globalAnalyser, setGlobalAnalyser] = useState<Tone.Analyser | null>(null);
   const [fxHighPass, setFxHighPass] = useState(20); // Low-cut
   const [fxLowPass, setFxLowPass] = useState(20000); // High-cut
-  
-  useEffect(() => { 
-    tracksRef.current = tracks;
+
+  // ═══ Track State Hook ═══
+  const {
+    tracks, setTracks, driftOffsets, setDriftOffsets,
+    tracksRef,
+    caStateRef, caEvolveCycleRef, pendingCARef,
+    pendingMutationsRef,
+    markovLastNoteRef, markovAnchorCountRef, markovMatrixRef, markovNotesRef,
+    driftAccumulatorRef, rrNoteIndexRef, sliceBoundariesRef,
+    initOrigSynthRef, startLorenzRafRef,
+    updateTrackPattern, updateMarkovMatrix, recalculateSlices,
+    handleParamChange, handleSequencerAction, handleTonalAction, handleSlicerAction,
+    handleSamplerParamChange, handlePercSynthParamChange,
+    handleFileUploadCb, handleClearSamplerCb, handleLoadLayer2Cb, handleClearLayer2Cb,
+    handleLayer2ParamChange, handleCloudModeChange, handleGetMarkovMatrix, initCloudEno,
+  } = useTrackState({
+    synthsRef, masterBusRef, logChange, syncAllScenes, isPlaying,
+  });
+
+  useEffect(() => {
     // Initialize refs if they are empty
     tracks.forEach(t => {
       if (!(t.id in lastScheduledTimesRef.current)) {
