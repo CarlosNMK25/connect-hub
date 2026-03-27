@@ -1037,6 +1037,14 @@ export const EuclideanSequencer = () => {
     cloudFilter.connect(cloudAnalyser);
     cloudAnalyserRef.current = cloudAnalyser;
 
+    // Preserve existing grainPlayer/bitCrusher before overwriting synthsRef
+    const existingCloudGrainPlayer = synthsRef.current.cloud?.grainPlayer ?? null;
+    const existingCloudBitCrusher = synthsRef.current.cloud?.bitCrusher ?? null;
+    const existingCloudEnoPlayers = synthsRef.current.cloud?.enoPlayers ?? null;
+    const existingCloudEnoMaster = synthsRef.current.cloud?.enoMaster ?? null;
+    const existingCloudStartEno = synthsRef.current.cloud?.startEno ?? null;
+    const existingCloudStopEno = synthsRef.current.cloud?.stopEno ?? null;
+
     // Cloud-specific pre-filter nodes: ducker + LFO
     const cloudDucker = new Tone.Gain(1).connect(cloudFilter);
     const cloudLFO = new Tone.LFO({
@@ -1045,12 +1053,35 @@ export const EuclideanSequencer = () => {
       max: 2000
     }).connect(cloudFilter.frequency).start();
 
+    // Reconnect existing grainPlayer/bitCrusher to the new ducker
+    if (existingCloudBitCrusher) {
+      try {
+        existingCloudBitCrusher.disconnect();
+        existingCloudBitCrusher.connect(cloudDucker);
+        existingCloudBitCrusher.connect(cloudRouting.delaySend);
+        existingCloudBitCrusher.connect(cloudRouting.reverbSend);
+      } catch {}
+    }
+    if (existingCloudEnoMaster) {
+      try {
+        existingCloudEnoMaster.disconnect();
+        existingCloudEnoMaster.connect(cloudDucker);
+      } catch {}
+    }
+
     synthsRef.current.cloud = {
       filter: cloudFilter,
       ducker: cloudDucker,
       lfo: cloudLFO,
       sidechainInverter,
       sidechainBias,
+      // Preserve sample-related refs
+      grainPlayer: existingCloudGrainPlayer,
+      bitCrusher: existingCloudBitCrusher,
+      enoPlayers: existingCloudEnoPlayers,
+      enoMaster: existingCloudEnoMaster,
+      startEno: existingCloudStartEno,
+      stopEno: existingCloudStopEno,
       setVolume: (vol: number) => {
         if (synthsRef.current.cloud.grainPlayer) {
           synthsRef.current.cloud.grainPlayer.volume.rampTo(Tone.gainToDb(vol), 0.05);
