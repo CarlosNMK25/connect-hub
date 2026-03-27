@@ -832,9 +832,10 @@ export const EuclideanSequencer = () => {
               temporalityMode={temporalityMode}
               bpm={bpm}
               swing={swing}
-              onGetMarkovMatrix={handleGetMarkovMatrix}
-              isExpanded={expandedTrack === track.id}
-              onToggleExpand={() => handleToggleTrack(track.id)}
+               onGetMarkovMatrix={handleGetMarkovMatrix}
+               isExpanded={expandedTrack === track.id}
+               onToggleExpand={() => handleToggleTrack(track.id)}
+               onSaveScene={handleSaveScene}
             />
           </div>
         ))}

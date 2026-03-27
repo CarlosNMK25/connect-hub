@@ -585,6 +585,7 @@ export function useSequencer(params: UseSequencerParams) {
       
       globalStepRef.current = 0;
       setGlobalStep(0);
+      chainCyclesRef.current = 0;
       rrNoteIndexRef.current = {};
       markovLastNoteRef.current = {};
       markovAnchorCountRef.current = {};
