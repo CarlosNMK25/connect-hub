@@ -185,6 +185,7 @@ interface EuclideanTrackProps {
   // ═══ Change 5: Scene slots ═══
   activeScene: number;
   scenes: (any | null)[];
+  onSaveScene?: (trackId: string) => void;
   // ═══ Change 3: Exclusive advanced panel ═══
   activeAdvancedPanel?: 'RR' | 'PHD' | 'LRZ' | 'NLF' | null;
   // ═══════ UNIVERSAL CALLBACKS (stable references) ═══════
