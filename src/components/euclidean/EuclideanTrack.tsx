@@ -798,6 +798,7 @@ export const EuclideanTrack = React.memo(({
                 <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('roundRobin', e)} onMouseLeave={handleParamLeave}>
                   <button
                     onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'RR' ? null : 'RR')}
+                    onDoubleClick={() => onParamChange(trackId, 'rrEnabled', !rrEnabled)}
                     className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
                       activeAdvancedPanel === 'RR'
                         ? 'bg-system-accent text-white border-system-accent'
@@ -815,6 +816,7 @@ export const EuclideanTrack = React.memo(({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'LRZ' ? null : 'LRZ')}
+                    onDoubleClick={() => onTonalAction(trackId, 'lorenzEnabled', !lorenzEnabled)}
                     className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
                       activeAdvancedPanel === 'LRZ'
                         ? 'bg-system-accent text-white border-system-accent'
@@ -832,6 +834,7 @@ export const EuclideanTrack = React.memo(({
                 <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('phaseDrift', e)} onMouseLeave={handleParamLeave}>
                   <button
                     onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'PHD' ? null : 'PHD')}
+                    onDoubleClick={() => onParamChange(trackId, 'driftEnabled', !driftEnabled)}
                     className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
                       activeAdvancedPanel === 'PHD'
                         ? 'bg-system-accent text-white border-system-accent'
@@ -849,6 +852,7 @@ export const EuclideanTrack = React.memo(({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'NLF' ? null : 'NLF')}
+                    onDoubleClick={() => onTonalAction(trackId, 'nestedLfoEnabled', !nestedLfoEnabled)}
                     className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
                       activeAdvancedPanel === 'NLF'
                         ? 'bg-system-accent text-white border-system-accent'

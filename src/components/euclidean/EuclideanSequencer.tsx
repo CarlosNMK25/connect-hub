@@ -5772,6 +5772,9 @@ export const EuclideanSequencer = () => {
                           onClick={() => {
                             setActiveFxPanel(activeFxPanel === fx.id ? null : fx.id);
                           }}
+                          onDoubleClick={() => {
+                            fx.setEnabled(!fx.enabled);
+                          }}
                           onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam(fx.id === 'GRV' ? 'gatedEnabled' : fx.id === 'RVR' ? 'reverseEnabled' : fx.id === 'FRZ' ? 'freezeEnabled' : fx.id === 'XFD' ? 'crossfeedEnabled' : 'spectralDelayEnabled'); setHoveredGlobalEl(e.currentTarget); } }}
                           onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
                           className={`text-[8px] font-mono px-2 py-1 rounded border transition-colors ${
