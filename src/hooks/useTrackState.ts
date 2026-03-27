@@ -173,8 +173,9 @@ export function useTrackState(params: UseTrackStateParams) {
 
   // ── initCloudEno ──
   const initCloudEno = useCallback((audioBuffer: AudioBuffer) => {
+    console.log('[ENO-DIAG] initCloudEno called', { bufferDuration: audioBuffer?.duration, bufferLength: audioBuffer?.length });
     const cloudSynth = synthsRef.current.cloud;
-    if (!cloudSynth?.ducker) return;
+    if (!cloudSynth?.ducker) { console.warn('[ENO-DIAG] initCloudEno ABORTED: no cloudSynth.ducker', { hasCloud: !!cloudSynth, hasDucker: !!cloudSynth?.ducker }); return; }
 
     const existingDucker = cloudSynth.ducker;
     const existingDelaySend = cloudSynth.delaySend;
