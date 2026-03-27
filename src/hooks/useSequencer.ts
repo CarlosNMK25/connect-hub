@@ -529,7 +529,22 @@ export function useSequencer(params: UseSequencerParams) {
         }
       }, baseTime);
 
-      globalStepRef.current = (currentGlobalStep + 1);
+      const nextGlobalStep = currentGlobalStep + 1;
+      globalStepRef.current = nextGlobalStep;
+
+      // ═══ Song Mode: Auto Chain cycle detection ═══
+      const smc = songModeConfigRef.current;
+      if (smc.enabled && smc.view === 'chain' && smc.chain.length > 0) {
+        const currentMcm = mcmRef.current;
+        if (currentMcm > 0 && nextGlobalStep > 0 && nextGlobalStep % currentMcm === 0) {
+          chainCyclesRef.current++;
+          const currentChainStep = smc.chain[smc.chainPosition];
+          if (currentChainStep && chainCyclesRef.current >= currentChainStep.cycles) {
+            chainCyclesRef.current = 0;
+            onChainAdvanceRef.current();
+          }
+        }
+      }
     }, "16n").start(0);
 
     return () => { loopRef.current?.dispose(); };
