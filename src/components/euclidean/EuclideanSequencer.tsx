@@ -384,89 +384,27 @@ export const EuclideanSequencer = () => {
     tracks, tracksRef,
     bpm, delayMix, delayFeedback, reverbMix,
   });
-  useEffect(() => {
-    // Initialize refs if they are empty
-    tracks.forEach(t => {
-      if (!(t.id in lastScheduledTimesRef.current)) {
-        lastScheduledTimesRef.current[t.id] = 0;
-      }
-      if (!(t.id in stepIndicesRef.current)) {
-        stepIndicesRef.current[t.id] = 0;
-      }
-      if (!(t.id in currentStepsRef.current)) {
-        currentStepsRef.current[t.id] = -1;
-      }
-      if (!(t.id in statsRef.current)) {
-        statsRef.current[t.id] = { hits: 0, misses: 0, cycleCount: 0, lastGhostStep: null };
-      }
-    });
-  }, [tracks]);
-  useEffect(() => { jitterRef.current = jitter; }, [jitter]);
-  useEffect(() => { swingRef.current = swing; }, [swing]);
-  useEffect(() => { dynamicsRef.current = dynamics; }, [dynamics]);
-
-  // High-performance DOM highlighting and stats update
-  useEffect(() => {
-    let rafId: number;
-    const updateDOM = () => {
-      if (isPlaying) {
-        Object.entries(currentStepsRef.current).forEach(([trackId, stepIdx]) => {
-          const steps = document.querySelectorAll(`.step-container[data-track-id="${trackId}"]`);
-          steps.forEach((step, i) => {
-            if (i === stepIdx) step.classList.add('is-current-step');
-            else step.classList.remove('is-current-step');
-          });
-        });
-      } else {
-        document.querySelectorAll('.is-current-step').forEach(el => el.classList.remove('is-current-step'));
-      }
-      rafId = requestAnimationFrame(updateDOM);
-    };
-    rafId = requestAnimationFrame(updateDOM);
-
-    const statsInterval = setInterval(() => {
-      const newStats: { [key: string]: { hits: number, misses: number, cycleCount: number } } = {};
-      Object.entries(statsRef.current).forEach(([id, s]) => {
-        const stats = s as { hits: number, misses: number, cycleCount: number };
-        newStats[id] = { hits: stats.hits, misses: stats.misses, cycleCount: stats.cycleCount };
-      });
-      setUiStats(newStats);
-
-      // Sincronizar driftOffsets para visualizadores
-      const newDriftOffsets: Record<string, number> = {};
-      tracksRef.current.forEach(t => {
-        if (t.driftEnabled) {
-          newDriftOffsets[t.id] = Math.floor(driftAccumulatorRef.current[t.id] ?? 0);
-        }
-      });
-      setDriftOffsets(newDriftOffsets);
-
-      // Flush pending evolve mutations to React state (max 1 setTracks per 100ms)
-      const mutations = pendingMutationsRef.current;
-      const caPatterns = pendingCARef.current;
-      const mutationKeys = Object.keys(mutations);
-      const caKeys = Object.keys(caPatterns);
-      if (mutationKeys.length > 0 || caKeys.length > 0) {
-        pendingMutationsRef.current = {};
-        pendingCARef.current = {};
-        setTracks(prev => prev.map(t => {
-          let updated = t;
-          if (mutations[t.id]) {
-            updated = { ...updated, probabilities: mutations[t.id] };
-          }
-          if (caPatterns[t.id]) {
-            updated = { ...updated, pattern: caPatterns[t.id] };
-          }
-          return updated;
-        }));
-      }
-    }, 100);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      clearInterval(statsInterval);
-    };
-  }, [isPlaying]);
+  // ═══ Sequencer Hook ═══
+  const {
+    globalStep, lastHit, uiStats,
+    togglePlay, handlePhaseSync,
+    phaseBufferRef, phaseBufferHeadRef, PHASE_BUFFER_SIZE,
+    toneRecordingState, cloudRecordingState, globalRecordingState,
+    handleArmOrRecord, handleCloudArmOrRecord, handleGlobalArmOrRecord,
+  } = useSequencer({
+    synthsRef, masterBusRef, loopRef, lorenzRafRef,
+    tracksRef, tracks,
+    bpm, jitter, swing, dynamics, temporalityMode,
+    isPlaying, setIsPlaying,
+    setTracks, setDriftOffsets,
+    startLorenzRaf, logChange,
+    toneFilterRef, initializeOriginalSynthBase,
+    updateMarkovMatrix,
+    initOrigSynthRef, startLorenzRafRef,
+    caStateRef, caEvolveCycleRef, pendingCARef, pendingMutationsRef,
+    markovLastNoteRef, markovAnchorCountRef, markovMatrixRef, markovNotesRef,
+    driftAccumulatorRef, rrNoteIndexRef, sliceBoundariesRef,
+  });
 
 
 
