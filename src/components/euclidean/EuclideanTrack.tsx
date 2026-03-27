@@ -797,97 +797,115 @@ export const EuclideanTrack = React.memo(({
                 {/* RR */}
                 <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('roundRobin', e)} onMouseLeave={handleParamLeave}>
                   <button
-                    onClick={() => onParamChange(trackId, 'rrEnabled', !rrEnabled)}
+                    onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'RR' ? null : 'RR')}
                     className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
-                      activeAdvancedPanel === 'RR' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : rrEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-white text-idm-muted border-black/10'
+                      activeAdvancedPanel === 'RR'
+                        ? 'bg-system-accent text-white border-system-accent'
+                        : rrEnabled
+                          ? 'bg-system-accent/20 text-system-accent border-system-accent/50'
+                          : 'bg-background text-idm-muted border-border'
                     }`}
                     title="Round Robin — micro-variación por hit"
                   >
                     RR
-                    {rrEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
+                    {rrEnabled && <span className="ml-0.5 inline-block w-1 h-1 rounded-full bg-orange-400 align-middle" />}
                   </button>
-                  <button
-                    onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'RR' ? null : 'RR')}
-                    className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
-                    title="Abrir/cerrar panel RR"
-                  >⊙</button>
                 </div>
                 {/* LRZ */}
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={() => onTonalAction(trackId, 'lorenzEnabled', !lorenzEnabled)}
+                    onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'LRZ' ? null : 'LRZ')}
                     className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-                      activeAdvancedPanel === 'LRZ' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : lorenzEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-background text-idm-muted border-border'
+                      activeAdvancedPanel === 'LRZ'
+                        ? 'bg-system-accent text-white border-system-accent'
+                        : lorenzEnabled
+                          ? 'bg-system-accent/20 text-system-accent border-system-accent/50'
+                          : 'bg-background text-idm-muted border-border'
                     }`}
                     title="Lorenz Attractor — modulación caótica del filtro"
                   >
                     LRZ
-                    {lorenzEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
+                    {lorenzEnabled && <span className="ml-0.5 inline-block w-1 h-1 rounded-full bg-orange-400 align-middle" />}
                   </button>
-                  <button
-                    onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'LRZ' ? null : 'LRZ')}
-                    className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
-                    title="Abrir/cerrar panel LRZ"
-                  >⊙</button>
                 </div>
                 {/* PHD */}
                 <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('phaseDrift', e)} onMouseLeave={handleParamLeave}>
                   <button
-                    onClick={() => onParamChange(trackId, 'driftEnabled', !driftEnabled)}
+                    onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'PHD' ? null : 'PHD')}
                     className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
-                      activeAdvancedPanel === 'PHD' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : driftEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-white text-idm-muted border-black/10'
+                      activeAdvancedPanel === 'PHD'
+                        ? 'bg-system-accent text-white border-system-accent'
+                        : driftEnabled
+                          ? 'bg-system-accent/20 text-system-accent border-system-accent/50'
+                          : 'bg-background text-idm-muted border-border'
                     }`}
                     title="Phase Drift — desfase progresivo estilo Reich"
                   >
                     PHD
-                    {driftEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
+                    {driftEnabled && <span className="ml-0.5 inline-block w-1 h-1 rounded-full bg-orange-400 align-middle" />}
                   </button>
-                  <button
-                    onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'PHD' ? null : 'PHD')}
-                    className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
-                    title="Abrir/cerrar panel PHD"
-                  >⊙</button>
                 </div>
                 {/* NLF */}
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={() => onTonalAction(trackId, 'nestedLfoEnabled', !nestedLfoEnabled)}
+                    onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'NLF' ? null : 'NLF')}
                     className={`relative text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
-                      activeAdvancedPanel === 'NLF' ? 'bg-system-accent/10 text-system-accent border-system-accent/30' : nestedLfoEnabled ? 'bg-white text-idm-ink border-black/10' : 'bg-background text-idm-muted border-border'
+                      activeAdvancedPanel === 'NLF'
+                        ? 'bg-system-accent text-white border-system-accent'
+                        : nestedLfoEnabled
+                          ? 'bg-system-accent/20 text-system-accent border-system-accent/50'
+                          : 'bg-background text-idm-muted border-border'
                     }`}
                     title="Nested LFO — modulación de la modulación"
                   >
                     NLF
-                    {nestedLfoEnabled && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-system-accent border border-white" />}
+                    {nestedLfoEnabled && <span className="ml-0.5 inline-block w-1 h-1 rounded-full bg-orange-400 align-middle" />}
                   </button>
-                  <button
-                    onClick={() => onParamChange(trackId, 'activeAdvancedPanel', activeAdvancedPanel === 'NLF' ? null : 'NLF')}
-                    className="text-[7px] text-muted-foreground hover:text-system-accent transition-colors"
-                    title="Abrir/cerrar panel NLF"
-                  >⊙</button>
                 </div>
               </div>
               {/* Shared parameter slot — renders below 2×2 grid */}
-              {activeAdvancedPanel === 'RR' && rrEnabled && (
-                <div className="flex items-center gap-1 pl-1 border-l-2 border-system-accent/30">
+              {activeAdvancedPanel === 'RR' && (
+                <div className="flex flex-col gap-1 pl-1 border-l-2 border-system-accent/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[7px] font-mono text-idm-muted uppercase">Round Robin</span>
+                    <button onClick={() => onParamChange(trackId, 'rrEnabled', !rrEnabled)} className={`w-5 h-2.5 rounded-full transition-colors ${rrEnabled ? 'bg-orange-400' : 'bg-muted'}`}>
+                      <span className={`block w-2 h-2 rounded-full bg-white shadow transition-transform ${rrEnabled ? 'translate-x-2.5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-1">
                   <span className="text-[7px] font-mono text-idm-muted w-6">Amt</span>
                   <input type="range" min={0} max={100} step={1} value={rrAmount ?? 30}
                     onChange={e => onParamChange(trackId, 'rrAmount', Number(e.target.value))}
                     className="w-12 h-[7px] accent-system-accent" title={`RR Amount: ${rrAmount ?? 30}%`} />
                   <span className="text-[7px] font-mono text-idm-muted">{rrAmount ?? 30}%</span>
+                  </div>
                 </div>
               )}
-              {activeAdvancedPanel === 'PHD' && driftEnabled && (
-                <div className="flex items-center gap-1 pl-1 border-l-2 border-system-accent/30">
+              {activeAdvancedPanel === 'PHD' && (
+                <div className="flex flex-col gap-1 pl-1 border-l-2 border-system-accent/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[7px] font-mono text-idm-muted uppercase">Phase Drift</span>
+                    <button onClick={() => onParamChange(trackId, 'driftEnabled', !driftEnabled)} className={`w-5 h-2.5 rounded-full transition-colors ${driftEnabled ? 'bg-orange-400' : 'bg-muted'}`}>
+                      <span className={`block w-2 h-2 rounded-full bg-white shadow transition-transform ${driftEnabled ? 'translate-x-2.5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-1">
                   <span className="text-[7px] font-mono text-idm-muted w-6">Rate</span>
                   <input type="range" min={-0.05} max={0.05} step={0.001} value={driftRate ?? 0.01}
                     onChange={e => onParamChange(trackId, 'driftRate', Number(e.target.value))}
                     className="w-12 h-[7px] accent-system-accent" title={`Drift Rate: ${(driftRate ?? 0.01).toFixed(3)}`} />
                   <span className="text-[7px] font-mono text-idm-muted">{(driftRate ?? 0.01) > 0 ? '+' : ''}{(driftRate ?? 0.01).toFixed(3)}</span>
+                  </div>
                 </div>
               )}
-              {activeAdvancedPanel === 'LRZ' && lorenzEnabled && (
+              {activeAdvancedPanel === 'LRZ' && (
                 <div className="flex flex-col gap-0.5 pl-1 border-l-2 border-system-accent/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[7px] font-mono text-idm-muted uppercase">Lorenz</span>
+                    <button onClick={() => onTonalAction(trackId, 'lorenzEnabled', !lorenzEnabled)} className={`w-5 h-2.5 rounded-full transition-colors ${lorenzEnabled ? 'bg-orange-400' : 'bg-muted'}`}>
+                      <span className={`block w-2 h-2 rounded-full bg-white shadow transition-transform ${lorenzEnabled ? 'translate-x-2.5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
                   <div className="flex items-center gap-1">
                     <span className="text-[7px] font-mono text-idm-muted w-6">Dep</span>
                     <input type="range" min={0} max={5000} step={100}
@@ -917,8 +935,14 @@ export const EuclideanTrack = React.memo(({
                   </div>
                 </div>
               )}
-              {activeAdvancedPanel === 'NLF' && nestedLfoEnabled && (
+              {activeAdvancedPanel === 'NLF' && (
                 <div className="flex flex-col gap-0.5 pl-1 border-l-2 border-system-accent/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[7px] font-mono text-idm-muted uppercase">Nested LFO</span>
+                    <button onClick={() => onTonalAction(trackId, 'nestedLfoEnabled', !nestedLfoEnabled)} className={`w-5 h-2.5 rounded-full transition-colors ${nestedLfoEnabled ? 'bg-orange-400' : 'bg-muted'}`}>
+                      <span className={`block w-2 h-2 rounded-full bg-white shadow transition-transform ${nestedLfoEnabled ? 'translate-x-2.5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
                   <div className="flex items-center gap-1">
                     <span className="text-[7px] font-mono text-idm-muted w-6">R1</span>
                     <input type="range" min={0.01} max={2.0} step={0.01}
