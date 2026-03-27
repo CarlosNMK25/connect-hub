@@ -418,6 +418,7 @@ export const EuclideanSequencer = () => {
   } = usePedagogy();
   const [globalStep, setGlobalStep] = useState(0);
   const [lastHit, setLastHit] = useState<{ offset: number; color: string; velocity: number; id?: number } | null>(null);
+  const [eclipseFlash, setEclipseFlash] = useState(false);
   const eclipseRef = useRef(false);
   const [syncAnalysisOpen, setSyncAnalysisOpen] = useState(false);
   const eclipseHistoryRef = useRef<{ time: string; mcm: number; bpm: number }[]>([]);
