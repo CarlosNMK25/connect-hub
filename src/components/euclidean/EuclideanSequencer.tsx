@@ -332,36 +332,7 @@ export const EuclideanSequencer = () => {
 
   const synthsRef = useRef<{ [key: string]: any }>({});
   const loopRef = useRef<Tone.Loop | null>(null);
-  const jitterRef = useRef(jitter);
-  const swingRef = useRef(swing);
-  const dynamicsRef = useRef(dynamics);
-  const globalStepRef = useRef(0);
-  const currentStepsRef = useRef<{ [key: string]: number }>({});
-  const statsRef = useRef<{ [key: string]: { hits: number, misses: number, cycleCount: number, lastGhostStep: number | null } }>({});
-  const [uiStats, setUiStats] = useState<{ [key: string]: { hits: number, misses: number, cycleCount: number } }>({});
-  const lastScheduledTimesRef = useRef<{ [key: string]: number }>({});
-  const stepIndicesRef = useRef<{ [key: string]: number }>({});
-  // pendingMutationsRef, caStateRef, caEvolveCycleRef, pendingCARef, rrNoteIndexRef,
-  // markovLastNoteRef, markovAnchorCountRef, markovMatrixRef, markovNotesRef,
-  // driftAccumulatorRef, driftOffsets → useTrackState
   const lorenzRafRef = useRef<number>(0);
-  // Refs para grabación en tiempo real del track Tone
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const recordingChunksRef = useRef<Blob[]>([]);
-  const recordingDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
-  const lastRecordedBufferRef = useRef<AudioBuffer | null>(null);
-  const globalRecordingDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
-  const globalRecordingChunksRef = useRef<Blob[]>([]);
-  const globalMediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const [globalRecordingState, setGlobalRecordingState] = 
-    useState<'idle' | 'armed' | 'recording'>('idle');
-  const cloudRecordingDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
-  const cloudRecordingChunksRef = useRef<Blob[]>([]);
-  const cloudMediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const [cloudRecordingState, setCloudRecordingState] = 
-    useState<'idle' | 'armed' | 'recording'>('idle');
-  const [toneRecordingState, setToneRecordingState] = useState<'idle' | 'armed' | 'recording'>('idle');
-
   const masterBusRef = useRef<MasterBusType | null>(null);
 
   // Active FX panel in Controls column (only one visible at a time)
