@@ -25,6 +25,7 @@ import { TemporalityMode, TEMPORALITY_MODES, calculateTemporalOffset } from '../
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals, getScaleDetune, midiAndDetuneToFreq, noteIndexToFreq, isNonOctaveScale } from '../../utils/scales';
 import { buildWavefoldCurve, vactrolfiltFreq } from '../../utils/waveshaping';
 import { markovNextNote } from '../../utils/markovGenerator';
+import { createTrackRouting, injectCommonMethods, restoreTrackState, createNestedLfo } from '../../utils/audioRouting';
 import { LorenzAttractor } from '../../utils/lorenzAttractor';
 import { usePedagogy } from '../../hooks/usePedagogy';
 import type { TrackState, SceneData } from '../../types/track';
