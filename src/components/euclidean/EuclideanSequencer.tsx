@@ -361,18 +361,9 @@ export const EuclideanSequencer = () => {
   const [uiStats, setUiStats] = useState<{ [key: string]: { hits: number, misses: number, cycleCount: number } }>({});
   const lastScheduledTimesRef = useRef<{ [key: string]: number }>({});
   const stepIndicesRef = useRef<{ [key: string]: number }>({});
-  const pendingMutationsRef = useRef<{ [trackId: string]: number[] }>({});
-  const caStateRef = useRef<Record<string, number[]>>({});
-  const caEvolveCycleRef = useRef<Record<string, number>>({});
-  const pendingCARef = useRef<Record<string, number[]>>({});
-  const rrNoteIndexRef = useRef<Record<string, number>>({});
-  // Markov refs
-  const markovLastNoteRef = useRef<Record<string, number>>({});
-  const markovAnchorCountRef = useRef<Record<string, number>>({});
-  const markovMatrixRef = useRef<Record<string, number[][]>>({});
-  const markovNotesRef = useRef<Record<string, number[]>>({});
-  const driftAccumulatorRef = useRef<Record<string, number>>({});
-  const [driftOffsets, setDriftOffsets] = useState<Record<string, number>>({});
+  // pendingMutationsRef, caStateRef, caEvolveCycleRef, pendingCARef, rrNoteIndexRef,
+  // markovLastNoteRef, markovAnchorCountRef, markovMatrixRef, markovNotesRef,
+  // driftAccumulatorRef, driftOffsets → useTrackState
   // Lorenz Attractor refs
   const lorenzAttractorsRef = useRef<Record<string, LorenzAttractor>>({});
   const lorenzRafRef = useRef<number>(0);
