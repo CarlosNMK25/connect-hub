@@ -2531,6 +2531,7 @@ export const EuclideanSequencer = () => {
         const gains: Tone.Gain[] = [];
         const outputGain = new Tone.Gain(0.6).connect(routing.filter);
         let currentFreq = 220;
+        let currentBrightness = addBrightness;
         const buildPartials = (freq: number, nPartials: number, brightness: number) => {
           oscillators.forEach(o => { try { o.stop(); o.dispose(); } catch(e) {} });
           gains.forEach(g => g.dispose()); oscillators.length = 0; gains.length = 0;
@@ -2540,13 +2541,16 @@ export const EuclideanSequencer = () => {
             gain.gain.value = (1/i) + ((1/nPartials) - (1/i)) * brightness;
             osc.connect(gain); gain.connect(outputGain); oscillators.push(osc); gains.push(gain);
           }
+          currentBrightness = brightness;
         };
         buildPartials(currentFreq, addPartials, addBrightness);
         synthsRef.current.tone = {
           triggerAttackRelease: (note: string, duration: any, time: number, velocity: number) => {
             const freq = Tone.Frequency(note).toFrequency(); currentFreq = freq;
             const at = 0.01; const dt = typeof duration === 'number' ? duration : Tone.Time(duration).toSeconds();
-            oscillators.forEach((osc, i) => { osc.frequency.setValueAtTime(freq * (i + 1), time); try { osc.start(time); } catch(e) {} });
+            // Rebuild partials each trigger — Tone.Oscillator can't restart after stop()
+            buildPartials(freq, oscillators.length || addPartials, currentBrightness);
+            oscillators.forEach((osc, i) => { osc.frequency.setValueAtTime(freq * (i + 1), time); osc.start(time); });
             outputGain.gain.cancelScheduledValues(time); outputGain.gain.setValueAtTime(0, time);
             outputGain.gain.linearRampToValueAtTime(0.6 * velocity, time + at);
             outputGain.gain.exponentialRampToValueAtTime(0.001, time + at + dt);
@@ -2556,6 +2560,7 @@ export const EuclideanSequencer = () => {
           setVolume: (vol: number) => { outputGain.gain.rampTo(vol * 0.6, 0.05); },
           setSends: (d: number, r: number) => { routing.delaySend.gain.rampTo(d, 0.05); routing.reverbSend.gain.rampTo(r, 0.05); },
           updateAddParams: (nPartials: number, brightness: number) => {
+            currentBrightness = brightness;
             if (nPartials !== oscillators.length) { buildPartials(currentFreq, nPartials, brightness); }
             else { gains.forEach((g, i) => { g.gain.rampTo((1/(i+1)) + ((1/nPartials) - (1/(i+1))) * brightness, 0.05); }); }
           },

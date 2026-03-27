@@ -195,7 +195,7 @@ export function restoreTrackState(synthsRef: any, tracksRef: any, trackId: strin
   const track = tracksRef.current.find((t: any) => t.id === trackId);
   if (track && synthsRef.current[trackId]) {
     const s = synthsRef.current[trackId];
-    s.setVolume(track.volume);
+    s.setVolume(track.volume ?? 0);
     s.setSends(track.delaySend, track.reverbSend);
     const hpf = track.eqEnabled ? (track.eqHpfFreq ?? 20) : 20;
     const lpf = track.eqEnabled ? (track.eqLpfFreq ?? 20000) : 20000;
