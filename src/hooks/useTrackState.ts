@@ -263,6 +263,7 @@ export function useTrackState(params: UseTrackStateParams) {
     cloudSynth.startEno = startEno;
     cloudSynth.stopEno = stopEno;
     cloudSynth.enoDispose = disposeEno;
+    console.log('[ENO-DIAG] initCloudEno COMPLETE: startEno assigned to cloudSynth');
 
     const originalSetVolume = cloudSynth.setVolume;
     cloudSynth.setVolume = (vol: number) => {

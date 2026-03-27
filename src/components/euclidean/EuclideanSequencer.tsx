@@ -1665,6 +1665,7 @@ export const EuclideanSequencer = () => {
       // Start cloud based on mode
       const cloudTrackStart = tracksRef.current.find(t => t.id === 'cloud');
       if (cloudTrackStart?.cloudMode === 'eno') {
+        console.log('[ENO-DIAG] togglePlay: calling startEno', { hasStartEno: !!synthsRef.current.cloud?.startEno, cloudMode: cloudTrackStart?.cloudMode });
         synthsRef.current.cloud?.startEno?.();
       } else if (synthsRef.current.cloud?.grainPlayer) {
         synthsRef.current.cloud.grainPlayer.start();
