@@ -390,6 +390,34 @@ export const EuclideanSequencer = () => {
     synthsRef, masterBusRef, logChange, syncAllScenes, isPlaying,
   });
 
+  // ═══ Audio Engine Hook ═══
+  const {
+    cloudAnalyserRef, toneFilterRef, globalAnalyser,
+    startLorenzRaf, initializeOriginalSynth: initializeOriginalSynthBase,
+    spectralDelayEnabled, setSpectralDelayEnabled,
+    spectralDelayWet, setSpectralDelayWet,
+    spectralDelayLowTime, setSpectralDelayLowTime,
+    spectralDelayMidTime, setSpectralDelayMidTime,
+    spectralDelayHighTime, setSpectralDelayHighTime,
+    spectralDelayLowFreq, setSpectralDelayLowFreq,
+    spectralDelayHighFreq, setSpectralDelayHighFreq,
+    freezeEnabled, setFreezeEnabled,
+    freezeFeedback, setFreezeFeedback,
+    freezeFilterFreq, setFreezeFilterFreq,
+    reverseEnabled, setReverseEnabled,
+    reverseDecay, setReverseDecay,
+    gatedEnabled, setGatedEnabled,
+    gatedThreshold, setGatedThreshold,
+    crossfeedEnabled, setCrossfeedEnabled,
+    crossfeedDepth, setCrossfeedDepth,
+    crossfeedBase, setCrossfeedBase,
+    fxHighPass, setFxHighPass,
+    fxLowPass, setFxLowPass,
+  } = useAudioEngine({
+    synthsRef, masterBusRef, loopRef, lorenzRafRef,
+    tracks, tracksRef,
+    bpm, delayMix, delayFeedback, reverbMix,
+  });
   useEffect(() => {
     // Initialize refs if they are empty
     tracks.forEach(t => {
