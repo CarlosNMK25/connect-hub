@@ -197,6 +197,7 @@ export function usePresetManager(params: UsePresetManagerParams) {
   // --- Apply factory preset ---
   const applyPreset = useCallback((preset: ScenePreset) => {
     setActivePresetId(preset.id);
+    setSelectedPreset(preset);
     if (preset.type === 'master' && preset.tracks) {
       const newSteps = Object.entries(preset.tracks)
         .filter(([id]) => id !== 'cloud')
