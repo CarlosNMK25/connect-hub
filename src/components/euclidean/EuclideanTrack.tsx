@@ -1240,7 +1240,7 @@ export const EuclideanTrack = React.memo(({
         </div>
       {/* DJ Nudge Controls (Full Width, Below Parameters) */}
       {isDjMode && (
-        <div className="mt-2 flex items-center justify-between gap-6 bg-idm-bg border border-black/5 rounded-2xl p-3 animate-in slide-in-from-top-2 duration-300 shadow-sm">
+        <div className="mt-2 flex items-center justify-between gap-6 bg-idm-bg border border-black/5 rounded-2xl p-3 animate-in slide-in-from-top-2 duration-300 shadow-sm" onMouseEnter={(e) => handleParamEnter('nudge', e)} onMouseLeave={handleParamLeave}>
           <div className="flex items-center gap-4">
             <button 
               onClick={() => {
