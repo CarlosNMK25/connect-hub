@@ -1589,7 +1589,22 @@ export const EuclideanTrack = React.memo(({
       {/* Phase 8 — Kick Synthesis Controls */}
       {id === 'kick' && samplerStatus === 'IDLE' && onPercSynthParamChange && (
         <div className="flex items-center gap-3 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <span className="text-[7px] font-mono uppercase text-idm-muted w-8 shrink-0">Kick</span>
+          <select
+            value={findKickPresetIndex(kickPitchDecay ?? 0.05, kickOctaves ?? 10, kickDecay ?? 0.4, kickClickType ?? 'pink')}
+            onChange={e => {
+              const idx = Number(e.target.value);
+              if (idx < 0) return;
+              const p = KICK_PRESETS[idx];
+              onPercSynthParamChange?.(trackId, 'kickPitchDecay', p.pitchDecay);
+              onPercSynthParamChange?.(trackId, 'kickOctaves', p.octaves);
+              onPercSynthParamChange?.(trackId, 'kickDecay', p.decay);
+              onPercSynthParamChange?.(trackId, 'kickClickType', p.clickType);
+            }}
+            className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 max-w-[90px] truncate"
+          >
+            <option value={-1}>— Custom —</option>
+            {KICK_PRESETS.map((p, i) => <option key={i} value={i}>{p.name}</option>)}
+          </select>
           <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('kickPitchDecay', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted">PD</span>
             <input type="range" min={1} max={50} step={1} value={Math.round((kickPitchDecay ?? 0.05) * 100)} onChange={e => onPercSynthParamChange?.(trackId, 'kickPitchDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
