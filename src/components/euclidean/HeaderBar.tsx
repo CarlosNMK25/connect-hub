@@ -37,6 +37,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   songModeEnabled, setSongModeEnabled,
   globalRecordingState, handleGlobalArmOrRecord,
 }) => {
+  const navigate = useNavigate();
   const panelButtons = [
     { key: 'controls', active: showControls, toggle: () => setShowControls(!showControls), icon: <Sliders size={12} />, label: 'Controls', title: 'Toggle Global Controls' },
     { key: 'visuals', active: showVisuals, toggle: () => setShowVisuals(!showVisuals), icon: showVisuals ? <Eye size={12} /> : <EyeOff size={12} />, label: 'Visuals', title: 'Toggle Visual Monitors' },
