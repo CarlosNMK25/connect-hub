@@ -89,8 +89,8 @@ No muta el patrón euclidiano en sí — muta las probabilidades de cada paso de
 
 | Control | Rango | Efecto |
 |---------|-------|--------|
-| **Mutation Rate** | 0-1 | Cuánto puede cambiar una probabilidad por mutación |
-| **Mutation Speed** | 0.1-10 | Cada cuántos ciclos ocurre la mutación |
+| **Mutation Rate** | 0.01-0.30 | Cuánto puede cambiar una probabilidad por mutación |
+| **Mutation Speed** | 1-8 | Cada cuántos ciclos ocurre la mutación |
 
 ### Ejercicio 2.1 — Evolución lenta
 
