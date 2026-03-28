@@ -413,6 +413,16 @@ export const EuclideanSequencer = () => {
     }));
   };
 
+  const handleJumpToScene = useCallback((sceneIndex: number) => {
+    setTracks(prev => prev.map(t => {
+      const newScenes = [...t.scenes];
+      newScenes[t.activeScene] = extractSceneData(t);
+      let updated = { ...t, scenes: newScenes, activeScene: sceneIndex };
+      if (newScenes[sceneIndex]) updated = applySceneData(updated, newScenes[sceneIndex]!);
+      return updated;
+    }));
+  }, []);
+
   // ═══ Sequencer Hook ═══
   const {
     globalStep, lastHit, uiStats,
