@@ -600,19 +600,21 @@ export const EuclideanSequencer = () => {
 
       {/* ═══ SONG MODE CHAIN PANEL ═══ */}
       {songModeEnabled && (
-        <SongModePanel
-          songModeView={songModeView}
-          setSongModeView={setSongModeView}
-          syncAllScenes={syncAllScenes}
-          setSyncAllScenes={setSyncAllScenes}
-          chain={chain}
-          setChain={setChain}
-          chainPosition={chainPosition}
-          setChainPosition={setChainPosition}
-        />
+        <div className="mt-2">
+          <SongModePanel
+            songModeView={songModeView}
+            setSongModeView={setSongModeView}
+            syncAllScenes={syncAllScenes}
+            setSyncAllScenes={setSyncAllScenes}
+            chain={chain}
+            setChain={setChain}
+            chainPosition={chainPosition}
+            setChainPosition={setChainPosition}
+          />
+        </div>
       )}
 
-      <div className="flex flex-col mb-8 gap-6 mt-6">
+      <div className="flex flex-col mb-8 gap-6 mt-3">
 
         {/* Main Control Panel */}
         {(showControls || showVisuals) && (
