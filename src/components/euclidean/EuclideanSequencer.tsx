@@ -430,6 +430,7 @@ export const EuclideanSequencer = () => {
     phaseBufferRef, phaseBufferHeadRef, PHASE_BUFFER_SIZE,
     toneRecordingState, cloudRecordingState, globalRecordingState,
     handleArmOrRecord, handleCloudArmOrRecord, handleGlobalArmOrRecord,
+    chainCycleProgress,
   } = useSequencer({
     synthsRef, masterBusRef, loopRef, lorenzRafRef,
     tracksRef, tracks,
