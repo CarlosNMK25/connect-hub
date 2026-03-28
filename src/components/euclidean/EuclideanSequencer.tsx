@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import * as Tone from 'tone';
-import { Atom, HelpCircle, X, Zap } from 'lucide-react';
-import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
+import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { EuclideanTrack } from './EuclideanTrack';
 import { SongModePanel } from './SongModePanel';
 import { SequencerFooter } from './SequencerFooter';
@@ -16,6 +14,8 @@ import { AdvancedFxPanel } from './AdvancedFxPanel';
 import { VisualMonitors } from './VisualMonitors';
 import { EngineRoom, type LogEntry } from './EngineRoom';
 import { PatternSpace } from './PatternSpace';
+import { MesoInsightMonitor } from './MesoInsightMonitor';
+import ThesisDrawer from './ThesisDrawer';
 import { bjorklund, rotate } from '../../utils/bjorklund';
 import { generateLSystem, generateCAPattern } from '../../utils/patternGenerators';
 import { lcmArray, calculateLcmImpact } from '../../utils/math';
@@ -34,156 +34,10 @@ import type { TrackState, SceneData, ChainStep } from '../../types/track';
 
 // TrackState and SceneData imported from ../../types/track
 
+// MesoInsightMonitor and ThesisDrawer extracted to their own files
 
-const getMesoInsight = (tracks: TrackState[]) => {
-  // Prime Aesthetics check
-  const isPrime = (n: number) => {
-    if (n <= 1) return false;
-    for (let i = 2; i <= Math.sqrt(n); i++) if (n % i === 0) return false;
-    return true;
-  };
 
-  const primeTrack = tracks.find(t => isPrime(t.pulses) || isPrime(t.steps));
-  if (primeTrack) {
-    return PEDAGOGY.meso.primeAesthetics.template
-      .replace('{p}', primeTrack.pulses.toString())
-      .replace('{s}', primeTrack.steps.toString());
-  }
 
-  // MCM Eclipse check
-  const steps = tracks.map(t => t.steps);
-  const uniqueSteps = [...new Set(steps)];
-  if (uniqueSteps.length > 1) {
-    const gcd = (a: number, b: number): number => (!b ? a : gcd(b, a % b));
-    const lcm = (a: number, b: number): number => (a * b) / gcd(a, b);
-    const totalLcm = uniqueSteps.reduce((acc, curr) => lcm(acc, curr));
-    return PEDAGOGY.meso.mcmEclipse.template.replace('{lcm}', totalLcm.toString());
-  }
-
-  // Polyrhythm check
-  if (tracks.length >= 2) {
-    return PEDAGOGY.meso.polyrhythm.template
-      .replace('{p1}', tracks[0].pulses.toString())
-      .replace('{s1}', tracks[0].steps.toString())
-      .replace('{p2}', tracks[1].pulses.toString())
-      .replace('{s2}', tracks[1].steps.toString());
-  }
-
-  return null;
-};
-
-const MesoInsightMonitor = ({ tracks, isStudyMode }: { tracks: TrackState[], isStudyMode: boolean }) => {
-  const [insight, setInsight] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!isStudyMode) {
-      setInsight(null);
-      return;
-    }
-
-    const newInsight = getMesoInsight(tracks);
-    setInsight(newInsight);
-  }, [tracks, isStudyMode]);
-
-  return (
-    <AnimatePresence>
-      {isStudyMode && insight && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="mb-8 p-6 bg-system-accent/5 border border-system-accent/20 rounded-2xl relative overflow-hidden group"
-        >
-          <div className="absolute top-0 left-0 w-1 h-full bg-system-accent" />
-          <div className="flex items-start gap-4">
-            <div className="p-2 bg-system-accent/10 rounded-lg">
-              <Zap size={18} className="text-system-accent animate-pulse" />
-            </div>
-            <div className="flex-1">
-              <h4 className="text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-system-accent mb-2">Monitor de Insights Meso</h4>
-              <p className="text-xs font-mono text-idm-ink/80 leading-relaxed uppercase">
-                {insight}
-              </p>
-            </div>
-          </div>
-          {/* Decorative elements */}
-          <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
-            <Atom size={120} />
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-};
-
-const ThesisDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]"
-          />
-          {/* Drawer */}
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-[101] overflow-y-auto"
-          >
-            <div className="p-12">
-              <div className="flex justify-between items-center mb-12">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-system-accent/10 rounded-xl">
-                    <HelpCircle size={24} className="text-system-accent" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-mono font-bold uppercase tracking-tighter text-idm-ink">Arquitecturas de la Temporalidad</h2>
-                    <p className="text-[10px] font-mono text-idm-muted uppercase tracking-widest">Tesis Doctoral / Guía de Estudio</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={onClose}
-                  className="p-2 hover:bg-black/5 rounded-full transition-colors"
-                >
-                  <X size={24} className="text-idm-ink" />
-                </button>
-              </div>
-
-              <div className="space-y-12">
-                {Object.entries(PEDAGOGY.macro).map(([key, section]: [string, any]) => (
-                  <section key={key} className="space-y-4">
-                    <h3 className="text-xs font-mono font-bold uppercase tracking-[0.4em] text-system-accent border-b border-system-accent/20 pb-2">
-                      {section.title.toUpperCase()}
-                    </h3>
-                    <div className="text-sm font-mono text-idm-ink/70 leading-relaxed uppercase space-y-4">
-                      {section.content.split('\n\n').map((para, i) => (
-                        <p key={i}>{para}</p>
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
-
-              <div className="mt-24 pt-12 border-t border-black/5 text-center">
-                <Atom size={48} className="mx-auto text-idm-ink/10 mb-4" />
-                <p className="text-[9px] font-mono text-idm-muted uppercase tracking-[0.5em]">
-                  Euclidean IDM Machine v1.0 / 2026
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
-};
 
 export const EuclideanSequencer = () => {
   const [audioContextState, setAudioContextState] = useState<string>('suspended');

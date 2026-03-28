@@ -704,6 +704,8 @@ export const EuclideanTrack = React.memo(({
                 <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => onSamplerParamChange(trackId, 'stretchEnabled', !stretchEnabled)}
+                    onMouseEnter={(e) => handleParamEnter('stretchEnabled', e)}
+                    onMouseLeave={handleParamLeave}
                     className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
                       stretchEnabled
                         ? 'bg-system-accent text-white border-system-accent'
@@ -741,7 +743,7 @@ export const EuclideanTrack = React.memo(({
             </div>
 
             {/* EQ */}
-            <div className="flex items-center gap-1.5 flex-none">
+            <div className="flex items-center gap-1.5 flex-none" onMouseEnter={(e) => handleParamEnter('eqEnabled', e)} onMouseLeave={handleParamLeave}>
               <button
                 onClick={() => onSamplerParamChange(trackId, 'eqEnabled', !eqEnabled)}
                 className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
@@ -755,7 +757,7 @@ export const EuclideanTrack = React.memo(({
               </button>
               {eqEnabled && (
                 <div className="flex flex-col gap-0.5">
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1" onMouseEnter={(e) => { e.stopPropagation(); handleParamEnter('eqHpfFreq', e); }} onMouseLeave={handleParamLeave}>
                     <span className="text-[7px] font-mono text-idm-muted w-8">HPF</span>
                     <input type="range"
                       min={20} max={2000} step={10}
@@ -767,7 +769,7 @@ export const EuclideanTrack = React.memo(({
                       {eqHpfFreq ?? 20}Hz
                     </span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1" onMouseEnter={(e) => { e.stopPropagation(); handleParamEnter('eqLpfFreq', e); }} onMouseLeave={handleParamLeave}>
                     <span className="text-[7px] font-mono text-idm-muted w-8">LPF</span>
                     <input type="range"
                       min={1000} max={20000} step={100}
@@ -1238,7 +1240,7 @@ export const EuclideanTrack = React.memo(({
         </div>
       {/* DJ Nudge Controls (Full Width, Below Parameters) */}
       {isDjMode && (
-        <div className="mt-2 flex items-center justify-between gap-6 bg-idm-bg border border-black/5 rounded-2xl p-3 animate-in slide-in-from-top-2 duration-300 shadow-sm">
+        <div className="mt-2 flex items-center justify-between gap-6 bg-idm-bg border border-black/5 rounded-2xl p-3 animate-in slide-in-from-top-2 duration-300 shadow-sm" onMouseEnter={(e) => handleParamEnter('nudge', e)} onMouseLeave={handleParamLeave}>
           <div className="flex items-center gap-4">
             <button 
               onClick={() => {
@@ -1444,7 +1446,7 @@ export const EuclideanTrack = React.memo(({
             </div>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div className="space-y-2" onMouseEnter={(e) => handleParamEnter('samplerAttack', e)} onMouseLeave={handleParamLeave}>
                   <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
                     <span>Attack</span>
                     <span className="text-idm-ink">{attack}ms</span>
@@ -1455,7 +1457,7 @@ export const EuclideanTrack = React.memo(({
                     className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2" onMouseEnter={(e) => handleParamEnter('samplerDecay', e)} onMouseLeave={handleParamLeave}>
                   <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
                     <span>Decay</span>
                     <span className="text-idm-ink">{decay}ms</span>
@@ -1484,7 +1486,7 @@ export const EuclideanTrack = React.memo(({
               </div>
               {/* Time Stretch */}
               {stretchEnabled && (
-                <div className="space-y-2 relative mt-2">
+                <div className="space-y-2 relative mt-2" onMouseEnter={(e) => handleParamEnter('stretchRate', e)} onMouseLeave={handleParamLeave}>
                   <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
                     <span>Rate</span>
                     <span className="text-idm-ink">{(stretchRate ?? 1.0).toFixed(2)}×</span>
@@ -1536,6 +1538,8 @@ export const EuclideanTrack = React.memo(({
                 </button>
                 <button 
                   onClick={() => onSamplerParamChange(trackId, 'normalize', !normalize)}
+                  onMouseEnter={(e) => handleParamEnter('normalize', e)}
+                  onMouseLeave={handleParamLeave}
                   className={`flex-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-widest border transition-all ${normalize ? 'bg-green-600/10 text-green-600 border-green-600/20 shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:border-black/10'}`}
                 >
                   Norm
@@ -1600,6 +1604,8 @@ export const EuclideanTrack = React.memo(({
               onPercSynthParamChange?.(trackId, 'kickDecay', p.decay);
               onPercSynthParamChange?.(trackId, 'kickClickType', p.clickType);
             }}
+            onMouseEnter={(e) => handleParamEnter('kickPreset', e)}
+            onMouseLeave={handleParamLeave}
             className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 max-w-[90px] truncate"
           >
             <option value={-1}>— Custom —</option>
@@ -1641,6 +1647,8 @@ export const EuclideanTrack = React.memo(({
                 onPercSynthParamChange?.(trackId, 'snareBodyDecay', p.bodyDecay!);
               }
             }}
+            onMouseEnter={(e) => handleParamEnter('snarePreset', e)}
+            onMouseLeave={handleParamLeave}
             className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 max-w-[90px] truncate"
           >
             <option value={-1}>— Custom —</option>
@@ -1690,6 +1698,8 @@ export const EuclideanTrack = React.memo(({
                 onPercSynthParamChange?.(trackId, 'hatResonance', p.resonance!);
               }
             }}
+            onMouseEnter={(e) => handleParamEnter('hatPreset', e)}
+            onMouseLeave={handleParamLeave}
             className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 max-w-[90px] truncate"
           >
             <option value={-1}>— Custom —</option>
