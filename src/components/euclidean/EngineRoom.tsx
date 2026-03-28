@@ -18,6 +18,7 @@ interface TrackSnapshot {
   pulses: number;
   steps: number;
   offset: number;
+  pattern: number[];
   probabilities: number[];
   chaosEnabled: boolean;
   entropy: number;
