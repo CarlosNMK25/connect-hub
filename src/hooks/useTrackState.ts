@@ -659,39 +659,23 @@ export function useTrackState(params: UseTrackStateParams) {
     // Use ref for freshest state to avoid React batching race conditions
     const freshTrack = tracksRef.current.find(tr => tr.id === t.id) || t;
     const newScenes = [...t.scenes];
-    console.log('[SWITCH] called', t.id, 'from scene', t.activeScene, 'to scene', newScene, 'pulses:', freshTrack.pulses);
-    console.log('[SWITCH] saving slot', t.activeScene, 'pulses:', freshTrack.pulses, 'steps:', freshTrack.steps);
     newScenes[t.activeScene] = extractSceneData(freshTrack);
-    // Apply new scene data if it exists
     let updated = { ...freshTrack, scenes: newScenes, activeScene: newScene };
-    console.log('[SWITCH] loading slot', newScene, 'hasData:', newScenes[newScene] !== null);
     if (newScenes[newScene]) {
       updated = applySceneData(updated, newScenes[newScene]!);
-      console.log('[SWITCH] applied slot', newScene, 'pulses:', updated.pulses, 'steps:', updated.steps);
     }
     return updated;
   };
 
   // ── handleSaveScene (explicit save without changing scene) ──
   const handleSaveScene = useCallback((trackId: string) => {
-    console.log('[SCENE]', 'onSaveScene called', trackId);
-    if (syncAllScenes) {
-      setTracks(prev => prev.map(t => {
-        const newScenes = [...t.scenes];
-        newScenes[t.activeScene] = extractSceneData(t);
-        return { ...t, scenes: newScenes };
-      }));
-    } else {
-      setTracks(prev => prev.map(t => {
-        if (t.id !== trackId) return t;
-        const newScenes = [...t.scenes];
-        const sceneData = extractSceneData(t);
-        newScenes[t.activeScene] = sceneData;
-        console.log('[SCENE]', 'saving scene', t.activeScene, 'pulses:', t.pulses, 'steps:', t.steps, 'data:', JSON.stringify(sceneData));
-        console.log('[SCENE]', 'scenes after save:', JSON.stringify(newScenes.map((s, i) => s !== null ? `slot${i}:HAS_DATA` : `slot${i}:null`)));
-        return { ...t, scenes: newScenes };
-      }));
-    }
+    setTracks(prev => prev.map(t => {
+      if (!syncAllScenes && t.id !== trackId) return t;
+      const freshT = tracksRef.current.find(tr => tr.id === t.id) || t;
+      const newScenes = [...t.scenes];
+      newScenes[freshT.activeScene] = extractSceneData(freshT);
+      return { ...t, scenes: newScenes };
+    }));
   }, [syncAllScenes]);
 
   // ── handleParamChange ──
