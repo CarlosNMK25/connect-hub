@@ -632,6 +632,19 @@ export function useTrackState(params: UseTrackStateParams) {
     caSeed: t.caSeed,
     caDensity: t.caDensity,
     caSpeed: t.caSpeed,
+    // Audio params
+    volume: t.volume,
+    delaySend: t.delaySend,
+    reverbSend: t.reverbSend,
+    spectralDelaySend: t.spectralDelaySend,
+    freezeSend: t.freezeSend,
+    reverseSend: t.reverseSend,
+    pan: t.pan,
+    eqEnabled: t.eqEnabled,
+    eqHpfFreq: t.eqHpfFreq,
+    eqLpfFreq: t.eqLpfFreq,
+    pitch: t.pitch,
+    synthType: t.synthType,
   });
 
   const applySceneData = (t: TrackState, scene: SceneData): TrackState => {
