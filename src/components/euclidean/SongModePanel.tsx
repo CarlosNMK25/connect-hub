@@ -25,6 +25,14 @@ const StepEditorPopover: React.FC<{
   onClose: () => void;
 }> = ({ step, canDelete, anchorRef, onChangeScene, onChangeCycles, onDelete, onClose }) => {
   const popoverRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (anchorRef) {
+      const rect = anchorRef.getBoundingClientRect();
+      setPos({ top: rect.bottom + 4, left: rect.left + rect.width / 2 });
+    }
+  }, [anchorRef]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -42,8 +50,8 @@ const StepEditorPopover: React.FC<{
   return (
     <div
       ref={popoverRef}
-      className="absolute z-50 mt-1 p-2 rounded-lg border border-border bg-popover shadow-lg min-w-[160px]"
-      style={{ top: '100%', left: '50%', transform: 'translateX(-50%)' }}
+      className="fixed z-50 p-2 rounded-lg border border-border bg-popover shadow-lg min-w-[160px]"
+      style={{ top: pos.top, left: pos.left, transform: 'translateX(-50%)' }}
     >
       <div className="mb-1.5">
         <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Escena</span>
