@@ -614,7 +614,7 @@ export const EuclideanSequencer = () => {
         </div>
       )}
 
-      <div className="flex flex-col mb-8 gap-6 mt-3">
+      <div className="flex flex-col mb-8 gap-6 mt-1">
 
         {/* Main Control Panel */}
         {(showControls || showVisuals) && (
