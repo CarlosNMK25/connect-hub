@@ -1446,7 +1446,7 @@ export const EuclideanTrack = React.memo(({
             </div>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div className="space-y-2" onMouseEnter={(e) => handleParamEnter('samplerAttack', e)} onMouseLeave={handleParamLeave}>
                   <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
                     <span>Attack</span>
                     <span className="text-idm-ink">{attack}ms</span>
@@ -1457,7 +1457,7 @@ export const EuclideanTrack = React.memo(({
                     className="w-full h-1 bg-idm-bg appearance-none cursor-pointer accent-system-accent" 
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2" onMouseEnter={(e) => handleParamEnter('samplerDecay', e)} onMouseLeave={handleParamLeave}>
                   <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
                     <span>Decay</span>
                     <span className="text-idm-ink">{decay}ms</span>
