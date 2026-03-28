@@ -64,7 +64,7 @@ export function useSequencer(params: UseSequencerParams) {
     setTracks, setDriftOffsets,
     startLorenzRaf, logChange,
     toneFilterRef, initializeOriginalSynthBase, updateMarkovMatrix,
-    songModeConfig, mcm, onChainAdvance,
+    songModeConfig, mcm, onChainAdvanceRef,
     initOrigSynthRef, startLorenzRafRef,
     caStateRef, caEvolveCycleRef, pendingCARef, pendingMutationsRef,
     markovLastNoteRef, markovAnchorCountRef, markovMatrixRef, markovNotesRef,
