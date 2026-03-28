@@ -86,7 +86,7 @@ export const SongModePanel: React.FC<SongModePanelProps> = ({
                     key={j}
                     className={`w-1.5 h-1.5 rounded-sm inline-block ${
                       i === chainPosition
-                        ? j < chainCycleProgress
+                        ? j < chainCycleProgress + 1
                           ? 'bg-system-accent'
                           : 'bg-system-accent/20'
                         : 'bg-muted-foreground/20'
