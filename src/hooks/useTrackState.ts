@@ -656,7 +656,7 @@ export function useTrackState(params: UseTrackStateParams) {
   };
 
   const switchScene = (t: TrackState, newScene: number): TrackState => {
-    // Save current state to current scene slot
+    console.log('[SWITCH] called', t.id, 'from scene', t.activeScene, 'to scene', newScene, 'pulses:', t.pulses);
     const newScenes = [...t.scenes];
     console.log('[SWITCH] saving slot', t.activeScene, 'pulses:', t.pulses, 'steps:', t.steps);
     newScenes[t.activeScene] = extractSceneData(t);
