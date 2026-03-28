@@ -295,6 +295,7 @@ export const EuclideanTrack = React.memo(({
   onRecordAction, onCloudRecordAction, onGetMarkovMatrix,
 }: EuclideanTrackProps) => {
   const layer2InputRef = useRef<HTMLInputElement>(null);
+  const sceneClickRef = useRef<{ index: number; time: number }>({ index: -1, time: 0 });
   const voice = studyVoice;
 
   const temporalOffsets = React.useMemo(() => {
