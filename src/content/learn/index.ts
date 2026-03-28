@@ -44,6 +44,17 @@ export const MANUALS: ManualMeta[] = [
     description: 'Mismo patrón, mismos números. Pero dependiendo del modo de temporalidad, la música suena mecánica, grooveada, flotante o perturbadora. Cinco formas de humanizar el algoritmo.',
     fileName: 'sesion-03-el-tiempo-humano.md',
   },
+  {
+    id: 'sesion-04',
+    slug: 'sesion-04-el-azar-controlado',
+    title: 'El Azar Controlado',
+    session: 4,
+    subtitle: 'Chaos, Evolve, L-System, Markov — algoritmos que improvisan',
+    duration: '60-75 min',
+    prerequisite: 'Sesiones 1, 2 y 3 completadas',
+    description: 'Cuatro sistemas de azar a diferentes escalas temporales. La máquina deja de obedecer y empieza a improvisar dentro de los límites que tú defines.',
+    fileName: 'sesion-04-el-azar-controlado.md',
+  },
 ];
 
 export async function loadManualContent(fileName: string): Promise<string> {
