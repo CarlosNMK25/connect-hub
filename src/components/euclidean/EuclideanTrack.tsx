@@ -509,7 +509,7 @@ export const EuclideanTrack = React.memo(({
                       const now = Date.now();
                       const prev = sceneClickRef.current;
                       if (prev.index === i && now - prev.time < 300) {
-                        console.log('[SCENE]', 'double click detected, calling onSaveScene', trackId);
+                        onSaveScene?.(trackId);
                         onSaveScene?.(trackId);
                         sceneClickRef.current = { index: -1, time: 0 };
                       } else {
