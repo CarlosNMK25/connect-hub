@@ -144,13 +144,13 @@ Suma N osciladores senoidales en frecuencias armónicas.
 
 ---
 
-**AR** — El pulsante.
-Un oscilador con modulación de amplitud a frecuencia audible (20-2000Hz).
-- **AR Rate** bajo (20-80Hz): pulsos rítmicos audibles como ritmo
-- **AR Rate** alto (200Hz+): el pulso se fusiona con el timbre
-- **AR Depth**: intensidad de la pulsación
+**AMBIENT** — El generativo.
+Osciladores con duraciones asimétricas que se repiten en bucles de longitudes distintas — el mismo principio que el modo ENO de Cloud, pero aplicado a síntesis tonal. Los bucles nunca se alinean, generando un fondo que no se repite.
+- **Ambient Volume**: volumen del generador
 
-*Úsalo cuando:* quieres que el propio sonido tenga un ritmo interno, independiente del patrón euclidiano.
+*Úsalo cuando:* quieres un fondo tonal continuo que evolucione sin intervención, como un paisaje sonoro autónomo.
+
+> **Nota — AR Mod:** Todos los tipos de síntesis tienen acceso a modulación de amplitud (AR Rate 20-2000Hz, AR Depth). No es un tipo independiente — es una capa de modulación que añade pulsación rítmica interna a cualquier synth. AR Rate bajo (20-80Hz) crea pulsos audibles; AR Rate alto (200Hz+) fusiona el pulso con el timbre.
 
 ---
 
