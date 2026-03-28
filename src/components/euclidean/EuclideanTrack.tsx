@@ -8,6 +8,10 @@ import { WaveformDisplay } from './WaveformDisplay';
 import { SlicerPanel } from './SlicerPanel';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
+import {
+  KICK_PRESETS, SNARE_PRESETS, HAT_PRESETS,
+  findKickPresetIndex, findSnarePresetIndex, findHatPresetIndex,
+} from '../../constants/percussiveSounds';
 import { calculateTemporalOffset, type TemporalityMode } from '../../utils/temporality';
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals, noteIndexToDisplayName } from '../../utils/scales';
 import { calculateSliceBoundaries } from '../../utils/slicerUtils';
@@ -1585,7 +1589,22 @@ export const EuclideanTrack = React.memo(({
       {/* Phase 8 — Kick Synthesis Controls */}
       {id === 'kick' && samplerStatus === 'IDLE' && onPercSynthParamChange && (
         <div className="flex items-center gap-3 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <span className="text-[7px] font-mono uppercase text-idm-muted w-8 shrink-0">Kick</span>
+          <select
+            value={findKickPresetIndex(kickPitchDecay ?? 0.05, kickOctaves ?? 10, kickDecay ?? 0.4, kickClickType ?? 'pink')}
+            onChange={e => {
+              const idx = Number(e.target.value);
+              if (idx < 0) return;
+              const p = KICK_PRESETS[idx];
+              onPercSynthParamChange?.(trackId, 'kickPitchDecay', p.pitchDecay);
+              onPercSynthParamChange?.(trackId, 'kickOctaves', p.octaves);
+              onPercSynthParamChange?.(trackId, 'kickDecay', p.decay);
+              onPercSynthParamChange?.(trackId, 'kickClickType', p.clickType);
+            }}
+            className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 max-w-[90px] truncate"
+          >
+            <option value={-1}>— Custom —</option>
+            {KICK_PRESETS.map((p, i) => <option key={i} value={i}>{p.name}</option>)}
+          </select>
           <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('kickPitchDecay', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted">PD</span>
             <input type="range" min={1} max={50} step={1} value={Math.round((kickPitchDecay ?? 0.05) * 100)} onChange={e => onPercSynthParamChange?.(trackId, 'kickPitchDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
@@ -1608,7 +1627,25 @@ export const EuclideanTrack = React.memo(({
       {/* Phase 8 — Snare Synthesis Controls */}
       {id === 'snare' && samplerStatus === 'IDLE' && onPercSynthParamChange && (
         <div className="flex items-center gap-3 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <span className="text-[7px] font-mono uppercase text-idm-muted w-8 shrink-0">Snr</span>
+          <select
+            value={findSnarePresetIndex(snareDecay ?? 0.2, snareNoiseType ?? 'white', snareBodyEnabled ?? false, snareBodyPitch ?? 180, snareBodyDecay ?? 0.1)}
+            onChange={e => {
+              const idx = Number(e.target.value);
+              if (idx < 0) return;
+              const p = SNARE_PRESETS[idx];
+              onPercSynthParamChange?.(trackId, 'snareDecay', p.decay);
+              onPercSynthParamChange?.(trackId, 'snareNoiseType', p.noiseType);
+              onPercSynthParamChange?.(trackId, 'snareBodyEnabled', p.bodyEnabled);
+              if (p.bodyEnabled) {
+                onPercSynthParamChange?.(trackId, 'snareBodyPitch', p.bodyPitch!);
+                onPercSynthParamChange?.(trackId, 'snareBodyDecay', p.bodyDecay!);
+              }
+            }}
+            className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 max-w-[90px] truncate"
+          >
+            <option value={-1}>— Custom —</option>
+            {SNARE_PRESETS.map((p, i) => <option key={i} value={i}>{p.name}</option>)}
+          </select>
           <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('snareDecay', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted">Dec</span>
             <input type="range" min={5} max={50} step={1} value={Math.round((snareDecay ?? 0.2) * 100)} onChange={e => onPercSynthParamChange?.(trackId, 'snareDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
@@ -1638,7 +1675,26 @@ export const EuclideanTrack = React.memo(({
       {/* Phase 8 — Hat Synthesis Controls */}
       {id === 'hat' && samplerStatus === 'IDLE' && onPercSynthParamChange && (
         <div className="flex items-center gap-3 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <span className="text-[7px] font-mono uppercase text-idm-muted w-8 shrink-0">Hat</span>
+          <select
+            value={findHatPresetIndex(hatMode ?? 'noise', hatDecay ?? 0.05, hatNoiseType ?? 'white', hatHarmonicity ?? 5.1, hatModIndex ?? 32, hatResonance ?? 4000)}
+            onChange={e => {
+              const idx = Number(e.target.value);
+              if (idx < 0) return;
+              const p = HAT_PRESETS[idx];
+              onPercSynthParamChange?.(trackId, 'hatMode', p.mode);
+              onPercSynthParamChange?.(trackId, 'hatDecay', p.decay);
+              onPercSynthParamChange?.(trackId, 'hatNoiseType', p.noiseType);
+              if (p.mode === 'metal') {
+                onPercSynthParamChange?.(trackId, 'hatHarmonicity', p.harmonicity!);
+                onPercSynthParamChange?.(trackId, 'hatModIndex', p.modIndex!);
+                onPercSynthParamChange?.(trackId, 'hatResonance', p.resonance!);
+              }
+            }}
+            className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 max-w-[90px] truncate"
+          >
+            <option value={-1}>— Custom —</option>
+            {HAT_PRESETS.map((p, i) => <option key={i} value={i}>{p.name}</option>)}
+          </select>
           <select value={hatMode ?? 'noise'} onChange={e => onPercSynthParamChange?.(trackId, 'hatMode', e.target.value)} onMouseEnter={(e) => handleParamEnter('hatMode', e)} onMouseLeave={handleParamLeave} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
             <option value="noise">Noise</option>
             <option value="metal">Metal</option>
