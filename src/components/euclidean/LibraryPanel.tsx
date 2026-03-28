@@ -214,45 +214,45 @@ export const LibraryPanel: React.FC<LibraryPanelProps> = ({
       </div>
 
       <div className="md:col-span-3 bg-white border border-black/5 rounded-2xl p-8 flex flex-col justify-center relative overflow-hidden shadow-sm">
-        {hoveredPreset ? (
-          <div className="animate-in fade-in slide-in-from-left-4 duration-500">
+        {displayPreset ? (
+          <div className="animate-in fade-in slide-in-from-left-4 duration-500" key={displayPreset.id}>
             <div className="flex items-center gap-4 mb-4">
-              <div className={`w-2 h-2 rounded-full ${hoveredPreset.type === 'master' ? 'bg-system-accent shadow-[0_0_10px_rgba(249,115,22,0.3)]' : 'bg-idm-muted'}`}></div>
-              <h3 className="text-system-accent font-mono font-bold text-2xl uppercase tracking-tighter">{hoveredPreset.name}</h3>
-              <span className={`px-3 py-1 rounded-full text-[9px] font-mono uppercase tracking-widest border ${hoveredPreset.type === 'master' ? 'bg-system-accent/5 border-system-accent/20 text-system-accent' : 'bg-idm-bg border-black/5 text-idm-muted'}`}>
-                {hoveredPreset.type === 'master' ? 'Escena Maestra' : 'Patrón Atómico'}
+              <div className={`w-2 h-2 rounded-full ${displayPreset.type === 'master' ? 'bg-system-accent shadow-[0_0_10px_rgba(249,115,22,0.3)]' : 'bg-idm-muted'}`}></div>
+              <h3 className="text-system-accent font-mono font-bold text-2xl uppercase tracking-tighter">{displayPreset.name}</h3>
+              <span className={`px-3 py-1 rounded-full text-[9px] font-mono uppercase tracking-widest border ${displayPreset.type === 'master' ? 'bg-system-accent/5 border-system-accent/20 text-system-accent' : 'bg-idm-bg border-black/5 text-idm-muted'}`}>
+                {displayPreset.type === 'master' ? 'Escena Maestra' : 'Patrón Atómico'}
               </span>
             </div>
             
             <div className="max-w-xl">
               <p className="text-idm-ink/70 font-mono text-xs uppercase leading-relaxed mb-8 border-l-2 border-system-accent/30 pl-4">
-                {hoveredPreset.description}
+                {displayPreset.description}
               </p>
               
               <div className="grid grid-cols-3 gap-8">
-                {hoveredPreset.type === 'master' ? (
+                {displayPreset.type === 'master' ? (
                   <>
                     <div className="flex flex-col">
                       <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-2">Configuración Global</span>
                       <div className="space-y-1">
                         <div className="flex justify-between text-[10px] font-mono">
                           <span className="text-idm-muted">TEMPO</span>
-                          <span className="text-system-accent">{hoveredPreset.bpm} BPM</span>
+                          <span className="text-system-accent">{displayPreset.bpm} BPM</span>
                         </div>
                         <div className="flex justify-between text-[10px] font-mono">
                           <span className="text-idm-muted">JITTER</span>
-                          <span className="text-system-accent">{hoveredPreset.jitter}ms</span>
+                          <span className="text-system-accent">{displayPreset.jitter}ms</span>
                         </div>
                         <div className="flex justify-between text-[10px] font-mono">
                           <span className="text-idm-muted">SWING</span>
-                          <span className="text-system-accent">{hoveredPreset.swing}%</span>
+                          <span className="text-system-accent">{displayPreset.swing}%</span>
                         </div>
                       </div>
                     </div>
                     <div className="col-span-2 flex flex-col">
                       <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-2">Geometría de Pistas</span>
                       <div className="grid grid-cols-3 gap-4">
-                        {Object.entries(hoveredPreset.tracks || {}).map(([id, config]) => {
+                        {Object.entries(displayPreset.tracks || {}).map(([id, config]) => {
                           const trackConfig = config as TrackPreset;
                           return (
                             <div key={id} className="bg-black/5 p-2 rounded border border-black/5">
@@ -269,19 +269,19 @@ export const LibraryPanel: React.FC<LibraryPanelProps> = ({
                     <div className="flex flex-col">
                       <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-2">Fórmula Bjorklund</span>
                       <div className="text-2xl font-mono text-system-accent tracking-tighter">
-                        E({hoveredPreset.config?.pulses}, {hoveredPreset.config?.steps})
+                        E({displayPreset.config?.pulses}, {displayPreset.config?.steps})
                       </div>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-2">Densidad</span>
                       <div className="text-2xl font-mono text-system-accent tracking-tighter">
-                        {Math.round((hoveredPreset.config?.pulses! / hoveredPreset.config?.steps!) * 100)}%
+                        {Math.round((displayPreset.config?.pulses! / displayPreset.config?.steps!) * 100)}%
                       </div>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-2">Offset</span>
                       <div className="text-2xl font-mono text-system-accent tracking-tighter">
-                        {hoveredPreset.config?.offset}
+                        {displayPreset.config?.offset}
                       </div>
                     </div>
                   </>
