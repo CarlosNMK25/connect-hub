@@ -148,6 +148,26 @@ export const PEDAGOGY = {
     extremeLoopPoint: "Posición dentro del buffer donde empieza el micro-loop (0-1, normalizado a la duración total del sample). 0 = inicio del sample. 0.5 = mitad. 1 = final. El loopEnd se calcula automáticamente como Point + (Size/bufferDuration). Desplazar Point mientras el loop suena cambia el tono resultante porque el contenido espectral del sample varía en cada posición.",
     // Sampler mode
     oneShotMode: "Modo de playback del sampler donde la duración del trigger es la longitud completa del ROI (región de interés definida por sampleStart y sampleEnd), ignorando el tempo. En TRIGGER, el sample se corta cuando llega el siguiente step. En GATE, dura un sixteenth note. En ONE-SHOT, dura exactamente (sampleEnd - sampleStart) × bufferDuration — el sample suena completo sin importar el BPM o la densidad del patrón.",
+    // Per-track EQ
+    eqEnabled: "Activa un ecualizador de dos bandas (HPF + LPF) por pista. Implementado con Tone.Filter HPF y LPF en serie. Permite esculpir el rango frecuencial de cada elemento rítmico de forma independiente antes de los buses de efectos.",
+    eqHpfFreq: "Frecuencia de corte del filtro paso-alto (High-Pass Filter) en Hz. Elimina frecuencias por debajo del corte. Rango: 20-2000Hz. Útil para limpiar graves no deseados en hats o snares, o para crear efectos de filtro progresivo en tiempo real.",
+    eqLpfFreq: "Frecuencia de corte del filtro paso-bajo (Low-Pass Filter) en Hz. Elimina frecuencias por encima del corte. Rango: 1000-20000Hz. Útil para oscurecer sonidos, simular distancia acústica o crear barridos de filtro.",
+    // Time Stretch
+    stretchEnabled: "Activa el time-stretching granular en el sampler. Permite cambiar la velocidad de reproducción sin alterar el pitch. Implementado modificando el playbackRate del GrainPlayer mientras se compensa con detune.",
+    stretchRate: "Factor de velocidad del time-stretch. 1.0 = velocidad original. 0.5 = mitad de velocidad (sample dura el doble). 2.0 = doble velocidad (sample dura la mitad). El pitch se mantiene constante mediante compensación granular.",
+    // Normalize
+    normalize: "Normaliza la amplitud del sample cargado a 0dBFS. Útil cuando los samples tienen niveles de grabación muy dispares. La normalización es perceptual — no altera el archivo original, solo la ganancia de reproducción.",
+    // Sampler envelope
+    samplerAttack: "Tiempo de ataque de la envolvente del sampler en milisegundos. Controla cuánto tarda el sample en alcanzar su volumen máximo desde el onset. 0ms = ataque inmediato, percusivo. 500ms = fade-in suave, más ambiental.",
+    samplerDecay: "Tiempo de decaimiento de la envolvente del sampler en milisegundos. Controla cuánto tarda el sample en apagarse después del ataque. Valores bajos = cortes secos. Valores altos = colas largas y naturales.",
+    // DJ Nudge
+    nudge: "Control de offset en tiempo real para DJ performance. Permite desplazar el punto de inicio del patrón step a step, preparando un \"drop\" que se activa manualmente. Emula el nudge de los CDJ Pioneer.",
+    // Percussive presets
+    kickPreset: "Banco de presets de síntesis de kick. Cada preset configura simultáneamente pitchDecay, octaves, decay y clickType del MembraneSynth. Incluye presets de IDM, flamenco, industrial, house, jungle y más.",
+    snarePreset: "Banco de presets de síntesis de snare. Cada preset configura decay, noiseType, bodyEnabled y parámetros de body. Incluye presets de IDM, flamenco, rimshot, brush, clap y variantes de densidad.",
+    hatPreset: "Banco de presets de síntesis de hi-hat. Cada preset configura mode (noise/metal), decay, noiseType y parámetros FM del MetalSynth. Incluye presets de IDM, palmas flamencas, cymbal, tambourine y shaker.",
+    // Hat decay
+    hatDecay: "Duración del envelope del hi-hat en segundos. Controla la longitud de la cola del hat. Decay muy corto (0.02-0.05) = closed hat percusivo. Decay medio (0.1-0.2) = hat abierto con presencia. Decay largo (0.3+) = cymbal o ride con sustain prolongado.",
   } as PedagogyMicro,
 
   microLiterary: {
