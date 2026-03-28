@@ -513,7 +513,9 @@ export const EuclideanTrack = React.memo(({
                         onSaveScene?.(trackId);
                         sceneClickRef.current = { index: -1, time: 0 };
                       } else {
-                        onParamChange(trackId, 'activeScene', i);
+                        if (!isActive) {
+                          onParamChange(trackId, 'activeScene', i);
+                        }
                         sceneClickRef.current = { index: i, time: now };
                       }
                     }}
