@@ -16,6 +16,8 @@ import { AdvancedFxPanel } from './AdvancedFxPanel';
 import { VisualMonitors } from './VisualMonitors';
 import { EngineRoom, type LogEntry } from './EngineRoom';
 import { PatternSpace } from './PatternSpace';
+import { MesoInsightMonitor } from './MesoInsightMonitor';
+import ThesisDrawer from './ThesisDrawer';
 import { bjorklund, rotate } from '../../utils/bjorklund';
 import { generateLSystem, generateCAPattern } from '../../utils/patternGenerators';
 import { lcmArray, calculateLcmImpact } from '../../utils/math';
