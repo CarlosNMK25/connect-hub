@@ -504,8 +504,18 @@ export const EuclideanTrack = React.memo(({
                 return (
                   <button
                     key={i}
-                    onClick={(e) => { e.stopPropagation(); onParamChange(trackId, 'activeScene', i); }}
-                    onDoubleClick={(e) => { e.stopPropagation(); onSaveScene?.(trackId); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const now = Date.now();
+                      const prev = sceneClickRef.current;
+                      if (prev.index === i && now - prev.time < 300) {
+                        onSaveScene?.(trackId);
+                        sceneClickRef.current = { index: -1, time: 0 };
+                      } else {
+                        onParamChange(trackId, 'activeScene', i);
+                        sceneClickRef.current = { index: i, time: now };
+                      }
+                    }}
                     className={`w-3.5 h-3.5 rounded-sm text-[6px] font-medium flex-shrink-0 border transition-all flex items-center justify-center ${
                       isActive
                         ? 'text-white border-transparent'
