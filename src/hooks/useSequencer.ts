@@ -109,7 +109,7 @@ export function useSequencer(params: UseSequencerParams) {
   const chainCyclesRef = useRef(0);
   const songModeConfigRef = useRef(songModeConfig);
   const mcmRef = useRef(mcm);
-  const onChainAdvanceRef = useRef(onChainAdvance);
+  
 
   // ═══ Ref Syncs ═══
   useEffect(() => { jitterRef.current = jitter; }, [jitter]);
