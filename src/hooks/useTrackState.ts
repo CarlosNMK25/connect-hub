@@ -652,7 +652,11 @@ export function useTrackState(params: UseTrackStateParams) {
       caDensity: scene.caDensity,
       caSpeed: scene.caSpeed,
     };
-    return updateTrackPattern(merged);
+    // Solo recalcular si el modo generativo lo requiere
+    if (scene.patternMode === 'lsystem' || scene.patternMode === 'ca') {
+      return updateTrackPattern(merged);
+    }
+    return merged;
   };
 
   const switchScene = (t: TrackState, newScene: number): TrackState => {
