@@ -118,7 +118,7 @@ export function useSequencer(params: UseSequencerParams) {
   useEffect(() => { temporalityModeRef.current = temporalityMode; }, [temporalityMode]);
   useEffect(() => { songModeConfigRef.current = songModeConfig; }, [songModeConfig]);
   useEffect(() => { mcmRef.current = mcm; }, [mcm]);
-  useEffect(() => { onChainAdvanceRef.current = onChainAdvance; }, [onChainAdvance]);
+  
 
   // Initialize refs for all tracks
   useEffect(() => {
