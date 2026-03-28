@@ -741,7 +741,7 @@ export const EuclideanTrack = React.memo(({
             </div>
 
             {/* EQ */}
-            <div className="flex items-center gap-1.5 flex-none">
+            <div className="flex items-center gap-1.5 flex-none" onMouseEnter={(e) => handleParamEnter('eqEnabled', e)} onMouseLeave={handleParamLeave}>
               <button
                 onClick={() => onSamplerParamChange(trackId, 'eqEnabled', !eqEnabled)}
                 className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors shrink-0 ${
