@@ -2340,7 +2340,7 @@ export const EuclideanTrack = React.memo(({
                 <span className={chaosEnabled ? "text-system-accent" : ""}>{entropy.toFixed(2)}×</span>
               </div>
               <input 
-                type="range" min="0" max="1" step="0.01" value={entropy} 
+                type="range" min="0" max="2" step="0.01" value={entropy} 
                 onChange={(e) => onParamChange(trackId, 'entropy', parseFloat(e.target.value))}
                 disabled={!chaosEnabled}
                 className={`w-full h-1 appearance-none cursor-pointer rounded-full ${chaosEnabled ? 'bg-system-accent/20 accent-system-accent' : 'bg-white accent-idm-muted/40 cursor-not-allowed'}`}
