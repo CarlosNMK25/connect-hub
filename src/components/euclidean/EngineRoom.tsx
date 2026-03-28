@@ -395,6 +395,31 @@ export const EngineRoom: React.FC<EngineRoomProps> = React.memo(({ tracks, uiSta
         </div>
       </div>
 
+      {/* Radiografía Rítmica */}
+      <div className="mb-5">
+        <div className="text-[8px] uppercase tracking-[0.2em] text-idm-muted mb-2">── Radiografía Rítmica ──</div>
+        <div className="space-y-1">
+          {tracks.map(t => {
+            const rotated = rotate(t.pattern.slice(0, t.steps), t.offset);
+            const positions = rotated
+              .map((v, i) => (v === 1 ? i + 1 : null))
+              .filter((v): v is number => v !== null);
+            const meta = `${t.pulses} de ${t.steps}${t.offset !== 0 ? `, offset ${t.offset}` : ''}`;
+            return (
+              <div key={t.id} className="flex items-baseline gap-2 text-[10px] font-mono leading-relaxed">
+                <span className="shrink-0 font-bold" style={{ color: t.color }}>{t.name}:</span>
+                <span className="text-idm-ink">
+                  {positions.length > 0
+                    ? `posiciones ${positions.join(', ')}`
+                    : 'sin pulsos'}
+                </span>
+                <span className="text-idm-muted">({meta})</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Session Log */}
       <div className="mb-5">
         <div className="text-[8px] uppercase tracking-[0.2em] text-idm-muted mb-2">── Log de Sesión ──</div>
