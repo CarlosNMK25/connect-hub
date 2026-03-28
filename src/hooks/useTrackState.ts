@@ -680,7 +680,9 @@ export function useTrackState(params: UseTrackStateParams) {
       setTracks(prev => prev.map(t => {
         if (t.id !== trackId) return t;
         const newScenes = [...t.scenes];
-        newScenes[t.activeScene] = extractSceneData(t);
+        const sceneData = extractSceneData(t);
+        newScenes[t.activeScene] = sceneData;
+        console.log('[SCENE]', 'saving scene', t.activeScene, 'pulses:', t.pulses, 'steps:', t.steps, 'data:', JSON.stringify(sceneData));
         console.log('[SCENE]', 'scenes after save:', JSON.stringify(newScenes.map((s, i) => s !== null ? `slot${i}:HAS_DATA` : `slot${i}:null`)));
         return { ...t, scenes: newScenes };
       }));
