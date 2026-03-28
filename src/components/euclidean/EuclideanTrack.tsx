@@ -767,7 +767,7 @@ export const EuclideanTrack = React.memo(({
                       {eqHpfFreq ?? 20}Hz
                     </span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1" onMouseEnter={(e) => { e.stopPropagation(); handleParamEnter('eqLpfFreq', e); }} onMouseLeave={handleParamLeave}>
                     <span className="text-[7px] font-mono text-idm-muted w-8">LPF</span>
                     <input type="range"
                       min={1000} max={20000} step={100}
