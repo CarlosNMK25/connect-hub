@@ -673,6 +673,7 @@ export function usePresetManager(params: UsePresetManagerParams) {
     activePresetId,
     hoveredPreset,
     setHoveredPreset,
+    selectedPreset,
     previewPatterns,
     isSavingPreset,
     setIsSavingPreset,
