@@ -285,6 +285,18 @@ export const LibraryPanel: React.FC<LibraryPanelProps> = ({
                           <span className="text-idm-muted">SWING</span>
                           <span className="text-system-accent">{displayPreset.swing}%</span>
                         </div>
+                        {displayPreset.temporalityMode && (
+                          <div className="flex justify-between text-[10px] font-mono">
+                            <span className="text-idm-muted">TEMPORAL</span>
+                            <span className="text-system-accent">{TEMPORALITY_LABELS[displayPreset.temporalityMode] ?? displayPreset.temporalityMode}</span>
+                          </div>
+                        )}
+                        {displayPreset.dynamics !== undefined && (
+                          <div className="flex justify-between text-[10px] font-mono">
+                            <span className="text-idm-muted">DYNAMICS</span>
+                            <span className="text-system-accent">{displayPreset.dynamics}%</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="col-span-2 flex flex-col">
@@ -300,6 +312,23 @@ export const LibraryPanel: React.FC<LibraryPanelProps> = ({
                           );
                         })}
                       </div>
+                    </div>
+                    {/* Radiografía Rítmica — Master */}
+                    <div className="col-span-3 mt-4 pt-4 border-t border-black/5">
+                      <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-3 block">Radiografía Rítmica</span>
+                      {Object.entries(displayPreset.tracks || {}).map(([id, config]) => {
+                        const tc = config as TrackPreset;
+                        return (
+                          <RadiografiaTrack
+                            key={id}
+                            name={id}
+                            pulses={tc.pulses ?? 0}
+                            steps={tc.steps ?? 16}
+                            offset={tc.offset ?? 0}
+                            color={TRACK_COLORS[id] || '#666'}
+                          />
+                        );
+                      })}
                     </div>
                   </>
                 ) : (
