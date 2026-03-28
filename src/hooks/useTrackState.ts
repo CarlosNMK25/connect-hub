@@ -718,7 +718,19 @@ export function useTrackState(params: UseTrackStateParams) {
         if (newMcm !== oldMcm) deltas.push(`MCM ${oldMcm} → ${newMcm}`);
         deltas.push(`Dens ${oldDensity}% → ${newDensity}%`);
         logChange(`${track.name} steps ${track.steps} → ${val}`, deltas);
-        setTracks(prev => prev.map(t => t.id === trackId ? updateTrackPattern({ ...t, steps: val, pulses: Math.min(t.pulses, val) }) : t));
+        setTracks(prev => prev.map(t => {
+          if (t.id !== trackId) return t;
+          const newSteps = val;
+          const oldPattern = t.pattern;
+          let newPattern: number[];
+          if (newSteps > oldPattern.length) {
+            newPattern = [...oldPattern, ...new Array(newSteps - oldPattern.length).fill(0)];
+          } else {
+            newPattern = oldPattern.slice(0, newSteps);
+          }
+          const activePulses = newPattern.filter(Boolean).length;
+          return { ...t, steps: newSteps, pulses: activePulses, pattern: newPattern };
+        }));
         break;
       }
       case 'pulses': {
@@ -726,7 +738,11 @@ export function useTrackState(params: UseTrackStateParams) {
         if (!track) return;
         const val = value as number;
         logChange(`${track.name} pulses ${track.pulses} → ${val}`, [`Dens ${Math.round((track.pulses / track.steps) * 100)}% → ${Math.round((val / track.steps) * 100)}%`]);
-        setTracks(prev => prev.map(t => t.id === trackId ? updateTrackPattern({ ...t, pulses: val }) : t));
+        setTracks(prev => prev.map(t => {
+          if (t.id !== trackId) return t;
+          const clampedVal = Math.min(val, t.steps);
+          return { ...t, pulses: clampedVal };
+        }));
         break;
       }
       case 'offset': {
