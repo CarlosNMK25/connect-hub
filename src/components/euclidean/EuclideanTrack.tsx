@@ -1604,6 +1604,8 @@ export const EuclideanTrack = React.memo(({
               onPercSynthParamChange?.(trackId, 'kickDecay', p.decay);
               onPercSynthParamChange?.(trackId, 'kickClickType', p.clickType);
             }}
+            onMouseEnter={(e) => handleParamEnter('kickPreset', e)}
+            onMouseLeave={handleParamLeave}
             className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 max-w-[90px] truncate"
           >
             <option value={-1}>— Custom —</option>
