@@ -1698,6 +1698,8 @@ export const EuclideanTrack = React.memo(({
                 onPercSynthParamChange?.(trackId, 'hatResonance', p.resonance!);
               }
             }}
+            onMouseEnter={(e) => handleParamEnter('hatPreset', e)}
+            onMouseLeave={handleParamLeave}
             className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 max-w-[90px] truncate"
           >
             <option value={-1}>— Custom —</option>
