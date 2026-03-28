@@ -1486,7 +1486,7 @@ export const EuclideanTrack = React.memo(({
               </div>
               {/* Time Stretch */}
               {stretchEnabled && (
-                <div className="space-y-2 relative mt-2">
+                <div className="space-y-2 relative mt-2" onMouseEnter={(e) => handleParamEnter('stretchRate', e)} onMouseLeave={handleParamLeave}>
                   <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
                     <span>Rate</span>
                     <span className="text-idm-ink">{(stretchRate ?? 1.0).toFixed(2)}×</span>
