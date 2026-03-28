@@ -100,7 +100,7 @@ export const SongModePanel: React.FC<SongModePanelProps> = ({
         <div className="w-1.5 h-1.5 rounded-full bg-system-accent flex-shrink-0" />
         <span>Escena {chain[chainPosition]?.scene} · Ciclo 1/{chain[chainPosition]?.cycles}</span>
         <div className="flex-1" />
-        <span className="text-[8px]">Lógica de reproducción → fase posterior</span>
+        
       </div>
     </div>
   );
