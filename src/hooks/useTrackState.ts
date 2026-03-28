@@ -850,6 +850,43 @@ export function useTrackState(params: UseTrackStateParams) {
           merged.hatNoiseType ?? 'white'
         );
       }
+      // Granular / Sampler — immediate audio sync
+      const gp = synth.grainPlayer;
+      if (gp) {
+        if (scene.grainSize !== undefined) gp.grainSize = (merged.grainSize ?? 100) / 1000;
+        if (scene.overlap !== undefined) gp.overlap = merged.overlap ?? 0.1;
+        if (scene.attack !== undefined) { gp.fadeIn = (merged.attack ?? 0) / 1000; }
+        if (scene.decay !== undefined) { gp.fadeOut = (merged.decay ?? 100) / 1000; }
+        if (scene.pitch !== undefined) gp.detune = (merged.pitch ?? 0) * 100;
+        if (gp.buffer?.duration) {
+          const dur = gp.buffer.duration;
+          if (scene.sampleStart !== undefined || scene.sampleEnd !== undefined) {
+            gp.loopStart = (merged.sampleStart ?? 0) * dur;
+            gp.loopEnd = (merged.sampleEnd ?? 1) * dur;
+          }
+        }
+        const stretchOn = merged.stretchEnabled ?? false;
+        const stretchRate = merged.stretchRate ?? 1;
+        if (scene.stretchEnabled !== undefined || scene.stretchRate !== undefined) {
+          gp.playbackRate = stretchOn ? stretchRate : 1;
+          if (stretchOn) {
+            gp.detune = ((merged.pitch ?? 0) * 100) + (-1200 * Math.log2(stretchRate));
+          }
+        }
+        if (scene.extremeLoopEnabled !== undefined || scene.extremeLoopSize !== undefined || scene.extremeLoopPoint !== undefined) {
+          const xlEnabled = merged.extremeLoopEnabled ?? false;
+          if (xlEnabled && gp.buffer?.duration) {
+            gp.loop = true;
+            const xlSize = (merged.extremeLoopSize ?? 50) / 1000;
+            const xlPoint = (merged.extremeLoopPoint ?? 0) * gp.buffer.duration;
+            gp.loopStart = xlPoint;
+            gp.loopEnd = xlPoint + xlSize;
+          }
+        }
+      }
+      if (scene.bitCrush !== undefined && synth.bitCrusher) {
+        synth.bitCrusher.bits = merged.bitCrush ?? 16;
+      }
       // Layer 2 immediate updates
       if (scene.layer2Blend !== undefined && synth.layer2Gain) {
         synth.layer2Gain.gain.rampTo(scene.layer2Blend, 0.05);
