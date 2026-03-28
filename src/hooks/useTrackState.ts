@@ -681,6 +681,7 @@ export function useTrackState(params: UseTrackStateParams) {
         if (t.id !== trackId) return t;
         const newScenes = [...t.scenes];
         newScenes[t.activeScene] = extractSceneData(t);
+        console.log('[SCENE]', 'scenes after save:', JSON.stringify(newScenes.map((s, i) => s !== null ? `slot${i}:HAS_DATA` : `slot${i}:null`)));
         return { ...t, scenes: newScenes };
       }));
     }
