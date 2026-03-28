@@ -14,6 +14,19 @@ export interface UserPresetTrack {
   delaySend: number;
   reverbSend: number;
   ratchet?: number;
+  // Granular / Sampler
+  grainSize?: number;
+  overlap?: number;
+  spray?: number;
+  bitCrush?: number;
+  pitch?: number;
+  normalize?: boolean;
+  sampleStart?: number;
+  sampleEnd?: number;
+  attack?: number;
+  decay?: number;
+  // Tonal flag
+  isTonal?: boolean;
   rootNote?: number;
   scaleId?: string;
   octaveRange?: number;
