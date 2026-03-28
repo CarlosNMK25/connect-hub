@@ -7,6 +7,7 @@ interface LibraryPanelProps {
   userPresets: UserPreset[];
   hoveredPreset: ScenePreset | null;
   setHoveredPreset: (preset: ScenePreset | null) => void;
+  selectedPreset: ScenePreset | null;
   isSavingPreset: boolean;
   setIsSavingPreset: (v: boolean) => void;
   newPresetName: string;
