@@ -738,7 +738,10 @@ export function useTrackState(params: UseTrackStateParams) {
   });
 
   const applySceneData = (t: TrackState, scene: SceneData): TrackState => {
-    const merged = {
+    // Helper to conditionally spread defined fields
+    const opt = (key: keyof SceneData) => scene[key] !== undefined ? { [key]: key === 'probabilities' || key === 'pattern' || key === 'noteIndices' ? [...(scene[key] as any[])] : scene[key] } : {};
+
+    const merged: TrackState = {
       ...t,
       pulses: scene.pulses,
       steps: scene.steps,
@@ -754,19 +757,46 @@ export function useTrackState(params: UseTrackStateParams) {
       caSeed: scene.caSeed,
       caDensity: scene.caDensity,
       caSpeed: scene.caSpeed,
-      // Audio params
-      ...(scene.volume !== undefined && { volume: scene.volume }),
-      ...(scene.delaySend !== undefined && { delaySend: scene.delaySend }),
-      ...(scene.reverbSend !== undefined && { reverbSend: scene.reverbSend }),
-      ...(scene.spectralDelaySend !== undefined && { spectralDelaySend: scene.spectralDelaySend }),
-      ...(scene.freezeSend !== undefined && { freezeSend: scene.freezeSend }),
-      ...(scene.reverseSend !== undefined && { reverseSend: scene.reverseSend }),
-      ...(scene.pan !== undefined && { pan: scene.pan }),
-      ...(scene.eqEnabled !== undefined && { eqEnabled: scene.eqEnabled }),
-      ...(scene.eqHpfFreq !== undefined && { eqHpfFreq: scene.eqHpfFreq }),
-      ...(scene.eqLpfFreq !== undefined && { eqLpfFreq: scene.eqLpfFreq }),
-      ...(scene.pitch !== undefined && { pitch: scene.pitch }),
-      ...(scene.synthType !== undefined && { synthType: scene.synthType }),
+      // Audio
+      ...opt('volume'), ...opt('delaySend'), ...opt('reverbSend'),
+      ...opt('spectralDelaySend'), ...opt('freezeSend'), ...opt('reverseSend'),
+      ...opt('pan'), ...opt('eqEnabled'), ...opt('eqHpfFreq'), ...opt('eqLpfFreq'),
+      ...opt('pitch'), ...opt('synthType'),
+      // Percussive
+      ...opt('kickPitchDecay'), ...opt('kickOctaves'), ...opt('kickDecay'), ...opt('kickClickType'),
+      ...opt('snareDecay'), ...opt('snareNoiseType'), ...opt('snareBodyEnabled'), ...opt('snareBodyPitch'), ...opt('snareBodyDecay'),
+      ...opt('hatMode'), ...opt('hatHarmonicity'), ...opt('hatModIndex'), ...opt('hatResonance'), ...opt('hatDecay'), ...opt('hatNoiseType'),
+      // Granular / Sampler
+      ...opt('grainSize'), ...opt('overlap'), ...opt('spray'), ...opt('bitCrush'),
+      ...opt('normalize'), ...opt('sampleStart'), ...opt('sampleEnd'),
+      ...opt('attack'), ...opt('decay'), ...opt('mode'),
+      ...opt('stretchEnabled'), ...opt('stretchRate'),
+      ...opt('extremeLoopEnabled'), ...opt('extremeLoopSize'), ...opt('extremeLoopPoint'),
+      // Stochastic
+      ...opt('chaosEnabled'), ...opt('entropy'), ...opt('evolveEnabled'),
+      ...opt('mutationRate'), ...opt('mutationSpeed'), ...opt('ratchet'),
+      // Tonal
+      ...opt('isTonal'), ...opt('rootNote'), ...opt('scaleId'), ...opt('octaveRange'),
+      ...(scene.noteIndices !== undefined ? { noteIndices: [...scene.noteIndices] } : {}),
+      ...opt('fmRatio'), ...opt('fmIndex'), ...opt('wfAmount'), ...opt('wfSymmetry'),
+      ...opt('addPartials'), ...opt('addBrightness'), ...opt('arRate'), ...opt('arDepth'),
+      ...opt('padVoices'), ...opt('padDetune'), ...opt('padAttack'),
+      ...opt('droneFeedback'), ...opt('droneFilterFreq'),
+      ...opt('ksDecay'), ...opt('ksBrightness'),
+      ...opt('modalBody'), ...opt('modalDecay'),
+      ...opt('ambientVolume'), ...opt('ambientSpeed'),
+      // Markov
+      ...opt('noteMode'), ...opt('markovStyle'), ...opt('markovTemperature'),
+      ...opt('markovMemory'), ...opt('markovAnchor'),
+      // Cloud
+      ...opt('cloudMode'), ...opt('enoSpeed'),
+      // Modulation
+      ...opt('lorenzEnabled'), ...opt('lorenzDepth'), ...opt('lorenzTarget'), ...opt('lorenzSpeed'),
+      ...opt('nestedLfoEnabled'), ...opt('nestedLfoRate1'), ...opt('nestedLfoRate2'), ...opt('nestedLfoDepth'),
+      // Layer 2
+      ...opt('layer2Blend'), ...opt('layer2Pitch'), ...opt('layer2Offset'),
+      ...opt('layer2FilterFreq'), ...opt('layer2Reverse'),
+      ...opt('layer2StretchEnabled'), ...opt('layer2StretchRate'),
     };
 
     // Apply audio params immediately to the synth
@@ -792,6 +822,40 @@ export function useTrackState(params: UseTrackStateParams) {
       // Rebuild synth if synthType changed
       if (scene.synthType !== undefined && scene.synthType !== t.synthType) {
         initOrigSynthRef.current?.(t.id, scene.synthType);
+      }
+      // Percussive params — immediate audio update
+      if (t.id === 'kick' && (scene.kickPitchDecay !== undefined || scene.kickOctaves !== undefined || scene.kickDecay !== undefined || scene.kickClickType !== undefined)) {
+        synth.setKickParams?.(
+          merged.kickPitchDecay ?? 0.05,
+          merged.kickOctaves ?? 10,
+          merged.kickDecay ?? 0.4,
+          merged.kickClickType ?? 'pink'
+        );
+      }
+      if (t.id === 'snare') {
+        if (scene.snareDecay !== undefined || scene.snareNoiseType !== undefined) {
+          synth.setSnareParams?.(merged.snareDecay ?? 0.2, merged.snareNoiseType ?? 'white');
+        }
+        if (scene.snareBodyEnabled !== undefined || scene.snareBodyPitch !== undefined || scene.snareBodyDecay !== undefined) {
+          synth.setSnareBody?.(merged.snareBodyEnabled ?? false, merged.snareBodyPitch ?? 180, merged.snareBodyDecay ?? 0.1);
+        }
+      }
+      if (t.id === 'hat' && (scene.hatMode !== undefined || scene.hatHarmonicity !== undefined || scene.hatModIndex !== undefined || scene.hatResonance !== undefined || scene.hatDecay !== undefined || scene.hatNoiseType !== undefined)) {
+        synth.setHatMode?.(
+          merged.hatMode ?? 'noise',
+          merged.hatHarmonicity ?? 5.1,
+          merged.hatModIndex ?? 32,
+          merged.hatResonance ?? 4000,
+          merged.hatDecay ?? 0.05,
+          merged.hatNoiseType ?? 'white'
+        );
+      }
+      // Layer 2 immediate updates
+      if (scene.layer2Blend !== undefined && synth.layer2Gain) {
+        synth.layer2Gain.gain.rampTo(scene.layer2Blend, 0.05);
+      }
+      if (scene.layer2FilterFreq !== undefined && synth.layer2Filter) {
+        synth.layer2Filter.frequency.rampTo(scene.layer2FilterFreq, 0.05);
       }
     }
 
