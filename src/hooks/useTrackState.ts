@@ -658,11 +658,14 @@ export function useTrackState(params: UseTrackStateParams) {
   const switchScene = (t: TrackState, newScene: number): TrackState => {
     // Save current state to current scene slot
     const newScenes = [...t.scenes];
+    console.log('[SWITCH] saving slot', t.activeScene, 'pulses:', t.pulses, 'steps:', t.steps);
     newScenes[t.activeScene] = extractSceneData(t);
     // Apply new scene data if it exists
     let updated = { ...t, scenes: newScenes, activeScene: newScene };
+    console.log('[SWITCH] loading slot', newScene, 'hasData:', newScenes[newScene] !== null);
     if (newScenes[newScene]) {
       updated = applySceneData(updated, newScenes[newScene]!);
+      console.log('[SWITCH] applied slot', newScene, 'pulses:', updated.pulses, 'steps:', updated.steps);
     }
     return updated;
   };
