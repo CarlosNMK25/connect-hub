@@ -351,6 +351,19 @@ export const LibraryPanel: React.FC<LibraryPanelProps> = ({
                         {displayPreset.config?.offset}
                       </div>
                     </div>
+                    {/* Radiografía Rítmica — Atomic */}
+                    {displayPreset.config && (
+                      <div className="col-span-3 mt-4 pt-4 border-t border-black/5">
+                        <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-3 block">Radiografía Rítmica</span>
+                        <RadiografiaTrack
+                          name="patrón"
+                          pulses={displayPreset.config.pulses ?? 0}
+                          steps={displayPreset.config.steps ?? 16}
+                          offset={displayPreset.config.offset ?? 0}
+                          color="#666"
+                        />
+                      </div>
+                    )}
                   </>
                 )}
               </div>
