@@ -389,25 +389,29 @@ export const EuclideanSequencer = () => {
     tracks, tracksRef,
     bpm, delayMix, delayFeedback, reverbMix,
   });
-  // ═══ Song Mode: onChainAdvance callback ═══
-  const onChainAdvance = useCallback(() => {
-    setChainPosition(prev => {
-      const nextPos = (prev + 1) % chain.length;
-      const nextScene = chain[nextPos].scene - 1; // chain uses 1-indexed
-      setTracks(prevTracks => prevTracks.map(t => {
-        // Save current to current slot
-        const newScenes = [...t.scenes];
-        newScenes[t.activeScene] = extractSceneData(t);
-        // Apply new scene
-        let updated = { ...t, scenes: newScenes, activeScene: nextScene };
-        if (newScenes[nextScene]) {
-          updated = applySceneData(updated, newScenes[nextScene]!);
-        }
-        return updated;
-      }));
-      return nextPos;
-    });
-  }, [chain, setTracks, extractSceneData, applySceneData]);
+  // ═══ Song Mode: onChainAdvance ref (avoids stale closures) ═══
+  const onChainAdvanceRef = useRef<() => void>(() => {});
+  const chainRef = useRef(chain);
+  const chainPositionRef = useRef(chainPosition);
+  useEffect(() => { chainRef.current = chain; }, [chain]);
+  useEffect(() => { chainPositionRef.current = chainPosition; }, [chainPosition]);
+
+  onChainAdvanceRef.current = () => {
+    const currentChain = chainRef.current;
+    const currentPos = chainPositionRef.current;
+    const nextPos = (currentPos + 1) % currentChain.length;
+    setChainPosition(nextPos);
+    const nextScene = currentChain[nextPos].scene - 1;
+    setTracks(prevTracks => prevTracks.map(t => {
+      const newScenes = [...t.scenes];
+      newScenes[t.activeScene] = extractSceneData(t);
+      let updated = { ...t, scenes: newScenes, activeScene: nextScene };
+      if (newScenes[nextScene]) {
+        updated = applySceneData(updated, newScenes[nextScene]!);
+      }
+      return updated;
+    }));
+  };
 
   // ═══ Sequencer Hook ═══
   const {
@@ -431,7 +435,7 @@ export const EuclideanSequencer = () => {
       if (rhythmicTracks.length === 0) return 1;
       return lcmArray(rhythmicTracks.map(t => t.steps));
     })(),
-    onChainAdvance,
+    onChainAdvanceRef,
     initOrigSynthRef, startLorenzRafRef,
     caStateRef, caEvolveCycleRef, pendingCARef, pendingMutationsRef,
     markovLastNoteRef, markovAnchorCountRef, markovMatrixRef, markovNotesRef,
