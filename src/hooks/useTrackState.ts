@@ -632,6 +632,19 @@ export function useTrackState(params: UseTrackStateParams) {
     caSeed: t.caSeed,
     caDensity: t.caDensity,
     caSpeed: t.caSpeed,
+    // Audio params
+    volume: t.volume,
+    delaySend: t.delaySend,
+    reverbSend: t.reverbSend,
+    spectralDelaySend: t.spectralDelaySend,
+    freezeSend: t.freezeSend,
+    reverseSend: t.reverseSend,
+    pan: t.pan,
+    eqEnabled: t.eqEnabled,
+    eqHpfFreq: t.eqHpfFreq,
+    eqLpfFreq: t.eqLpfFreq,
+    pitch: t.pitch,
+    synthType: t.synthType,
   });
 
   const applySceneData = (t: TrackState, scene: SceneData): TrackState => {
@@ -651,8 +664,48 @@ export function useTrackState(params: UseTrackStateParams) {
       caSeed: scene.caSeed,
       caDensity: scene.caDensity,
       caSpeed: scene.caSpeed,
+      // Audio params
+      ...(scene.volume !== undefined && { volume: scene.volume }),
+      ...(scene.delaySend !== undefined && { delaySend: scene.delaySend }),
+      ...(scene.reverbSend !== undefined && { reverbSend: scene.reverbSend }),
+      ...(scene.spectralDelaySend !== undefined && { spectralDelaySend: scene.spectralDelaySend }),
+      ...(scene.freezeSend !== undefined && { freezeSend: scene.freezeSend }),
+      ...(scene.reverseSend !== undefined && { reverseSend: scene.reverseSend }),
+      ...(scene.pan !== undefined && { pan: scene.pan }),
+      ...(scene.eqEnabled !== undefined && { eqEnabled: scene.eqEnabled }),
+      ...(scene.eqHpfFreq !== undefined && { eqHpfFreq: scene.eqHpfFreq }),
+      ...(scene.eqLpfFreq !== undefined && { eqLpfFreq: scene.eqLpfFreq }),
+      ...(scene.pitch !== undefined && { pitch: scene.pitch }),
+      ...(scene.synthType !== undefined && { synthType: scene.synthType }),
     };
-    // Solo recalcular si el modo generativo lo requiere
+
+    // Apply audio params immediately to the synth
+    const synth = synthsRef.current[t.id];
+    if (synth) {
+      if (scene.volume !== undefined) synth.setVolume?.(scene.volume);
+      if (scene.delaySend !== undefined || scene.reverbSend !== undefined) {
+        synth.setSends?.(scene.delaySend ?? t.delaySend, scene.reverbSend ?? t.reverbSend);
+      }
+      if (scene.pan !== undefined) synth.setPan?.(scene.pan);
+      if (scene.spectralDelaySend !== undefined) synth.setSpectralSend?.(scene.spectralDelaySend);
+      if (scene.freezeSend !== undefined) synth.setFreezeSend?.(scene.freezeSend);
+      if (scene.reverseSend !== undefined) synth.setReverseSend?.(scene.reverseSend);
+      if (scene.eqEnabled !== undefined || scene.eqHpfFreq !== undefined || scene.eqLpfFreq !== undefined) {
+        const eqOn = scene.eqEnabled ?? merged.eqEnabled;
+        const hpf = eqOn ? (scene.eqHpfFreq ?? merged.eqHpfFreq ?? 20) : 20;
+        const lpf = eqOn ? (scene.eqLpfFreq ?? merged.eqLpfFreq ?? 20000) : 20000;
+        synth.updateEq?.(hpf, lpf);
+      }
+      if (scene.pitch !== undefined && synth.grainPlayer) {
+        synth.grainPlayer.detune = scene.pitch * 100;
+      }
+      // Rebuild synth if synthType changed
+      if (scene.synthType !== undefined && scene.synthType !== t.synthType) {
+        initOrigSynthRef.current?.(t.id, scene.synthType);
+      }
+    }
+
+    // Recalculate pattern if generative mode
     if (scene.patternMode === 'lsystem' || scene.patternMode === 'ca') {
       return updateTrackPattern(merged);
     }

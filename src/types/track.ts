@@ -22,6 +22,19 @@ export interface SceneData {
   caSeed?: string;
   caDensity?: number;
   caSpeed?: number;
+  // Audio params (Scene-level)
+  volume?: number;
+  delaySend?: number;
+  reverbSend?: number;
+  spectralDelaySend?: number;
+  freezeSend?: number;
+  reverseSend?: number;
+  pan?: number;
+  eqEnabled?: boolean;
+  eqHpfFreq?: number;
+  eqLpfFreq?: number;
+  pitch?: number;
+  synthType?: string;
 }
 
 export interface TrackState {
