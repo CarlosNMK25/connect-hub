@@ -598,6 +598,20 @@ export const EuclideanSequencer = () => {
         handleGlobalArmOrRecord={handleGlobalArmOrRecord}
       />
 
+      {/* ═══ SONG MODE CHAIN PANEL ═══ */}
+      {songModeEnabled && (
+        <SongModePanel
+          songModeView={songModeView}
+          setSongModeView={setSongModeView}
+          syncAllScenes={syncAllScenes}
+          setSyncAllScenes={setSyncAllScenes}
+          chain={chain}
+          setChain={setChain}
+          chainPosition={chainPosition}
+          setChainPosition={setChainPosition}
+        />
+      )}
+
       <div className="flex flex-col mb-8 gap-6 mt-6">
 
         {/* Main Control Panel */}
@@ -845,19 +859,6 @@ export const EuclideanSequencer = () => {
         ))}
       </div>
 
-      {/* ═══ SONG MODE CHAIN PANEL ═══ */}
-      {songModeEnabled && (
-        <SongModePanel
-          songModeView={songModeView}
-          setSongModeView={setSongModeView}
-          syncAllScenes={syncAllScenes}
-          setSyncAllScenes={setSyncAllScenes}
-          chain={chain}
-          setChain={setChain}
-          chainPosition={chainPosition}
-          setChainPosition={setChainPosition}
-        />
-      )}
 
 
 
