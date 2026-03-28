@@ -101,6 +101,14 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             <Info size={10} />
             <span>Info</span>
           </button>
+          <button 
+            onClick={() => navigate('/learn')}
+            className="flex items-center gap-2 px-3 py-1 rounded-full text-[8px] font-mono font-bold uppercase tracking-widest transition-all duration-300 border bg-system-accent/5 text-system-accent border-system-accent/20 hover:bg-system-accent/10 hover:border-system-accent/40"
+            title="Cuaderno de Aprendizaje"
+          >
+            <GraduationCap size={10} />
+            <span>Cuaderno</span>
+          </button>
         </div>
       </div>
       

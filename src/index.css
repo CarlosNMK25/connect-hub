@@ -170,3 +170,44 @@ All colors MUST be HSL.
     left: 100%;
   }
 }
+
+/* ── Learn / Cuaderno de Aprendizaje styles ── */
+.learn-content {
+  @apply font-mono text-idm-ink;
+}
+.learn-h1 {
+  @apply text-2xl font-bold uppercase tracking-tighter mb-2 mt-0;
+}
+.learn-h2 {
+  @apply text-lg font-bold uppercase tracking-tight mt-10 mb-4 text-system-accent;
+}
+.learn-h3 {
+  @apply text-sm font-bold uppercase tracking-tight mt-8 mb-3;
+}
+.learn-p {
+  @apply text-xs leading-relaxed text-idm-ink/80 mb-3;
+}
+.learn-blockquote {
+  @apply border-l-2 border-system-accent/30 pl-4 text-[11px] text-idm-muted italic mb-4;
+}
+.learn-hr {
+  @apply my-8 border-black/5;
+}
+.learn-li, .learn-li-ordered {
+  @apply text-xs leading-relaxed text-idm-ink/80 ml-5 mb-1.5 list-disc;
+}
+.learn-li-ordered {
+  @apply list-decimal;
+}
+.learn-table {
+  @apply w-full text-[10px] font-mono border-collapse my-4;
+}
+.learn-table th {
+  @apply text-left uppercase tracking-widest text-system-accent border-b border-system-accent/20 pb-1.5 pr-4;
+}
+.learn-table td {
+  @apply py-1.5 pr-4 border-b border-black/5 text-idm-ink/70;
+}
+.learn-code-block {
+  @apply bg-black/[0.03] border border-black/5 rounded-lg p-4 text-[10px] leading-relaxed my-4 overflow-x-auto whitespace-pre-wrap;
+}
