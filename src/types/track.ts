@@ -2,6 +2,11 @@ import type { MarkovStyle } from '../utils/markovGenerator';
 
 export type { MarkovStyle };
 
+export interface ChainStep {
+  scene: number;
+  cycles: number;
+}
+
 export interface SceneData {
   pulses: number;
   steps: number;

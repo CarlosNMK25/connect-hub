@@ -251,7 +251,7 @@ export const EuclideanSequencer = () => {
   const [songModeEnabled, setSongModeEnabled] = useState(false);
   const [songModeView, setSongModeView] = useState<'performance' | 'chain'>('performance');
   const [syncAllScenes, setSyncAllScenes] = useState(false);
-  const [chain, setChain] = useState<Array<{ scene: number; cycles: number }>>([
+  const [chain, setChain] = useState<ChainStep[]>([
     { scene: 1, cycles: 4 },
     { scene: 2, cycles: 2 },
   ]);

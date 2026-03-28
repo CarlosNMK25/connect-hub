@@ -4,13 +4,13 @@ import { generateCAPattern } from '../utils/patternGenerators';
 import { calculateTemporalOffset, type TemporalityMode } from '../utils/temporality';
 import { noteIndexToFreq } from '../utils/scales';
 import { markovNextNote } from '../utils/markovGenerator';
-import type { TrackState } from '../types/track';
+import type { TrackState, ChainStep } from '../types/track';
 import type { MasterBusType } from './useAudioEngine';
 
 export interface SongModeConfig {
   enabled: boolean;
   view: string;
-  chain: { scene: number; cycles: number }[];
+  chain: ChainStep[];
   chainPosition: number;
 }
 
