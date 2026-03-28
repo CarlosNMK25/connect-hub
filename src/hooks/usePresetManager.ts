@@ -319,6 +319,10 @@ export function usePresetManager(params: UsePresetManagerParams) {
           chaosEnabled: t.chaosEnabled, entropy: t.entropy,
           evolveEnabled: t.evolveEnabled, mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed,
           volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend, ratchet: t.ratchet,
+          // Granular / Sampler
+          grainSize: t.grainSize, overlap: t.overlap, spray: t.spray, bitCrush: t.bitCrush,
+          pitch: t.pitch, normalize: t.normalize,
+          sampleStart: t.sampleStart, sampleEnd: t.sampleEnd, attack: t.attack, decay: t.decay,
           ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices], synthType: t.synthType, fmRatio: t.fmRatio, fmIndex: t.fmIndex, wfAmount: t.wfAmount, wfSymmetry: t.wfSymmetry, addPartials: t.addPartials, addBrightness: t.addBrightness, arRate: t.arRate, arDepth: t.arDepth, padVoices: t.padVoices, padDetune: t.padDetune, padAttack: t.padAttack, droneFeedback: t.droneFeedback, droneFilterFreq: t.droneFilterFreq, ksDecay: t.ksDecay, ksBrightness: t.ksBrightness, modalBody: t.modalBody, modalDecay: t.modalDecay, ambientVolume: t.ambientVolume, ambientSpeed: t.ambientSpeed } : {}),
           ...(t.id === 'cloud' ? { cloudMode: t.cloudMode, enoSpeed: t.enoSpeed } : {}),
           rrEnabled: t.rrEnabled,
@@ -439,6 +443,17 @@ export function usePresetManager(params: UsePresetManagerParams) {
         delaySend: config.delaySend,
         reverbSend: config.reverbSend,
         ratchet: config.ratchet ?? 0,
+        // Granular / Sampler
+        grainSize: (config as any).grainSize ?? t.grainSize,
+        overlap: (config as any).overlap ?? t.overlap,
+        spray: (config as any).spray ?? t.spray,
+        bitCrush: (config as any).bitCrush ?? t.bitCrush,
+        pitch: (config as any).pitch ?? t.pitch,
+        normalize: (config as any).normalize ?? t.normalize,
+        sampleStart: (config as any).sampleStart ?? t.sampleStart,
+        sampleEnd: (config as any).sampleEnd ?? t.sampleEnd,
+        attack: (config as any).attack ?? t.attack,
+        decay: (config as any).decay ?? t.decay,
         ...(t.isTonal ? {
           rootNote: config.rootNote ?? t.rootNote,
           scaleId: config.scaleId ?? t.scaleId,
