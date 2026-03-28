@@ -1675,7 +1675,26 @@ export const EuclideanTrack = React.memo(({
       {/* Phase 8 — Hat Synthesis Controls */}
       {id === 'hat' && samplerStatus === 'IDLE' && onPercSynthParamChange && (
         <div className="flex items-center gap-3 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <span className="text-[7px] font-mono uppercase text-idm-muted w-8 shrink-0">Hat</span>
+          <select
+            value={findHatPresetIndex(hatMode ?? 'noise', hatDecay ?? 0.05, hatNoiseType ?? 'white', hatHarmonicity ?? 5.1, hatModIndex ?? 32, hatResonance ?? 4000)}
+            onChange={e => {
+              const idx = Number(e.target.value);
+              if (idx < 0) return;
+              const p = HAT_PRESETS[idx];
+              onPercSynthParamChange?.(trackId, 'hatMode', p.mode);
+              onPercSynthParamChange?.(trackId, 'hatDecay', p.decay);
+              onPercSynthParamChange?.(trackId, 'hatNoiseType', p.noiseType);
+              if (p.mode === 'metal') {
+                onPercSynthParamChange?.(trackId, 'hatHarmonicity', p.harmonicity!);
+                onPercSynthParamChange?.(trackId, 'hatModIndex', p.modIndex!);
+                onPercSynthParamChange?.(trackId, 'hatResonance', p.resonance!);
+              }
+            }}
+            className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 max-w-[90px] truncate"
+          >
+            <option value={-1}>— Custom —</option>
+            {HAT_PRESETS.map((p, i) => <option key={i} value={i}>{p.name}</option>)}
+          </select>
           <select value={hatMode ?? 'noise'} onChange={e => onPercSynthParamChange?.(trackId, 'hatMode', e.target.value)} onMouseEnter={(e) => handleParamEnter('hatMode', e)} onMouseLeave={handleParamLeave} className="text-[8px] font-mono bg-background border border-border rounded px-1 py-0.5">
             <option value="noise">Noise</option>
             <option value="metal">Metal</option>
