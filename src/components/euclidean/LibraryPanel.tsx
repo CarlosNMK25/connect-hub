@@ -2,6 +2,44 @@ import React from 'react';
 import { Disc, Zap, Save, Download, Upload, Trash2, X, Atom } from 'lucide-react';
 import { PRESETS, type ScenePreset, type TrackPreset } from '../../constants/presets';
 import { UserPreset, userPresetToScenePreset, exportPresetAsJson } from '../../utils/userPresets';
+import { bjorklund, rotate } from '../../utils/bjorklund';
+
+const TRACK_COLORS: Record<string, string> = {
+  kick: '#166534', snare: '#9D174D', hat: '#155E75', cloud: '#5B21B6', tone: '#B45309',
+};
+
+const TEMPORALITY_LABELS: Record<string, string> = {
+  grid: 'Grid', mpc: 'MPC', dilla: 'Dilla', flamenco: 'Flamenco', arritmia: 'Arritmia',
+};
+
+const RadiografiaTrack: React.FC<{ name: string; pulses: number; steps: number; offset: number; color: string }> = ({ name, pulses, steps, offset, color }) => {
+  const pattern = rotate(bjorklund(pulses, steps), offset);
+  return (
+    <div className="mb-3">
+      <div className="flex items-baseline gap-2 mb-1">
+        <span className="text-[10px] font-mono font-bold uppercase" style={{ color }}>{name}</span>
+        <span className="text-[8px] font-mono text-idm-muted">
+          ({pulses} de {steps}{offset > 0 ? `, offset ${offset}` : ''})
+        </span>
+      </div>
+      <div className="flex gap-0.5 flex-wrap">
+        {pattern.map((v, i) => (
+          <div key={i} className="flex flex-col items-center" style={{ width: steps > 16 ? 16 : 20 }}>
+            <span className="text-[7px] font-mono text-idm-muted/50 leading-none mb-0.5">{i + 1}</span>
+            <div
+              className="rounded-full"
+              style={{
+                width: 10, height: 10,
+                backgroundColor: v === 1 ? color : 'transparent',
+                border: v === 1 ? 'none' : '1px solid rgba(0,0,0,0.1)',
+              }}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 interface LibraryPanelProps {
   userPresets: UserPreset[];
@@ -247,6 +285,18 @@ export const LibraryPanel: React.FC<LibraryPanelProps> = ({
                           <span className="text-idm-muted">SWING</span>
                           <span className="text-system-accent">{displayPreset.swing}%</span>
                         </div>
+                        {displayPreset.temporalityMode && (
+                          <div className="flex justify-between text-[10px] font-mono">
+                            <span className="text-idm-muted">TEMPORAL</span>
+                            <span className="text-system-accent">{TEMPORALITY_LABELS[displayPreset.temporalityMode] ?? displayPreset.temporalityMode}</span>
+                          </div>
+                        )}
+                        {displayPreset.dynamics !== undefined && (
+                          <div className="flex justify-between text-[10px] font-mono">
+                            <span className="text-idm-muted">DYNAMICS</span>
+                            <span className="text-system-accent">{displayPreset.dynamics}%</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="col-span-2 flex flex-col">
@@ -262,6 +312,23 @@ export const LibraryPanel: React.FC<LibraryPanelProps> = ({
                           );
                         })}
                       </div>
+                    </div>
+                    {/* Radiografía Rítmica — Master */}
+                    <div className="col-span-3 mt-4 pt-4 border-t border-black/5">
+                      <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-3 block">Radiografía Rítmica</span>
+                      {Object.entries(displayPreset.tracks || {}).map(([id, config]) => {
+                        const tc = config as TrackPreset;
+                        return (
+                          <RadiografiaTrack
+                            key={id}
+                            name={id}
+                            pulses={tc.pulses ?? 0}
+                            steps={tc.steps ?? 16}
+                            offset={tc.offset ?? 0}
+                            color={TRACK_COLORS[id] || '#666'}
+                          />
+                        );
+                      })}
                     </div>
                   </>
                 ) : (
@@ -284,6 +351,19 @@ export const LibraryPanel: React.FC<LibraryPanelProps> = ({
                         {displayPreset.config?.offset}
                       </div>
                     </div>
+                    {/* Radiografía Rítmica — Atomic */}
+                    {displayPreset.config && (
+                      <div className="col-span-3 mt-4 pt-4 border-t border-black/5">
+                        <span className="text-[9px] font-mono text-idm-muted uppercase tracking-widest mb-3 block">Radiografía Rítmica</span>
+                        <RadiografiaTrack
+                          name="patrón"
+                          pulses={displayPreset.config.pulses ?? 0}
+                          steps={displayPreset.config.steps ?? 16}
+                          offset={displayPreset.config.offset ?? 0}
+                          color="#666"
+                        />
+                      </div>
+                    )}
                   </>
                 )}
               </div>
