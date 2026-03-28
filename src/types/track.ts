@@ -22,7 +22,7 @@ export interface SceneData {
   caSeed?: string;
   caDensity?: number;
   caSpeed?: number;
-  // Audio params (Scene-level)
+  // Audio params
   volume?: number;
   delaySend?: number;
   reverbSend?: number;
@@ -35,6 +35,96 @@ export interface SceneData {
   eqLpfFreq?: number;
   pitch?: number;
   synthType?: string;
+  // Percussive synthesis
+  kickPitchDecay?: number;
+  kickOctaves?: number;
+  kickDecay?: number;
+  kickClickType?: string;
+  snareDecay?: number;
+  snareNoiseType?: string;
+  snareBodyEnabled?: boolean;
+  snareBodyPitch?: number;
+  snareBodyDecay?: number;
+  hatMode?: string;
+  hatHarmonicity?: number;
+  hatModIndex?: number;
+  hatResonance?: number;
+  hatDecay?: number;
+  hatNoiseType?: string;
+  // Granular / Sampler
+  grainSize?: number;
+  overlap?: number;
+  spray?: number;
+  bitCrush?: number;
+  normalize?: boolean;
+  sampleStart?: number;
+  sampleEnd?: number;
+  attack?: number;
+  decay?: number;
+  mode?: 'GATE' | 'TRIGGER' | 'ONE-SHOT';
+  stretchEnabled?: boolean;
+  stretchRate?: number;
+  extremeLoopEnabled?: boolean;
+  extremeLoopSize?: number;
+  extremeLoopPoint?: number;
+  // Stochastic
+  chaosEnabled?: boolean;
+  entropy?: number;
+  evolveEnabled?: boolean;
+  mutationRate?: number;
+  mutationSpeed?: number;
+  ratchet?: number;
+  // Tonal
+  isTonal?: boolean;
+  rootNote?: number;
+  scaleId?: string;
+  octaveRange?: number;
+  noteIndices?: number[];
+  fmRatio?: number;
+  fmIndex?: number;
+  wfAmount?: number;
+  wfSymmetry?: number;
+  addPartials?: number;
+  addBrightness?: number;
+  arRate?: number;
+  arDepth?: number;
+  padVoices?: number;
+  padDetune?: number;
+  padAttack?: number;
+  droneFeedback?: number;
+  droneFilterFreq?: number;
+  ksDecay?: number;
+  ksBrightness?: number;
+  modalBody?: string;
+  modalDecay?: number;
+  ambientVolume?: number;
+  ambientSpeed?: number;
+  // Markov
+  noteMode?: 'euclidean' | 'markov';
+  markovStyle?: MarkovStyle;
+  markovTemperature?: number;
+  markovMemory?: 1 | 2;
+  markovAnchor?: number;
+  // Cloud
+  cloudMode?: 'granular' | 'eno';
+  enoSpeed?: number;
+  // Modulation
+  lorenzEnabled?: boolean;
+  lorenzDepth?: number;
+  lorenzTarget?: 'filter' | 'volume';
+  lorenzSpeed?: number;
+  nestedLfoEnabled?: boolean;
+  nestedLfoRate1?: number;
+  nestedLfoRate2?: number;
+  nestedLfoDepth?: number;
+  // Layer 2
+  layer2Blend?: number;
+  layer2Pitch?: number;
+  layer2Offset?: number;
+  layer2FilterFreq?: number;
+  layer2Reverse?: boolean;
+  layer2StretchEnabled?: boolean;
+  layer2StretchRate?: number;
 }
 
 export interface TrackState {
