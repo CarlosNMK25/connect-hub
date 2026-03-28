@@ -413,6 +413,16 @@ export const EuclideanSequencer = () => {
     }));
   };
 
+  const handleJumpToScene = useCallback((sceneIndex: number) => {
+    setTracks(prev => prev.map(t => {
+      const newScenes = [...t.scenes];
+      newScenes[t.activeScene] = extractSceneData(t);
+      let updated = { ...t, scenes: newScenes, activeScene: sceneIndex };
+      if (newScenes[sceneIndex]) updated = applySceneData(updated, newScenes[sceneIndex]!);
+      return updated;
+    }));
+  }, []);
+
   // ═══ Sequencer Hook ═══
   const {
     globalStep, lastHit, uiStats,
@@ -420,6 +430,7 @@ export const EuclideanSequencer = () => {
     phaseBufferRef, phaseBufferHeadRef, PHASE_BUFFER_SIZE,
     toneRecordingState, cloudRecordingState, globalRecordingState,
     handleArmOrRecord, handleCloudArmOrRecord, handleGlobalArmOrRecord,
+    chainCycleProgress,
   } = useSequencer({
     synthsRef, masterBusRef, loopRef, lorenzRafRef,
     tracksRef, tracks,
@@ -610,6 +621,8 @@ export const EuclideanSequencer = () => {
             setChain={setChain}
             chainPosition={chainPosition}
             setChainPosition={setChainPosition}
+            onJumpToScene={handleJumpToScene}
+            chainCycleProgress={chainCycleProgress}
           />
         </div>
       )}

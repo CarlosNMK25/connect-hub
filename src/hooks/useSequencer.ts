@@ -106,6 +106,7 @@ export function useSequencer(params: UseSequencerParams) {
   const phaseBufferHeadRef = useRef(0);
 
   // ═══ Song Mode / Chain Refs ═══
+  const [chainCycleProgress, setChainCycleProgress] = useState(0);
   const chainCyclesRef = useRef(0);
   const songModeConfigRef = useRef(songModeConfig);
   const mcmRef = useRef(mcm);
@@ -155,6 +156,9 @@ export function useSequencer(params: UseSequencerParams) {
         newStats[id] = { hits: s.hits, misses: s.misses, cycleCount: s.cycleCount };
       });
       setUiStats(newStats);
+
+      // Sync chain cycle progress
+      setChainCycleProgress(chainCyclesRef.current);
 
       // Sync driftOffsets for visualizers
       const newDriftOffsets: Record<string, number> = {};
@@ -896,5 +900,6 @@ export function useSequencer(params: UseSequencerParams) {
     handleArmOrRecord,
     handleCloudArmOrRecord,
     handleGlobalArmOrRecord,
+    chainCycleProgress,
   };
 }
