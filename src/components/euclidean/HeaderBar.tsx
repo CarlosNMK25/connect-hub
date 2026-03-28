@@ -1,5 +1,6 @@
 import React from 'react';
-import { Play, Square, Sliders, Activity, Zap, Eye, EyeOff, Disc, Info, HelpCircle, Layers, Target, Power, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Play, Square, Sliders, Activity, Zap, Eye, EyeOff, Disc, Info, HelpCircle, Layers, Target, Power, Settings, GraduationCap } from 'lucide-react';
 import type { PedagogyVoice } from '../../constants/pedagogy';
 
 interface HeaderBarProps {
