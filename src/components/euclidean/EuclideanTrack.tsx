@@ -8,6 +8,10 @@ import { WaveformDisplay } from './WaveformDisplay';
 import { SlicerPanel } from './SlicerPanel';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PEDAGOGY, getMicroText, type PedagogyVoice } from '../../constants/pedagogy';
+import {
+  KICK_PRESETS, SNARE_PRESETS, HAT_PRESETS,
+  findKickPresetIndex, findSnarePresetIndex, findHatPresetIndex,
+} from '../../constants/percussiveSounds';
 import { calculateTemporalOffset, type TemporalityMode } from '../../utils/temporality';
 import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, getScaleIntervals, noteIndexToDisplayName } from '../../utils/scales';
 import { calculateSliceBoundaries } from '../../utils/slicerUtils';
