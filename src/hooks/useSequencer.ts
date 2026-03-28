@@ -156,6 +156,9 @@ export function useSequencer(params: UseSequencerParams) {
       });
       setUiStats(newStats);
 
+      // Sync chain cycle progress
+      setChainCycleProgress(chainCyclesRef.current);
+
       // Sync driftOffsets for visualizers
       const newDriftOffsets: Record<string, number> = {};
       tracksRef.current.forEach(t => {
