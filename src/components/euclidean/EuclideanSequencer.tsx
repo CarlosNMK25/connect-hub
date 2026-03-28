@@ -629,6 +629,7 @@ export const EuclideanSequencer = () => {
           userPresets={userPresets}
           hoveredPreset={hoveredPreset}
           setHoveredPreset={setHoveredPreset}
+          selectedPreset={selectedPreset}
           isSavingPreset={isSavingPreset}
           setIsSavingPreset={setIsSavingPreset}
           newPresetName={newPresetName}

@@ -24,7 +24,7 @@ interface LibraryPanelProps {
 }
 
 export const LibraryPanel: React.FC<LibraryPanelProps> = ({
-  userPresets, hoveredPreset, setHoveredPreset,
+  userPresets, hoveredPreset, setHoveredPreset, selectedPreset,
   isSavingPreset, setIsSavingPreset,
   newPresetName, setNewPresetName,
   importError, importInputRef,
@@ -32,6 +32,7 @@ export const LibraryPanel: React.FC<LibraryPanelProps> = ({
   handleSaveUserPreset, handleDeleteUserPreset,
   handleExportCurrent, handleImportPreset,
 }) => {
+  const displayPreset = hoveredPreset ?? selectedPreset;
   return (
     <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
       <div className="md:col-span-1 bg-white border border-black/5 rounded-2xl p-4 shadow-sm max-h-[450px] overflow-y-auto custom-scrollbar">
