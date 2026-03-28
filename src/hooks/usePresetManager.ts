@@ -419,6 +419,7 @@ export function usePresetManager(params: UsePresetManagerParams) {
   // --- Apply user preset ---
   const applyUserPreset = useCallback((up: UserPreset) => {
     setActivePresetId(up.id);
+    setSelectedPreset(userPresetToScenePreset(up));
     setBpm(up.bpm);
     setMmHistory([]);
     setJitter(up.jitter);
