@@ -656,12 +656,14 @@ export function useTrackState(params: UseTrackStateParams) {
   };
 
   const switchScene = (t: TrackState, newScene: number): TrackState => {
-    console.log('[SWITCH] called', t.id, 'from scene', t.activeScene, 'to scene', newScene, 'pulses:', t.pulses);
+    // Use ref for freshest state to avoid React batching race conditions
+    const freshTrack = tracksRef.current.find(tr => tr.id === t.id) || t;
     const newScenes = [...t.scenes];
-    console.log('[SWITCH] saving slot', t.activeScene, 'pulses:', t.pulses, 'steps:', t.steps);
-    newScenes[t.activeScene] = extractSceneData(t);
+    console.log('[SWITCH] called', t.id, 'from scene', t.activeScene, 'to scene', newScene, 'pulses:', freshTrack.pulses);
+    console.log('[SWITCH] saving slot', t.activeScene, 'pulses:', freshTrack.pulses, 'steps:', freshTrack.steps);
+    newScenes[t.activeScene] = extractSceneData(freshTrack);
     // Apply new scene data if it exists
-    let updated = { ...t, scenes: newScenes, activeScene: newScene };
+    let updated = { ...freshTrack, scenes: newScenes, activeScene: newScene };
     console.log('[SWITCH] loading slot', newScene, 'hasData:', newScenes[newScene] !== null);
     if (newScenes[newScene]) {
       updated = applySceneData(updated, newScenes[newScene]!);
