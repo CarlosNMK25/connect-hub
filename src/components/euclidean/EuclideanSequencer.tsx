@@ -621,6 +621,8 @@ export const EuclideanSequencer = () => {
             setChain={setChain}
             chainPosition={chainPosition}
             setChainPosition={setChainPosition}
+            onJumpToScene={handleJumpToScene}
+            chainCycleProgress={chainCycleProgress}
           />
         </div>
       )}

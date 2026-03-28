@@ -899,5 +899,6 @@ export function useSequencer(params: UseSequencerParams) {
     handleArmOrRecord,
     handleCloudArmOrRecord,
     handleGlobalArmOrRecord,
+    chainCycleProgress,
   };
 }
