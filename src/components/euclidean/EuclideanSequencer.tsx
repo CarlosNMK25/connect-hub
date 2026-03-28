@@ -30,7 +30,7 @@ import { SCALES, SCALE_NAMES, noteIndexToMidi, midiToNoteName, getMaxNoteIndex, 
 import { useAudioEngine, type MasterBusType } from '../../hooks/useAudioEngine';
 import { useSequencer, type SongModeConfig } from '../../hooks/useSequencer';
 import { usePedagogy } from '../../hooks/usePedagogy';
-import type { TrackState, SceneData } from '../../types/track';
+import type { TrackState, SceneData, ChainStep } from '../../types/track';
 
 // TrackState and SceneData imported from ../../types/track
 
