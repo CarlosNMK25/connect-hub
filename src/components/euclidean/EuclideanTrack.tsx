@@ -1538,6 +1538,8 @@ export const EuclideanTrack = React.memo(({
                 </button>
                 <button 
                   onClick={() => onSamplerParamChange(trackId, 'normalize', !normalize)}
+                  onMouseEnter={(e) => handleParamEnter('normalize', e)}
+                  onMouseLeave={handleParamLeave}
                   className={`flex-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-widest border transition-all ${normalize ? 'bg-green-600/10 text-green-600 border-green-600/20 shadow-sm' : 'bg-white text-idm-muted border-black/5 hover:border-black/10'}`}
                 >
                   Norm
