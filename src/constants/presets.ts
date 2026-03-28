@@ -114,7 +114,9 @@ export const PRESETS: ScenePreset[] = [
     tracks: {
       kick: { pulses: 5, steps: 12, offset: 0 },
       snare: { pulses: 2, steps: 12, offset: 3 },
-      hat: { pulses: 12, steps: 12, offset: 0, baseProbability: 0.7 }
+      hat: { pulses: 12, steps: 12, offset: 0, baseProbability: 0.7 },
+      cloud: { pulses: 0, steps: 12, offset: 0, volume: 0 },
+      tone: { pulses: 0, steps: 12, offset: 0, volume: 0 }
     }
   },
   {

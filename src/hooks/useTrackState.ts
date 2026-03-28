@@ -122,7 +122,7 @@ export function useTrackState(params: UseTrackStateParams) {
       hits: 0, misses: 0, activeScene: 0, scenes: new Array(8).fill(null), activeAdvancedPanel: null
     }),
     updateTrackPattern({ 
-      id: 'cloud', name: 'Atmosphere', color: '#5B21B6', pulses: 4, steps: 16, offset: 0, 
+      id: 'cloud', name: 'Cloud', color: '#5B21B6', pulses: 4, steps: 16, offset: 0, 
       probabilities: new Array(64).fill(1), pattern: [],
       samplerBuffer: null, samplerStatus: 'IDLE', samplerFilename: null,
       sampleStart: 0, sampleEnd: 1, attack: 2000, decay: 5000, mode: 'TRIGGER', pitch: 0, normalize: true,

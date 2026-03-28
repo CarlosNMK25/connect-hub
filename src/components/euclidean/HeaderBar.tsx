@@ -1,5 +1,6 @@
 import React from 'react';
-import { Play, Square, Sliders, Activity, Zap, Eye, EyeOff, Disc, Info, HelpCircle, Layers, Target, Power, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Play, Square, Sliders, Activity, Zap, Eye, EyeOff, Disc, Info, HelpCircle, Layers, Target, Power, Settings, GraduationCap } from 'lucide-react';
 import type { PedagogyVoice } from '../../constants/pedagogy';
 
 interface HeaderBarProps {
@@ -36,6 +37,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   songModeEnabled, setSongModeEnabled,
   globalRecordingState, handleGlobalArmOrRecord,
 }) => {
+  const navigate = useNavigate();
   const panelButtons = [
     { key: 'controls', active: showControls, toggle: () => setShowControls(!showControls), icon: <Sliders size={12} />, label: 'Controls', title: 'Toggle Global Controls' },
     { key: 'visuals', active: showVisuals, toggle: () => setShowVisuals(!showVisuals), icon: showVisuals ? <Eye size={12} /> : <EyeOff size={12} />, label: 'Visuals', title: 'Toggle Visual Monitors' },
@@ -98,6 +100,14 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           >
             <Info size={10} />
             <span>Info</span>
+          </button>
+          <button 
+            onClick={() => navigate('/learn')}
+            className="flex items-center gap-2 px-3 py-1 rounded-full text-[8px] font-mono font-bold uppercase tracking-widest transition-all duration-300 border bg-system-accent/5 text-system-accent border-system-accent/20 hover:bg-system-accent/10 hover:border-system-accent/40"
+            title="Cuaderno de Aprendizaje"
+          >
+            <GraduationCap size={10} />
+            <span>Cuaderno</span>
           </button>
         </div>
       </div>
