@@ -738,7 +738,11 @@ export function useTrackState(params: UseTrackStateParams) {
         if (!track) return;
         const val = value as number;
         logChange(`${track.name} pulses ${track.pulses} → ${val}`, [`Dens ${Math.round((track.pulses / track.steps) * 100)}% → ${Math.round((val / track.steps) * 100)}%`]);
-        setTracks(prev => prev.map(t => t.id === trackId ? updateTrackPattern({ ...t, pulses: val }) : t));
+        setTracks(prev => prev.map(t => {
+          if (t.id !== trackId) return t;
+          const clampedVal = Math.min(val, t.steps);
+          return { ...t, pulses: clampedVal };
+        }));
         break;
       }
       case 'offset': {
