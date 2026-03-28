@@ -1106,28 +1106,10 @@ export function useAudioEngine(props: UseAudioEngineProps) {
         }
       }
     });
-  }, [tracks]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tracks.map(t => `${t.id}:${t.grainSize}:${t.overlap}:${t.pitch}:${t.bitCrush}:${t.stretchEnabled}:${t.stretchRate}:${t.extremeLoopEnabled}:${t.extremeLoopSize}:${t.extremeLoopPoint}`).join('|')]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // BPM sync
   useEffect(() => { Tone.getTransport().bpm.value = bpm; }, [bpm]);
-
-  // Sampler/GrainPlayer params sync
-  useEffect(() => {
-    tracks.forEach(track => {
-      const synth = synthsRef.current[track.id];
-      if (!synth) return;
-      if (synth.grainPlayer) {
-        synth.grainPlayer.grainSize = track.grainSize / 1000;
-        synth.grainPlayer.overlap = track.overlap;
-        synth.grainPlayer.detune = track.pitch * 100;
-        const stretchRate = track.stretchEnabled ? (track.stretchRate ?? 1.0) : 1.0;
-        synth.grainPlayer.playbackRate = stretchRate;
-      }
-      if (synth.bitCrusher) {
-        synth.bitCrusher.bits = track.bitCrush;
-      }
-    });
-  }, [tracks]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ═══════════════════════════════════════════════════════════
   //  Return
