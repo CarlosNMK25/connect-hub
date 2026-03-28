@@ -165,6 +165,7 @@ export function usePresetManager(params: UsePresetManagerParams) {
   const importInputRef = useRef<HTMLInputElement>(null);
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
   const [hoveredPreset, setHoveredPreset] = useState<ScenePreset | null>(null);
+  const [selectedPreset, setSelectedPreset] = useState<ScenePreset | null>(null);
 
   // --- Preview patterns ---
   const previewPatterns = useMemo(() => {
@@ -196,6 +197,7 @@ export function usePresetManager(params: UsePresetManagerParams) {
   // --- Apply factory preset ---
   const applyPreset = useCallback((preset: ScenePreset) => {
     setActivePresetId(preset.id);
+    setSelectedPreset(preset);
     if (preset.type === 'master' && preset.tracks) {
       const newSteps = Object.entries(preset.tracks)
         .filter(([id]) => id !== 'cloud')
@@ -417,6 +419,7 @@ export function usePresetManager(params: UsePresetManagerParams) {
   // --- Apply user preset ---
   const applyUserPreset = useCallback((up: UserPreset) => {
     setActivePresetId(up.id);
+    setSelectedPreset(userPresetToScenePreset(up));
     setBpm(up.bpm);
     setMmHistory([]);
     setJitter(up.jitter);
@@ -670,6 +673,7 @@ export function usePresetManager(params: UsePresetManagerParams) {
     activePresetId,
     hoveredPreset,
     setHoveredPreset,
+    selectedPreset,
     previewPatterns,
     isSavingPreset,
     setIsSavingPreset,

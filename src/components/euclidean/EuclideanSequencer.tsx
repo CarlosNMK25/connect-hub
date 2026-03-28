@@ -321,6 +321,7 @@ export const EuclideanSequencer = () => {
   // Preset manager hook (extracted from monolith)
   const {
     userPresets, activePresetId, hoveredPreset, setHoveredPreset,
+    selectedPreset,
     previewPatterns, isSavingPreset, setIsSavingPreset,
     newPresetName, setNewPresetName, importError, importInputRef,
     applyPreset, injectPattern, captureCurrentConfig,
@@ -628,6 +629,7 @@ export const EuclideanSequencer = () => {
           userPresets={userPresets}
           hoveredPreset={hoveredPreset}
           setHoveredPreset={setHoveredPreset}
+          selectedPreset={selectedPreset}
           isSavingPreset={isSavingPreset}
           setIsSavingPreset={setIsSavingPreset}
           newPresetName={newPresetName}
