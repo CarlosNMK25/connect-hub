@@ -669,6 +669,7 @@ export function useTrackState(params: UseTrackStateParams) {
 
   // ── handleSaveScene (explicit save without changing scene) ──
   const handleSaveScene = useCallback((trackId: string) => {
+    console.log('[SCENE]', 'onSaveScene called', trackId);
     if (syncAllScenes) {
       setTracks(prev => prev.map(t => {
         const newScenes = [...t.scenes];
