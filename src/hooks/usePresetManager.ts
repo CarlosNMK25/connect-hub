@@ -543,6 +543,8 @@ export function usePresetManager(params: UsePresetManagerParams) {
           snareBodyPitch: (config as any).snareBodyPitch ?? 180,
           snareBodyDecay: (config as any).snareBodyDecay ?? 0.1,
         } : {}),
+        activeScene: (config as any).activeScene ?? 0,
+        scenes: (config as any).scenes ? (config as any).scenes.map((s: any) => s ? { ...s } : null) : t.scenes,
         hits: 0,
         misses: 0,
       });

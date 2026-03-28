@@ -1,3 +1,5 @@
+import type { SceneData } from '../types/track';
+
 export interface UserPresetTrack {
   pulses: number;
   steps: number;
@@ -42,13 +44,11 @@ export interface UserPresetTrack {
   rrAmount?: number;
   driftEnabled?: boolean;
   driftRate?: number;
-  // Markov note mode
   noteMode?: 'euclidean' | 'markov';
   markovStyle?: string;
   markovTemperature?: number;
   markovMemory?: number;
   markovAnchor?: number;
-  // Pattern mode
   patternMode?: 'euclidean' | 'lsystem' | 'ca';
   lsSeed?: string;
   lsRuleA?: string;
@@ -58,56 +58,42 @@ export interface UserPresetTrack {
   caSeed?: string;
   caDensity?: number;
   caSpeed?: number;
-  // Layer 2
   layer2Filename?: string;
   layer2Blend?: number;
   layer2Pitch?: number;
   layer2Offset?: number;
   layer2FilterFreq?: number;
   layer2Reverse?: boolean;
-  // Lorenz Attractor
   lorenzEnabled?: boolean;
   lorenzDepth?: number;
   lorenzTarget?: string;
   lorenzSpeed?: number;
-  // Nested LFO
   nestedLfoEnabled?: boolean;
   nestedLfoRate1?: number;
   nestedLfoRate2?: number;
   nestedLfoDepth?: number;
-  // Slicer
   slicerEnabled?: boolean;
   sliceCount?: number;
-  // Time Stretch (Phase 6B)
   stretchEnabled?: boolean;
   stretchRate?: number;
-  // EQ (Phase 6C)
   eqEnabled?: boolean;
   eqHpfFreq?: number;
   eqLpfFreq?: number;
-  // Phase 6D — Layer 2 Time Stretch
   layer2StretchEnabled?: boolean;
   layer2StretchRate?: number;
-  // Phase 7A/7B — Panning + Frequency Shifter
   pan?: number;
   freqShiftEnabled?: boolean;
   freqShift?: number;
-  // Spectral Delay Send (Phase 7C)
   spectralDelaySend?: number;
-  // Sampler mode (Phase 9)
   mode?: 'GATE' | 'TRIGGER' | 'ONE-SHOT';
-  // Freeze Send (Phase 9)
   freezeSend?: number;
   reverseSend?: number;
-  // Extreme Loop (Phase 10)
   extremeLoopEnabled?: boolean;
   extremeLoopSize?: number;
   extremeLoopPoint?: number;
-  // 3D Audio / Binaural (Phase 7D)
   binauralEnabled?: boolean;
   binauralAzimuth?: number;
   binauralDistance?: number;
-  // Phase 8 — Percussive Synthesis
   kickPitchDecay?: number;
   kickOctaves?: number;
   kickDecay?: number;
@@ -125,7 +111,7 @@ export interface UserPresetTrack {
   snareBodyDecay?: number;
   // Song Mode — Scene slots
   activeScene?: number;
-  scenes?: (any | null)[];
+  scenes?: (SceneData | null)[];
 }
 
 export interface UserPreset {
