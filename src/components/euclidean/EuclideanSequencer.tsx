@@ -600,7 +600,7 @@ export const EuclideanSequencer = () => {
 
       {/* ═══ SONG MODE CHAIN PANEL ═══ */}
       {songModeEnabled && (
-        <div className="mt-1">
+        <div className="mt-3">
           <SongModePanel
             songModeView={songModeView}
             setSongModeView={setSongModeView}
