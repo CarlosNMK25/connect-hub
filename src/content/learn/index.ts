@@ -33,6 +33,17 @@ export const MANUALS: ManualMeta[] = [
     description: 'Descubre qué ocurre cuando cada pista tiene su propio ciclo. MCM, Eclipse, poliritmia y la diferencia estructural entre flamenco e IDM.',
     fileName: 'sesion-02-el-dialogo.md',
   },
+  {
+    id: 'sesion-03',
+    slug: 'sesion-03-el-tiempo-humano',
+    title: 'El Tiempo Humano',
+    session: 3,
+    subtitle: 'Grid, MPC, Dilla, Flamenco, Arritmia — cinco maneras de sentir el tiempo',
+    duration: '50-60 min',
+    prerequisite: 'Sesiones 1 y 2 completadas',
+    description: 'Mismo patrón, mismos números. Pero dependiendo del modo de temporalidad, la música suena mecánica, grooveada, flotante o perturbadora. Cinco formas de humanizar el algoritmo.',
+    fileName: 'sesion-03-el-tiempo-humano.md',
+  },
 ];
 
 export async function loadManualContent(fileName: string): Promise<string> {
