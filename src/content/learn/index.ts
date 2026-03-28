@@ -22,6 +22,17 @@ export const MANUALS: ManualMeta[] = [
     description: 'Aprende cómo el algoritmo de Euclides distribuye golpes en un ciclo. Descubre la conexión entre la Soleá flamenca y el IDM algorítmico.',
     fileName: 'sesion-01-el-pulso.md',
   },
+  {
+    id: 'sesion-02',
+    slug: 'sesion-02-el-dialogo',
+    title: 'El Diálogo',
+    session: 2,
+    subtitle: 'MCM, Eclipse y PhaseRadar — cómo las pistas se relacionan',
+    duration: '45-60 min',
+    prerequisite: 'Sesión 1 completada',
+    description: 'Descubre qué ocurre cuando cada pista tiene su propio ciclo. MCM, Eclipse, poliritmia y la diferencia estructural entre flamenco e IDM.',
+    fileName: 'sesion-02-el-dialogo.md',
+  },
 ];
 
 export async function loadManualContent(fileName: string): Promise<string> {
