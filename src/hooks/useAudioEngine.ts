@@ -1081,7 +1081,7 @@ export function useAudioEngine(props: UseAudioEngineProps) {
           synth.setVolume(track.volume);
           synth.setSends(track.delaySend, track.reverbSend);
           if (synth.bitCrusher) {
-            synth.bitCrusher.bits.value = track.bitCrush;
+            synth.bitCrusher.bits = track.bitCrush;
           }
           if (synth.grainPlayer) {
             synth.grainPlayer.grainSize = track.grainSize / 1000;
@@ -1124,7 +1124,7 @@ export function useAudioEngine(props: UseAudioEngineProps) {
         synth.grainPlayer.playbackRate = stretchRate;
       }
       if (synth.bitCrusher) {
-        synth.bitCrusher.bits.value = track.bitCrush;
+        synth.bitCrusher.bits = track.bitCrush;
       }
     });
   }, [tracks]); // eslint-disable-line react-hooks/exhaustive-deps

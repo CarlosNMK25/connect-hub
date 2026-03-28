@@ -565,7 +565,7 @@ export function useTrackState(params: UseTrackStateParams) {
         }
       }
       if (synthObj.bitCrusher && param === 'bitCrush') {
-        synthObj.bitCrusher.bits.value = val;
+        synthObj.bitCrusher.bits = val;
       }
       if (['eqEnabled', 'eqHpfFreq', 'eqLpfFreq'].includes(param)) {
         const updatedTrack = tracksRef.current.find(t => t.id === trackId);
