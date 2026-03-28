@@ -443,6 +443,17 @@ export function usePresetManager(params: UsePresetManagerParams) {
         delaySend: config.delaySend,
         reverbSend: config.reverbSend,
         ratchet: config.ratchet ?? 0,
+        // Granular / Sampler
+        grainSize: (config as any).grainSize ?? t.grainSize,
+        overlap: (config as any).overlap ?? t.overlap,
+        spray: (config as any).spray ?? t.spray,
+        bitCrush: (config as any).bitCrush ?? t.bitCrush,
+        pitch: (config as any).pitch ?? t.pitch,
+        normalize: (config as any).normalize ?? t.normalize,
+        sampleStart: (config as any).sampleStart ?? t.sampleStart,
+        sampleEnd: (config as any).sampleEnd ?? t.sampleEnd,
+        attack: (config as any).attack ?? t.attack,
+        decay: (config as any).decay ?? t.decay,
         ...(t.isTonal ? {
           rootNote: config.rootNote ?? t.rootNote,
           scaleId: config.scaleId ?? t.scaleId,
