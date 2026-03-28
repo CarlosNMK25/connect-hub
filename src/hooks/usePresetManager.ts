@@ -604,6 +604,37 @@ export function usePresetManager(params: UsePresetManagerParams) {
               (config as any).hatNoiseType ?? 'white'
             );
           }
+          // ── Granular / Sampler sync ──
+          const gp = synthsRef.current[t.id]?.grainPlayer;
+          if (gp) {
+            gp.grainSize = ((config as any).grainSize ?? t.grainSize ?? 100) / 1000;
+            gp.overlap = (config as any).overlap ?? t.overlap ?? 0.1;
+            gp.detune = ((config as any).pitch ?? t.pitch ?? 0) * 100;
+            gp.fadeIn = ((config as any).attack ?? t.attack ?? 0) / 1000;
+            gp.fadeOut = ((config as any).decay ?? t.decay ?? 200) / 1000;
+            if (gp.buffer?.duration) {
+              gp.loopStart = ((config as any).sampleStart ?? t.sampleStart ?? 0) * gp.buffer.duration;
+              gp.loopEnd = ((config as any).sampleEnd ?? t.sampleEnd ?? 1) * gp.buffer.duration;
+            }
+            const stretchOn = (config as any).stretchEnabled ?? t.stretchEnabled ?? false;
+            gp.playbackRate = stretchOn ? ((config as any).stretchRate ?? t.stretchRate ?? 1.0) : 1.0;
+            // Extreme Loop
+            const xlpOn = (config as any).extremeLoopEnabled ?? t.extremeLoopEnabled ?? false;
+            if (xlpOn && t.samplerBuffer) {
+              gp.loop = true;
+              const loopPt = ((config as any).extremeLoopPoint ?? t.extremeLoopPoint ?? 0.5) * t.samplerBuffer.duration;
+              const loopSz = ((config as any).extremeLoopSize ?? t.extremeLoopSize ?? 10) / 1000;
+              gp.loopStart = loopPt;
+              gp.loopEnd = loopPt + loopSz;
+              gp.grainSize = loopSz;
+            } else {
+              gp.loop = t.id === 'cloud';
+            }
+            // BitCrusher
+            if (synthsRef.current[t.id]?.bitCrusher) {
+              synthsRef.current[t.id].bitCrusher.bits = (config as any).bitCrush ?? t.bitCrush ?? 16;
+            }
+          }
         }
         if (t.isTonal && (t.noteMode ?? 'euclidean') === 'markov') {
           updateMarkovMatrix(t);
