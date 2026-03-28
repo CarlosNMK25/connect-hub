@@ -36,10 +36,8 @@ import type { TrackState, SceneData, ChainStep } from '../../types/track';
 
 // TrackState and SceneData imported from ../../types/track
 
+// MesoInsightMonitor and ThesisDrawer extracted to their own files
 
-const getMesoInsight = (tracks: TrackState[]) => {
-  // Prime Aesthetics check
-  const isPrime = (n: number) => {
     if (n <= 1) return false;
     for (let i = 2; i <= Math.sqrt(n); i++) if (n % i === 0) return false;
     return true;
