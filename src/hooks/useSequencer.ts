@@ -38,7 +38,7 @@ export interface UseSequencerParams {
   // Song Mode
   songModeConfig: SongModeConfig;
   mcm: number;
-  onChainAdvance: () => void;
+  onChainAdvanceRef: React.MutableRefObject<() => void>;
   // Refs from useTrackState
   initOrigSynthRef: React.MutableRefObject<any>;
   startLorenzRafRef: React.MutableRefObject<any>;
