@@ -704,6 +704,8 @@ export const EuclideanTrack = React.memo(({
                 <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => onSamplerParamChange(trackId, 'stretchEnabled', !stretchEnabled)}
+                    onMouseEnter={(e) => handleParamEnter('stretchEnabled', e)}
+                    onMouseLeave={handleParamLeave}
                     className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
                       stretchEnabled
                         ? 'bg-system-accent text-white border-system-accent'
