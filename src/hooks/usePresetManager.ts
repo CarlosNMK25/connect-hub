@@ -378,6 +378,8 @@ export function usePresetManager(params: UsePresetManagerParams) {
           ...(t.id === 'kick' ? { kickPitchDecay: t.kickPitchDecay, kickOctaves: t.kickOctaves, kickDecay: t.kickDecay, kickClickType: t.kickClickType } : {}),
           ...(t.id === 'hat' ? { hatMode: t.hatMode, hatHarmonicity: t.hatHarmonicity, hatModIndex: t.hatModIndex, hatResonance: t.hatResonance, hatDecay: t.hatDecay, hatNoiseType: t.hatNoiseType } : {}),
           ...(t.id === 'snare' ? { snareDecay: t.snareDecay, snareNoiseType: t.snareNoiseType, snareBodyEnabled: t.snareBodyEnabled, snareBodyPitch: t.snareBodyPitch, snareBodyDecay: t.snareBodyDecay } : {}),
+          activeScene: (t as any).activeScene ?? 0,
+          scenes: (t as any).scenes ? (t as any).scenes.map((s: any) => s ? { ...s } : null) : [],
         }])
       ),
     };
@@ -541,6 +543,8 @@ export function usePresetManager(params: UsePresetManagerParams) {
           snareBodyPitch: (config as any).snareBodyPitch ?? 180,
           snareBodyDecay: (config as any).snareBodyDecay ?? 0.1,
         } : {}),
+        activeScene: (config as any).activeScene ?? 0,
+        scenes: (config as any).scenes ? (config as any).scenes.map((s: any) => s ? { ...s } : null) : t.scenes,
         hits: 0,
         misses: 0,
       });
