@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Trash2, ChevronRight, ChevronDown } from 'lucide-react';
+import { rotate } from '../../utils/bjorklund';
 import { PRESET_PEDAGOGY } from '../../constants/presetPedagogy';
 import { PRESETS } from '../../constants/presets';
 import { evaluateDiagnosis, computeMcm, computeEclipseTime, type DiagnosisContext } from '../../utils/diagnosis';
