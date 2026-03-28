@@ -600,7 +600,7 @@ export const EuclideanSequencer = () => {
 
       {/* ═══ SONG MODE CHAIN PANEL ═══ */}
       {songModeEnabled && (
-        <div className="mt-6">
+        <div className="mt-3">
           <SongModePanel
             songModeView={songModeView}
             setSongModeView={setSongModeView}
@@ -614,7 +614,7 @@ export const EuclideanSequencer = () => {
         </div>
       )}
 
-      <div className="flex flex-col mb-8 gap-6 mt-6">
+      <div className="flex flex-col mb-8 gap-6 mt-3">
 
         {/* Main Control Panel */}
         {(showControls || showVisuals) && (
