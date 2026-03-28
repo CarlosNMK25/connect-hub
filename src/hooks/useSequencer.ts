@@ -38,7 +38,7 @@ export interface UseSequencerParams {
   // Song Mode
   songModeConfig: SongModeConfig;
   mcm: number;
-  onChainAdvance: () => void;
+  onChainAdvanceRef: React.MutableRefObject<() => void>;
   // Refs from useTrackState
   initOrigSynthRef: React.MutableRefObject<any>;
   startLorenzRafRef: React.MutableRefObject<any>;
@@ -64,7 +64,7 @@ export function useSequencer(params: UseSequencerParams) {
     setTracks, setDriftOffsets,
     startLorenzRaf, logChange,
     toneFilterRef, initializeOriginalSynthBase, updateMarkovMatrix,
-    songModeConfig, mcm, onChainAdvance,
+    songModeConfig, mcm, onChainAdvanceRef,
     initOrigSynthRef, startLorenzRafRef,
     caStateRef, caEvolveCycleRef, pendingCARef, pendingMutationsRef,
     markovLastNoteRef, markovAnchorCountRef, markovMatrixRef, markovNotesRef,
@@ -109,7 +109,7 @@ export function useSequencer(params: UseSequencerParams) {
   const chainCyclesRef = useRef(0);
   const songModeConfigRef = useRef(songModeConfig);
   const mcmRef = useRef(mcm);
-  const onChainAdvanceRef = useRef(onChainAdvance);
+  
 
   // ═══ Ref Syncs ═══
   useEffect(() => { jitterRef.current = jitter; }, [jitter]);
@@ -118,7 +118,7 @@ export function useSequencer(params: UseSequencerParams) {
   useEffect(() => { temporalityModeRef.current = temporalityMode; }, [temporalityMode]);
   useEffect(() => { songModeConfigRef.current = songModeConfig; }, [songModeConfig]);
   useEffect(() => { mcmRef.current = mcm; }, [mcm]);
-  useEffect(() => { onChainAdvanceRef.current = onChainAdvance; }, [onChainAdvance]);
+  
 
   // Initialize refs for all tracks
   useEffect(() => {
