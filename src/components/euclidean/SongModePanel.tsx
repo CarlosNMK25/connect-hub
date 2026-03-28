@@ -1,9 +1,5 @@
-import React from 'react';
-
-interface ChainStep {
-  scene: number;
-  cycles: number;
-}
+import React, { useState, useRef, useEffect } from 'react';
+import type { ChainStep } from '../../types/track';
 
 interface SongModePanelProps {
   songModeView: 'performance' | 'chain';
@@ -18,6 +14,85 @@ interface SongModePanelProps {
   chainCycleProgress: number;
 }
 
+const StepEditorPopover: React.FC<{
+  step: ChainStep;
+  stepIndex: number;
+  canDelete: boolean;
+  anchorRef: HTMLDivElement | null;
+  onChangeScene: (scene: number) => void;
+  onChangeCycles: (cycles: number) => void;
+  onDelete: () => void;
+  onClose: () => void;
+}> = ({ step, canDelete, anchorRef, onChangeScene, onChangeCycles, onDelete, onClose }) => {
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        popoverRef.current && !popoverRef.current.contains(e.target as Node) &&
+        anchorRef && !anchorRef.contains(e.target as Node)
+      ) {
+        onClose();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [anchorRef, onClose]);
+
+  return (
+    <div
+      ref={popoverRef}
+      className="absolute z-50 mt-1 p-2 rounded-lg border border-border bg-popover shadow-lg min-w-[160px]"
+      style={{ top: '100%', left: '50%', transform: 'translateX(-50%)' }}
+    >
+      <div className="mb-1.5">
+        <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Escena</span>
+        <div className="flex gap-0.5 mt-1 flex-wrap">
+          {Array.from({ length: 8 }, (_, i) => i + 1).map(s => (
+            <button
+              key={s}
+              onClick={() => { onChangeScene(s); onClose(); }}
+              className={`w-5 h-5 text-[10px] rounded border transition-all ${
+                s === step.scene
+                  ? 'bg-system-accent text-white border-system-accent'
+                  : 'bg-background text-muted-foreground border-border hover:border-foreground/30'
+              }`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="mb-1.5">
+        <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Ciclos</span>
+        <div className="flex gap-0.5 mt-1 flex-wrap">
+          {Array.from({ length: 8 }, (_, i) => i + 1).map(c => (
+            <button
+              key={c}
+              onClick={() => { onChangeCycles(c); onClose(); }}
+              className={`w-5 h-5 text-[10px] rounded border transition-all ${
+                c === step.cycles
+                  ? 'bg-system-accent text-white border-system-accent'
+                  : 'bg-background text-muted-foreground border-border hover:border-foreground/30'
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      </div>
+      {canDelete && (
+        <button
+          onClick={() => { onDelete(); onClose(); }}
+          className="w-full text-[9px] mt-1 py-1 rounded border border-destructive/30 text-destructive hover:bg-destructive/10 transition-all"
+        >
+          Eliminar paso
+        </button>
+      )}
+    </div>
+  );
+};
+
 export const SongModePanel: React.FC<SongModePanelProps> = ({
   songModeView, setSongModeView,
   syncAllScenes, setSyncAllScenes,
@@ -25,6 +100,9 @@ export const SongModePanel: React.FC<SongModePanelProps> = ({
   chainPosition, setChainPosition,
   onJumpToScene, chainCycleProgress,
 }) => {
+  const [editingStepIndex, setEditingStepIndex] = useState<number | null>(null);
+  const stepRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
   return (
     <div className="border border-border rounded-lg bg-background overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2 bg-system-accent/5 border-b border-border">
@@ -64,36 +142,65 @@ export const SongModePanel: React.FC<SongModePanelProps> = ({
       <div className="px-3 py-2 flex items-center gap-2 flex-wrap">
         {chain.map((step, i) => (
           <React.Fragment key={i}>
-            <div
-              className={`flex items-center gap-1 px-2 py-1 rounded border cursor-pointer transition-all ${
-                i === chainPosition
-                  ? 'bg-system-accent/10 border-system-accent/30'
-                  : 'bg-background border-border'
-              }`}
-              onClick={() => {
-                setChainPosition(i);
-                if (songModeView === 'performance') {
-                  onJumpToScene(step.scene - 1);
-                }
-              }}
-            >
-              <span className={`text-xs font-medium ${i === chainPosition ? 'text-system-accent' : 'text-muted-foreground'}`}>
-                {step.scene}
-              </span>
-              <div className="flex gap-0.5">
-                {Array.from({ length: step.cycles }, (_, j) => (
-                  <span
-                    key={j}
-                    className={`w-1.5 h-1.5 rounded-sm inline-block ${
-                      i === chainPosition
-                        ? j < chainCycleProgress + 1
-                          ? 'bg-system-accent'
-                          : 'bg-system-accent/20'
-                        : 'bg-muted-foreground/20'
-                    }`}
-                  />
-                ))}
+            <div className="relative">
+              <div
+                ref={el => { stepRefs.current[i] = el; }}
+                className={`flex items-center gap-1 px-2 py-1 rounded border cursor-pointer transition-all ${
+                  i === chainPosition
+                    ? 'bg-system-accent/10 border-system-accent/30'
+                    : 'bg-background border-border'
+                }`}
+                onClick={() => {
+                  setChainPosition(i);
+                  if (songModeView === 'performance') {
+                    onJumpToScene(step.scene - 1);
+                  }
+                }}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setEditingStepIndex(editingStepIndex === i ? null : i);
+                }}
+              >
+                <span className={`text-xs font-medium ${i === chainPosition ? 'text-system-accent' : 'text-muted-foreground'}`}>
+                  {step.scene}
+                </span>
+                <div className="flex gap-0.5">
+                  {Array.from({ length: step.cycles }, (_, j) => (
+                    <span
+                      key={j}
+                      className={`w-1.5 h-1.5 rounded-sm inline-block ${
+                        i === chainPosition
+                          ? j < chainCycleProgress + 1
+                            ? 'bg-system-accent'
+                            : 'bg-system-accent/20'
+                          : 'bg-muted-foreground/20'
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
+              {editingStepIndex === i && (
+                <StepEditorPopover
+                  step={step}
+                  stepIndex={i}
+                  canDelete={chain.length > 1}
+                  anchorRef={stepRefs.current[i] ?? null}
+                  onChangeScene={(scene) => {
+                    setChain(prev => prev.map((s, idx) => idx === i ? { ...s, scene } : s));
+                  }}
+                  onChangeCycles={(cycles) => {
+                    setChain(prev => prev.map((s, idx) => idx === i ? { ...s, cycles } : s));
+                  }}
+                  onDelete={() => {
+                    setChain(prev => {
+                      const next = prev.filter((_, idx) => idx !== i);
+                      if (chainPosition >= next.length) setChainPosition(Math.max(0, next.length - 1));
+                      return next;
+                    });
+                  }}
+                  onClose={() => setEditingStepIndex(null)}
+                />
+              )}
             </div>
             {i < chain.length - 1
               ? <span className="text-muted-foreground text-xs">›</span>
