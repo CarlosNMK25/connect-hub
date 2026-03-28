@@ -1627,7 +1627,25 @@ export const EuclideanTrack = React.memo(({
       {/* Phase 8 — Snare Synthesis Controls */}
       {id === 'snare' && samplerStatus === 'IDLE' && onPercSynthParamChange && (
         <div className="flex items-center gap-3 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <span className="text-[7px] font-mono uppercase text-idm-muted w-8 shrink-0">Snr</span>
+          <select
+            value={findSnarePresetIndex(snareDecay ?? 0.2, snareNoiseType ?? 'white', snareBodyEnabled ?? false, snareBodyPitch ?? 180, snareBodyDecay ?? 0.1)}
+            onChange={e => {
+              const idx = Number(e.target.value);
+              if (idx < 0) return;
+              const p = SNARE_PRESETS[idx];
+              onPercSynthParamChange?.(trackId, 'snareDecay', p.decay);
+              onPercSynthParamChange?.(trackId, 'snareNoiseType', p.noiseType);
+              onPercSynthParamChange?.(trackId, 'snareBodyEnabled', p.bodyEnabled);
+              if (p.bodyEnabled) {
+                onPercSynthParamChange?.(trackId, 'snareBodyPitch', p.bodyPitch!);
+                onPercSynthParamChange?.(trackId, 'snareBodyDecay', p.bodyDecay!);
+              }
+            }}
+            className="text-[9px] font-mono bg-background border border-border rounded px-1 py-0.5 max-w-[90px] truncate"
+          >
+            <option value={-1}>— Custom —</option>
+            {SNARE_PRESETS.map((p, i) => <option key={i} value={i}>{p.name}</option>)}
+          </select>
           <div className="flex items-center gap-1.5" onMouseEnter={(e) => handleParamEnter('snareDecay', e)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono text-idm-muted">Dec</span>
             <input type="range" min={5} max={50} step={1} value={Math.round((snareDecay ?? 0.2) * 100)} onChange={e => onPercSynthParamChange?.(trackId, 'snareDecay', Number(e.target.value) / 100)} className="w-14 h-1 accent-primary" />
