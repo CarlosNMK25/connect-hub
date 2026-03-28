@@ -55,6 +55,17 @@ export const MANUALS: ManualMeta[] = [
     description: 'Cuatro sistemas de azar a diferentes escalas temporales. La máquina deja de obedecer y empieza a improvisar dentro de los límites que tú defines.',
     fileName: 'sesion-04-el-azar-controlado.md',
   },
+  {
+    id: 'sesion-05',
+    slug: 'sesion-05-el-sonido',
+    title: 'El Sonido',
+    session: 5,
+    subtitle: 'Síntesis percusiva, tonal, granular y los 6 buses de FX',
+    duration: '70-90 min',
+    prerequisite: 'Sesiones 1-4 completadas',
+    description: 'De qué está hecho cada sonido. Los motores de Kick, Snare y Hat, los 9 tipos de síntesis tonal, Cloud granular y ENO, los 6 buses de efectos globales y el Frequency Shifter.',
+    fileName: 'sesion-05-el-sonido.md',
+  },
 ];
 
 export async function loadManualContent(fileName: string): Promise<string> {
