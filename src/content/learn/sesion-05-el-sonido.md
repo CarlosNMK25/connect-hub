@@ -415,7 +415,8 @@ Lo que está ocurriendo:
 | fm | Metálico, inarmónico | IDM, textura compleja |
 | wavetable | Cálido, analógico | Pads, ambient |
 | additive | Brillante, armónico | Control preciso del timbre |
-| ar | Pulsante | Modulación rítmica interna |
+| ar mod | Pulsante (transversal) | Modulación rítmica interna |
+| ambient | Generativo, asimétrico | Fondos autónomos |
 | pad | Denso, coral | Texturas de acordes |
 | drone | Sostenido | Base fija continua |
 | ks | Percusivo-tonal | Cuerda pulsada |
