@@ -859,19 +859,6 @@ export const EuclideanSequencer = () => {
         ))}
       </div>
 
-      {/* ═══ SONG MODE CHAIN PANEL ═══ */}
-      {songModeEnabled && (
-        <SongModePanel
-          songModeView={songModeView}
-          setSongModeView={setSongModeView}
-          syncAllScenes={syncAllScenes}
-          setSyncAllScenes={setSyncAllScenes}
-          chain={chain}
-          setChain={setChain}
-          chainPosition={chainPosition}
-          setChainPosition={setChainPosition}
-        />
-      )}
 
 
 
