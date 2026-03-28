@@ -165,6 +165,7 @@ export function usePresetManager(params: UsePresetManagerParams) {
   const importInputRef = useRef<HTMLInputElement>(null);
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
   const [hoveredPreset, setHoveredPreset] = useState<ScenePreset | null>(null);
+  const [selectedPreset, setSelectedPreset] = useState<ScenePreset | null>(null);
 
   // --- Preview patterns ---
   const previewPatterns = useMemo(() => {
