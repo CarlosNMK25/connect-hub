@@ -319,6 +319,10 @@ export function usePresetManager(params: UsePresetManagerParams) {
           chaosEnabled: t.chaosEnabled, entropy: t.entropy,
           evolveEnabled: t.evolveEnabled, mutationRate: t.mutationRate, mutationSpeed: t.mutationSpeed,
           volume: t.volume, delaySend: t.delaySend, reverbSend: t.reverbSend, ratchet: t.ratchet,
+          // Granular / Sampler
+          grainSize: t.grainSize, overlap: t.overlap, spray: t.spray, bitCrush: t.bitCrush,
+          pitch: t.pitch, normalize: t.normalize,
+          sampleStart: t.sampleStart, sampleEnd: t.sampleEnd, attack: t.attack, decay: t.decay,
           ...(t.isTonal ? { rootNote: t.rootNote, scaleId: t.scaleId, octaveRange: t.octaveRange, noteIndices: [...t.noteIndices], synthType: t.synthType, fmRatio: t.fmRatio, fmIndex: t.fmIndex, wfAmount: t.wfAmount, wfSymmetry: t.wfSymmetry, addPartials: t.addPartials, addBrightness: t.addBrightness, arRate: t.arRate, arDepth: t.arDepth, padVoices: t.padVoices, padDetune: t.padDetune, padAttack: t.padAttack, droneFeedback: t.droneFeedback, droneFilterFreq: t.droneFilterFreq, ksDecay: t.ksDecay, ksBrightness: t.ksBrightness, modalBody: t.modalBody, modalDecay: t.modalDecay, ambientVolume: t.ambientVolume, ambientSpeed: t.ambientSpeed } : {}),
           ...(t.id === 'cloud' ? { cloudMode: t.cloudMode, enoSpeed: t.enoSpeed } : {}),
           rrEnabled: t.rrEnabled,
