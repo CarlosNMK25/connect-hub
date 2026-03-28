@@ -14,6 +14,8 @@ interface SongModePanelProps {
   setChain: React.Dispatch<React.SetStateAction<ChainStep[]>>;
   chainPosition: number;
   setChainPosition: (pos: number) => void;
+  onJumpToScene: (sceneIndex: number) => void;
+  chainCycleProgress: number;
 }
 
 export const SongModePanel: React.FC<SongModePanelProps> = ({
@@ -21,6 +23,7 @@ export const SongModePanel: React.FC<SongModePanelProps> = ({
   syncAllScenes, setSyncAllScenes,
   chain, setChain,
   chainPosition, setChainPosition,
+  onJumpToScene, chainCycleProgress,
 }) => {
   return (
     <div className="border border-border rounded-lg bg-background overflow-hidden">
@@ -67,7 +70,12 @@ export const SongModePanel: React.FC<SongModePanelProps> = ({
                   ? 'bg-system-accent/10 border-system-accent/30'
                   : 'bg-background border-border'
               }`}
-              onClick={() => setChainPosition(i)}
+              onClick={() => {
+                setChainPosition(i);
+                if (songModeView === 'performance') {
+                  onJumpToScene(step.scene - 1);
+                }
+              }}
             >
               <span className={`text-xs font-medium ${i === chainPosition ? 'text-system-accent' : 'text-muted-foreground'}`}>
                 {step.scene}
@@ -77,7 +85,11 @@ export const SongModePanel: React.FC<SongModePanelProps> = ({
                   <span
                     key={j}
                     className={`w-1.5 h-1.5 rounded-sm inline-block ${
-                      i === chainPosition ? 'bg-system-accent' : 'bg-muted-foreground/20'
+                      i === chainPosition
+                        ? j < chainCycleProgress
+                          ? 'bg-system-accent'
+                          : 'bg-system-accent/20'
+                        : 'bg-muted-foreground/20'
                     }`}
                   />
                 ))}
@@ -98,9 +110,8 @@ export const SongModePanel: React.FC<SongModePanelProps> = ({
       </div>
       <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 border-t border-border text-[9px] text-muted-foreground">
         <div className="w-1.5 h-1.5 rounded-full bg-system-accent flex-shrink-0" />
-        <span>Escena {chain[chainPosition]?.scene} · Ciclo 1/{chain[chainPosition]?.cycles}</span>
+        <span>Escena {chain[chainPosition]?.scene} · Ciclo {chainCycleProgress + 1}/{chain[chainPosition]?.cycles}</span>
         <div className="flex-1" />
-        
       </div>
     </div>
   );

@@ -106,6 +106,7 @@ export function useSequencer(params: UseSequencerParams) {
   const phaseBufferHeadRef = useRef(0);
 
   // ═══ Song Mode / Chain Refs ═══
+  const [chainCycleProgress, setChainCycleProgress] = useState(0);
   const chainCyclesRef = useRef(0);
   const songModeConfigRef = useRef(songModeConfig);
   const mcmRef = useRef(mcm);
