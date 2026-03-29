@@ -504,6 +504,12 @@ const MICRO_CONTEXTUAL: Record<string, ContextualZone[]> = {
     { max: 1000, text: 'MCM 101-1000: complejidad alta. Minutos antes de la repetición exacta. El oído percibe estructura sin poder anticipar el ciclo completo.', textLiterary: 'El patrón existe pero el oído no lo anticipa. Libertad dentro de la estructura — como un poema cuya rima interna solo se revela en la relectura.' },
     { max: Infinity, text: 'MCM > 1000: evolución infinita. Territorio IDM primo — MCM(11,13,17)=2431. Nunca escucharás exactamente la misma configuración dos veces. Zona Autechre/Confield.', textLiterary: 'Nunca escucharás exactamente esto dos veces. El algoritmo como río — Async Ecosystem, Confield: el territorio donde la repetición es una ilusión y cada ciclo es un estreno absoluto.' },
   ],
+  hitRate: [
+    { max: 30, text: 'Hit Rate 0-30%: baja densidad de aciertos. El caos y las probabilidades filtran la mayoría de los onsets — el patrón euclidiano es una sugerencia, no una orden.', textLiterary: 'Más silencios que golpes: el patrón se deshace en el aire como humo. Cada golpe que sobrevive al filtro del azar es un pequeño milagro, una nota que insistió en existir.' },
+    { max: 60, text: 'Hit Rate 31-60%: zona probabilística. Aproximadamente la mitad de los onsets programados suenan. El patrón se reconoce pero nunca se repite exactamente igual.', textLiterary: 'Zona de incertidumbre fértil: el patrón parpadea entre presencia y ausencia. Como una conversación donde la mitad de las palabras se pierden en el viento — y aun así se entiende.' },
+    { max: 90, text: 'Hit Rate 61-90%: alta fidelidad al patrón. La mayoría de los onsets programados suenan. El caos añade variación sutil sin destruir la estructura.', textLiterary: 'El patrón habla claro con acento propio. Casi todos los golpes llegan, pero los que faltan crean huecos expresivos — como un cantaor que se traga una sílaba para darle peso a la siguiente.' },
+    { max: Infinity, text: 'Hit Rate > 90%: determinismo casi puro. El patrón euclidiano suena prácticamente tal cual fue programado. Mínima intervención del azar.', textLiterary: 'Determinismo casi absoluto: lo que programas es lo que suena. La máquina obedece sin cuestionar — precisa, fiel, implacable. El caos ha sido domesticado hasta la invisibilidad.' },
+  ],
 };
 
 export function getMicroText(key: string, voice: PedagogyVoice, value?: number): string {
