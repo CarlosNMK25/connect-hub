@@ -89,8 +89,8 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
             </div>
             <div className="flex flex-col gap-1">
               <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxLowPass'); setHoveredGlobalEl(e.currentTarget); } }}
-                onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxLowPass'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(fxLowPass); } }}
+                onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
                 <span>LPF</span>
                 <span className="text-system-accent">{Math.round(fxLowPass)}Hz</span>
               </div>
