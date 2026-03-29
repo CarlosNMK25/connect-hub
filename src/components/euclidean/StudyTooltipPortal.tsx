@@ -12,7 +12,7 @@ interface StudyTooltipPortalProps {
 }
 
 export const StudyTooltipPortal: React.FC<StudyTooltipPortalProps> = ({
-  isStudyMode, hoveredGlobalParam, hoveredGlobalEl, studyVoice,
+  isStudyMode, hoveredGlobalParam, hoveredGlobalEl, studyVoice, hoveredGlobalValue,
 }) => {
   const pos = (() => {
     if (!hoveredGlobalParam || !hoveredGlobalEl) return { top: 0, left: 0, flip: false };
