@@ -35,6 +35,7 @@ interface GlobalControlsProps {
   isStudyMode: boolean;
   setHoveredGlobalParam: (p: string | null) => void;
   setHoveredGlobalEl: (el: HTMLElement | null) => void;
+  setHoveredGlobalValue: (v: number | null) => void;
 }
 
 export const GlobalControls: React.FC<GlobalControlsProps> = ({
