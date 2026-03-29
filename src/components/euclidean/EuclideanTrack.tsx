@@ -935,7 +935,7 @@ export const EuclideanTrack = React.memo(({
                       <span className={`block w-2 h-2 rounded-full bg-white shadow transition-transform ${lorenzEnabled ? 'translate-x-2.5' : 'translate-x-0.5'}`} />
                     </button>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('lorenzDepth', e, lorenzDepth ?? 1000)} onMouseLeave={handleParamLeave}>
                     <span className="text-[7px] font-mono text-idm-muted w-6">Dep</span>
                     <input type="range" min={0} max={5000} step={100}
                       value={lorenzDepth ?? 1000}
