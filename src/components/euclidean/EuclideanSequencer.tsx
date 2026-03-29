@@ -744,6 +744,7 @@ export const EuclideanSequencer = () => {
         hoveredGlobalParam={hoveredGlobalParam}
         hoveredGlobalEl={hoveredGlobalEl}
         studyVoice={studyVoice}
+        hoveredGlobalValue={hoveredGlobalValue}
       />
     </div>
   );
