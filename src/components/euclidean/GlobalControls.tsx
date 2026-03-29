@@ -128,8 +128,8 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
           </div>
           <div className="flex flex-col gap-1">
             <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayFeedback'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayFeedback'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(delayFeedback); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
               <span>Feedback</span><span className="text-system-accent">{Math.round(delayFeedback * 100)}%</span>
             </div>
             <input type="range" min="0" max="100" value={delayFeedback * 100}
