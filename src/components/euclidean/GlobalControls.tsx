@@ -108,8 +108,8 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
         <div className="grid grid-cols-3 gap-4">
           <div className="flex flex-col gap-1">
             <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverbMix'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverbMix'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(reverbMix); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
               <span>Space</span><span className="text-system-accent">{Math.round(reverbMix * 100)}%</span>
             </div>
             <input type="range" min="0" max="100" value={reverbMix * 100}
