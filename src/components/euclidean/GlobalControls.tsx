@@ -46,7 +46,7 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
   mcm, showMM, setShowMM, mmHistory,
   METRIC_MODULATION_RATIOS, handleMetricModulation, handleMetricModulationReset,
   logChange, logSliderChange, formatEclipseTime,
-  isStudyMode, setHoveredGlobalParam, setHoveredGlobalEl,
+  isStudyMode, setHoveredGlobalParam, setHoveredGlobalEl, setHoveredGlobalValue,
 }) => {
   return (
     <div className="flex flex-col gap-4">
