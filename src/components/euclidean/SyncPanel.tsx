@@ -40,6 +40,7 @@ interface SyncPanelProps {
   isStudyMode: boolean;
   setHoveredGlobalParam: (v: string | null) => void;
   setHoveredGlobalEl: (v: HTMLElement | null) => void;
+  setHoveredGlobalValue: (v: number | null) => void;
 }
 
 export const SyncPanel: React.FC<SyncPanelProps> = ({
@@ -52,7 +53,7 @@ export const SyncPanel: React.FC<SyncPanelProps> = ({
   phaseBufferRef, phaseBufferHeadRef, PHASE_BUFFER_SIZE,
   eclipseHistoryRef,
   bpm, temporalityMode, jitter, swing, mmHistory,
-  isStudyMode, setHoveredGlobalParam, setHoveredGlobalEl,
+  isStudyMode, setHoveredGlobalParam, setHoveredGlobalEl, setHoveredGlobalValue,
 }) => {
   return (
     <div className="mb-8 bg-white p-6 rounded-2xl border border-black/5 flex flex-col lg:flex-row items-start gap-8 relative overflow-hidden transition-all duration-500 animate-in fade-in slide-in-from-top-2 duration-500 opacity-100 shadow-sm">
@@ -60,8 +61,8 @@ export const SyncPanel: React.FC<SyncPanelProps> = ({
         <div className="flex justify-between items-end">
           <div className="space-y-1">
             <div className={`flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('patternSync'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('patternSync'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(null); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
               <Zap size={12} className={mcm > 1000 ? "text-red-500 animate-pulse" : "text-system-accent"} />
               Sincronía del Patrón
             </div>
@@ -71,8 +72,8 @@ export const SyncPanel: React.FC<SyncPanelProps> = ({
           </div>
           <div className="text-right">
             <div className={`text-[9px] font-mono uppercase text-idm-ink/40 mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('rhythmicEntropy'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>Entropía Rítmica</div>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('rhythmicEntropy'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(null); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>Entropía Rítmica</div>
             <div className={`text-[10px] font-mono font-bold tracking-tighter ${entropy.color}`}>
               {entropy.label}
             </div>
@@ -90,30 +91,30 @@ export const SyncPanel: React.FC<SyncPanelProps> = ({
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
           <div className="bg-black/5 p-3 rounded-lg border border-black/5">
             <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('mcmValue'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>MCM</div>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('mcmValue'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(null); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>MCM</div>
             <div className="text-xl font-mono text-system-accent tracking-tighter">{mcm}</div>
           </div>
           <div className="bg-black/5 p-3 rounded-lg border border-black/5">
             <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('syncImpact'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>Impacto</div>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('syncImpact'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(null); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>Impacto</div>
             <div className="text-xl font-mono text-system-accent tracking-tighter">
               {Math.round(syncImpacts.reduce((a, b) => a + b, 0) / Math.max(1, tracks.filter(t => t.id !== 'cloud').length))}%
             </div>
           </div>
           <div className="bg-black/5 p-3 rounded-lg border border-black/5">
             <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('eclipseCountdown'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>ECLIPSE</div>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('eclipseCountdown'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(null); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>ECLIPSE</div>
             <div className={`text-xl font-mono tracking-tighter transition-colors duration-300 ${eclipseFlash ? 'text-system-accent animate-pulse' : 'text-system-accent'}`}>
               {eclipseDisplay}
             </div>
           </div>
           <div className="bg-black/5 p-3 rounded-lg border border-black/5">
             <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('hitRate'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>HIT RATE</div>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('hitRate'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(null); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>HIT RATE</div>
             <div className={`text-xl font-mono tracking-tighter ${hitRateColor}`}>
               {hitRateData.rate !== null ? `${hitRateData.rate}%` : '—'}
             </div>
@@ -341,8 +342,8 @@ export const SyncPanel: React.FC<SyncPanelProps> = ({
       </div>
 
       <div className={isStudyMode ? 'cursor-help' : ''}
-        onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('phaseRadar'); setHoveredGlobalEl(e.currentTarget); } }}
-        onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+        onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('phaseRadar'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(null); } }}
+        onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
         <PhaseRadar 
           tracks={tracks.map(t => ({ id: t.id, name: t.name, steps: t.steps, pulses: t.pulses, color: t.color, offset: t.offset, chaosEnabled: (t as any).chaosEnabled, evolveEnabled: (t as any).evolveEnabled, entropy: (t as any).entropy, mutationRate: (t as any).mutationRate }))}
           globalStep={globalStep}
