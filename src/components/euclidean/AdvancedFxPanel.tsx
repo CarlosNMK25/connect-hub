@@ -36,7 +36,7 @@ export const AdvancedFxPanel: React.FC<AdvancedFxPanelProps> = ({
   spectralDelayEnabled, setSpectralDelayEnabled, spectralDelayWet, setSpectralDelayWet,
   spectralDelayLowTime, setSpectralDelayLowTime, spectralDelayMidTime, setSpectralDelayMidTime,
   spectralDelayHighTime, setSpectralDelayHighTime,
-  isStudyMode, setHoveredGlobalParam, setHoveredGlobalEl,
+  isStudyMode, setHoveredGlobalParam, setHoveredGlobalEl, setHoveredGlobalValue,
 }) => {
   const fxList = [
     { id: 'GRV' as const, label: 'GRV', enabled: gatedEnabled, setEnabled: setGatedEnabled, title: 'Gated Reverb', studyParam: 'gatedEnabled' },
