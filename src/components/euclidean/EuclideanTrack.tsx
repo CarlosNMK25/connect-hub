@@ -2050,7 +2050,7 @@ export const EuclideanTrack = React.memo(({
               {padVoices ?? 5}
             </span>
           </div>
-          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('padDetune', e)} onMouseLeave={handleParamLeave}>
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('padDetune', e, padDetune)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Detune</span>
             <input
               type="range" min="0" max="100" step="1"
