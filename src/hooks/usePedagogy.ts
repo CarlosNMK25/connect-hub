@@ -7,6 +7,7 @@ export function usePedagogy() {
   const [isThesisOpen, setIsThesisOpen] = useState(false);
   const [hoveredGlobalParam, setHoveredGlobalParam] = useState<string | null>(null);
   const [hoveredGlobalEl, setHoveredGlobalEl] = useState<HTMLElement | null>(null);
+  const [hoveredGlobalValue, setHoveredGlobalValue] = useState<number | null>(null);
 
   return {
     isStudyMode, setIsStudyMode,
@@ -14,5 +15,6 @@ export function usePedagogy() {
     isThesisOpen, setIsThesisOpen,
     hoveredGlobalParam, setHoveredGlobalParam,
     hoveredGlobalEl, setHoveredGlobalEl,
+    hoveredGlobalValue, setHoveredGlobalValue,
   };
 }

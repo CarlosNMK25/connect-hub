@@ -8,10 +8,11 @@ interface StudyTooltipPortalProps {
   hoveredGlobalParam: string | null;
   hoveredGlobalEl: HTMLElement | null;
   studyVoice: PedagogyVoice;
+  hoveredGlobalValue?: number | null;
 }
 
 export const StudyTooltipPortal: React.FC<StudyTooltipPortalProps> = ({
-  isStudyMode, hoveredGlobalParam, hoveredGlobalEl, studyVoice,
+  isStudyMode, hoveredGlobalParam, hoveredGlobalEl, studyVoice, hoveredGlobalValue,
 }) => {
   const pos = (() => {
     if (!hoveredGlobalParam || !hoveredGlobalEl) return { top: 0, left: 0, flip: false };
@@ -44,7 +45,7 @@ export const StudyTooltipPortal: React.FC<StudyTooltipPortalProps> = ({
           className="w-72 p-3 bg-white border border-system-accent/40 rounded-xl shadow-2xl pointer-events-none"
         >
           <div className="text-[10px] font-mono leading-relaxed text-idm-ink uppercase">
-            {getMicroText(hoveredGlobalParam, studyVoice)}
+            {getMicroText(hoveredGlobalParam, studyVoice, hoveredGlobalValue ?? undefined)}
           </div>
           <div
             className="absolute left-1/2 -translate-x-1/2 w-2 h-2 bg-white border-system-accent/40 rotate-45"

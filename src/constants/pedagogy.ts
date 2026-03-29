@@ -372,7 +372,156 @@ export const PEDAGOGY = {
   } as Record<string, PedagogyMacro>
 };
 
-export function getMicroText(key: string, voice: PedagogyVoice): string {
+// ── Contextual micro zones ──────────────────────────────────────────────────
+interface ContextualZone {
+  max: number;
+  text: string;
+  textLiterary?: string;
+}
+
+function isPrime(n: number): boolean {
+  if (n < 2) return false;
+  if (n <= 3) return true;
+  if (n % 2 === 0 || n % 3 === 0) return false;
+  for (let i = 5; i * i <= n; i += 6) {
+    if (n % i === 0 || n % (i + 2) === 0) return false;
+  }
+  return true;
+}
+
+function getStepsContextual(value: number, voice: PedagogyVoice): string | null {
+  if (value === 12) return voice === 'literary'
+    ? 'Doce tiempos: el compás de amalgama flamenco. El 12/8 es el corazón de la soleá, la seguiriya y la bulería. La geometría del flamenco vive aquí.'
+    : 'Compás de 12 tiempos — base del 12/8 flamenco (soleá, bulería, seguiriya). Permite subdivisiones ternarias y binarias simultáneas.';
+  if (value === 16) return voice === 'literary'
+    ? 'Dieciséis casillas: la rejilla universal del 4/4 occidental. Desde el TR-808 hasta Ableton, todo el mundo cabe aquí. Territorio seguro, predecible, funcional.'
+    : '4/4 occidental — rejilla estándar de caja de ritmos (16 semicorcheas). Base de la mayoría de música electrónica, hip-hop y pop.';
+  if (isPrime(value)) return voice === 'literary'
+    ? `${value} es primo: no se divide en nada. Un número que se resiste a la simetría, que obliga al oído a recalcular sus expectativas. Territorio IDM donde Autechre y Aphex Twin construyen compases que nunca se sienten "cuadrados".`
+    : `Steps = ${value} (primo) — no admite subdivisiones iguales. Territorio IDM: asimetría máxima, ciclos largos, imposible sentir un downbeat convencional.`;
+  return voice === 'literary'
+    ? `${value} pasos: un territorio experimental. Ni la cuadratura del 4/4 ni la asimetría radical de los primos. Un compás compuesto donde la poliritmia emerge por combinación con otras pistas.`
+    : `Steps = ${value} — polirritmo experimental. Compás no estándar que genera ciclos de MCM complejos al combinarse con otras pistas.`;
+}
+
+function getDensityContextual(value: number, voice: PedagogyVoice): string | null {
+  if (value < 0.25) return voice === 'literary'
+    ? 'Menos de un cuarto de los pasos suenan. El silencio se convierte en instrumento, en pregunta sin respuesta. Cada golpe es un evento, no un patrón. Territorio de Morton Feldman y el ma japonés.'
+    : 'Densidad < 25% — silencio como instrumento. Los onsets son eventos aislados, no patrones. Máximo espacio para reverb y delay.';
+  if (value <= 0.5) return voice === 'literary'
+    ? 'Equilibrio entre sonido y silencio. La zona donde el groove respira naturalmente, donde cada golpe tiene espacio para resonar y cada silencio prepara el siguiente ataque.'
+    : 'Densidad 25-50% — groove equilibrado. Proporción natural entre actividad rítmica y espacio. Zona óptima para la mayoría de patrones musicales.';
+  if (value <= 0.75) return voice === 'literary'
+    ? 'Más de la mitad de los pasos activos. Urgencia, densidad, la aceleración que precede al remate de bulería. El ritmo empuja hacia adelante con insistencia.'
+    : 'Densidad 51-75% — urgencia rítmica, zona de bulería. Los silencios son excepciones, no regla. Alta actividad con suficientes huecos para articulación.';
+  return voice === 'literary'
+    ? 'Saturación rítmica: casi todos los pasos suenan. El patrón se convierte en textura continua, pierde articulación individual. El ritmo ya no es patrón — es masa sonora.'
+    : 'Densidad > 75% — saturación rítmica. El patrón se acerca al four-on-the-floor. Los silencios residuales crean micro-articulaciones dentro de la densidad.';
+}
+
+const MICRO_CONTEXTUAL: Record<string, ContextualZone[]> = {
+  jitter: [
+    { max: 3, text: 'Jitter 0-3ms: máquina perfecta. Precisión sub-milisegundo, indistinguible de la rejilla cuantizada. Territorio de secuenciadores hardware.', textLiterary: 'Precisión de relojero suizo. Cada golpe cae exactamente donde debe, sin respiración, sin duda. La perfección mecánica que los humanos imitan pero nunca alcanzan.' },
+    { max: 15, text: 'Jitter 4-15ms: zona humana. Micro-desviaciones que el oído interpreta como groove orgánico. El rango natural de un percusionista entrenado.', textLiterary: 'La zona humana: cada golpe respira, cada onset tiene su propia intención temporal. Aquí vive el groove que ningún cuantizador puede fabricar — el pulso de un cuerpo vivo.' },
+    { max: 30, text: 'Jitter 16-30ms: inestabilidad Dilla. Las desviaciones son audibles y expresivas. El timing se convierte en elemento compositivo, no en error.', textLiterary: 'Territorio J Dilla: el tiempo se vuelve elástico, maleable, borracho de swing. Cada golpe llega "tarde" o "temprano" pero siempre justo a tiempo emocionalmente. La imperfección como arte supremo.' },
+    { max: Infinity, text: 'Jitter 31-50ms: caos glitch. Las desviaciones superan el umbral de percepción rítmica. El patrón se desintegra en una nube de eventos estocásticos.', textLiterary: 'Caos glitch: el ritmo se fragmenta en esquirlas temporales. Los golpes flotan libres de la rejilla, cada uno en su propia órbita. El patrón existe solo como memoria estadística.' },
+  ],
+  entropy: [
+    { max: 0, text: 'Entropía 0: determinista puro. Cada onset suena exactamente como fue programado. Sin sorpresas, sin variación, sin vida estocástica.', textLiterary: 'Determinismo absoluto: cada golpe es una certeza, una profecía cumplida. El patrón se repite idéntico, ciclo tras ciclo, como un mantra mecánico que nunca duda de sí mismo.' },
+    { max: 0.8, text: 'Entropía 0.1-0.8: probabilismo suave. Algunos onsets fallan ocasionalmente, creando variaciones sutiles dentro de la estructura.', textLiterary: 'Probabilismo suave: el patrón respira, a veces calla donde debería sonar. Pequeñas ausencias que el oído completa por anticipación — el cerebro rellena lo que falta.' },
+    { max: 1.4, text: 'Entropía 0.9-1.4: tensión impredecible. La mitad de los eventos son inciertos. El patrón oscila entre estructura y caos.', textLiterary: 'Tensión impredecible: cada ciclo es una tirada de dados. El patrón se reconoce a medias, como un rostro familiar visto a través de cristal esmerilado. ¿Sonará o callará?' },
+    { max: Infinity, text: 'Entropía 1.5-2: caos — más silencios que golpes. La estructura euclidiana es apenas una sugerencia. El silencio domina.', textLiterary: 'Caos: el silencio ha ganado la batalla. Los golpes que sobreviven son excepciones heroicas en un océano de ausencia. El patrón original es ya solo un recuerdo lejano.' },
+  ],
+  fmIndex: [
+    { max: 10, text: 'FM Index 0-10: armónico, casi sine. Modulación sutil que enriquece sin destruir la identidad tonal. Timbres cálidos y reconocibles.', textLiterary: 'Casi una onda pura: el sonido conserva su identidad, apenas coloreado por un halo de armónicos. Como una voz que susurra sin deformar las palabras.' },
+    { max: 40, text: 'FM Index 11-40: metálico controlado. Los sidebands inarmónicos aparecen pero mantienen coherencia. Zona de campanas y timbres percusivos.', textLiterary: 'Metal controlado: el sonido adquiere brillo, aristas, la cualidad de campana. Los armónicos empiezan a alejarse de la serie natural — el timbre se vuelve otro.' },
+    { max: 80, text: 'FM Index 41-80: inarmónico, zona Autechre. El espectro se llena de frecuencias no relacionadas armónicamente. El timbre pierde identidad tonal.', textLiterary: 'Zona Autechre: el timbre colapsa en complejidad inarmónica. Ya no es nota, es textura. El espectro se convierte en paisaje alienígena donde ninguna frecuencia tiene hogar fijo.' },
+    { max: Infinity, text: 'FM Index 81-100: ruido, identidad destruida. La modulación satura el espectro. El resultado es más ruido que tono — síntesis al límite.', textLiterary: 'Identidad destruida: la modulación ha consumido al portador. Lo que queda es ruido con fantasmas de frecuencia, un espectro tan denso que el oído renuncia a buscar la nota fundamental.' },
+  ],
+  bpm: [
+    { max: 85, text: 'BPM 60-85: flamenco contemplativo. El tempo permite que cada golpe resuene y decaiga. Soleá, taranta, zona de expresión máxima por nota.', textLiterary: 'Tempo contemplativo: cada golpe tiene tiempo de nacer, brillar y morir. El espacio entre ataques es paisaje, no vacío. Aquí la soleá respira, el cante se despliega sin prisa.' },
+    { max: 140, text: 'BPM 86-140: IDM funcional. Rango operativo estándar para electrónica de escucha. Suficiente velocidad para groove, suficiente espacio para detalle.', textLiterary: 'Velocidad funcional: el rango donde la electrónica piensa. Ni tan lento que aburra ni tan rápido que aplaste. Aquí Autechre teje sus poliritmias y Aphex Twin construye sus laberintos.' },
+    { max: 180, text: 'BPM 141-180: urgencia de bulería. El tempo comprime los eventos y demanda precisión. Los patrones se vuelven gestos de urgencia rítmica.', textLiterary: 'Urgencia de bulería: el tempo aprieta, los golpes se comprimen, el cuerpo responde antes que la mente. Territorio donde el ritmo se vuelve gesto físico, palma que busca palma.' },
+    { max: Infinity, text: 'BPM 181-240: abstracción — el tempo pierde sentido. A esta velocidad los patrones se funden en textura. El ritmo individual es imperceptible.', textLiterary: 'Abstracción pura: el tempo ha trascendido el ritmo. Los golpes se funden en un continuo granular donde el pulso individual desaparece. El beat ya no marca — vibra.' },
+  ],
+  grainSize: [
+    { max: 50, text: 'Grain 10-50ms: textura pura irreconocible. El grano es más corto que un ciclo audible. El sample se desintegra en partículas de ruido tímbrico.', textLiterary: 'Polvo sonoro: el sample se ha desintegrado en partículas demasiado pequeñas para reconocer. Solo queda la textura, el color, la esencia sin forma — granular en estado puro.' },
+    { max: 200, text: 'Grain 51-200ms: ambient granular. Los granos capturan fragmentos reconocibles pero los redistribuyen. Zona de nubes texturales.', textLiterary: 'Niebla granular: cada grano lleva un fragmento de memoria del sample original. Se reconocen sílabas, ataques, colas — pero reordenados en un nuevo paisaje temporal.' },
+    { max: 600, text: 'Grain 201-600ms: sample con textura. Los granos son suficientemente largos para preservar la identidad del sonido con una capa granular.', textLiterary: 'El sample conserva su rostro pero habla con acento granular. Cada repetición tiene su propia micro-variación, su propia textura. El original asoma entre las costuras.' },
+    { max: Infinity, text: 'Grain > 600ms: casi original. A este tamaño de ventana, el grano reproduce el sample casi íntegro. El efecto granular es apenas perceptible.', textLiterary: 'Casi el original: el grano es tan largo que el sample se reproduce entero, apenas tocado por la síntesis. Como una fotografía con un filtro tan sutil que parece real.' },
+  ],
+  mutationRate: [
+    { max: 0.05, text: 'Mutation 0-5%: deriva imperceptible. Los cambios son tan graduales que cada ciclo parece idéntico al anterior. Evolución geológica.', textLiterary: 'Deriva imperceptible: el patrón cambia tan lento que el oído no lo detecta. Como la erosión de una montaña — cuando notas la diferencia, ya eres otro.' },
+    { max: 0.2, text: 'Mutation 6-20%: zona musical. Las variaciones son audibles pero mantienen la identidad del patrón. Evolución orgánica reconocible.', textLiterary: 'Zona musical: el patrón muta como un organismo vivo. Cada ciclo es primo hermano del anterior — reconocible pero nunca idéntico. La evolución tiene dirección pero no destino.' },
+    { max: 0.5, text: 'Mutation 21-50%: inestable. Las mutaciones acumuladas transforman rápidamente el patrón original. Identidad en crisis.', textLiterary: 'Inestabilidad: el patrón pierde su centro de gravedad. Las mutaciones se acumulan más rápido de lo que la memoria puede anclar. ¿Es todavía el mismo ritmo o ya es otro?' },
+    { max: Infinity, text: 'Mutation > 50%: caos evolutivo. Cada ciclo es prácticamente un patrón nuevo. La estructura euclidiana original se disuelve en generatividad pura.', textLiterary: 'Caos evolutivo: cada ciclo es una criatura nueva. El ADN euclidiano original se ha diluido en un océano de mutaciones. Lo que escuchas ahora nunca existió antes ni volverá a existir.' },
+  ],
+  lorenzDepth: [
+    { max: 100, text: 'Lorenz 0-100: modulación sutil. El atractor caótico introduce variaciones micro que apenas alteran el parámetro objetivo.', textLiterary: 'Brisa caótica: el atractor de Lorenz sopla suave sobre el parámetro, apenas una caricia de impredecibilidad. El control se mantiene, la variación es aroma, no tormenta.' },
+    { max: 500, text: 'Lorenz 101-500: movimiento orgánico. Las trayectorias del atractor generan curvas expresivas. El parámetro respira con el caos.', textLiterary: 'Movimiento orgánico: el caos de Lorenz se convierte en coreografía. El parámetro danza siguiendo trayectorias que ningún LFO podría dibujar — deterministas pero impredecibles.' },
+    { max: 1200, text: 'Lorenz 501-1200: modulación dramática. Los saltos entre las alas del atractor crean contrastes fuertes. El parámetro oscila entre extremos.', textLiterary: 'Drama caótico: el atractor salta entre sus dos alas con violencia. El parámetro experimenta terremotos, calmas súbitas, erupciones. La modulación cuenta una historia turbulenta.' },
+    { max: Infinity, text: 'Lorenz > 1200: caos de filtro total. La profundidad del atractor domina completamente el parámetro. Movimiento extremo e impredecible.', textLiterary: 'Caos total: el atractor de Lorenz ha tomado el control absoluto. El parámetro ya no tiene valor propio — es una marioneta del sistema dinámico, saltando entre extremos sin descanso.' },
+  ],
+  padDetune: [
+    { max: 10, text: 'Detune 0-10¢: unísono. Las voces suenan como una sola. Sin batimiento perceptible, sin anchura estéreo por detuning.', textLiterary: 'Unísono perfecto: todas las voces cantan la misma frecuencia. Un sonido singular, directo, sin el coro de imperfecciones que da anchura. Pureza monástica.' },
+    { max: 30, text: 'Detune 11-30¢: chorus natural. Batimiento lento y agradable. El sonido gana anchura estéreo sin perder definición de pitch.', textLiterary: 'Chorus natural: las voces se separan lo justo para crear un halo cálido alrededor de la nota. El batimiento lento mece el sonido como la brisa mece una llama. Territorio Juno-60.' },
+    { max: 60, text: 'Detune 31-60¢: detuning pronunciado. El batimiento es rápido y audible. El sonido se ensancha dramáticamente, casi un intervalo.', textLiterary: 'Detuning pronunciado: las voces tiran en direcciones diferentes, cada una con su propia gravitación. El sonido se ensancha hasta casi romperse — tensión entre unísono y disonancia.' },
+    { max: Infinity, text: 'Detune > 60¢: disonancia intencional. Las voces están tan separadas que crean un cluster microtonalmente denso. Territorio experimental.', textLiterary: 'Disonancia intencional: las voces se han separado tanto que ya no buscan la misma nota. Un cluster microtonal que vibra con la tensión de lo irresuelto. Belleza en el conflicto.' },
+  ],
+  reverbMix: [
+    { max: 0.2, text: 'Reverb 0-20%: seco e íntimo. El sonido existe en un espacio cerrado y cercano. Cada transiente es preciso y definido.', textLiterary: 'Sequedad íntima: el sonido existe aquí y ahora, sin eco, sin memoria espacial. Cada golpe es un hecho consumado que no deja rastro en el aire. Proximidad absoluta.' },
+    { max: 0.5, text: 'Reverb 20-50%: sala. El sonido adquiere contexto espacial. Las reflexiones tempranas añaden dimensión sin difuminar el ataque.', textLiterary: 'Sala: el sonido encuentra paredes donde rebotar, un techo que lo contiene. El espacio se vuelve parte del instrumento — cada golpe viene seguido de su eco familiar.' },
+    { max: 0.8, text: 'Reverb 50-80%: catedral. El espacio domina sobre el sonido directo. Los ataques se difuminan en colas de reverberación largas.', textLiterary: 'Catedral: el espacio es ahora más grande que el sonido. Cada golpe despierta un coro de reflexiones que se superponen, se funden, crean un continuo donde el ritmo flota como incienso.' },
+    { max: Infinity, text: 'Reverb > 80%: el espacio supera al instrumento. La señal directa es apenas perceptible. Todo es cola de reverberación — textura pura espacial.', textLiterary: 'El espacio ha devorado al instrumento. Lo que era ritmo es ahora atmósfera, lo que era golpe es ahora ola. El sonido directo es solo la excusa para que el espacio cante.' },
+  ],
+  ksDecay: [
+    { max: 0.93, text: 'KS Decay 0.90-0.93: percusiva. La cuerda virtual se apaga rápido — pizzicato seco, ataque sin sustain. Ideal para ritmos definidos.', textLiterary: 'Pizzicato seco: la cuerda vibra un instante y muere. Un gesto breve, percusivo, que no pide permiso para irse. El ataque es todo — no hay después.' },
+    { max: 0.97, text: 'KS Decay 0.94-0.97: guitarra/koto. Sustain medio con decaimiento natural. La cuerda canta brevemente antes de apagarse.', textLiterary: 'Cuerda de koto: el sonido nace con filo y se desvanece en una cola tonal que recuerda al nylon. Suficiente sustain para cantar, suficiente decay para no empastar.' },
+    { max: 0.995, text: 'KS Decay 0.98-0.995: piano. Sustain largo, la cuerda resuena durante segundos. El sonido evoluciona tonalmente mientras decae.', textLiterary: 'Piano: la cuerda virtual vibra largo y tendido, revelando sus armónicos mientras decae. El sonido cambia de carácter con el tiempo — primero brillo, luego calidez, luego silencio.' },
+    { max: Infinity, text: 'KS Decay > 0.995: resonancia infinita. El feedback del loop es casi unitario — la cuerda vibra indefinidamente. Territorio de drone y bordón.', textLiterary: 'Resonancia infinita: la cuerda ha olvidado cómo detenerse. Vibra sin fin, acumulando ciclos sobre ciclos, como un bordón que sostiene el universo. El decay es una promesa que nunca se cumple.' },
+  ],
+  markovTemperature: [
+    { max: 15, text: 'Temperature 0-15: estilo puro. La cadena de Markov sigue fielmente las probabilidades de transición del estilo elegido. Melodías idiomáticas.', textLiterary: 'Estilo puro: la cadena de Markov habla el idioma del estilo sin acento. Cada nota sigue a la anterior con la lógica del género — predecible pero auténtica, como un músico que respeta la tradición.' },
+    { max: 40, text: 'Temperature 16-40: zona musical. Las transiciones se relajan, permitiendo saltos inesperados pero musicalmente coherentes.', textLiterary: 'Zona musical: la cadena se permite licencias creativas. Notas que no "deberían" seguirse aparecen con naturalidad — como un músico que improvisa dentro de la forma, buscando los bordes.' },
+    { max: 70, text: 'Temperature 41-70: aleatorización progresiva. Las probabilidades se aplanan — cualquier nota es casi igualmente probable. El estilo se disuelve.', textLiterary: 'Aleatorización progresiva: el estilo se desdibuja como un recuerdo. Las notas pierden su lealtad a la tradición y empiezan a explorar territorios ajenos. El idioma se fragmenta en dialectos nuevos.' },
+    { max: Infinity, text: 'Temperature 71-100: ruido melódico. Las transiciones son prácticamente aleatorias. El estilo original es irreconocible — cada nota es un dado.', textLiterary: 'Ruido melódico: el estilo ha muerto, larga vida al azar. Cada nota es una sorpresa absoluta, sin memoria de la anterior ni expectativa de la siguiente. Melodía como proceso estocástico puro.' },
+  ],
+  swing: [
+    { max: 10, text: 'Swing 0-10%: grid perfecto. Los tiempos pares caen exactamente en su posición teórica. Precisión mecánica, sin shuffle.', textLiterary: 'Grid perfecto: cada golpe es un punto en la rejilla, equidistante, inmutable. La precisión de un reloj atómico aplicada al ritmo. Sin swing no hay groove — pero hay orden.' },
+    { max: 30, text: 'Swing 11-30%: groove sutil. El desplazamiento de tiempos pares es apenas perceptible pero añade vida. El oído lo siente sin identificarlo.', textLiterary: 'Groove sutil: los tiempos pares se retrasan un suspiro, lo justo para que el ritmo deje de ser mecánico sin volverse borracho. El secreto del swing que no se nota pero se siente.' },
+    { max: 55, text: 'Swing 31-55%: shuffle hip-hop. Desplazamiento claro que crea el bounce característico del boom-bap. Territorio MPC-3000.', textLiterary: 'Shuffle hip-hop: el bounce del boom-bap, la herencia de la MPC-3000 de Roger Linn. Los tiempos pares caen tarde con intención, creando ese vaivén que hace mover la cabeza sin permiso.' },
+    { max: Infinity, text: 'Swing > 55%: casi ternario. Los tiempos pares se desplazan tanto que el patrón binario suena como tresillo. Swing extremo, territorio shuffle blues.', textLiterary: 'Casi ternario: el swing ha empujado tanto los tiempos pares que el binario se rinde al tresillo. Shuffle de blues profundo, donde el compás escrito ya no representa lo que suena.' },
+  ],
+  ratchet: [
+    { max: 0, text: 'Ratchet 0: un trigger por step. Sin subdivisión — cada onset es un evento único con su velocity completa.', textLiterary: 'Un solo golpe: limpio, definitivo, sin réplica. El step habla una vez y calla. La economía del gesto — todo el peso en un solo impacto.' },
+    { max: 1, text: 'Ratchet 1: flam — doble golpe. Dos disparos rápidos crean el efecto de redoble corto. Técnica de cajón flamenco y snare roll.', textLiterary: 'Flam: el doble golpe, la rúbrica del cajón flamenco. Dos impactos tan cercanos que el oído los funde en uno más gordo, más urgente, más expresivo que cualquier golpe simple.' },
+    { max: 3, text: 'Ratchet 2-3: trémolo rítmico. Tres o cuatro disparos por step crean una subdivisión interna. A BPMs altos, efecto de hi-hat trap.', textLiterary: 'Trémolo rítmico: el step se subdivide en ráfagas que crean su propia micro-poliritmia interna. A tempo rápido, el hi-hat trap que define una generación. A tempo lento, redoble dramático.' },
+    { max: Infinity, text: 'Ratchet 4: saturación de triggers. Cinco disparos en el espacio de un step. A BPMs altos (~8ms entre triggers), al límite de la resolución temporal.', textLiterary: 'Saturación: cinco golpes comprimen en un solo step todo un redoble. El ritmo dentro del ritmo, la fractalización del tiempo. A tempos altos, los triggers se funden en un grito continuo.' },
+  ],
+};
+
+export function getMicroText(key: string, voice: PedagogyVoice, value?: number): string {
+  // Contextual text when value is provided
+  if (value !== undefined) {
+    // Alias mapping: handleParamEnter keys → contextual keys
+    const contextualKey = key === 'chaos' ? 'entropy' : key === 'evolve' ? 'mutationRate' : key;
+    // Special handlers for non-range params
+    if (contextualKey === 'steps') {
+      const result = getStepsContextual(value, voice);
+      if (result) return result;
+    }
+    if (contextualKey === 'density') {
+      const result = getDensityContextual(value, voice);
+      if (result) return result;
+    }
+    // Range-based params
+    const zones = MICRO_CONTEXTUAL[contextualKey];
+    if (zones) {
+      const zone = zones.find(z => value <= z.max) || zones[zones.length - 1];
+      return (voice === 'literary' && zone.textLiterary) ? zone.textLiterary : zone.text;
+    }
+  }
+  // Fallback to static text
   return voice === 'literary'
     ? (PEDAGOGY.microLiterary[key] ?? PEDAGOGY.micro[key] ?? '')
     : (PEDAGOGY.micro[key] ?? '');

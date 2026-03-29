@@ -321,15 +321,18 @@ export const EuclideanTrack = React.memo(({
 
   const [hoveredParam, setHoveredParam] = useState<string | null>(null);
   const [hoveredParamEl, setHoveredParamEl] = useState<HTMLElement | null>(null);
+  const [hoveredParamValue, setHoveredParamValue] = useState<number | null>(null);
 
-  const handleParamEnter = (param: string, e: React.MouseEvent) => {
+  const handleParamEnter = (param: string, e: React.MouseEvent, value?: number) => {
     if (!isStudyMode) return;
     setHoveredParam(param);
     setHoveredParamEl(e.currentTarget as HTMLElement);
+    setHoveredParamValue(value ?? null);
   };
   const handleParamLeave = () => {
     setHoveredParam(null);
     setHoveredParamEl(null);
+    setHoveredParamValue(null);
   };
   const [pendingOffset, setPendingOffset] = useState(offset);
   const [isEditingNext, setIsEditingNext] = useState(false);
@@ -600,7 +603,7 @@ export const EuclideanTrack = React.memo(({
                   <div className="h-full transition-all duration-100" style={{ width: `${(freezeSend ?? 0) * 100}%`, backgroundColor: isMuted ? '#d1d1d1' : color, opacity: 0.4 }} />
                 </div>
               </div>
-              <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('ratchet', e)} onMouseLeave={handleParamLeave}>
+              <div className="flex flex-col gap-1 relative" onMouseEnter={(e) => handleParamEnter('ratchet', e, ratchet)} onMouseLeave={handleParamLeave}>
                 <div className="flex justify-between items-center w-16">
                   <span className="text-[6px] font-mono text-idm-muted uppercase leading-none">Rtch</span>
                   <span className="text-[6px] font-mono text-idm-muted leading-none">{ratchet}×</span>
@@ -932,7 +935,7 @@ export const EuclideanTrack = React.memo(({
                       <span className={`block w-2 h-2 rounded-full bg-white shadow transition-transform ${lorenzEnabled ? 'translate-x-2.5' : 'translate-x-0.5'}`} />
                     </button>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('lorenzDepth', e, lorenzDepth ?? 1000)} onMouseLeave={handleParamLeave}>
                     <span className="text-[7px] font-mono text-idm-muted w-6">Dep</span>
                     <input type="range" min={0} max={5000} step={100}
                       value={lorenzDepth ?? 1000}
@@ -1124,7 +1127,7 @@ export const EuclideanTrack = React.memo(({
                 onChange={(e) => onSequencerAction(trackId, 'pulses', parseInt(e.target.value))}
                 className="w-full h-1 bg-idm-bg appearance-none cursor-pointer rounded-full" style={{ accentColor: color }} />
             </div>
-            <div className="space-y-1 w-28 relative" onMouseEnter={(e) => handleParamEnter('steps', e)} onMouseLeave={handleParamLeave}>
+            <div className="space-y-1 w-28 relative" onMouseEnter={(e) => handleParamEnter('steps', e, steps)} onMouseLeave={handleParamLeave}>
               <div className="flex justify-between text-[8px] font-mono font-bold uppercase text-idm-muted">
                 <span>Steps</span><span style={{ color }}>{steps}</span>
               </div>
@@ -1377,7 +1380,7 @@ export const EuclideanTrack = React.memo(({
             <div className="grid grid-cols-2 gap-x-6 gap-y-4">
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={(e) => handleParamEnter('grainSize', e)}
+                onMouseEnter={(e) => handleParamEnter('grainSize', e, grainSize)}
                 onMouseLeave={handleParamLeave}
               >
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
@@ -1862,7 +1865,7 @@ export const EuclideanTrack = React.memo(({
             </select>
           </div>
           {/* Temperature */}
-          <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('markovTemperature', e)} onMouseLeave={handleParamLeave}>
+          <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('markovTemperature', e, markovTemperature)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Temp</span>
             <input type="range" min={0} max={100} step={5}
               value={markovTemperature ?? 40}
@@ -1951,7 +1954,7 @@ export const EuclideanTrack = React.memo(({
               {(fmRatio ?? 2).toFixed(1)}
             </span>
           </div>
-          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('fmIndex', e)} onMouseLeave={handleParamLeave}>
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('fmIndex', e, fmIndex)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Index</span>
             <input
               type="range"
@@ -2047,7 +2050,7 @@ export const EuclideanTrack = React.memo(({
               {padVoices ?? 5}
             </span>
           </div>
-          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('padDetune', e)} onMouseLeave={handleParamLeave}>
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('padDetune', e, padDetune)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Detune</span>
             <input
               type="range" min="0" max="100" step="1"
@@ -2105,7 +2108,7 @@ export const EuclideanTrack = React.memo(({
       {/* KS controls */}
       {isTonal && synthType === 'ks' && (
         <div className="flex items-center gap-4 mt-1.5 p-3 bg-idm-bg rounded-2xl border border-black/5">
-          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('ksDecay', e)} onMouseLeave={handleParamLeave}>
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('ksDecay', e, ksDecay)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-10">Decay</span>
             <input
               type="range" min="0.80" max="0.999" step="0.001"
@@ -2327,7 +2330,7 @@ export const EuclideanTrack = React.memo(({
           {/* Chaos Section */}
           <div 
             className="flex items-center gap-4 relative"
-            onMouseEnter={(e) => handleParamEnter('chaos', e)}
+            onMouseEnter={(e) => handleParamEnter('chaos', e, entropy)}
             onMouseLeave={handleParamLeave}
           >
             <button 
@@ -2353,7 +2356,7 @@ export const EuclideanTrack = React.memo(({
           {/* Evolve Section */}
           <div 
             className="flex items-center gap-4 relative"
-            onMouseEnter={(e) => handleParamEnter('evolve', e)}
+            onMouseEnter={(e) => handleParamEnter('evolve', e, mutationRate)}
             onMouseLeave={handleParamLeave}
           >
             <button 
@@ -2410,7 +2413,7 @@ export const EuclideanTrack = React.memo(({
       </div>{/* === END COLLAPSIBLE ZONE === */}
 
       <StudyTooltip
-        content={hoveredParam ? getMicroText(hoveredParam, voice) : ''}
+        content={hoveredParam ? getMicroText(hoveredParam, voice, hoveredParamValue ?? undefined) : ''}
         visible={!!hoveredParam && isStudyMode}
         anchorEl={hoveredParamEl}
       />

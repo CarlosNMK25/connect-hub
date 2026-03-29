@@ -81,6 +81,7 @@ export const EuclideanSequencer = () => {
     isThesisOpen, setIsThesisOpen,
     hoveredGlobalParam, setHoveredGlobalParam,
     hoveredGlobalEl, setHoveredGlobalEl,
+    hoveredGlobalValue, setHoveredGlobalValue,
   } = usePedagogy();
   const [eclipseFlash, setEclipseFlash] = useState(false);
   const eclipseRef = useRef(false);
@@ -532,6 +533,7 @@ export const EuclideanSequencer = () => {
                     isStudyMode={isStudyMode}
                     setHoveredGlobalParam={setHoveredGlobalParam}
                     setHoveredGlobalEl={setHoveredGlobalEl}
+                    setHoveredGlobalValue={setHoveredGlobalValue}
                   />
                   <AdvancedFxPanel
                     activeFxPanel={activeFxPanel}
@@ -569,6 +571,7 @@ export const EuclideanSequencer = () => {
                     isStudyMode={isStudyMode}
                     setHoveredGlobalParam={setHoveredGlobalParam}
                     setHoveredGlobalEl={setHoveredGlobalEl}
+                    setHoveredGlobalValue={setHoveredGlobalValue}
                   />
                 </div>
               )}
@@ -741,6 +744,7 @@ export const EuclideanSequencer = () => {
         hoveredGlobalParam={hoveredGlobalParam}
         hoveredGlobalEl={hoveredGlobalEl}
         studyVoice={studyVoice}
+        hoveredGlobalValue={hoveredGlobalValue}
       />
     </div>
   );

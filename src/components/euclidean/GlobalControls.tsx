@@ -35,6 +35,7 @@ interface GlobalControlsProps {
   isStudyMode: boolean;
   setHoveredGlobalParam: (p: string | null) => void;
   setHoveredGlobalEl: (el: HTMLElement | null) => void;
+  setHoveredGlobalValue: (v: number | null) => void;
 }
 
 export const GlobalControls: React.FC<GlobalControlsProps> = ({
@@ -45,7 +46,7 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
   mcm, showMM, setShowMM, mmHistory,
   METRIC_MODULATION_RATIOS, handleMetricModulation, handleMetricModulationReset,
   logChange, logSliderChange, formatEclipseTime,
-  isStudyMode, setHoveredGlobalParam, setHoveredGlobalEl,
+  isStudyMode, setHoveredGlobalParam, setHoveredGlobalEl, setHoveredGlobalValue,
 }) => {
   return (
     <div className="flex flex-col gap-4">
@@ -77,8 +78,8 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
               <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxHighPass'); setHoveredGlobalEl(e.currentTarget); } }}
-                onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxHighPass'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(fxHighPass); } }}
+                onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
                 <span>HPF</span>
                 <span className="text-system-accent">{Math.round(fxHighPass)}Hz</span>
               </div>
@@ -88,8 +89,8 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
             </div>
             <div className="flex flex-col gap-1">
               <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-                onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxLowPass'); setHoveredGlobalEl(e.currentTarget); } }}
-                onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+                onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('fxLowPass'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(fxLowPass); } }}
+                onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
                 <span>LPF</span>
                 <span className="text-system-accent">{Math.round(fxLowPass)}Hz</span>
               </div>
@@ -107,8 +108,8 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
         <div className="grid grid-cols-3 gap-4">
           <div className="flex flex-col gap-1">
             <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverbMix'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('reverbMix'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(reverbMix); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
               <span>Space</span><span className="text-system-accent">{Math.round(reverbMix * 100)}%</span>
             </div>
             <input type="range" min="0" max="100" value={reverbMix * 100}
@@ -117,8 +118,8 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
           </div>
           <div className="flex flex-col gap-1">
             <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayMix'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayMix'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(delayMix); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
               <span>Echo</span><span className="text-system-accent">{Math.round(delayMix * 100)}%</span>
             </div>
             <input type="range" min="0" max="100" value={delayMix * 100}
@@ -127,8 +128,8 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
           </div>
           <div className="flex flex-col gap-1">
             <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayFeedback'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('delayFeedback'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(delayFeedback); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
               <span>Feedback</span><span className="text-system-accent">{Math.round(delayFeedback * 100)}%</span>
             </div>
             <input type="range" min="0" max="100" value={delayFeedback * 100}
@@ -144,8 +145,8 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
         <div className="grid grid-cols-4 gap-4">
           <div className="flex flex-col gap-1">
             <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('bpm'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('bpm'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(bpm); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
               <span>Tempo</span>
               <span className="text-idm-ink">{bpm} BPM</span>
             </div>
@@ -196,8 +197,8 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
           </div>
           <div className="flex flex-col gap-1">
             <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('jitter'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('jitter'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(jitter); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
               <span>Jitter</span><span className="text-system-accent">{jitter}ms</span>
             </div>
             <input type="range" min="0" max="20" value={jitter}
@@ -206,8 +207,8 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
           </div>
           <div className="flex flex-col gap-1">
             <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('swing'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('swing'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(swing); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
               <span>Swing</span><span className="text-system-accent">{swing}%</span>
             </div>
             <input type="range" min="0" max="100" value={swing}
@@ -216,8 +217,8 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
           </div>
           <div className="flex flex-col gap-1">
             <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('dynamics'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('dynamics'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(dynamics); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
               <span>Dynamics</span><span className="text-system-accent">{dynamics}%</span>
             </div>
             <input type="range" min="0" max="100" value={dynamics}

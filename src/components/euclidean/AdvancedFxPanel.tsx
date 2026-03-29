@@ -24,6 +24,7 @@ interface AdvancedFxPanelProps {
   isStudyMode: boolean;
   setHoveredGlobalParam: (p: string | null) => void;
   setHoveredGlobalEl: (el: HTMLElement | null) => void;
+  setHoveredGlobalValue: (v: number | null) => void;
 }
 
 export const AdvancedFxPanel: React.FC<AdvancedFxPanelProps> = ({
@@ -35,7 +36,7 @@ export const AdvancedFxPanel: React.FC<AdvancedFxPanelProps> = ({
   spectralDelayEnabled, setSpectralDelayEnabled, spectralDelayWet, setSpectralDelayWet,
   spectralDelayLowTime, setSpectralDelayLowTime, spectralDelayMidTime, setSpectralDelayMidTime,
   spectralDelayHighTime, setSpectralDelayHighTime,
-  isStudyMode, setHoveredGlobalParam, setHoveredGlobalEl,
+  isStudyMode, setHoveredGlobalParam, setHoveredGlobalEl, setHoveredGlobalValue,
 }) => {
   const fxList = [
     { id: 'GRV' as const, label: 'GRV', enabled: gatedEnabled, setEnabled: setGatedEnabled, title: 'Gated Reverb', studyParam: 'gatedEnabled' },
@@ -55,8 +56,8 @@ export const AdvancedFxPanel: React.FC<AdvancedFxPanelProps> = ({
             key={fx.id}
             onClick={() => setActiveFxPanel(activeFxPanel === fx.id ? null : fx.id)}
             onDoubleClick={() => fx.setEnabled(!fx.enabled)}
-            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam(fx.studyParam); setHoveredGlobalEl(e.currentTarget); } }}
-            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
+            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam(fx.studyParam); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(null); } }}
+            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}
             className={`text-[8px] font-mono px-2 py-1 rounded border transition-colors ${
               activeFxPanel === fx.id
                 ? 'bg-system-accent text-white border-system-accent'
