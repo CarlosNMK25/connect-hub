@@ -105,8 +105,8 @@ export const SyncPanel: React.FC<SyncPanelProps> = ({
           </div>
           <div className="bg-black/5 p-3 rounded-lg border border-black/5">
             <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('eclipseCountdown'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>ECLIPSE</div>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('eclipseCountdown'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(null); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>ECLIPSE</div>
             <div className={`text-xl font-mono tracking-tighter transition-colors duration-300 ${eclipseFlash ? 'text-system-accent animate-pulse' : 'text-system-accent'}`}>
               {eclipseDisplay}
             </div>
