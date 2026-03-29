@@ -197,8 +197,8 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
           </div>
           <div className="flex flex-col gap-1">
             <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('jitter'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('jitter'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(jitter); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
               <span>Jitter</span><span className="text-system-accent">{jitter}ms</span>
             </div>
             <input type="range" min="0" max="20" value={jitter}
