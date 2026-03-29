@@ -1865,7 +1865,7 @@ export const EuclideanTrack = React.memo(({
             </select>
           </div>
           {/* Temperature */}
-          <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('markovTemperature', e)} onMouseLeave={handleParamLeave}>
+          <div className="flex items-center gap-1" onMouseEnter={(e) => handleParamEnter('markovTemperature', e, markovTemperature)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-muted-foreground w-8">Temp</span>
             <input type="range" min={0} max={100} step={5}
               value={markovTemperature ?? 40}
