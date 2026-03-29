@@ -121,19 +121,25 @@ export const SyncPanel: React.FC<SyncPanelProps> = ({
           </div>
         </div>
         {/* Coincidence Row */}
-        <CoincidenceRow
-          tracks={tracks.map(t => ({
-            id: t.id,
-            pattern: t.pattern,
-            steps: t.steps,
-            offset: t.offset,
-            color: t.color,
-            isMuted: t.isMuted,
-          }))}
-          globalStep={globalStep}
-          maxSteps={Math.max(...tracks.map(t => t.steps))}
-          driftOffsets={driftOffsets}
-        />
+        <div
+          className={isStudyMode ? 'cursor-help' : ''}
+          onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('patternSync'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(mcm); } }}
+          onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}
+        >
+          <CoincidenceRow
+            tracks={tracks.map(t => ({
+              id: t.id,
+              pattern: t.pattern,
+              steps: t.steps,
+              offset: t.offset,
+              color: t.color,
+              isMuted: t.isMuted,
+            }))}
+            globalStep={globalStep}
+            maxSteps={Math.max(...tracks.map(t => t.steps))}
+            driftOffsets={driftOffsets}
+          />
+        </div>
 
         {/* Expanded Analysis — Left Column */}
         <AnimatePresence>
