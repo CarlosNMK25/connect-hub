@@ -2356,7 +2356,7 @@ export const EuclideanTrack = React.memo(({
           {/* Evolve Section */}
           <div 
             className="flex items-center gap-4 relative"
-            onMouseEnter={(e) => handleParamEnter('evolve', e)}
+            onMouseEnter={(e) => handleParamEnter('evolve', e, mutationRate)}
             onMouseLeave={handleParamLeave}
           >
             <button 
