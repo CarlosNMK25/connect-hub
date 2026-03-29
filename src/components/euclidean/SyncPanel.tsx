@@ -91,8 +91,8 @@ export const SyncPanel: React.FC<SyncPanelProps> = ({
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
           <div className="bg-black/5 p-3 rounded-lg border border-black/5">
             <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('mcmValue'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>MCM</div>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('mcmValue'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(null); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>MCM</div>
             <div className="text-xl font-mono text-system-accent tracking-tighter">{mcm}</div>
           </div>
           <div className="bg-black/5 p-3 rounded-lg border border-black/5">
