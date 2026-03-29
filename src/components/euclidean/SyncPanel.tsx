@@ -113,7 +113,7 @@ export const SyncPanel: React.FC<SyncPanelProps> = ({
           </div>
           <div className="bg-black/5 p-3 rounded-lg border border-black/5">
             <div className={`text-[8px] uppercase tracking-tighter text-idm-muted mb-1 ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('hitRate'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(null); } }}
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('hitRate'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(hitRateData.rate ?? null); } }}
               onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>HIT RATE</div>
             <div className={`text-xl font-mono tracking-tighter ${hitRateColor}`}>
               {hitRateData.rate !== null ? `${hitRateData.rate}%` : '—'}
