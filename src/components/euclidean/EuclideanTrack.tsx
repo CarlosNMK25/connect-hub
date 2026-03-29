@@ -1954,7 +1954,7 @@ export const EuclideanTrack = React.memo(({
               {(fmRatio ?? 2).toFixed(1)}
             </span>
           </div>
-          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('fmIndex', e)} onMouseLeave={handleParamLeave}>
+          <div className="flex items-center gap-2" onMouseEnter={(e) => handleParamEnter('fmIndex', e, fmIndex)} onMouseLeave={handleParamLeave}>
             <span className="text-[7px] font-mono uppercase text-idm-muted w-8">Index</span>
             <input
               type="range"
