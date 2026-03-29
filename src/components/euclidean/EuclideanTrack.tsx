@@ -1380,7 +1380,7 @@ export const EuclideanTrack = React.memo(({
             <div className="grid grid-cols-2 gap-x-6 gap-y-4">
               <div 
                 className="space-y-2 relative"
-                onMouseEnter={(e) => handleParamEnter('grainSize', e)}
+                onMouseEnter={(e) => handleParamEnter('grainSize', e, grainSize)}
                 onMouseLeave={handleParamLeave}
               >
                 <div className="flex justify-between text-[9px] font-mono uppercase text-idm-muted">
