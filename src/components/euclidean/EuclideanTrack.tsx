@@ -1119,7 +1119,7 @@ export const EuclideanTrack = React.memo(({
         <div className="flex items-center gap-4 flex-wrap">
           {/* Compact Sliders */}
           <div className="flex items-center gap-4 flex-none">
-            <div className={`space-y-1 w-28 relative ${(patternMode ?? 'euclidean') !== 'euclidean' ? 'opacity-30 pointer-events-none' : ''}`} onMouseEnter={(e) => handleParamEnter('pulses', e)} onMouseLeave={handleParamLeave}>
+            <div className={`space-y-1 w-28 relative ${(patternMode ?? 'euclidean') !== 'euclidean' ? 'opacity-30 pointer-events-none' : ''}`} onMouseEnter={(e) => handleParamEnter('density', e, pulses / steps)} onMouseLeave={handleParamLeave}>
               <div className="flex justify-between text-[8px] font-mono font-bold uppercase text-idm-muted">
                 <span>Pulses</span><span style={{ color }}>{pulses}</span>
               </div>

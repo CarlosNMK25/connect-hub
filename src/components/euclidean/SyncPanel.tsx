@@ -53,7 +53,7 @@ export const SyncPanel: React.FC<SyncPanelProps> = ({
   phaseBufferRef, phaseBufferHeadRef, PHASE_BUFFER_SIZE,
   eclipseHistoryRef,
   bpm, temporalityMode, jitter, swing, mmHistory,
-  isStudyMode, setHoveredGlobalParam, setHoveredGlobalEl,
+  isStudyMode, setHoveredGlobalParam, setHoveredGlobalEl, setHoveredGlobalValue,
 }) => {
   return (
     <div className="mb-8 bg-white p-6 rounded-2xl border border-black/5 flex flex-col lg:flex-row items-start gap-8 relative overflow-hidden transition-all duration-500 animate-in fade-in slide-in-from-top-2 duration-500 opacity-100 shadow-sm">

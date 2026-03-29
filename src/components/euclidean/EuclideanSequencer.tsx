@@ -623,6 +623,7 @@ export const EuclideanSequencer = () => {
           isStudyMode={isStudyMode}
           setHoveredGlobalParam={setHoveredGlobalParam}
           setHoveredGlobalEl={setHoveredGlobalEl}
+          setHoveredGlobalValue={setHoveredGlobalValue}
         />
       )}
 
