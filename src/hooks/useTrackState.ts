@@ -989,7 +989,7 @@ export function useTrackState(params: UseTrackStateParams) {
         setTracks(prev => prev.map(t => {
           if (t.id !== trackId) return t;
           const clampedVal = Math.min(val, t.steps);
-          return { ...t, pulses: clampedVal };
+          return updateTrackPattern({ ...t, pulses: clampedVal });
         }));
         break;
       }

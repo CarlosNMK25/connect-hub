@@ -1,39 +1,47 @@
 /**
  * Bjorklund's Algorithm for Euclidean Rhythms
+ * Canonical implementation using the two-group interleave approach.
  */
 export function bjorklund(pulses: number, steps: number): number[] {
   if (pulses <= 0) return new Array(steps).fill(0);
   if (pulses >= steps) return new Array(steps).fill(1);
 
-  let pattern: number[][] = [];
-  for (let i = 0; i < steps; i++) {
-    pattern.push([i < pulses ? 1 : 0]);
-  }
+  let front: number[][] = [];
+  let back: number[][] = [];
 
-  let count = steps;
-  let remainder = steps - pulses;
-  let divisor = pulses;
+  for (let i = 0; i < pulses; i++) front.push([1]);
+  for (let i = 0; i < steps - pulses; i++) back.push([0]);
 
-  while (remainder > 1) {
-    const iterations = Math.floor(divisor / remainder);
-    for (let i = 0; i < remainder; i++) {
-      for (let j = 0; j < iterations; j++) {
-        pattern[i] = pattern[i].concat(pattern[count - 1 - i]);
-      }
+  while (back.length > 1) {
+    const min = Math.min(front.length, back.length);
+    const newFront: number[][] = [];
+    for (let i = 0; i < min; i++) {
+      newFront.push([...front[i], ...back[i]]);
     }
-    count -= remainder * iterations;
-    divisor = remainder;
-    remainder = divisor % remainder;
+    const leftoverFront = front.slice(min);
+    const leftoverBack = back.slice(min);
+
+    if (leftoverFront.length > 0) {
+      front = newFront;
+      back = leftoverFront;
+    } else if (leftoverBack.length > 0) {
+      front = newFront;
+      back = leftoverBack;
+    } else {
+      front = newFront;
+      back = [];
+    }
   }
 
   const result: number[] = [];
-  for (let i = 0; i < pattern.length; i++) {
-    for (let j = 0; j < pattern[i].length; j++) {
-      result.push(pattern[i][j]);
-    }
+  for (const group of front) {
+    for (const v of group) result.push(v);
+  }
+  for (const group of back) {
+    for (const v of group) result.push(v);
   }
 
-  return result.slice(0, steps);
+  return result;
 }
 
 export function rotate<T>(array: T[], offset: number): T[] {
