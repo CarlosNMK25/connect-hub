@@ -145,8 +145,8 @@ export const GlobalControls: React.FC<GlobalControlsProps> = ({
         <div className="grid grid-cols-4 gap-4">
           <div className="flex flex-col gap-1">
             <div className={`flex justify-between text-[10px] font-mono uppercase text-idm-muted ${isStudyMode ? 'cursor-help' : ''}`}
-              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('bpm'); setHoveredGlobalEl(e.currentTarget); } }}
-              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+              onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('bpm'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(bpm); } }}
+              onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
               <span>Tempo</span>
               <span className="text-idm-ink">{bpm} BPM</span>
             </div>
