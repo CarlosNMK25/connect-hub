@@ -503,17 +503,19 @@ const MICRO_CONTEXTUAL: Record<string, ContextualZone[]> = {
 export function getMicroText(key: string, voice: PedagogyVoice, value?: number): string {
   // Contextual text when value is provided
   if (value !== undefined) {
+    // Alias mapping: handleParamEnter keys → contextual keys
+    const contextualKey = key === 'chaos' ? 'entropy' : key === 'evolve' ? 'mutationRate' : key;
     // Special handlers for non-range params
-    if (key === 'steps') {
+    if (contextualKey === 'steps') {
       const result = getStepsContextual(value, voice);
       if (result) return result;
     }
-    if (key === 'density') {
+    if (contextualKey === 'density') {
       const result = getDensityContextual(value, voice);
       if (result) return result;
     }
     // Range-based params
-    const zones = MICRO_CONTEXTUAL[key];
+    const zones = MICRO_CONTEXTUAL[contextualKey];
     if (zones) {
       const zone = zones.find(z => value <= z.max) || zones[zones.length - 1];
       return (voice === 'literary' && zone.textLiterary) ? zone.textLiterary : zone.text;
