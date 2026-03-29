@@ -8,6 +8,7 @@ interface StudyTooltipPortalProps {
   hoveredGlobalParam: string | null;
   hoveredGlobalEl: HTMLElement | null;
   studyVoice: PedagogyVoice;
+  hoveredGlobalValue?: number | null;
 }
 
 export const StudyTooltipPortal: React.FC<StudyTooltipPortalProps> = ({
