@@ -498,6 +498,12 @@ const MICRO_CONTEXTUAL: Record<string, ContextualZone[]> = {
     { max: 3, text: 'Ratchet 2-3: trémolo rítmico. Tres o cuatro disparos por step crean una subdivisión interna. A BPMs altos, efecto de hi-hat trap.', textLiterary: 'Trémolo rítmico: el step se subdivide en ráfagas que crean su propia micro-poliritmia interna. A tempo rápido, el hi-hat trap que define una generación. A tempo lento, redoble dramático.' },
     { max: Infinity, text: 'Ratchet 4: saturación de triggers. Cinco disparos en el espacio de un step. A BPMs altos (~8ms entre triggers), al límite de la resolución temporal.', textLiterary: 'Saturación: cinco golpes comprimen en un solo step todo un redoble. El ritmo dentro del ritmo, la fractalización del tiempo. A tempos altos, los triggers se funden en un grito continuo.' },
   ],
+  mcmValue: [
+    { max: 16, text: 'MCM 1-16: ciclo cortísimo. Flamenco puro, repetición profunda. Los patrones se realinean en segundos — máxima estabilidad cíclica.', textLiterary: 'El compás que vuelve a casa en segundos. La memoria del cuerpo reconoce cada vuelta antes de que la mente la analice. Repetición como ritual, como oración, como latido.' },
+    { max: 100, text: 'MCM 17-100: poliritmia moderada. Los ciclos tardan en alinearse — tensión controlada entre patrones con longitudes diferentes.', textLiterary: 'Dos relojes que se encuentran de vez en cuando. Tensión controlada: sabes que volverán a coincidir, pero la espera es parte de la música. El tiempo como promesa.' },
+    { max: 1000, text: 'MCM 101-1000: complejidad alta. Minutos antes de la repetición exacta. El oído percibe estructura sin poder anticipar el ciclo completo.', textLiterary: 'El patrón existe pero el oído no lo anticipa. Libertad dentro de la estructura — como un poema cuya rima interna solo se revela en la relectura.' },
+    { max: Infinity, text: 'MCM > 1000: evolución infinita. Territorio IDM primo — MCM(11,13,17)=2431. Nunca escucharás exactamente la misma configuración dos veces. Zona Autechre/Confield.', textLiterary: 'Nunca escucharás exactamente esto dos veces. El algoritmo como río — Async Ecosystem, Confield: el territorio donde la repetición es una ilusión y cada ciclo es un estreno absoluto.' },
+  ],
 };
 
 export function getMicroText(key: string, voice: PedagogyVoice, value?: number): string {
