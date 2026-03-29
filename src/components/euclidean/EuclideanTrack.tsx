@@ -2292,28 +2292,30 @@ export const EuclideanTrack = React.memo(({
             const noteIdx = noteIndices[i] ?? 0;
             const noteName = noteIndexToDisplayName(rootNote, scaleId, noteIdx);
             const maxIdx = getMaxNoteIndex(scaleIntervals, octaveRange);
+            const visualOrder = ((i - offset) % steps + steps) % steps;
             return (
-              <EuclideanStep 
-                key={i} 
-                active={active === 1} 
-                trackId={trackId}
-                velocity={0.85}
-                isGhost={false}
-                index={i}
-                color={color}
-                baseProbability={probabilities[i] || 1}
-                effectiveProbability={chaosEnabled ? (probabilities[i] || 1) * entropy : (probabilities[i] || 1)}
-                previewActive={previewPattern ? previewPattern[i] === 1 : false}
-                temporalOffset={temporalOffsets?.[i] ?? 0}
-                onProbabilityChange={(val) => onSequencerAction(trackId, 'probability', i, val)}
-                onToggle={() => onSequencerAction(trackId, 'toggleStep', i)}
-                evolveEnabled={evolveEnabled}
-                isTonal={isTonal}
-                noteName={noteName}
-                noteIndex={noteIdx}
-                maxNoteIndex={maxIdx}
-                onNoteIndexChange={(val) => onSequencerAction(trackId, 'noteIndex', i, val)}
-              />
+              <div key={i} style={{ order: visualOrder }}>
+                <EuclideanStep 
+                  active={active === 1} 
+                  trackId={trackId}
+                  velocity={0.85}
+                  isGhost={false}
+                  index={visualOrder}
+                  color={color}
+                  baseProbability={probabilities[i] || 1}
+                  effectiveProbability={chaosEnabled ? (probabilities[i] || 1) * entropy : (probabilities[i] || 1)}
+                  previewActive={previewPattern ? previewPattern[i] === 1 : false}
+                  temporalOffset={temporalOffsets?.[i] ?? 0}
+                  onProbabilityChange={(val) => onSequencerAction(trackId, 'probability', i, val)}
+                  onToggle={() => onSequencerAction(trackId, 'toggleStep', i)}
+                  evolveEnabled={evolveEnabled}
+                  isTonal={isTonal}
+                  noteName={noteName}
+                  noteIndex={noteIdx}
+                  maxNoteIndex={maxIdx}
+                  onNoteIndexChange={(val) => onSequencerAction(trackId, 'noteIndex', i, val)}
+                />
+              </div>
             );
           })}
         </div>
