@@ -40,6 +40,7 @@ interface SyncPanelProps {
   isStudyMode: boolean;
   setHoveredGlobalParam: (v: string | null) => void;
   setHoveredGlobalEl: (v: HTMLElement | null) => void;
+  setHoveredGlobalValue: (v: number | null) => void;
 }
 
 export const SyncPanel: React.FC<SyncPanelProps> = ({
