@@ -337,7 +337,7 @@ export const EuclideanTrack = React.memo(({
   const [isDraggingVolume, setIsDraggingVolume] = useState(false);
   const volumeBarRef = useRef<HTMLDivElement>(null);
 
-  const localProgress = ((globalStep + offset) % steps) / steps;
+  const localProgress = (globalStep % steps) / steps;
   const globalProgress = (globalStep % mcm) / mcm;
 
   useEffect(() => {
