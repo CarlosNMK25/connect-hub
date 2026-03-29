@@ -81,6 +81,7 @@ export const EuclideanSequencer = () => {
     isThesisOpen, setIsThesisOpen,
     hoveredGlobalParam, setHoveredGlobalParam,
     hoveredGlobalEl, setHoveredGlobalEl,
+    hoveredGlobalValue, setHoveredGlobalValue,
   } = usePedagogy();
   const [eclipseFlash, setEclipseFlash] = useState(false);
   const eclipseRef = useRef(false);
