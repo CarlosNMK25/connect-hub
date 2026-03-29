@@ -56,8 +56,8 @@ export const AdvancedFxPanel: React.FC<AdvancedFxPanelProps> = ({
             key={fx.id}
             onClick={() => setActiveFxPanel(activeFxPanel === fx.id ? null : fx.id)}
             onDoubleClick={() => fx.setEnabled(!fx.enabled)}
-            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam(fx.studyParam); setHoveredGlobalEl(e.currentTarget); } }}
-            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}
+            onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam(fx.studyParam); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(null); } }}
+            onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}
             className={`text-[8px] font-mono px-2 py-1 rounded border transition-colors ${
               activeFxPanel === fx.id
                 ? 'bg-system-accent text-white border-system-accent'
