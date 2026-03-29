@@ -412,7 +412,20 @@ export function useTrackState(params: UseTrackStateParams) {
         reverbSend.dispose();
       };
 
-      synthObj.triggerAttackRelease = (duration: any, time: number, velocity: number, sliceInfoArg?: { startSec: number; durationSec: number; detuneCents: number; isReverse: boolean }) => {
+      synthObj.triggerAttackRelease = (...args: any[]) => {
+        // Handle both tonal (freq, duration, time, velocity, sliceInfo) and
+        // non-tonal (duration, time, velocity, sliceInfo) call signatures
+        let duration: any, time: number, velocity: number, sliceInfoArg: { startSec: number; durationSec: number; detuneCents: number; isReverse: boolean } | undefined;
+        if (args.length >= 5) {
+          // Tonal path — freq is ignored for grain playback
+          [, duration, time, velocity, sliceInfoArg] = args;
+        } else {
+          [duration, time, velocity, sliceInfoArg] = args;
+        }
+        // Validate sliceInfoArg is actually an object (not a misplaced primitive)
+        if (sliceInfoArg && typeof sliceInfoArg !== 'object') {
+          sliceInfoArg = undefined;
+        }
         const currentTrack = tracksRef.current.find(t => t.id === trackId);
         if (!currentTrack || !grainPlayer.buffer) return;
         
