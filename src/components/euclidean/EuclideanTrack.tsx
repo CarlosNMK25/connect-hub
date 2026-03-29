@@ -2330,7 +2330,7 @@ export const EuclideanTrack = React.memo(({
           {/* Chaos Section */}
           <div 
             className="flex items-center gap-4 relative"
-            onMouseEnter={(e) => handleParamEnter('chaos', e)}
+            onMouseEnter={(e) => handleParamEnter('chaos', e, entropy)}
             onMouseLeave={handleParamLeave}
           >
             <button 
