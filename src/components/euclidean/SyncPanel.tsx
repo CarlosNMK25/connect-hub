@@ -342,8 +342,8 @@ export const SyncPanel: React.FC<SyncPanelProps> = ({
       </div>
 
       <div className={isStudyMode ? 'cursor-help' : ''}
-        onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('phaseRadar'); setHoveredGlobalEl(e.currentTarget); } }}
-        onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); }}>
+        onMouseEnter={(e) => { if (isStudyMode) { setHoveredGlobalParam('phaseRadar'); setHoveredGlobalEl(e.currentTarget); setHoveredGlobalValue(null); } }}
+        onMouseLeave={() => { setHoveredGlobalParam(null); setHoveredGlobalEl(null); setHoveredGlobalValue(null); }}>
         <PhaseRadar 
           tracks={tracks.map(t => ({ id: t.id, name: t.name, steps: t.steps, pulses: t.pulses, color: t.color, offset: t.offset, chaosEnabled: (t as any).chaosEnabled, evolveEnabled: (t as any).evolveEnabled, entropy: (t as any).entropy, mutationRate: (t as any).mutationRate }))}
           globalStep={globalStep}
