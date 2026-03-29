@@ -1127,7 +1127,7 @@ export const EuclideanTrack = React.memo(({
                 onChange={(e) => onSequencerAction(trackId, 'pulses', parseInt(e.target.value))}
                 className="w-full h-1 bg-idm-bg appearance-none cursor-pointer rounded-full" style={{ accentColor: color }} />
             </div>
-            <div className="space-y-1 w-28 relative" onMouseEnter={(e) => handleParamEnter('steps', e)} onMouseLeave={handleParamLeave}>
+            <div className="space-y-1 w-28 relative" onMouseEnter={(e) => handleParamEnter('steps', e, steps)} onMouseLeave={handleParamLeave}>
               <div className="flex justify-between text-[8px] font-mono font-bold uppercase text-idm-muted">
                 <span>Steps</span><span style={{ color }}>{steps}</span>
               </div>
