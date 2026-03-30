@@ -80,6 +80,12 @@ export interface TrackPreset {
   extremeLoopPoint?: number;
   // Sampler mode
   mode?: 'GATE' | 'TRIGGER' | 'ONE-SHOT';
+  // Phase drift
+  phaseDriftEnabled?: boolean;
+  phaseDriftRate?: number;
+  // FM synth
+  fmRatio?: number;
+  fmIndex?: number;
 }
 
 export interface ScenePreset {
