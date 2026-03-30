@@ -489,6 +489,25 @@ export const PRESETS: ScenePreset[] = [
     }
   },
   {
+    id: 'phonk-asynch',
+    name: 'Phonk Asynch',
+    type: 'master',
+    category: 'Experimental',
+    description: 'Trap bounce meets IDM: ciclos primos transforman el patrón phonk en estructura no-repetitiva. MCM ~46k steps.',
+    bpm: 130,
+    jitter: 12,
+    swing: 25,
+    dynamics: 70,
+    temporalityMode: 'dilla',
+    tracks: {
+      kick: { pulses: 4, steps: 11, offset: 0, volume: 0.85, chaosEnabled: true, entropy: 1.3, delaySend: 0.1, reverbSend: 0.15 },
+      snare: { pulses: 3, steps: 13, offset: 4, volume: 0.9, ratchet: 2, evolveEnabled: true, mutationRate: 0.1, mutationSpeed: 2, delaySend: 0.2, reverbSend: 0.25 },
+      hat: { pulses: 11, steps: 17, offset: 0, volume: 0.6, phaseDriftEnabled: true, phaseDriftRate: 0.02, baseProbability: 0.75, delaySend: 0.15, reverbSend: 0.1 },
+      cloud: { pulses: 5, steps: 16, offset: 0, volume: 0.35, cloudMode: 'granular', grainSize: 80, spray: 200, overlap: 0.5, reverbSend: 0.5 },
+      tone: { pulses: 5, steps: 19, offset: 0, volume: 0.4, isTonal: true, synthType: 'fm', scaleId: 'wholeTone', rootNote: 36, octaveRange: 2, noteMode: 'markov', markovStyle: 'idm', markovTemperature: 70, markovAnchor: 8, fmRatio: 3, fmIndex: 15, delaySend: 0.3, reverbSend: 0.4 },
+    }
+  },
+  {
     id: 'xlp-oscillator',
     name: 'XLP Oscillator',
     type: 'master',
